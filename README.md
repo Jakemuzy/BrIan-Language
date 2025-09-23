@@ -2,7 +2,7 @@ Introducing BrIan
 
 A Compiled Language with build with concurrency in mind
 
-EBNF:
+EBNF:  
 	Prog ::= START CompStmt UPDATE Compstmt
 	Thread ::= IDENT CompStmt
 
