@@ -13,8 +13,8 @@ int main(int argc, char* argv[])
     }   
     
     int d = 8;
-    m.child->data = (void*)(&d);
-    Enqueue(m);
+    Enqueue(&m, d);
+    Enqueue(&m, 10);
 
     free(m.child);
 	return 0;

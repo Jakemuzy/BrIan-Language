@@ -4,15 +4,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct Node {
-    void* data;
+typedef struct Node {
+    int data;
     struct Node* child;
-};
+} Node;
 
-struct Queue {
+typedef struct Queue {
     struct Node* child;
-};
+} Queue;
 
-void Enqueue(struct Queue q);
+void Enqueue(struct Queue* q, int d);
 
 #endif
