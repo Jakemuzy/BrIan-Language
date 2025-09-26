@@ -3,9 +3,8 @@
 Queue MakeQueue()
 {
     Queue q;
-    q.tail = (Node*)malloc(sizeof(Node));
-    q.head = q.tail;
-
+    q.head = NULL;
+    q.tail = NULL;
     return q;
 }
 
@@ -22,23 +21,48 @@ void FreeQueue(Queue* q)
 
 void Enqueue(Queue* q, int d)
 {
-    Node* currentTail = q->tail;
 
-    /* Creates a new child filled data */
-    currentTail->child = (Node*)malloc(sizeof(Node));
-    if (!currentTail->child)
+    if (q->head == NULL && q->tail == NULL)
     {
-        printf("Failed to init child node");
+        /* Fills the head with data */
+        q->head = (Node*)malloc(sizeof(Node));
+        if (!q->head)
+        {
+            printf("Failed to init head");
+            return;
+        }
+        q->tail = q->head;
+        q->tail->data = d;
     }
+    else
+    {
+        Node* currentTail = q->tail;
 
-    q->tail = currentTail->child;
-    q->tail->data = d;
+        /* Creates a new tail filled data */
+        currentTail->child = (Node*)malloc(sizeof(Node));
+        
+        /* Error Checking */
+        if (!currentTail->child)
+        {
+           printf("Failed to init child node");
+           return;
+        }
+        q->tail = currentTail->child;
+        q->tail->data = d;
+    }
+    
 
     printf("%d\n", (q->tail->data));
 };
 
 int Dequeue(Queue* q)
 {
+    if (!q->head)
+    {
+        printf("Queue is empty\n");
+        return -1;
+    }
+
     Node* prevHead = q->head;
     int value = prevHead->data;
     
