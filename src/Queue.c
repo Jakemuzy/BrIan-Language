@@ -19,7 +19,7 @@ void FreeQueue(Queue* q)
     }
 }
 
-void Enqueue(Queue* q, int d)
+void Enqueue(Queue* q, Token d)
 {
 
     if (q->head == NULL && q->tail == NULL)
@@ -55,9 +55,9 @@ void Enqueue(Queue* q, int d)
     printf("%d\n", (q->tail->data));
 };
 
-int Dequeue(Queue* q)
+Token Dequeue(Queue* q)
 {
-    if (!q->head)
+    if (q->head == NULL)
     {
         printf("Queue is empty\n");
         return -1;
@@ -65,8 +65,11 @@ int Dequeue(Queue* q)
 
     Node* prevHead = q->head;
     int value = prevHead->data;
-    
-    q->head = prevHead->child;
+       
+    if(q->head == q->tail)
+        q->head = q->tail =  NULL;
+    else 
+        q->head = prevHead->child;
 
     free(prevHead);
     return value;
@@ -75,6 +78,11 @@ int Dequeue(Queue* q)
 
 void PrintQueue(Queue* q)
 {
+    if(q->head == NULL)
+    {
+        printf("Nothing in Queue\n");
+        return;
+    }
     printf("HEAD: %d\nTAIL: %d\n", (q->head->data), (q->tail->data));
 }
     

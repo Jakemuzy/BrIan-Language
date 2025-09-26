@@ -16,6 +16,6 @@ typedef enum {
 
     /* Data types */
     IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, 
-} TOKEN;
+} Token;
 
 #endif

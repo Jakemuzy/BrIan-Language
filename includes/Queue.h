@@ -4,8 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <Structs.h>
+
 typedef struct Node {
-    int data;
+    Token data;
     struct Node* child;
 } Node;
 
@@ -18,8 +20,8 @@ typedef struct Queue {
 Queue MakeQueue();
 void FreeQueue(Queue* q);
 
-void Enqueue(Queue* q, int d);
-int Dequeue(Queue* q);
+void Enqueue(Queue* q, Token d);
+Token Dequeue(Queue* q);
 
 void PrintQueue(Queue* q);
 
