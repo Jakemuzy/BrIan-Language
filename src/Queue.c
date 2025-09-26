@@ -51,8 +51,6 @@ void Enqueue(Queue* q, Token d)
         q->tail->data = d;
     }
     
-
-    printf("%d\n", (q->tail->data));
 };
 
 Token Dequeue(Queue* q)

@@ -1,6 +1,9 @@
 Introducing BrIan
 
-A Compiled Language with build with concurrency in mind
+A Compiled Language built with concurrency in mind.
+
+GOALS:
+    Concurrency, low memory utilization, compiled, safe memory
 
 EBNF:  
     ImportList ::= ImportList | Import
@@ -30,4 +33,18 @@ EBNF:
 
 
 	...	
-	
+
+DATA TYPES:
+    Integral:
+        char(1), bool(1), short(2), int(4), long(8)
+    Decimal:
+        float(4), double(8)
+    Special:
+        binary(1), hexadecimal(8), string(inf), safeptr(inf), struct(inf), enum(inf), thread(inf)
+
+TYPE QUALIFIERS:
+    unsigned, signed, const, new
+
+CONTROL STATEMENTS:
+    if, else, do, while, switch, case, break, continue, goto, return
+
