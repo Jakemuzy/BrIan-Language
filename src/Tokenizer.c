@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include <Any.h>
+#include <Pair.h>
 #include <Queue.h>
 #include <FileStream.h>
 
@@ -9,6 +11,15 @@ typedef struct {
     char* lexeme;
     int line, col;
 } Tok;
+
+/*
+Map KeywordMap {
+    ("if", IF),
+    ("else", ELSE),
+    ("while", WHILE),
+
+}
+*/
 
 int main(int argc, char* argv[])
 {
@@ -23,6 +34,9 @@ int main(int argc, char* argv[])
         printf("ERROR: Opening source file %s\n", argv[1]);
         return 1;
     }
+    
+    /* Pair testing */
+    B_ANY b = ANY(54);
 
     /* Iterate through each character */
     int charCount = 0;
@@ -31,11 +45,12 @@ int main(int argc, char* argv[])
     
     while((curr = fgetc(file)) != EOF)
     {
-        /* Enqueue(&Tokens, CHAR); */
+        /* Enqueue(&Tokens, CHAR); 
         bool identifier = keyword = integral = floating = hex = binary = operator = separator = cliteral = sliteral = true;
-        
-        putbackChar = 'a';
+        */
 
+        putbackChar = 'a';
+        printf("%d", putbackChar);
         charCount++;
     }
     
