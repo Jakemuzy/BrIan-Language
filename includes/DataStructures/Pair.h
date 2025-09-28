@@ -1,11 +1,14 @@
 #ifndef _PAIR_H__
 #define _PAIR_H__
 
-typedef struct Pair{ 
-    void* first;
-    void* second;
+#include <Any.h>
+
+/* Generic Typing (not implemented yet */
+typedef struct { 
+    B_ANY first;
+    B_ANY second;
 } Pair;
 
-void MakePair(void* first, void* second);
+Pair MakePair(B_ANY first, B_ANY second);
 
 #endif

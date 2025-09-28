@@ -1,6 +1,6 @@
 #ifndef _STRUCTS_H__
 #define _STRUCTS_H__
-    
+
 typedef enum {
     /* Ctrl Stmts */
     IF, ELIF, ELSE, DO, WHILE, FOR, 
@@ -16,6 +16,14 @@ typedef enum {
 
     /* Data types */
     IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, 
+} TokenType;
+
+/* Helper Structures */
+typedef struct {
+    TokenType type;
+    char* lexeme;
+    int line, col;
 } Token;
+
 
 #endif

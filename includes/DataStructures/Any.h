@@ -8,7 +8,7 @@
 The purpose of this file is to mainly serve as a way to achieve "Generics" in C. It acts as a structure that stores a void* to the raw data, and keeps track of the type of the data 
 */
 
-#define ANY(val) MakeAny(&(val)), sizeof(val))
+#define ANY(val) MakeAny(&(val))
 
 typedef enum {
     C_CHAR, C_SHORT, C_INT, C_FLOAT, C_DOUBLE, C_STRING, C_ANY

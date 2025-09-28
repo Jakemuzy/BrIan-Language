@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <Structs.h>
+#include <DataStructures/Structs.h>
 
 typedef struct Node {
     Token data;
