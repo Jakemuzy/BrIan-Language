@@ -1,4 +1,4 @@
-#include <Queue.h>
+#include <DataStructures/Queue.h>
 
 Queue MakeQueue()
 {
@@ -58,11 +58,12 @@ Token Dequeue(Queue* q)
     if (q->head == NULL)
     {
         printf("Queue is empty\n");
-        return -1;
+        Token null;
+        return null;
     }
 
     Node* prevHead = q->head;
-    int value = prevHead->data;
+    Token value = prevHead->data;
        
     if(q->head == q->tail)
         q->head = q->tail =  NULL;

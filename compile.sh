@@ -8,7 +8,7 @@ then
 fi
 
 # General Settings
-GCC_FLAGS="-std=c89 -Werror -Wall -Wextra"
+GCC_FLAGS="-std=c89 -g -Werror" # -Wall -Wextra"
 
 INCLUDE_PATHS="./includes:./includes/DataStructures"
 #INCLUDES=$(echo "$INCLUDE_PATH/"*.h)
