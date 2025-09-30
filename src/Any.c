@@ -24,7 +24,7 @@ bool IsArray(B_ANY any)
             size = sizeof(char);
             break;
         case C_SHORT:
-            size = sizeof(short)
+            size = sizeof(short);
             break;
         case C_INT:
             size = sizeof(int);

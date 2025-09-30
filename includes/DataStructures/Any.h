@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 /* 
 The purpose of this file is to mainly serve as a way to achieve "Generics" in C. It acts as a structure that stores a void* to the raw data, and keeps track of the type of the data 
