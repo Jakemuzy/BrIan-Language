@@ -66,6 +66,7 @@ int main(int argc, char* argv[])
 
     Token curTok;
     curTok.type = IDENTIFIER;
+    curTok.lexeme = "";
     curTok.line = charCount;
 
     TokenState state = IDENTIFIER;
@@ -85,9 +86,14 @@ int main(int argc, char* argv[])
             if(next == '*')
             {
                 state = COMMENT;
-                /* Add EOF check */
                 while((next = fgetc(file)) != '*')
-                    ;
+                {
+                    if(next == EOF)
+                    {
+                        state = ERR;
+                        break;
+                    }
+                }
 
                 if((next = fgetc(file)) == '/')
                     break;
@@ -158,6 +164,33 @@ int main(int argc, char* argv[])
 
         }
 
+        /* Literals */
+        if(c == '\'')
+        {
+            char next = fgetc(file);
+            if(next != EOF);
+            {
+                next = fgetc(file);
+                if(next != '\'')
+                {
+                    state = ERR;
+                    break;
+                }
+            }
+        }
+        if(c == '\"')
+        {
+            char next;
+            while((next = fgetc(file) != '\"'))
+            {
+                if(next == EOF)
+                {
+                    state = ERR;
+                    printf("ERROR: EOF reached before string literal ended\n");
+                    break;
+                }
+            }
+        }
         
         charCount++;
     }
