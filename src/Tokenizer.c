@@ -13,7 +13,8 @@ typedef enum {
     KEYWORD, IDENTIFIER,
     INTEGRAL, DECIMAL, HEX, BIN, 
     OPERATOR, SEPARATOR, 
-    CHAR_LITERAL, STRING_LITERAL 
+    CHAR_LITERAL, STRING_LITERAL,
+    COMMENT, ERR
 } TokenState;
 /*
 Map KeywordMap {
@@ -70,13 +71,93 @@ int main(int argc, char* argv[])
     TokenState state = IDENTIFIER;
     while((c = fgetc(file)) != EOF)
     {
-        /* Enqueue(&Tokens, CHAR); */
-        
+         
         /* Finish Token */
         if(isspace(c))
         {
 
         }
+
+        /* Comments */
+        if(c == '/')
+        {
+            char next = fgetc(file);
+            if(next == '*')
+            {
+                state = COMMENT;
+                /* Add EOF check */
+                while((next = fgetc(file)) != '*')
+                    ;
+
+                if((next = fgetc(file)) == '/')
+                    break;
+                else 
+                    ungetc(next, file);
+            }
+            else if (next == '/')
+            {
+                /* Add EOF check */
+                while((next = fgetc(file)) != '\n')
+                    ;
+            }
+            else 
+            {
+                ungetc(next, file);
+            }
+        }
+
+        /* Ident or Keyword */
+
+        /* Numbers */
+        if(isdigit(c))
+        {
+            state = INTEGRAL;
+            while(state == INTEGRAL)
+            {
+                char next = fgetc(file);
+                if(isdigit(next))
+                    ;
+                else if (next == '.')
+                    state = DECIMAL;
+                else if (isspace(next))
+                {
+                    ungetc(next, file);
+                    break;
+                }
+                else if (isalpha(next))
+                {
+                    state = IDENTIFIER;
+                    ungetc(next, file);
+                    break;
+                } 
+                else 
+                    ;
+            }
+
+            while(state == DECIMAL)
+            {
+                char next = fgetc(file);
+                if(isdigit(next))
+                    ;
+                else if (isspace(next))
+                {
+                    ungetc(next, file);
+                    break;
+                }
+                else if (isalpha(next))
+                {
+                    state = ERR;
+                    break;
+                }
+                else
+                {
+                    ungetc(next, file);
+                    break;
+                }
+            }
+
+        }
+
         
         charCount++;
     }

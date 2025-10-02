@@ -1,7 +1,6 @@
 #ifndef _DICTIONARY_H__
 #define _DICTIONARY_H__
 
-#define Bucket LinkedList
 #define DICT(p1, ...) MakeDictionary(p1, ...)
 
 #include "DataStructures/Pair.h"
@@ -10,7 +9,7 @@
 /* Buckets */
 typedef struct {
     int capacity;
-    void*
+    void* data;
 } Bucket;
 
 /* Hashing Functions */
@@ -18,7 +17,7 @@ void Hashfunction(Pair p);
 
 /* Hash Table */
 typedef struct {
-    int code
+    int code;
     Bucket* buckets;
 } Dictionary;
 

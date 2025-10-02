@@ -3,10 +3,11 @@
 /* djb2 Hash Function */
 int HashFunction(Pair p)
 {
-    unsigned char* bytes = first.RawData;
+    unsigned char* bytes = p.first.RawData;
     unsigned long h = 5381;
-
-    for(size_t i = 0; i < p.size; i++)
+    
+    size_t i = 0;
+    for(i; i < sizeof(bytes); i++)
     {
         h = ((h << 5) + h) + bytes[i];
     }

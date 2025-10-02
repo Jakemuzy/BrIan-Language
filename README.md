@@ -33,6 +33,9 @@ EBNF:
 
 
 	...	
+REGULAR EXPRESSIONS:
+    
+
 
 DATA TYPES:
     Integral:
