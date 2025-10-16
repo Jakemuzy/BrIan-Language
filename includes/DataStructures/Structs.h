@@ -5,17 +5,29 @@ typedef enum {
     /* Ctrl Stmts */
     IF, ELIF, ELSE, DO, WHILE, FOR, 
 
-    /* Operators */
-    EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, PP, SS, MM,
+    /* Assignment Operators */
+    EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, PP, SS,
+
+    /* Equation Operators */
+    PLUS, MINUS, DIV, MULT, POW, MOD, 
 
     /* Comparison Operators */
-    EQQ, NEQ, NOT,
+    EQQ, NEQQ, GEQQ, LEQQ, NOT, ANDL, ORL, GREAT, LESS, 
+
+    /* Bitwise Operators */
+    NEG, XOR, OR, AND, LSHIFT, RSHIFT, 
 
     /* Unary Operators */
-    PLUS, MINUS, FACTORIAL,
+    FACTORIAL, /* Also NOT */
+
+    /* Brackets */
+    LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK,
 
     /* Data types */
     IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, 
+
+    /* Other */
+    SEMI, 
 } TokenType;
 
 /* Helper Structures */

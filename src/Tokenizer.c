@@ -55,6 +55,7 @@ int main(int argc, char* argv[])
         printf("ERROR: Opening source file %s\n", argv[1]);
         return 1;
     }
+
     Pair p;
     int i = 0;
     char* j = "hey";
@@ -77,6 +78,118 @@ int main(int argc, char* argv[])
         if(isspace(c))
         {
 
+        }
+
+        /* = and == */
+        if(c == '=')
+        {
+            char next = fgetc(file);
+            if(isspace(next))
+            {
+                state = EQ;
+            }
+            else if(next == '=')
+            {
+                state = EQQ;
+            }
+            else 
+            {
+                ungetc(next, file);
+            }
+        }
+
+        /* +, -, /, *, **, %, and EQQ versions */
+        if(c == '+')
+        {
+            char next = fgetc(file);
+            if(isspace(next))
+            {
+                state = PLUS;
+            }
+            else if(next == '=')
+            {
+                state = PEQ;
+            } 
+            else if(next == '+')
+            {
+                state = PP;
+            }
+            else 
+            {
+                ungetc(next, file);
+            }
+        }
+        if(c == '-')
+        {
+            char next = fgetc(file);
+            if(isspace(next))
+            {
+                state = MINUS;
+            }
+            else if(next == '=')
+            {
+                state = SEQ;
+            }
+            else if(next == '-')
+            {
+                state = SS;
+            }
+            else 
+            {
+                ungetc(next, file);
+            }
+        }
+        if(c == '/')
+        {
+            char next = fgetc(file);
+            if(isspace(next))
+            {
+                state = DIV;
+            }
+            else if(next == '=')
+            {
+                state = DEQ;
+            }
+            else 
+            {
+                ungetc(next, file);
+            }
+        }
+        if(c == '*')
+        {
+            char next = fgetc(file);
+            if(isspace(next))
+            {
+                state = MULT;
+            }
+            else if(next == '=')
+            {
+                state = MEQ;
+            }
+            else if(next == '*')
+            {
+                state = POW;
+            }
+            else 
+            {
+                ungetc(next, file);
+            }
+        }
+        if(c == '%')
+        {
+            char next = fgetc(file);
+            if(isspace(next))
+            {
+                state = MOD;
+            }
+            else if(next == '=')
+            {
+                state = MODEQ;
+            }
+            else 
+            {
+                ungetc(next, file);
+            }
         }
 
         /* Comments */
