@@ -2,8 +2,11 @@
 #define _STRUCTS_H__
 
 typedef enum {
-    /* Ctrl Stmts */
+    /* Ctrl Stmt Key Words */
     IF, ELIF, ELSE, DO, WHILE, FOR, 
+
+    /* Data Type Key Words */
+    IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, 
 
     /* Assignment Operators */
     EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, PP, SS,
@@ -23,11 +26,11 @@ typedef enum {
     /* Brackets */
     LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK,
 
-    /* Data types */
-    IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, 
+    /* Data Types */
+    INTEGRAL, DECIMAL,
 
     /* Other */
-    SEMI, 
+    SEMI, COMMENT, ERR 
 } TokenType;
 
 /* Helper Structures */
