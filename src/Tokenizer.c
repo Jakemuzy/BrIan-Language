@@ -7,7 +7,7 @@ Token GetNextToken(FILE* fptr)
 
     int c = fgetc(fptr);
 
-    if((next.type == IsNumber(fptr, c)) != NA)
+    if((next.type = IsNumber(fptr, c)) != NA)
         ;
     else if((next.type = IsLiteral(fptr, c)) != NA)
         ;
@@ -52,7 +52,7 @@ TokenType IsNumber(FILE* fptr, int c)
 
     while(state == INTEGRAL || state == DECIMAL)
     {
-        char next = fgetc(fptr);
+        int next = fgetc(fptr);
         if(isdigit(next))
             ;
         else if (next == '.' && !decimalSeen)
@@ -79,7 +79,7 @@ TokenType IsLiteral(FILE* fptr, int c)
 {
     if(c == '\'')
     {
-        char next = fgetc(fptr);
+        int next = fgetc(fptr);
         if(next != EOF);
         {
             next = fgetc(fptr);
@@ -93,7 +93,7 @@ TokenType IsLiteral(FILE* fptr, int c)
     }
     else if(c == '\"')
     {
-        char next;
+        int next;
         while((next = fgetc(fptr) != '\"'))
         {
             if(next == EOF)
@@ -124,7 +124,7 @@ TokenType IsEqual(FILE* fptr, int c)
 {
     if(c == '=')
     {
-        char next = fgetc(fptr);
+        int next = fgetc(fptr);
         if(next == '=')
             return EQQ;
         
@@ -139,7 +139,7 @@ TokenType IsPlus(FILE* fptr, int c)
 {
     if(c == '+')
     {
-        char next = fgetc(fptr);
+        int next = fgetc(fptr);
         if(next == '=')
             return PEQ;
         else if(next == '+')
@@ -156,7 +156,7 @@ TokenType IsMinus(FILE* fptr, int c)
 
     if(c == '-')
     {
-        char next = fgetc(fptr);
+        int next = fgetc(fptr);
         if(next == '=')
             return SEQ;
         else if(next == '-')
@@ -173,7 +173,7 @@ TokenType IsDiv(FILE* fptr, int c)
 
     if(c == '/')
     {
-        char next = fgetc(fptr);
+        int next = fgetc(fptr);
         if(next == '=')
             return DEQ;
         else if (IsComment(fptr, next) == COMMENT)
@@ -190,7 +190,7 @@ TokenType IsMult(FILE* fptr, int c)
 
     if(c == '*')
     {
-        char next = fgetc(fptr);
+        int next = fgetc(fptr);
         if(next == '=')
             return MEQ;
         else if(next == '*')
@@ -207,7 +207,7 @@ TokenType IsMod(FILE* fptr, int c)
 
     if(c == '%')
     {
-        char next = fgetc(fptr);
+        int next = fgetc(fptr);
         if(next == '=')
             return MODEQ;
 

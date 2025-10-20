@@ -36,15 +36,12 @@ int main(int argc, char* argv[])
     Token next;
     next.type = IDENT;
 
-    while(next.type != ERR && next.type != END)
+    while(next.type != ERR && next.type != END && next.type != NA)
     {
         next = GetNextToken(fptr);
         printf("Token: %d\tValue: %d\n", charCount, next.type); 
 
         charCount++;
-
-        if(charCount > 10)
-            break;
     }
     
     FreeQueue(&Tokens);
