@@ -30,7 +30,11 @@ typedef enum {
     INTEGRAL, DECIMAL,
 
     /* Other */
-    SEMI, COMMENT, ERR 
+    SEMI, COMMENT, CLITERAL, SLITERAL, ERR, END,
+
+    /* Currently Not Determinable */
+    NA
+
 } TokenType;
 
 /* Helper Structures */

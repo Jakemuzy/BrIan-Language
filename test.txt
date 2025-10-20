@@ -1,4 +1,3 @@
-Mary had a litle lamb, little lamb, little lamb;
-Mary had a little lamb who's fleece was wihte as snow;
-and when mary ate the lamb, ate the lamb, ate the lamb;
-mary felt really sad, sad as a sow
+// This is a comment
+/* This is another comment */
+
