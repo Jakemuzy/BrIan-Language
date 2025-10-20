@@ -5,73 +5,136 @@ Token GetNextToken(FILE* fptr)
     Token next;
     next.type = IDENT;
 
-    int c;
-    while((c = fgetc(fptr) != EOF))
-    {
-        if((next.type = IsComment(fptr)) != ERR)
-            break;
-    }
-    
+    int c = fgetc(fptr);
+
+    if((next.type == IsNumber(fptr, c)) != NA)
+        ;
+    else if((next.type = IsLiteral(fptr, c)) != NA)
+        ;
+    else if((next.type = IsEqual(fptr, c)) != NA)
+        ;
+    else if((next.type = IsPlus(fptr, c)) != NA)
+        ;
+    else if((next.type = IsMinus(fptr, c)) != NA)
+        ;
+    else if((next.type = IsDiv(fptr, c)) != NA) 
+        ;
+    else if((next.type = IsMult(fptr, c)) != NA)
+        ;
+    else if((next.type = IsMod(fptr, c)) != NA)
+        ;
+
     return next;
 }
 
-/* = and == */
-TokenType IsEqual(FILE* fptr, int c)
+/* ---------- CATEGORIES ---------- */
+
+TokenType IsOperator(FILE* fptr, int c)
 {
-    TokenType state = ERR;
-    if(c == '=')
-         {
-             char next = fgetc(file);
-             state = EQ;
-             if(next == '=')
-             {
-                 state = EQQ;
-             }
-             else 
-             {
-                 ungetc(next, file);
-             }
-         }
+}
+
+TokenType IsNumber(FILE* fptr, int c)
+{
+    TokenType state;
+    bool decimalSeen = false;
+
+    if(isdigit(c))
+        state = INTEGRAL;
+    else if(c == '.')
+    {
+        state = DECIMAL;
+        decimalSeen = true;
+    }
+    else 
+    {
+        return NA;
+    }
+
+    while(state == INTEGRAL || state == DECIMAL)
+    {
+        char next = fgetc(fptr);
+        if(isdigit(next))
+            ;
+        else if (next == '.' && !decimalSeen)
+        {
+            state = DECIMAL;
+            decimalSeen = true;
+        }
+        else if (next == '.')
+            return ERR;     /* Don't even finish */
+        else if (isspace(next))
+            break;
+        else if (isalpha(next))
+        {
+            /* Need to send to an IsIdent function if ANY function returns Ident to check next chars */
+            state = IDENT;
+            break;
+        }
+
     }
     return state;
 }
 
-/* + - / * ** % and their eqq versions */
-TokenType IsOperator(FILE* fptr, int c)
+TokenType IsLiteral(FILE* fptr, int c)
 {
-    
-    TokenType state;
-}
-
-TokenType IsComment(FILE* fptr, int c)
-{
-    /* Only called in IsDiv so first char already div */
-    int next = c;
-    int prev = '';
-    if(next == '*')
+    if(c == '\'')
     {
-        while((next = fgetc(file)) != '/' && prev != '*')
+        char next = fgetc(fptr);
+        if(next != EOF);
         {
-            if(next == EOF)
-                return ERR; /* ERR 1 comment doesnt end */
-
-            prev = next;
+            next = fgetc(fptr);
+            if(next != '\'')
+            {
+                printf("ERROR: Cannot have char literal with length > 1\n");
+                return ERR;
+            }
         }
-    } 
-    else if (next == '/')
-    {
-        /* Add EOF check */
-        while((next = fgetc(file)) != '\n')
-        {
-            if(next == EOF)
-                break;
-        }
+        return CLITERAL;
     }
-    return COMMENT;
+    else if(c == '\"')
+    {
+        char next;
+        while((next = fgetc(fptr) != '\"'))
+        {
+            if(next == EOF)
+            {
+                printf("ERROR: EOF reached before string literal ended\n");
+                return ERR;
+            }
+        }
+        return SLITERAL;
+    }
+
+    return NA;
+
+}
+
+TokenType IsEnd(FILE* fptr, int c)
+{
+    if(c == EOF)
+        return END;
+    return NA;
 }
 
 
-/* More Operators */
+/* ---------- OPERATORS ---------- */
+
+/* = and == */
+TokenType IsEqual(FILE* fptr, int c)
+{
+    if(c == '=')
+    {
+        char next = fgetc(fptr);
+        if(next == '=')
+            return EQQ;
+        
+        ungetc(next, fptr);
+        return EQ; 
+    }
+    return NA;
+}
+
+/* +, +=, ++ */
 TokenType IsPlus(FILE* fptr, int c)
 {
     if(c == '+')
@@ -82,10 +145,10 @@ TokenType IsPlus(FILE* fptr, int c)
         else if(next == '+')
             return PP;  
 
-        ungetc(next, file);
+        ungetc(next, fptr);
         return PLUS;
     }
-    return ERR;
+    return NA;
 }
 
 TokenType IsMinus(FILE* fptr, int c)
@@ -99,10 +162,10 @@ TokenType IsMinus(FILE* fptr, int c)
         else if(next == '-')
             return SS;
 
-        ungetc(next, file);
+        ungetc(next, fptr);
         return MINUS;
     }
-    return ERR;
+    return NA;
 }
 
 TokenType IsDiv(FILE* fptr, int c)
@@ -110,15 +173,16 @@ TokenType IsDiv(FILE* fptr, int c)
 
     if(c == '/')
     {
-        char next = fgetc(file);
+        char next = fgetc(fptr);
         if(next == '=')
             return DEQ;
-        else if (IsComment(next))
+        else if (IsComment(fptr, next) == COMMENT)
             return COMMENT; 
-        ungetc(next, file);
-        return DIV    
+
+        ungetc(next, fptr);
+        return DIV;    
     }
-    return ERR;
+    return NA;
 }
 
 TokenType IsMult(FILE* fptr, int c)
@@ -126,17 +190,16 @@ TokenType IsMult(FILE* fptr, int c)
 
     if(c == '*')
     {
-        char next = fgetc(file);
-        state = MULT;
+        char next = fgetc(fptr);
         if(next == '=')
             return MEQ;
         else if(next == '*')
             return POW;
 
-        ungetc(next, file);
+        ungetc(next, fptr);
         return MULT;
     }
-    return ERR;
+    return NA;
 }
 
 TokenType IsMod(FILE* fptr, int c)
@@ -144,12 +207,62 @@ TokenType IsMod(FILE* fptr, int c)
 
     if(c == '%')
     {
-        char next = fgetc(file);
+        char next = fgetc(fptr);
         if(next == '=')
-            state = MODEQ;
+            return MODEQ;
 
-        ungetc(next, file);
+        ungetc(next, fptr);
         return MOD;
     }
-    return ERR;
+    return NA;
 }
+
+/* ---------- OTHERS ---------- */
+
+TokenType IsComment(FILE* fptr, int c)
+{
+    /* Only called in IsDiv so first char already div */
+    int next = c;
+    int prev;
+    if(next == '*')
+    {
+        while((next = fgetc(fptr)) != '/' && prev != '*')
+        {
+            if(next == EOF)
+            {
+                printf("ERROR: Comment doesn't end before EOF reached\n");
+                return ERR;
+            }
+
+            prev = next;
+        }
+        return COMMENT;
+    } 
+    else if (next == '/')
+    {
+        /* Add EOF check */
+        while((next = fgetc(fptr)) != '\n')
+        {
+            if(next == EOF)
+                break;
+        }
+        return COMMENT;
+    }
+    return NA;
+}
+
+/*
+TokenType IdentOrKeyword(Token t)
+{
+    for(i = 0; i < KeywordMap.size(); i++)
+    {
+        Token kw = KeywordMap.At(i);
+        if(word == kw)
+        {
+            return kw;
+        }
+    }
+    return IDENTIFIER;
+
+}
+*/
