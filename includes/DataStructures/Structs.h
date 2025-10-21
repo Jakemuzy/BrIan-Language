@@ -24,13 +24,13 @@ typedef enum {
     FACTORIAL, /* Also NOT */
 
     /* Brackets */
-    LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK,
+    LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK, LANGLE, RANGLE,
 
     /* Data Types */
     INTEGRAL, DECIMAL,
 
     /* Other */
-    SEMI, COMMENT, CLITERAL, SLITERAL, ERR, END,
+    SEMI, COLON, COMMENT, CLITERAL, SLITERAL, ERR, END,
 
     /* Currently Not Determinable */
     NA

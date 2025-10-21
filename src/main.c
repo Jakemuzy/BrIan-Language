@@ -12,8 +12,6 @@
 
 int main(int argc, char* argv[])
 {
-	printf("Hello Cruel World: \n Param Count: %d \n Program Name: %s\n", argc, argv[0]);
-    Queue Tokens = MakeQueue();
     
     /* Open code file to read */
     FILE* fptr;
@@ -24,13 +22,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    Pair p;
-    int i = 0;
-    char* j = "hey";
-    p = MakePair(ANY(i, C_INT), ANY(j, C_STR));
-
     /* Iterate through each character */
-    int charCount = 0;
+    int tokenCount = 0;
     char c;
 
     Token next;
@@ -39,11 +32,10 @@ int main(int argc, char* argv[])
     while(next.type != ERR && next.type != END && next.type != NA)
     {
         next = GetNextToken(fptr);
-        printf("Token: %d\tValue: %d\n", charCount, next.type); 
+        printf("Token: %d\tValue: %d\n", tokenCount, next.type); 
 
-        charCount++;
+        tokenCount++;
     }
     
-    FreeQueue(&Tokens);
 	return 0;
 }

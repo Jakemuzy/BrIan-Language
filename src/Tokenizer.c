@@ -1,7 +1,18 @@
 #include "Tokenizer.h"
 
+/* KNOWN BUGS */
+
+/*
+ * TODO: Keywords, Idents, Factorial, 
+ *       Order of checks 
+*/
+
+
 Token GetNextToken(FILE* fptr)
 {
+    /*  ORDER OF OERATIONS */
+    /* Is Unary -> Is Comparison -> Is Comment -> ... */
+
     Token next;
     next.type = IDENT;
 
@@ -11,17 +22,7 @@ Token GetNextToken(FILE* fptr)
         ;
     else if((next.type = IsLiteral(fptr, c)) != NA)
         ;
-    else if((next.type = IsEqual(fptr, c)) != NA)
-        ;
-    else if((next.type = IsPlus(fptr, c)) != NA)
-        ;
-    else if((next.type = IsMinus(fptr, c)) != NA)
-        ;
-    else if((next.type = IsDiv(fptr, c)) != NA) 
-        ;
-    else if((next.type = IsMult(fptr, c)) != NA)
-        ;
-    else if((next.type = IsMod(fptr, c)) != NA)
+    else if((next.type = IsOperator(fptr, c)) != NA)
         ;
 
     return next;
@@ -31,6 +32,22 @@ Token GetNextToken(FILE* fptr)
 
 TokenType IsOperator(FILE* fptr, int c)
 {
+    /* TODO: Make this a switch stmt */
+    TokenType type = NA;
+
+    if((type = IsDiv(fptr, c)) != NA)
+        ;
+    else if((type = IsPlus(fptr, c)) != NA)
+        ;
+    else if((type = IsMinus(fptr, c)) != NA)
+        ;
+    else if((type = IsEqual(fptr, c)) != NA) 
+        ;
+    else if((type = IsMult(fptr, c)) != NA)
+        ;
+    else if((type = IsMod(fptr, c)) != NA)
+        ;
+    return type;
 }
 
 TokenType IsNumber(FILE* fptr, int c)
@@ -66,7 +83,7 @@ TokenType IsNumber(FILE* fptr, int c)
             break;
         else if (isalpha(next))
         {
-            /* Need to send to an IsIdent function if ANY function returns Ident to check next chars */
+            /* TODO: Need to send to an IsIdent function if ANY function returns Ident to check next chars */
             state = IDENT;
             break;
         }
@@ -109,6 +126,94 @@ TokenType IsLiteral(FILE* fptr, int c)
 
 }
 
+TokenType IsBracket(FILE* fptr, int c)
+{
+    switch (c)
+    {
+        case '[':
+            return LBRACE;
+        case ']':
+            return RBRACE;
+        case '{':
+            return LBRACK;
+        case '}':
+            return RBRACK;
+        case '(':
+            return LPAREN;
+        case ')':
+            return RPAREN;
+        case '<':
+            return LANGLE;
+        case '>':
+            return RANGLE;
+        default:
+            return NA;
+    }
+}
+
+TokenType IsComparison(FILE* fptr, int c)
+{
+
+    int next = fgetc(fptr);
+    if(c == '!')
+    {
+        if(next == '=')
+            return NEQQ;
+
+        ungetc(next, fptr);
+        return NOT;
+    }
+    else if(c == '>')
+    {
+        if(next == '=')
+            return GEQQ;
+        else if(next == '>')
+            return RSHIFT;
+
+        ungetc(next, fptr);
+        return GREAT;
+    }
+    else if(c == '<')
+    {
+        if(next == '=')
+            return LEQQ;
+        else if(next == '<')
+            return LSHIFT;
+
+        ungetc(next, fptr);
+        return LESS;
+    }
+    else if(c == '&')
+    {
+        if(next == '&')
+            return ANDL;
+
+        ungetc(next, fptr);
+        return AND;     /* Bitwise */
+    }
+    else if(c == '|')
+    {
+        if(next == '|')
+            return ORL;
+
+        ungetc(next, fptr);
+        return OR;
+    }
+
+    return NA;
+}
+
+TokenType IsBitwise(FILE* fptr, int c)
+{
+    int next = fgetc(fptr);
+    if(c == '~')
+        return NEG;
+    else if(c == '^')
+        return XOR;
+}
+
+/* Others */
+
 TokenType IsEnd(FILE* fptr, int c)
 {
     if(c == EOF)
@@ -116,6 +221,15 @@ TokenType IsEnd(FILE* fptr, int c)
     return NA;
 }
 
+TokenType IsSemi(FILE* fptr, int c)
+{
+    return c == ';' ? SEMI : NA;
+}
+
+TokenType IsColon(FILE* fptr, int c)
+{
+    return c == ':' ? COLON : NA;
+}
 
 /* ---------- OPERATORS ---------- */
 
