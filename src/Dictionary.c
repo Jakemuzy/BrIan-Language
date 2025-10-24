@@ -16,12 +16,29 @@ int HashFunction(Pair p)
 }
 
 /* Hash Table */
-void MakeDictionary(Pair p1, ...)
+Dictionary MakeDictionary(Pair p1, ...)
 {
+    Dictionary dict;
+    dict.numElements = 0;
+    dict-.buckets = (Bucket**)malloc(sizeof(Bucket*) * DICT_INIT_CAP);
     
+    return dict;
 }
 
-void AddHash(Dictionary* dict, Pair p)
+void Insert(Dictionary* dict, Pair p)
 {
+    int bucketIndex;
 
+    if(dict->numElements < DICT_MAX_CAP)
+        dict->numElements++;
+    else 
+    {
+        perror("Dictionary at max capacity\n");
+        return;
+    }
+
+    
+    bucketIndex = HashFunction(p);
+    Bucket* b = malloc(sizeof(Bucket));
+    setBucket(b, p);
 }
