@@ -17,12 +17,16 @@ void Hashfunction(Pair p);
 
 /* Hash Table */
 typedef struct {
+    int count;
+    int size;
+
+
     int code;
     Bucket* buckets;
 } Dictionary;
 
 /* Declare table with one or more keyvalue pairs */
-void MakeDictionary(Pair p1, ...);
+Dictionary MakeDictionary(Pair p1, ...);
 void AddHash(Dictionary* dict, Pair p);
 
 
