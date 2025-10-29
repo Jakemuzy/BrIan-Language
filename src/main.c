@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
     Token next;
     next.type = IDENT;
 
-    while(next.type != ERR && next.type != END && next.type != NA)
+    while(next.type != ERR && next.type != END)
     {
         next = GetNextToken(fptr);
         printf("Token: %d\tValue: %d\n", tokenCount, next.type); 

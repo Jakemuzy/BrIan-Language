@@ -40,5 +40,5 @@ void Insert(Dictionary* dict, Pair p)
     
     bucketIndex = HashFunction(p);
     Bucket* b = malloc(sizeof(Bucket));
-    setBucket(b, p);
+    /*setBucket(b, p);*/
 }

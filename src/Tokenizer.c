@@ -17,13 +17,21 @@ Token GetNextToken(FILE* fptr)
     next.type = IDENT;
 
     int c = fgetc(fptr);
-
-    if((next.type = IsNumber(fptr, c)) != NA)
+ 
+    if((next.type = IsEnd(fptr, c)) != NA)
+        ;
+    else if((next.type = IsNumber(fptr, c)) != NA)
         ;
     else if((next.type = IsLiteral(fptr, c)) != NA)
         ;
     else if((next.type = IsOperator(fptr, c)) != NA)
         ;
+
+
+    if(next.type == NA)
+    {
+        /* Check for ident or KW */
+    }
 
     return next;
 }

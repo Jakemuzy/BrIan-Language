@@ -12,7 +12,7 @@ Vector MakeVector()
     return v;
 }
 
-void* At(Vector* v, int index)
+B_ANY At(Vector* v, int index)
 {
     int i = 0;
     VNode* curr = v->head;
@@ -23,10 +23,9 @@ void* At(Vector* v, int index)
         i++;
     }
 
-    if(!curr->data)
+    if(!curr->data.RawData)
     {
         printf("ERROR: Index %d has no data associated", index);
-        return NULL;
     }
 
     return curr->data;
