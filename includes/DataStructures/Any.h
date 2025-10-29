@@ -12,7 +12,7 @@ The purpose of this file is to mainly serve as a way to achieve "Generics" in C.
 #define ANY(val, type) MakeAny(&(val), type)
 
 typedef enum {
-    C_CHAR, C_SHORT, C_INT, C_FLOAT, C_DOUBLE, C_STR, C_ANY
+    C_CHAR, C_SHORT, C_INT, C_FLOAT, C_DOUBLE, C_STR, C_NULL, C_ANY
 } DataType;
 
 typedef struct B_ANY {

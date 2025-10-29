@@ -2,6 +2,11 @@ Introducing BrIan
 
 A Compiled Language built with concurrency in mind.
 
+BUILDING
+    1.) Run the compilation script (unix only) ./compile.sh name.exe
+    1.5.) Include path to your source code
+    2.) Run the executable you created ./builds/name.exe
+
 GOALS:
     Concurrency, low memory utilization, compiled, safe memory
 
