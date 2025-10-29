@@ -20,7 +20,7 @@ Dictionary MakeDictionary(Pair p1, ...)
 {
     Dictionary dict;
     dict.numElements = 0;
-    dict-.buckets = (Bucket**)malloc(sizeof(Bucket*) * DICT_INIT_CAP);
+    dict.buckets = (Bucket**)malloc(sizeof(Bucket*) * DICT_INIT_CAP);
     
     return dict;
 }

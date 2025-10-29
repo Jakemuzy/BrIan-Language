@@ -25,7 +25,7 @@ typedef struct {
 } Dictionary;
 
 /* Declare table with one or more keyvalue pairs */
-void MakeDictionary(Pair p1, ...);
+Dictionary MakeDictionary(Pair p1, ...);
 void Insert(Dictionary* dict, Pair p);
 
 

@@ -3,21 +3,21 @@
 
 #include "Any.h"
 
-typedef struct VNode 
+typedef struct
 {
     B_ANY data;
-    VNode* next;
-    VNode* prev;
-}
+    struct VNode* next;
+    struct VNode* prev;
+} VNode;
 
-typedef struct Vector 
+typedef struct
 {
     int width;
-    void* head;
-    void* tail;
+    VNode* head;
+    VNode* tail;
 } Vector;
 
-Vector MakeVector(int size);
+Vector MakeVector();
 void* At(Vector* v, int index);
 
 void PushBack(Vector* v, B_ANY data);

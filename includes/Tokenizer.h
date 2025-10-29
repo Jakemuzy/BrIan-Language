@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-#include "DataStructures/Structs.h"
+#include "DataStructures/Token.h"
 
 /*
 Map KeywordMap {

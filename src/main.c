@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-#include "DataStructures/Structs.h"
 #include "DataStructures/Pair.h"
 #include "DataStructures/Queue.h"
 
