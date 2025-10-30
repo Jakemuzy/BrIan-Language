@@ -16,8 +16,11 @@ Token GetNextToken(FILE* fptr)
     Token next;
     next.type = NA;
     
-    int c = fgetc(fptr);
- 
+    int c;
+    do {
+        c = fgetc(fptr);
+    } while(isspace(c));
+
     if((next.type = IsEnd(fptr, c)) != NA)
         ;
     else if((next.type = IsNumber(fptr, c)) != NA)
@@ -26,20 +29,16 @@ Token GetNextToken(FILE* fptr)
         ;
     else if((next.type = IsOperator(fptr, c)) != NA)
         ;
-    else if((next.type = IsBracket(fptr, c)) != NA)
-        ;
     else if((next.type = IsComparison(fptr, c)) != NA)
+        ;
+    else if((next.type = IsBracket(fptr, c)) != NA)
         ;
     else if((next.type = IsBitwise(fptr, c)) != NA)
         ;
+    else if((next.type = IsUnary(fptr, c)) != NA)
+        ;
     else if((next.type = IdentOrKeyword(fptr, c)) != NA)
         ;
-
-    if(next.type == NA)
-    {
-        printf("%c ", c);
-        /* Check for ident or KW */
-    }
 
 
     return next;
@@ -58,11 +57,11 @@ TokenType IsOperator(FILE* fptr, int c)
         ;
     else if((type = IsMinus(fptr, c)) != NA)
         ;
-    else if((type = IsEqual(fptr, c)) != NA) 
-        ;
     else if((type = IsMult(fptr, c)) != NA)
         ;
     else if((type = IsMod(fptr, c)) != NA)
+        ;
+    else if((type = IsEqual(fptr, c)) != NA) 
         ;
     return type;
 }
@@ -235,6 +234,16 @@ TokenType IsBitwise(FILE* fptr, int c)
     return NA;
 }
 
+TokenType IsUnary(FILE* fptr, int c)
+{
+    
+    if(c == ';')
+        return SEMI;
+    if(c == ':')
+        return COLON;
+    return NA;
+}
+
 /* Others */
 
 TokenType IsEnd(FILE* fptr, int c)
@@ -252,16 +261,6 @@ TokenType IsEOL(FILE* fptr, int c)
     return NA;
 }
 */
-
-TokenType IsSemi(FILE* fptr, int c)
-{
-    return c == ';' ? SEMI : NA;
-}
-
-TokenType IsColon(FILE* fptr, int c)
-{
-    return c == ':' ? COLON : NA;
-}
 
 /* ---------- OPERATORS ---------- */
 

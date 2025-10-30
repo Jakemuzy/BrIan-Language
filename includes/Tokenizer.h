@@ -27,9 +27,6 @@ TokenType IsUnary(FILE* fptr, int c);
 /* Others */
 TokenType IsComment(FILE* fptr, int c);
 TokenType IsEnd(FILE* fptr, int c);
-TokenType isEOL(FILE* fptr, int c);
-TokenType IsSemi(FILE* fpr, int c);
-TokenType IsColon(FILE* fptr, int c);
 
 /* Operators */
 TokenType IsEqual(FILE* fptr, int c);
