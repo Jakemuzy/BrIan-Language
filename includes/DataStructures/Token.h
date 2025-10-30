@@ -21,7 +21,7 @@ typedef enum {
     NEG, XOR, OR, AND, LSHIFT, RSHIFT, 
 
     /* Unary Operators */
-    FACTORIAL, /* Also NOT */
+    /*FACT,  Also NOT */
 
     /* Brackets */
     LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK, LANGLE, RANGLE,
@@ -30,7 +30,7 @@ typedef enum {
     INTEGRAL, DECIMAL,
 
     /* Other */
-    SEMI, COLON, COMMENT, CLITERAL, SLITERAL, ERR, END,
+    SEMI, COLON, COMMENT, CLITERAL, SLITERAL, END, ERR,
 
     /* Currently Not Determinable */
     NA
