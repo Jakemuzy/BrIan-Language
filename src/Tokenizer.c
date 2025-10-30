@@ -14,8 +14,8 @@ Token GetNextToken(FILE* fptr)
     /* Is Unary -> Is Comparison -> Is Comment -> ... */
 
     Token next;
-    next.type = IDENT;
-
+    next.type = NA;
+    
     int c = fgetc(fptr);
  
     if((next.type = IsEnd(fptr, c)) != NA)
@@ -26,12 +26,21 @@ Token GetNextToken(FILE* fptr)
         ;
     else if((next.type = IsOperator(fptr, c)) != NA)
         ;
-
+    else if((next.type = IsBracket(fptr, c)) != NA)
+        ;
+    else if((next.type = IsComparison(fptr, c)) != NA)
+        ;
+    else if((next.type = IsBitwise(fptr, c)) != NA)
+        ;
+    else if((next.type = IdentOrKeyword(fptr, c)) != NA)
+        ;
 
     if(next.type == NA)
     {
+        printf("%c ", c);
         /* Check for ident or KW */
     }
+
 
     return next;
 }
@@ -95,6 +104,11 @@ TokenType IsNumber(FILE* fptr, int c)
             state = IDENT;
             break;
         }
+        else 
+        {
+            ungetc(next, fptr);
+            break;
+        }
 
     }
     return state;
@@ -105,7 +119,7 @@ TokenType IsLiteral(FILE* fptr, int c)
     if(c == '\'')
     {
         int next = fgetc(fptr);
-        if(next != EOF);
+        if(next != EOF)
         {
             next = fgetc(fptr);
             if(next != '\'')
@@ -119,7 +133,7 @@ TokenType IsLiteral(FILE* fptr, int c)
     else if(c == '\"')
     {
         int next;
-        while((next = fgetc(fptr) != '\"'))
+        while((next = fgetc(fptr)) != '\"')
         {
             if(next == EOF)
             {
@@ -213,11 +227,12 @@ TokenType IsComparison(FILE* fptr, int c)
 
 TokenType IsBitwise(FILE* fptr, int c)
 {
-    int next = fgetc(fptr);
     if(c == '~')
         return NEG;
     else if(c == '^')
         return XOR;
+
+    return NA;
 }
 
 /* Others */
@@ -228,6 +243,15 @@ TokenType IsEnd(FILE* fptr, int c)
         return END;
     return NA;
 }
+/* Just eats EOL for now */
+/*
+TokenType IsEOL(FILE* fptr, int c)
+{
+    if(c != '\n')
+        ;
+    return NA;
+}
+*/
 
 TokenType IsSemi(FILE* fptr, int c)
 {
@@ -345,7 +369,7 @@ TokenType IsComment(FILE* fptr, int c)
 {
     /* Only called in IsDiv so first char already div */
     int next = c;
-    int prev;
+    int prev = 0;
     if(next == '*')
     {
         while((next = fgetc(fptr)) != '/' && prev != '*')
@@ -373,9 +397,16 @@ TokenType IsComment(FILE* fptr, int c)
     return NA;
 }
 
-/*
-TokenType IdentOrKeyword(Token t)
+
+TokenType IdentOrKeyword(FILE* fptr, int c)
 {
+    TokenType tok = (isalpha(c)) ? IDENT : NA;
+
+    while(isalpha(c = fgetc(fptr)) || c == '_' || isdigit(c))
+        ; 
+
+    /*
+    TODO: Add kw checking
     for(i = 0; i < KeywordMap.size(); i++)
     {
         Token kw = KeywordMap.At(i);
@@ -384,7 +415,8 @@ TokenType IdentOrKeyword(Token t)
             return kw;
         }
     }
-    return IDENTIFIER;
+    */
+    return tok;
 
 }
-*/
+

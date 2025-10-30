@@ -27,6 +27,7 @@ TokenType IsUnary(FILE* fptr, int c);
 /* Others */
 TokenType IsComment(FILE* fptr, int c);
 TokenType IsEnd(FILE* fptr, int c);
+TokenType isEOL(FILE* fptr, int c);
 TokenType IsSemi(FILE* fpr, int c);
 TokenType IsColon(FILE* fptr, int c);
 
@@ -38,4 +39,4 @@ TokenType IsDiv(FILE* fptr, int c);
 TokenType IsMult(FILE* fptr, int c);
 TokenType IsMod(FILE* fptr, int c);
 
-TokenType IdentOrKeyword(Token t);
+TokenType IdentOrKeyword(FILE* fptr, int c);
