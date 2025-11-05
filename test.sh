@@ -10,10 +10,10 @@ PROG_NAME="Tokenizer"
 printf "\n"
 
 IFS=" "
-for TestCases in $(printf "$TEST_CASES_PATH"/*.b)
+for TestCase in "$TEST_CASES_PATH"/*.b
 do
     printf "Testing $TestCase\n";
-    ./builds/"$PROG_NAME" "../$TestCase"
+    ./builds/"$PROG_NAME" "$TestCase"
 
-    printf "\tStatus: $?\n" 
+    [[ $? -eq 0 ]] && printf "\tPASS\n" || printf "\tFAIL\n" 
 done

@@ -1,32 +1,36 @@
 #ifndef _DICTIONARY_H__
 #define _DICTIONARY_H__
 
-#define DICT(p1, ...) MakeDictionary(p1, ...)
-#define DICT_MAX_CAP 1024
-#define DICT_INIT_CAP 32
+#define DICT(p1, ...) DictMake(p1, ...)
+#define DICT_CAP 256
+/* TODO: Make dictionary start small size, and grow as needed */
 
 #include <stdarg.h>
 #include <stdlib.h>
-#include "DataStructures/Pair.h"
+#include <stdio.h>
 
-/* Buckets */
-typedef struct {
-    int capacity;
-    Pair keyvalue;
-} Bucket;
+typedef struct Entry 
+{
+    struct Entry* next;
+    int key;     /* Convert this to be any */
+    char* val;
+} Entry;
 
-/* Hashing Functions */
-void Hashfunction(Pair p);
+typedef struct KeyVal
+{
+    int key;
+    char* val;
+} KeyVal;
 
-/* Hash Table */
-typedef struct {
-    int numElements;
-    Bucket** buckets;
-} Dictionary;
+unsigned int Hash(unsigned int name);
 
-/* Declare table with one or more keyvalue pairs */
-Dictionary MakeDictionary(Pair p1, ...);
-void Insert(Dictionary* dict, Pair p);
+/* Dicitonary */
+typedef Entry* Dict[DICT_CAP];
 
+Entry* DictLookup(Dict d, int key);
+Entry* DictInstall(Dict d, int key, char* val);
+
+Dict* DictMake(int count, ...);
+void DictPrint(Dict d);  
 
 #endif 

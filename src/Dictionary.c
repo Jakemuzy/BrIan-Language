@@ -1,44 +1,82 @@
 #include "DataStructures/Dictionary.h"
 
-/* djb2 Hash Function */
-int HashFunction(Pair p)
+/* Random Hash I found on Stack Overflow */
+unsigned int Hash(unsigned int key)
 {
-    unsigned char* bytes = p.first.RawData;
-    unsigned long h = 5381;
-    
-    size_t i = 0;
-    for(i; i < sizeof(bytes); i++)
+    key = ((key >> 16) ^ key) * 0x45d9f3bu;
+    key = ((key >> 16) ^ key) * 0x45d9f3bu;
+    key =  (key >> 16) ^ key;
+    return key;
+}
+
+Entry* DictLookup(Dict d, int key)
+{
+    Entry* np;
+
+    for(np = d[Hash(key)]; np != NULL; np = np->next)
     {
-        h = ((h << 5) + h) + bytes[i];
+        if(np->key == key)
+            return np;
+        return NULL;
     }
-
-    return h;
 }
 
-/* Hash Table */
-Dictionary MakeDictionary(Pair p1, ...)
+Entry* DictInstall(Dict d, int key, char* val)
 {
-    Dictionary dict;
-    dict.numElements = 0;
-    dict.buckets = (Bucket**)malloc(sizeof(Bucket*) * DICT_INIT_CAP);
-    
-    return dict;
-}
+    Entry* np;
+    unsigned int hashval;
 
-void Insert(Dictionary* dict, Pair p)
-{
-    int bucketIndex;
+    if((np = DictLookup(d, key)) == NULL)
+    {
+        np = (Entry*)malloc(sizeof(*np));
+        if(np = NULL)
+            return NULL;
 
-    if(dict->numElements < DICT_MAX_CAP)
-        dict->numElements++;
+        np->key = key;
+        hashval = Hash(key);
+        np->next = d[hashval];
+        d[hashval] = np;
+    } 
     else 
     {
-        perror("Dictionary at max capacity\n");
-        return;
+        free((void *) np->val);
+    
+    if((np->val = val) == NULL)
+        return NULL;
+    return np;
+
     }
 
-    
-    bucketIndex = HashFunction(p);
-    Bucket* b = malloc(sizeof(Bucket));
-    /*setBucket(b, p);*/
+}
+
+Dict* DictMake(int count, ...)
+{
+    Dict* d = malloc(sizeof(Dict));;
+
+    va_list args;
+    va_start(args, count);
+
+    int i;
+    for(i = 0; i < count; i++)
+    {
+        KeyVal kv = va_arg(args, KeyVal);
+        DictInstall(*d, kv.key, kv.val);
+    }
+
+    va_end(args);
+    return d;
+}
+
+void DictPrint(Dict d)
+{
+    int i;
+    for(i = 0; i < DICT_CAP; i++)
+    {
+        Entry* e = d[i];
+        while(e != NULL)
+        {
+            printf("Key: %d\tVal: %s\n", e->key, e->val);
+            e = e->next;
+        }
+    }
 }
