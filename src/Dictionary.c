@@ -1,4 +1,4 @@
-#include "DataStructures/Dictionary.h"
+#include "Dictionary.h"
 
 /* Random Hash I found on Stack Overflow */
 unsigned int Hash(unsigned int key)
@@ -6,7 +6,7 @@ unsigned int Hash(unsigned int key)
     key = ((key >> 16) ^ key) * 0x45d9f3bu;
     key = ((key >> 16) ^ key) * 0x45d9f3bu;
     key =  (key >> 16) ^ key;
-    return key;
+    return key % DICT_CAP;
 }
 
 Entry* DictLookup(Dict d, int key)
@@ -21,31 +21,30 @@ Entry* DictLookup(Dict d, int key)
     }
 }
 
-Entry* DictInstall(Dict d, int key, char* val)
+Entry* DictInstall(Dict* d, int key, char* val)
 {
     Entry* np;
     unsigned int hashval;
 
-    if((np = DictLookup(d, key)) == NULL)
+    if((np = DictLookup((*d), key)) == NULL)
     {
         np = (Entry*)malloc(sizeof(*np));
-        if(np = NULL)
+        if(np == NULL)
             return NULL;
-
+		
         np->key = key;
         hashval = Hash(key);
-        np->next = d[hashval];
-        d[hashval] = np;
+        np->next = (*d)[hashval];
+        (*d)[hashval] = np;
     } 
     else 
-    {
         free((void *) np->val);
     
     if((np->val = val) == NULL)
         return NULL;
     return np;
 
-    }
+    
 
 }
 
@@ -60,7 +59,7 @@ Dict* DictMake(int count, ...)
     for(i = 0; i < count; i++)
     {
         KeyVal kv = va_arg(args, KeyVal);
-        DictInstall(*d, kv.key, kv.val);
+        DictInstall(d, kv.key, kv.val);
     }
 
     va_end(args);

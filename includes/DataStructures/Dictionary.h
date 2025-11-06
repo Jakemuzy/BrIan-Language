@@ -28,7 +28,7 @@ unsigned int Hash(unsigned int name);
 typedef Entry* Dict[DICT_CAP];
 
 Entry* DictLookup(Dict d, int key);
-Entry* DictInstall(Dict d, int key, char* val);
+Entry* DictInstall(Dict* d, int key, char* val);
 
 Dict* DictMake(int count, ...);
 void DictPrint(Dict d);  

@@ -4,7 +4,7 @@
 
 COMPILER="./compile.sh"
 TEST_CASES_PATH="TestCases/Tokenizer"
-PROG_NAME="Tokenizer"
+PROG_NAME="AllCases"
 
 "$COMPILER" "$PROG_NAME"
 printf "\n"

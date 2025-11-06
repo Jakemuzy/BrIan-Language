@@ -77,11 +77,13 @@ Token Dequeue(Queue* q)
 
 void PrintQueue(Queue* q)
 {
+	/*
     if(q->head == NULL)
     {
         printf("Nothing in Queue\n");
         return;
     }
     printf("HEAD: %d\nTAIL: %d\n", (q->head->data), (q->tail->data));
+    */
 }
     
