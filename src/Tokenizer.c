@@ -1,4 +1,5 @@
 #include "Tokenizer.h"
+#include "Dictionary.h"
 
 /* KNOWN BUGS */
 
@@ -7,6 +8,20 @@
  *       Order of checks 
 */
 
+/* Jankiest Map I've seen but temporary */
+KeyVal kv1 = {IF, "if"};
+KeyVal kv2 = {ELIF, "elif"};
+KeyVal kv3 = {ELSE, "else"};
+KeyVal kv4 = {DO, "do"};
+KeyVal kv5 = {WHILE, "while"};
+KeyVal kv6 = {FOR, "for"};
+KeyVal kv7 = {CHAR, "char"};
+KeyVal kv8 = {SHORT, "short"};
+KeyVal kv9 = {INT, "int"};
+KeyVal kv10 = {DOUBLE, "double"};	/* TODO: Switch map to have str first */
+KeyVal kv11 = {LONG, "long"};
+
+static Dict* KWmap;
 
 Token GetNextToken(FILE* fptr)
 {
@@ -399,23 +414,16 @@ TokenType IsComment(FILE* fptr, int c)
 
 TokenType IdentOrKeyword(FILE* fptr, int c)
 {
-    TokenType tok = (isalpha(c)) ? IDENT : NA;
+    /* TODO: Fix this janky ass MAP creation, make static */
 
+    KWmap = DictMake(11, kv1, kv2, kv3, kv4, kv5, kv6, kv7, kv8, kv9, kv10, kv11);
+
+
+    TokenType tok = (isalpha(c)) ? IDENT : NA;
     while(isalpha(c = fgetc(fptr)) || c == '_' || isdigit(c))
         ; 
 
-    /*
-    TODO: Add kw checking
-    for(i = 0; i < KeywordMap.size(); i++)
-    {
-        Token kw = KeywordMap.At(i);
-        if(word == kw)
-        {
-            return kw;
-        }
-    }
-    */
-    return tok;
-
+    return (DictLookup(d 
+    
 }
 

@@ -20,7 +20,16 @@ int main(int argc, char* argv[])
     KeyVal kv1 = {IF, "if"};
     KeyVal kv2 = {ELIF, "elif"};
     KeyVal kv3 = {ELSE, "else"};
-    Dict* d = DictMake(3, kv1, kv2, kv3);
+    KeyVal kv4 = {DO, "do"};
+    KeyVal kv5 = {WHILE, "while"};
+    KeyVal kv6 = {FOR, "for"};
+    KeyVal kv7 = {CHAR, "char"};
+    KeyVal kv8 = {SHORT, "short"};
+    KeyVal kv9 = {INT, "int"};
+    KeyVal kv10 = {DOUBLE, "double"};
+    KeyVal kv11 = {LONG, "long"};
+   
+    Dict* d = DictMake(11, kv1, kv2, kv3, kv4, kv5, kv6, kv7, kv8, kv9, kv10, kv11);
     DictPrint(*d);
 
 /*
