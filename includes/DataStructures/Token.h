@@ -37,10 +37,19 @@ typedef enum {
 
 } TokenType;
 
+#define INIT_LEXEME 2
+#define MAX_LEXEME 65536
+
 /* Helper Structures */
+typedef struct Lexeme {
+    char* word;
+    int max;
+    int size;
+} Lexeme;
+
 typedef struct {
     TokenType type;
-    char* lexeme;
+    Lexeme lex;
     int line, col;
 } Token;
 

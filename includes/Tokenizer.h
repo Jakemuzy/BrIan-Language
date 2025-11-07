@@ -14,6 +14,7 @@ Map KeywordMap {
 */
 
 Token GetNextToken(FILE* fptr);
+void UpdateLexeme(Token* t, int c);
 
 /* Categories */
 int IsOperator(FILE* fptr, Token* t, int c);

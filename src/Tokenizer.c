@@ -32,6 +32,8 @@ Token GetNextToken(FILE* fptr)
     /* Is Unary -> Is Comparison -> Is Comment -> ... */
 
     Token next;
+    next.lex.size = 0;
+    next.lex.max = INIT_LEXEME;
     
     int c;
     do {
@@ -57,7 +59,18 @@ Token GetNextToken(FILE* fptr)
     else if(IdentOrKeyword(fptr, &next, c) != NAT)
         ;
 
+    UpdateLexeme(&next, '\0');  /* Null Terminator */
     return next;
+}
+
+void UpdateLexeme(Token* t, int c)
+{
+    int size = t->lex.size;
+    if (size == t->lex.max)
+        t->lex.max *= 2;
+
+    t->lex.word[size-1] = c;
+    t->lex.size++;
 }
 
 /* ---------- CATEGORIES ---------- */
@@ -97,6 +110,7 @@ int IsNumber(FILE* fptr, Token* t, int c)
     else 
         return NAT;
 
+    UpdateLexeme(t, c);
     while(t->type == INTEGRAL || t->type == DECIMAL)
     {
         int next = fgetc(fptr);
@@ -114,7 +128,8 @@ int IsNumber(FILE* fptr, Token* t, int c)
         else if (isalpha(next))
         {
             /* TODO: Need to send to an IsIdent function if ANY function returns Ident to check next chars */
-            t->type = IDENT;
+            ungenc(next, fptr);
+            t->type = NA;
             break;
         }
         else 
@@ -123,7 +138,7 @@ int IsNumber(FILE* fptr, Token* t, int c)
             break;
         }
 
-
+        UpdateLexeme(t, next);
     }
     return VALID;
 }
