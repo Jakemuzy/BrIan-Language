@@ -12,23 +12,23 @@
 typedef struct Entry 
 {
     struct Entry* next;
-    int key;     /* Convert this to be any */
-    char* val;
+    char* key;     /* TODO: Convert this to be any */
+    int val;
 } Entry;
 
 typedef struct KeyVal
 {
-    int key;
-    char* val;
+    char* key;
+    int val;
 } KeyVal;
 
-unsigned int Hash(unsigned int name);
+unsigned int Hash(char* key);
 
 /* Dicitonary */
 typedef Entry* Dict[DICT_CAP];
 
-Entry* DictLookup(Dict d, int key);
-Entry* DictInstall(Dict* d, int key, char* val);
+Entry* DictLookup(Dict d, char* key);
+Entry* DictInstall(Dict* d, char* key, int val);
 
 Dict* DictMake(int count, ...);
 void DictPrint(Dict d);  

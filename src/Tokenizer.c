@@ -1,6 +1,10 @@
 #include "Tokenizer.h"
 #include "Dictionary.h"
 
+#define ERRT -1      /* Token with err */
+#define NAT 0       /* Not a token */
+#define VALID 1
+
 /* KNOWN BUGS */
 
 /*
@@ -9,18 +13,17 @@
 */
 
 /* Jankiest Map I've seen but temporary */
-KeyVal kv1 = {IF, "if"};
-KeyVal kv2 = {ELIF, "elif"};
-KeyVal kv3 = {ELSE, "else"};
-KeyVal kv4 = {DO, "do"};
-KeyVal kv5 = {WHILE, "while"};
-KeyVal kv6 = {FOR, "for"};
-KeyVal kv7 = {CHAR, "char"};
-KeyVal kv8 = {SHORT, "short"};
-KeyVal kv9 = {INT, "int"};
-KeyVal kv10 = {DOUBLE, "double"};	/* TODO: Switch map to have str first */
-KeyVal kv11 = {LONG, "long"};
-
+KeyVal kv1 = {"if", IF} ;
+KeyVal kv2 = {"elif", ELIF};
+KeyVal kv3 = {"else", ELSE};
+KeyVal kv4 = {"do", DO};
+KeyVal kv5 = {"while", WHILE};
+KeyVal kv6 = {"for", FOR};
+KeyVal kv7 = {"char", CHAR};
+KeyVal kv8 = {"short", SHORT};
+KeyVal kv9 = {"int", INT};
+KeyVal kv10 = {"double", DOUBLE};	
+KeyVal kv11 = {"long", LONG};
 static Dict* KWmap;
 
 Token GetNextToken(FILE* fptr)
@@ -29,93 +32,89 @@ Token GetNextToken(FILE* fptr)
     /* Is Unary -> Is Comparison -> Is Comment -> ... */
 
     Token next;
-    next.type = NA;
     
     int c;
     do {
         c = fgetc(fptr);
     } while(isspace(c));
 
-    if((next.type = IsEnd(fptr, c)) != NA)
+    if(IsEnd(fptr, &next, c) != NAT)
         ;
-    else if((next.type = IsNumber(fptr, c)) != NA)
+    else if(IsNumber(fptr, &next, c) != NAT)
         ;
-    else if((next.type = IsLiteral(fptr, c)) != NA)
+    else if(IsLiteral(fptr, &next, c) != NAT)
         ;
-    else if((next.type = IsOperator(fptr, c)) != NA)
+    else if(IsOperator(fptr, &next, c) != NAT)
         ;
-    else if((next.type = IsComparison(fptr, c)) != NA)
+    else if(IsComparison(fptr, &next, c) != NAT)
         ;
-    else if((next.type = IsBracket(fptr, c)) != NA)
+    else if(IsBracket(fptr, &next, c) != NAT)
         ;
-    else if((next.type = IsBitwise(fptr, c)) != NA)
+    else if(IsBitwise(fptr, &next, c) != NAT)
         ;
-    else if((next.type = IsUnary(fptr, c)) != NA)
+    else if(IsUnary(fptr, &next, c) != NAT)
         ;
-    else if((next.type = IdentOrKeyword(fptr, c)) != NA)
+    else if(IdentOrKeyword(fptr, &next, c) != NAT)
         ;
-
 
     return next;
 }
 
 /* ---------- CATEGORIES ---------- */
 
-TokenType IsOperator(FILE* fptr, int c)
+int IsOperator(FILE* fptr, Token* t, int c)
 {
     /* TODO: Make this a switch stmt */
-    TokenType type = NA;
 
-    if((type = IsDiv(fptr, c)) != NA)
-        ;
-    else if((type = IsPlus(fptr, c)) != NA)
-        ;
-    else if((type = IsMinus(fptr, c)) != NA)
-        ;
-    else if((type = IsMult(fptr, c)) != NA)
-        ;
-    else if((type = IsMod(fptr, c)) != NA)
-        ;
-    else if((type = IsEqual(fptr, c)) != NA) 
-        ;
-    return type;
+    if(IsDiv(fptr, t, c) != NAT)
+        return VALID;
+    else if(IsPlus(fptr, t, c) != NAT)
+        return VALID;
+    else if(IsMinus(fptr, t, c) != NAT)
+        return VALID;
+    else if(IsMult(fptr, t, c) != NAT)
+        return VALID;
+    else if(IsMod(fptr, t, c) != NAT)
+        return VALID;
+    else if(IsEqual(fptr, t, c) != NAT)  
+        return VALID;
+
+    /* TODO: account for ERR */
+    return NAT;
 }
 
-TokenType IsNumber(FILE* fptr, int c)
+int IsNumber(FILE* fptr, Token* t, int c)
 {
-    TokenType state;
     bool decimalSeen = false;
 
     if(isdigit(c))
-        state = INTEGRAL;
+        t->type = INTEGRAL;
     else if(c == '.')
     {
-        state = DECIMAL;
+        t->type = DECIMAL;
         decimalSeen = true;
     }
     else 
-    {
-        return NA;
-    }
+        return NAT;
 
-    while(state == INTEGRAL || state == DECIMAL)
+    while(t->type == INTEGRAL || t->type == DECIMAL)
     {
         int next = fgetc(fptr);
         if(isdigit(next))
             ;
         else if (next == '.' && !decimalSeen)
         {
-            state = DECIMAL;
+            t->type = DECIMAL;
             decimalSeen = true;
         }
         else if (next == '.')
-            return ERR;     /* Don't even finish */
+            return ERRT;     /* Don't even finish */
         else if (isspace(next))
             break;
         else if (isalpha(next))
         {
             /* TODO: Need to send to an IsIdent function if ANY function returns Ident to check next chars */
-            state = IDENT;
+            t->type = IDENT;
             break;
         }
         else 
@@ -124,11 +123,12 @@ TokenType IsNumber(FILE* fptr, int c)
             break;
         }
 
+
     }
-    return state;
+    return VALID;
 }
 
-TokenType IsLiteral(FILE* fptr, int c)
+int IsLiteral(FILE* fptr, Token* t, int c)
 {
     if(c == '\'')
     {
@@ -139,10 +139,12 @@ TokenType IsLiteral(FILE* fptr, int c)
             if(next != '\'')
             {
                 printf("ERROR: Cannot have char literal with length > 1\n");
-                return ERR;
+                t->type = ERR;
+                return ERRT;
             }
         }
-        return CLITERAL;
+        t->type = CLITERAL;
+        return VALID;
     }
     else if(c == '\"')
     {
@@ -152,120 +154,167 @@ TokenType IsLiteral(FILE* fptr, int c)
             if(next == EOF)
             {
                 printf("ERROR: EOF reached before string literal ended\n");
-                return ERR;
+                t->type = ERR;
+                return ERRT;
             }
         }
-        return SLITERAL;
+        t->type = SLITERAL;
+        return VALID;
     }
 
-    return NA;
-
+    t->type = NA;
+    return NAT;
 }
 
-TokenType IsBracket(FILE* fptr, int c)
+int IsBracket(FILE* fptr, Token* t, int c)
 {
     switch (c)
     {
         case '[':
-            return LBRACE;
+            t->type = LBRACE;
+            break;
         case ']':
-            return RBRACE;
+            t->type = RBRACE;
+            break;
         case '{':
-            return LBRACK;
+            t->type = LBRACK;
+            break;
         case '}':
-            return RBRACK;
+            t->type = RBRACK;
+            break;
         case '(':
-            return LPAREN;
+            t->type = LPAREN;
+            break;
         case ')':
-            return RPAREN;
+            t->type = RPAREN;
+            break;
         case '<':
-            return LANGLE;
+            t->type = LANGLE;
+            break;
         case '>':
-            return RANGLE;
+            t->type = RANGLE;
+            break;
         default:
+            t->type = NA;
             return NA;
     }
+    return VALID;
 }
 
-TokenType IsComparison(FILE* fptr, int c)
+int IsComparison(FILE* fptr, Token* t, int c)
 {
 
     int next = fgetc(fptr);
     if(c == '!')
     {
-        if(next == '=')
-            return NEQQ;
+        if(next == '=') {
+            t->type = NEQQ;
+            return VALID;
+        }
 
         ungetc(next, fptr);
-        return NOT;
+        t->type = NOT;
+        return VALID;
     }
     else if(c == '>')
     {
-        if(next == '=')
-            return GEQQ;
-        else if(next == '>')
-            return RSHIFT;
+        if(next == '=') {
+            t->type = GEQQ;
+            return VALID;
+        }
+        else if(next == '>') {
+            t->type = RSHIFT;
+            return VALID;
+        }
 
         ungetc(next, fptr);
-        return GREAT;
+        t->type = GREAT;
+        return VALID;
     }
     else if(c == '<')
     {
-        if(next == '=')
-            return LEQQ;
-        else if(next == '<')
-            return LSHIFT;
+        if(next == '=') {
+            t->type = LEQQ;
+            return VALID;
+        }
+        else if(next == '<') {
+            t->type = LSHIFT;
+            return VALID;
+        }
 
         ungetc(next, fptr);
-        return LESS;
+        t->type = LESS;
+        return VALID;
     }
     else if(c == '&')
     {
-        if(next == '&')
-            return ANDL;
+        if(next == '&') {
+            t->type = ANDL;
+            return VALID;
+        }
 
         ungetc(next, fptr);
-        return AND;     /* Bitwise */
+        t->type = AND;
+        return VALID;     /* Bitwise */
     }
     else if(c == '|')
     {
-        if(next == '|')
-            return ORL;
+        if(next == '|'){
+            t->type = ORL;
+            return VALID;
+        }
 
         ungetc(next, fptr);
-        return OR;
+        t->type = OR;
+        return VALID;
     }
 
-    return NA;
+    t->type = NA;
+    return NAT;
 }
 
-TokenType IsBitwise(FILE* fptr, int c)
+int IsBitwise(FILE* fptr, Token* t, int c)
 {
-    if(c == '~')
+    if(c == '~') {
+        t->type = NEG;
         return NEG;
-    else if(c == '^')
+    }
+    else if(c == '^') {
+        t->type = XOR;
         return XOR;
+    }
 
-    return NA;
+    t->type = NA;
+    return NAT;
 }
 
-TokenType IsUnary(FILE* fptr, int c)
+int IsUnary(FILE* fptr, Token* t, int c)
 {
     
-    if(c == ';')
-        return SEMI;
-    if(c == ':')
-        return COLON;
-    return NA;
+    if(c == ';') {
+        t->type = SEMI;
+        return VALID;
+    }
+    if(c == ':') {
+        t->type = COLON;
+        return VALID;
+    }
+
+    t->type = NA;
+    return NAT;
 }
 
 /* Others */
 
-TokenType IsEnd(FILE* fptr, int c)
+int IsEnd(FILE* fptr, Token* t, int c)
 {
-    if(c == EOF)
-        return END;
-    return NA;
+    if(c == EOF) {
+        t->type = END;
+        return VALID;
+    }
+
+    t->type = NA;
+    return NAT;
 }
 /* Just eats EOL for now */
 /*
@@ -280,106 +329,139 @@ TokenType IsEOL(FILE* fptr, int c)
 /* ---------- OPERATORS ---------- */
 
 /* = and == */
-TokenType IsEqual(FILE* fptr, int c)
+int IsEqual(FILE* fptr, Token* t, int c)
 {
     if(c == '=')
     {
         int next = fgetc(fptr);
-        if(next == '=')
-            return EQQ;
+        if(next == '=') {
+            t->type = EQQ;
+            return VALID;
+        }
         
         ungetc(next, fptr);
-        return EQ; 
+        t->type = EQ;
+        return VALID; 
     }
-    return NA;
+    t->type = NA;
+    return NAT;
 }
 
 /* +, +=, ++ */
-TokenType IsPlus(FILE* fptr, int c)
+int IsPlus(FILE* fptr, Token* t, int c)
 {
     if(c == '+')
     {
         int next = fgetc(fptr);
-        if(next == '=')
-            return PEQ;
-        else if(next == '+')
-            return PP;  
+        if(next == '=') {
+            t->type = PEQ;
+            return VALID;
+        }
+        else if(next == '+') {
+            t->type = PP;
+            return VALID;  
+        }
 
         ungetc(next, fptr);
-        return PLUS;
+        t->type = PLUS;
+        return VALID;
     }
-    return NA;
+
+    t->type = NA;
+    return NAT;
 }
 
-TokenType IsMinus(FILE* fptr, int c)
+int IsMinus(FILE* fptr, Token* t, int c)
 {
-
     if(c == '-')
     {
         int next = fgetc(fptr);
-        if(next == '=')
-            return SEQ;
-        else if(next == '-')
-            return SS;
+        if(next == '=') {
+            t->type = SEQ;
+            return VALID;
+        }
+        else if(next == '-') {
+            t->type = SS;
+            return VALID;
+        }
 
         ungetc(next, fptr);
+        t->type = MINUS;
         return MINUS;
     }
-    return NA;
+    t->type = NA;
+    return NAT;
 }
 
-TokenType IsDiv(FILE* fptr, int c)
+int IsDiv(FILE* fptr, Token* t, int c)
 {
 
     if(c == '/')
     {
         int next = fgetc(fptr);
-        if(next == '=')
-            return DEQ;
-        else if (IsComment(fptr, next) == COMMENT)
-            return COMMENT; 
+        if(next == '=') {
+            t->type = DEQ;
+            return VALID;
+        }
+        else if (IsComment(fptr, t, next) == COMMENT) {
+            t->type = COMMENT;
+            return VALID; 
+        }
 
         ungetc(next, fptr);
-        return DIV;    
+
+        t->type = DIV;
+        return VALID;    
     }
-    return NA;
+    t->type = NA;
+    return NAT;
 }
 
-TokenType IsMult(FILE* fptr, int c)
+int IsMult(FILE* fptr, Token* t, int c)
 {
 
     if(c == '*')
     {
         int next = fgetc(fptr);
-        if(next == '=')
-            return MEQ;
-        else if(next == '*')
-            return POW;
+        if(next == '=') {
+            t->type = MEQ;
+            return VALID;
+        }
+        else if(next == '*') {
+            t->type = POW;
+            return VALID;
+        }
 
         ungetc(next, fptr);
-        return MULT;
+        t->type = MULT;
+        return VALID;
     }
-    return NA;
+    t->type = NA;
+    return NAT;
 }
 
-TokenType IsMod(FILE* fptr, int c)
+int IsMod(FILE* fptr, Token* t, int c)
 {
 
     if(c == '%')
     {
         int next = fgetc(fptr);
-        if(next == '=')
-            return MODEQ;
+        if(next == '=') {
+            t->type = MODEQ;
+            return VALID;
+        }
 
         ungetc(next, fptr);
+        t->type = MOD;
         return MOD;
     }
-    return NA;
+    t->type = NA;
+    return NAT;
 }
 
 /* ---------- OTHERS ---------- */
 
-TokenType IsComment(FILE* fptr, int c)
+int IsComment(FILE* fptr, Token* t, int c)
 {
     /* Only called in IsDiv so first char already div */
     int next = c;
@@ -391,12 +473,14 @@ TokenType IsComment(FILE* fptr, int c)
             if(next == EOF)
             {
                 printf("ERROR: Comment doesn't end before EOF reached\n");
-                return ERR;
+                t->type = ERR;
+                return ERRT;
             }
 
             prev = next;
         }
-        return COMMENT;
+        t->type = COMMENT;
+        return VALID;
     } 
     else if (next == '/')
     {
@@ -406,15 +490,17 @@ TokenType IsComment(FILE* fptr, int c)
             if(next == EOF)
                 break;
         }
-        return COMMENT;
+        t->type = COMMENT;
+        return VALID;
     }
-    return NA;
+    t->type = NA;
+    return VALID;
 }
 
 
-TokenType IdentOrKeyword(FILE* fptr, int c)
+int IdentOrKeyword(FILE* fptr, Token* t, int c)
 {
-    /* TODO: Fix this janky ass MAP creation, make static */
+    /* TODO: Fix this janky ass MAP creation, make static 
 
     KWmap = DictMake(11, kv1, kv2, kv3, kv4, kv5, kv6, kv7, kv8, kv9, kv10, kv11);
 
@@ -423,7 +509,7 @@ TokenType IdentOrKeyword(FILE* fptr, int c)
     while(isalpha(c = fgetc(fptr)) || c == '_' || isdigit(c))
         ; 
 
-    return (DictLookup(d 
-    
+    return (DictLookup(d */
+    return VALID;
 }
 

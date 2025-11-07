@@ -16,24 +16,24 @@ Map KeywordMap {
 Token GetNextToken(FILE* fptr);
 
 /* Categories */
-TokenType IsOperator(FILE* fptr, int c);
-TokenType IsNumber(FILE* fptr, int c);
-TokenType IsLiteral(FILE* fptr, int c);
-TokenType IsBracket(FILE* fptr, int c);
-TokenType IsComparison(FILE* fptr, int c);
-TokenType IsBitwise(FILE* fptr, int c);
-TokenType IsUnary(FILE* fptr, int c);
+int IsOperator(FILE* fptr, Token* t, int c);
+int IsNumber(FILE* fptr, Token* t, int c);
+int IsLiteral(FILE* fptr, Token* t, int c);
+int IsBracket(FILE* fptr, Token* t, int c);
+int IsComparison(FILE* fptr, Token* t, int c);
+int IsBitwise(FILE* fptr, Token* t, int c);
+int IsUnary(FILE* fptr, Token* t, int c);
 
 /* Others */
-TokenType IsComment(FILE* fptr, int c);
-TokenType IsEnd(FILE* fptr, int c);
+int IsComment(FILE* fptr, Token* t, int c);
+int IsEnd(FILE* fptr, Token* t, int c);
 
 /* Operators */
-TokenType IsEqual(FILE* fptr, int c);
-TokenType IsPlus(FILE* fptr, int c);
-TokenType IsMinus(FILE* fptr, int c);
-TokenType IsDiv(FILE* fptr, int c);
-TokenType IsMult(FILE* fptr, int c);
-TokenType IsMod(FILE* fptr, int c);
+int IsEqual(FILE* fptr, Token* t, int c);
+int IsPlus(FILE* fptr, Token* t, int c);
+int IsMinus(FILE* fptr, Token* t, int c);
+int IsDiv(FILE* fptr, Token* t, int c);
+int IsMult(FILE* fptr, Token* t, int c);
+int IsMod(FILE* fptr, Token* t, int c);
 
-TokenType IdentOrKeyword(FILE* fptr, int c);
+int IdentOrKeyword(FILE* fptr, Token* t, int c);

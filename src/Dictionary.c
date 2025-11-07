@@ -1,15 +1,18 @@
 #include "Dictionary.h"
 
 /* Random Hash I found on Stack Overflow */
-unsigned int Hash(unsigned int key)
+unsigned int Hash(char* key)
 {
-    key = ((key >> 16) ^ key) * 0x45d9f3bu;
-    key = ((key >> 16) ^ key) * 0x45d9f3bu;
-    key =  (key >> 16) ^ key;
-    return key % DICT_CAP;
+    unsigned long hash = 5381;
+    int c;
+
+    while (c = *key++)
+        hash = ((hash << 5) + hash) + c;
+
+    return hash % DICT_CAP;
 }
 
-Entry* DictLookup(Dict d, int key)
+Entry* DictLookup(Dict d, char* key)
 {
     Entry* np;
 
@@ -21,7 +24,7 @@ Entry* DictLookup(Dict d, int key)
     }
 }
 
-Entry* DictInstall(Dict* d, int key, char* val)
+Entry* DictInstall(Dict* d, char* key, int val)
 {
     Entry* np;
     unsigned int hashval;
@@ -32,20 +35,18 @@ Entry* DictInstall(Dict* d, int key, char* val)
         if(np == NULL)
             return NULL;
 		
-        np->key = key;
+        np->val = val;
         hashval = Hash(key);
         np->next = (*d)[hashval];
         (*d)[hashval] = np;
     } 
     else 
-        free((void *) np->val);
-    
-    if((np->val = val) == NULL)
+        free((void *) np->key);
+
+    if((np->key = key) == NULL)
         return NULL;
+
     return np;
-
-    
-
 }
 
 Dict* DictMake(int count, ...)
@@ -74,7 +75,7 @@ void DictPrint(Dict d)
         Entry* e = d[i];
         while(e != NULL)
         {
-            printf("Key: %d\tVal: %s\n", e->key, e->val);
+            printf("Key: %s  \tVal: %d\n", e->key, e->val);
             e = e->next;
         }
     }

@@ -13,7 +13,7 @@ GCC_FLAGS="-std=c89 -g -Werror" # -Wall -Wextra"
 INCLUDE_PATHS="./includes:./includes/DataStructures:./includes/Concurrency"
 #INCLUDES=$(echo "$INCLUDE_PATH/"*.h)
 SRC_PATH="src"
-SRC_PATH="src/*.c TestCases/Tokenizer"
+SRC_PATH="src/*.c TestCases"
 #SOURCES=$(echo "$SRC_PATH/"*.c)
 BUILD_PATH="builds"
 
