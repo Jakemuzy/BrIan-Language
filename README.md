@@ -1,14 +1,18 @@
-Introducing BrIan
+# H1Introducing BrIan
 
-A Compiled Language built with concurrency in mind.
+A Compiled Language built with **concurrency** in mind. Build mainly for embedded systems, compiles to the **RISC-V** ISA.
 
-BUILDING
+---
+
+# H2BUILDING
     1.) Run the compilation script (unix only) ./compile.sh name.exe
     1.5.) Include path to your source code
     2.) Run the executable you created ./builds/name.exe
 
-GOALS:
+# H2GOALS:
     Concurrency, low memory utilization, compiled, safe memory
+
+---
 
 EBNF:  
     ImportList ::= ImportList | Import
@@ -38,9 +42,8 @@ EBNF:
 
 
 	...	
-REGULAR EXPRESSIONS:
     
-
+---
 
 DATA TYPES:
     Integral:
