@@ -618,7 +618,7 @@ int IsComm(FILE* fptr, Token* t, int c)
         return VALID;
     }
     t->type = NA;
-    return VALID;
+    return NAT;
 }
 
 
@@ -639,8 +639,12 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
 
     /* KW or IDENT */
     UpdateLexeme(t, '\0');  /* Null Terminator */
-    if(DictLookup(*KWmap, t->lex.word))
-        t->type = IF;
+    Entry* kw;
+    if(kw = DictLookup(*KWmap, t->lex.word))
+    {
+        printf("LOOKED\n");
+        t->type = kw->val;
+    }
     else
         t->type = IDENT;
 
