@@ -59,7 +59,6 @@ Token GetNextToken(FILE* fptr)
     else if(IdentOrKeyword(fptr, &next, c) != NAT)
         ;
 
-    UpdateLexeme(&next, '\0');  /* Null Terminator */
     return next;
 }
 
@@ -629,23 +628,22 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
 */
     KWmap = DictMake(11, kv1, kv2, kv3, kv4, kv5, kv6, kv7, kv8, kv9, kv10, kv11);
 
-
-
-
     int next = c;
     while(next != '\n' && next != EOF)
     {
         if(!isalnum(next) && next != '_')
             break;
         UpdateLexeme(t, next);
-
-        /* Check for KW */
-        if(DictLookup(KWmap, 
-
         next = fgetc(fptr);
     }
 
-    t->type = IDENT;
+    /* KW or IDENT */
+    UpdateLexeme(t, '\0');  /* Null Terminator */
+    if(DictLookup(*KWmap, t->lex.word))
+        t->type = IF;
+    else
+        t->type = IDENT;
+
     return VALID;
 }
 
