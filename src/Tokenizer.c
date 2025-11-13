@@ -21,8 +21,9 @@ KeyVal kv6 = {"for", FOR};
 KeyVal kv7 = {"char", CHAR};
 KeyVal kv8 = {"short", SHORT};
 KeyVal kv9 = {"int", INT};
-KeyVal kv10 = {"double", DOUBLE};	
-KeyVal kv11 = {"long", LONG};
+KeyVal kv10 = {"float", FLOAT};
+KeyVal kv11 = {"double", DOUBLE};	
+KeyVal kv12 = {"long", LONG};
 static Dict* KWmap = NULL;
 
 Token GetNextToken(FILE* fptr)
@@ -627,7 +628,7 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
     /* TODO: Fix this janky ass MAP creation, make static 
 */
     if(!KWmap)
-        KWmap = DictMake(11, &kv1, &kv2, &kv3, &kv4, &kv5, &kv6, &kv7, &kv8, &kv9, &kv10, &kv11);
+        KWmap = DictMake(12, &kv1, &kv2, &kv3, &kv4, &kv5, &kv6, &kv7, &kv8, &kv9, &kv10, &kv11, &kv12);
 
     int next = c;
     while(next != '\n' && next != EOF)
@@ -642,10 +643,7 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
     UpdateLexeme(t, '\0');  /* Null Terminator */
     Entry* kw;
     if(kw = DictLookup(*KWmap, t->lex.word))
-    {
-        printf("LOOKED\n");
         t->type = kw->val;
-    }
     else
         t->type = IDENT;
 

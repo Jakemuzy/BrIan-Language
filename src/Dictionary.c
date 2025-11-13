@@ -44,16 +44,16 @@ Entry* DictInstall(Dict* d, char* key, int val)
         free((void *) np->key);
 
     np->key = malloc(strlen(key) + 1);
-    strcpy(np->key, key);
     if(np->key == NULL)
         return NULL;
 
+    strcpy(np->key, key);
     return np;
 }
 
 Dict* DictMake(int count, ...)
 {
-    Dict* d = malloc(sizeof(Dict));
+    Dict* d = calloc(1, sizeof(Dict));
 
     va_list args;
     va_start(args, count);
@@ -61,12 +61,11 @@ Dict* DictMake(int count, ...)
     int i;
     for(i = 0; i < count; i++)
     {
-        KeyVal kv = va_arg(args, KeyVal);
-        DictInstall(d, kv.key, kv.val);
+        KeyVal* kv = va_arg(args, KeyVal*);
+        DictInstall(d, kv->key, kv->val);
     }
 
     va_end(args);
-    DictPrint(*d);
     return d;
 }
 
