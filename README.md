@@ -15,29 +15,29 @@ A Compiled Language built with **concurrency** in mind. Build mainly for embedde
 ---
 
 EBNF:  
-    ImportList ::= ImportList | Import
-    Import ::= '<'IDENT'>'
+    ImportList ::= Import 
+    Import ::= '<'IDENT'>' | Import
 
-	Prog ::= START CompStmt UPDATE 
-	Thread ::= IDENT CompStmt
+	Prog ::= [ImportList] START Body UPDATE Body
+	Thread ::= IDENT Body
 
 	Body ::= '{' StmtLst '}'
 	StmtList ::= Stmtist | Stmt
 	Stmt ::= DeclStmt | CtrlStmt | CompStmt
 	
-	DeclStmt ::= ( char | bool | int | long | double | float | void | string ) VarList
+	DeclStmt ::= ( char | bool | int | long | double | float | void | string ) VarList;
 	CtrlStmt ::= ( for | while | if ) CompStmt Body | switch Var CompStmt case ':' CompStmt | do Body while 
 	CompStmt ::= ( IDENT | Expr ) ( == | != | <= | >= | < | > ) (IDENT | Expr)
 	 
-	VarList ::= Var ',' Varlist | Var 
+	VarList ::= Var | Var [AssgnExpr] ',' Varlist
 	Var = IDENT 
 
 	Expr ::= UnaryExpr | MultExpr | AddExpr | AssgnExpr | BaseExpr
-	UnaryExpr ::= ( ! | + | - ) ExpExpr | ExpExpr ! 
+	UnaryExpr ::= ( ! | + | - ) ExpExpr | ExpExpr 
     ExpExpr ::= MultExpr ** 
 	MultExpr ::= ( * | / | % ) AddExpr 
 	AddExpr ::= ( + | - )
-	AssgnExpr ::= Var ( = | += | -= | /= | *= | %= ) | Expr
+	AssgnExpr ::= Var ( = | += | -= | /= | *= | %= ) Expr
     BaseExpr ::= Var | Expr
 
 
