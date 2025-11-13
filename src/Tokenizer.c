@@ -71,7 +71,7 @@ void UpdateLexeme(Token* t, int c)
         t->lex.word = realloc(t->lex.word, t->lex.max * sizeof(char));
     }
 
-    t->lex.word[t->lex.size -1 ] = c;
+    t->lex.word[t->lex.size] = c;
     t->lex.size++;
 }
 
@@ -170,6 +170,7 @@ int IsLiteral(FILE* fptr, Token* t, int c)
     }
     else if(c == '\"')
     {
+        UpdateLexeme(t, c);
         int next;
         while((next = fgetc(fptr)) != '\"')
         {
@@ -181,6 +182,7 @@ int IsLiteral(FILE* fptr, Token* t, int c)
             }
             UpdateLexeme(t, next);
         }
+        UpdateLexeme(t, next);
         t->type = SLITERAL;
         return VALID;
     }
@@ -219,7 +221,7 @@ int IsBracket(FILE* fptr, Token* t, int c)
             break;
         default:
             t->type = NA;
-            return NA;
+            return NAT;
     }
     
     UpdateLexeme(t, c);
@@ -285,6 +287,7 @@ int IsEnd(FILE* fptr, Token* t, int c)
 {
     if(c == EOF) {
         t->type = END;
+        UpdateLexeme(t, c);
         return VALID;
     }
 
@@ -393,10 +396,8 @@ int IsDiv(FILE* fptr, Token* t, int c)
             UpdateLexeme(t, next);
             return VALID;
         }
-        else if (IsComm(fptr, t, next) == COMMENT) {
-            t->type = COMMENT;
+        else if (IsComm(fptr, t, next) != NAT) 
             return VALID; 
-        }
 
         ungetc(next, fptr);
 
@@ -555,7 +556,7 @@ int IsAndl(FILE* fptr, Token* t, int c)
     t->type = NA;
     return NAT;
 }
-int IsOrl (FILE* fptr, Token* t, int c) 
+int IsOrl(FILE* fptr, Token* t, int c) 
 {
 
     if(c == '|')
@@ -607,14 +608,12 @@ int IsComm(FILE* fptr, Token* t, int c)
     else if (next == '/')
     {
         UpdateLexeme(t, next);
-
         /* Add EOF check */
         while((next = fgetc(fptr)) != '\n')
         {
+            UpdateLexeme(t, next);
             if(next == EOF)
                 break;
-
-            UpdateLexeme(t, next);
         }
         t->type = COMMENT;
         return VALID;
@@ -627,21 +626,26 @@ int IsComm(FILE* fptr, Token* t, int c)
 int IdentOrKeyword(FILE* fptr, Token* t, int c)
 {
     /* TODO: Fix this janky ass MAP creation, make static 
-
+*/
     KWmap = DictMake(11, kv1, kv2, kv3, kv4, kv5, kv6, kv7, kv8, kv9, kv10, kv11);
 
 
-    TokenType tok = (isalpha(c)) ? IDENT : NA;
-    while(isalpha(c = fgetc(fptr)) || c == '_' || isdigit(c))
-        ; 
 
-    return (DictLookup(d */
 
     int next = c;
-    while(isalpha(next) || isdigit(next) || next == '_')
+    while(next != '\n' && next != EOF)
     {
+        if(!isalnum(next) && next != '_')
+            break;
+        UpdateLexeme(t, next);
+
+        /* Check for KW */
+        if(DictLookup(KWmap, 
+
         next = fgetc(fptr);
     }
+
+    t->type = IDENT;
     return VALID;
 }
 
