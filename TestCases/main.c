@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
     while(next.type != ERR && next.type != END)
     {
         next = GetNextToken(fptr);
-        printf("Token: %d\tValue: %d\n", tokenCount, next.type); 
+        printf("Token: %d\tValue: %d\tWord: %s\n", tokenCount, next.type, next.lex.word); 
 
         tokenCount++;
     }

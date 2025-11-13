@@ -1,5 +1,4 @@
 #include "Tokenizer.h"
-#include "Dictionary.h"
 
 #define ERRT -1      /* Token with err */
 #define NAT 0       /* Not a token */
@@ -34,6 +33,7 @@ Token GetNextToken(FILE* fptr)
     Token next;
     next.lex.size = 0;
     next.lex.max = INIT_LEXEME;
+    next.lex.word = malloc(next.lex.max * sizeof(char));
     
     int c;
     do {
@@ -48,7 +48,7 @@ Token GetNextToken(FILE* fptr)
         ;
     else if(IsOperator(fptr, &next, c) != NAT)
         ;
-    else if(IsComparison(fptr, &next, c) != NAT)
+    else if(IsComp(fptr, &next, c) != NAT)
         ;
     else if(IsBracket(fptr, &next, c) != NAT)
         ;
@@ -65,11 +65,13 @@ Token GetNextToken(FILE* fptr)
 
 void UpdateLexeme(Token* t, int c)
 {
-    int size = t->lex.size;
-    if (size == t->lex.max)
+    if (t->lex.size >= t->lex.max)
+    {
         t->lex.max *= 2;
+        t->lex.word = realloc(t->lex.word, t->lex.max * sizeof(char));
+    }
 
-    t->lex.word[size-1] = c;
+    t->lex.word[t->lex.size -1 ] = c;
     t->lex.size++;
 }
 
@@ -128,7 +130,7 @@ int IsNumber(FILE* fptr, Token* t, int c)
         else if (isalpha(next))
         {
             /* TODO: Need to send to an IsIdent function if ANY function returns Ident to check next chars */
-            ungenc(next, fptr);
+            ungetc(next, fptr);
             t->type = NA;
             break;
         }
@@ -147,7 +149,10 @@ int IsLiteral(FILE* fptr, Token* t, int c)
 {
     if(c == '\'')
     {
+        UpdateLexeme(t, c);
+
         int next = fgetc(fptr);
+        UpdateLexeme(t, next);
         if(next != EOF)
         {
             next = fgetc(fptr);
@@ -157,6 +162,8 @@ int IsLiteral(FILE* fptr, Token* t, int c)
                 t->type = ERR;
                 return ERRT;
             }
+            
+            UpdateLexeme(t, next);
         }
         t->type = CLITERAL;
         return VALID;
@@ -172,6 +179,7 @@ int IsLiteral(FILE* fptr, Token* t, int c)
                 t->type = ERR;
                 return ERRT;
             }
+            UpdateLexeme(t, next);
         }
         t->type = SLITERAL;
         return VALID;
@@ -213,76 +221,24 @@ int IsBracket(FILE* fptr, Token* t, int c)
             t->type = NA;
             return NA;
     }
+    
+    UpdateLexeme(t, c);
     return VALID;
 }
 
-int IsComparison(FILE* fptr, Token* t, int c)
+int IsComp(FILE* fptr, Token* t, int c)
 {
-
-    int next = fgetc(fptr);
-    if(c == '!')
-    {
-        if(next == '=') {
-            t->type = NEQQ;
-            return VALID;
-        }
-
-        ungetc(next, fptr);
-        t->type = NOT;
+    
+    if(IsNeqq(fptr, t, c) != NAT)
         return VALID;
-    }
-    else if(c == '>')
-    {
-        if(next == '=') {
-            t->type = GEQQ;
-            return VALID;
-        }
-        else if(next == '>') {
-            t->type = RSHIFT;
-            return VALID;
-        }
-
-        ungetc(next, fptr);
-        t->type = GREAT;
+    else if(IsGeqq(fptr, t, c) != NAT)
         return VALID;
-    }
-    else if(c == '<')
-    {
-        if(next == '=') {
-            t->type = LEQQ;
-            return VALID;
-        }
-        else if(next == '<') {
-            t->type = LSHIFT;
-            return VALID;
-        }
-
-        ungetc(next, fptr);
-        t->type = LESS;
+    else if(IsLeqq(fptr, t, c) != NAT)
         return VALID;
-    }
-    else if(c == '&')
-    {
-        if(next == '&') {
-            t->type = ANDL;
-            return VALID;
-        }
-
-        ungetc(next, fptr);
-        t->type = AND;
-        return VALID;     /* Bitwise */
-    }
-    else if(c == '|')
-    {
-        if(next == '|'){
-            t->type = ORL;
-            return VALID;
-        }
-
-        ungetc(next, fptr);
-        t->type = OR;
+    else if(IsAndl(fptr, t, c) != NAT)
         return VALID;
-    }
+    else if(IsOrl(fptr, t, c) != NAT)
+        return VALID;
 
     t->type = NA;
     return NAT;
@@ -292,11 +248,13 @@ int IsBitwise(FILE* fptr, Token* t, int c)
 {
     if(c == '~') {
         t->type = NEG;
-        return NEG;
+        UpdateLexeme(t, c);
+        return VALID;
     }
     else if(c == '^') {
         t->type = XOR;
-        return XOR;
+        UpdateLexeme(t, c);
+        return VALID;
     }
 
     t->type = NA;
@@ -308,10 +266,12 @@ int IsUnary(FILE* fptr, Token* t, int c)
     
     if(c == ';') {
         t->type = SEMI;
+        UpdateLexeme(t, c);
         return VALID;
     }
     if(c == ':') {
         t->type = COLON;
+        UpdateLexeme(t, c);
         return VALID;
     }
 
@@ -348,9 +308,12 @@ int IsEqual(FILE* fptr, Token* t, int c)
 {
     if(c == '=')
     {
+        UpdateLexeme(t, c);
+
         int next = fgetc(fptr);
         if(next == '=') {
             t->type = EQQ;
+            UpdateLexeme(t, next);
             return VALID;
         }
         
@@ -358,6 +321,7 @@ int IsEqual(FILE* fptr, Token* t, int c)
         t->type = EQ;
         return VALID; 
     }
+
     t->type = NA;
     return NAT;
 }
@@ -367,13 +331,17 @@ int IsPlus(FILE* fptr, Token* t, int c)
 {
     if(c == '+')
     {
+        UpdateLexeme(t, c);
+
         int next = fgetc(fptr);
         if(next == '=') {
             t->type = PEQ;
+            UpdateLexeme(t, next);
             return VALID;
         }
         else if(next == '+') {
             t->type = PP;
+            UpdateLexeme(t, next);
             return VALID;  
         }
 
@@ -390,13 +358,17 @@ int IsMinus(FILE* fptr, Token* t, int c)
 {
     if(c == '-')
     {
+        UpdateLexeme(t, c);
+
         int next = fgetc(fptr);
         if(next == '=') {
             t->type = SEQ;
+            UpdateLexeme(t, next);
             return VALID;
         }
         else if(next == '-') {
             t->type = SS;
+            UpdateLexeme(t, next);
             return VALID;
         }
 
@@ -413,12 +385,15 @@ int IsDiv(FILE* fptr, Token* t, int c)
 
     if(c == '/')
     {
+        UpdateLexeme(t, c);
+
         int next = fgetc(fptr);
         if(next == '=') {
             t->type = DEQ;
+            UpdateLexeme(t, next);
             return VALID;
         }
-        else if (IsComment(fptr, t, next) == COMMENT) {
+        else if (IsComm(fptr, t, next) == COMMENT) {
             t->type = COMMENT;
             return VALID; 
         }
@@ -437,13 +412,17 @@ int IsMult(FILE* fptr, Token* t, int c)
 
     if(c == '*')
     {
+        UpdateLexeme(t, c);
+
         int next = fgetc(fptr);
         if(next == '=') {
             t->type = MEQ;
+            UpdateLexeme(t, next);
             return VALID;
         }
         else if(next == '*') {
             t->type = POW;
+            UpdateLexeme(t, next);
             return VALID;
         }
 
@@ -460,9 +439,12 @@ int IsMod(FILE* fptr, Token* t, int c)
 
     if(c == '%')
     {
+        UpdateLexeme(t, c);
+
         int next = fgetc(fptr);
         if(next == '=') {
             t->type = MODEQ;
+            UpdateLexeme(t, next);
             return VALID;
         }
 
@@ -474,15 +456,138 @@ int IsMod(FILE* fptr, Token* t, int c)
     return NAT;
 }
 
+/* ---------- COMPARISONS  ----------*/
+
+int IsNeqq(FILE* fptr, Token* t, int c)
+{
+    if(c == '!')
+    {
+        UpdateLexeme(t, c);
+
+        int next = fgetc(fptr);
+        if(next == '=') {
+            t->type = NEQQ;
+            UpdateLexeme(t, next);
+            return VALID;
+        }
+
+        ungetc(next, fptr);
+        t->type = NOT;
+        return VALID;
+    }
+
+    t->type = NA;
+    return NAT;
+}
+int IsGeqq(FILE* fptr, Token* t, int c)
+{
+
+    if(c == '>')
+    {
+        UpdateLexeme(t, c);
+
+        int next = fgetc(fptr);
+        if(next == '=') {
+            t->type = GEQQ;
+            UpdateLexeme(t, next);
+            return VALID;
+        }
+        else if(next == '>') {
+            t->type = RSHIFT;
+            UpdateLexeme(t, next);
+            return VALID;
+        }
+
+        ungetc(next, fptr);
+        t->type = GREAT;
+        return VALID;
+    }
+
+    t->type = NA;
+    return NAT;
+}
+int IsLeqq(FILE* fptr, Token* t, int c)
+{
+    
+    if(c == '<')
+    {
+        UpdateLexeme(t, c);
+
+        int next = fgetc(fptr);
+        if(next == '=') {
+            t->type = LEQQ;
+            UpdateLexeme(t, next);
+            return VALID;
+        }
+        else if(next == '<') {
+            t->type = LSHIFT;
+            UpdateLexeme(t, next);
+            return VALID;
+        }
+
+        ungetc(next, fptr);
+        t->type = LESS;
+        return VALID;
+    }
+
+    t->type = NA;
+    return NAT;
+}
+int IsAndl(FILE* fptr, Token* t, int c)
+{
+
+    if(c == '&')
+    {
+        UpdateLexeme(t, c);
+
+        int next = fgetc(fptr);
+        if(next == '&') {
+            t->type = ANDL;
+            UpdateLexeme(t, next);
+            return VALID;
+        }
+
+        ungetc(next, fptr);
+        t->type = AND;
+        return VALID;     /* Bitwise */
+    }
+
+    t->type = NA;
+    return NAT;
+}
+int IsOrl (FILE* fptr, Token* t, int c) 
+{
+
+    if(c == '|')
+    {
+        UpdateLexeme(t, c);
+
+        int next = fgetc(fptr);
+        if(next == '|'){
+            t->type = ORL;
+            UpdateLexeme(t, next);
+            return VALID;
+        }
+
+        ungetc(next, fptr);
+        t->type = OR;
+        return VALID;
+    }
+
+    t->type = NA;
+    return NAT;
+}
+
 /* ---------- OTHERS ---------- */
 
-int IsComment(FILE* fptr, Token* t, int c)
+int IsComm(FILE* fptr, Token* t, int c)
 {
     /* Only called in IsDiv so first char already div */
     int next = c;
     int prev = 0;
     if(next == '*')
     {
+        UpdateLexeme(t, next);
         while((next = fgetc(fptr)) != '/' && prev != '*')
         {
             if(next == EOF)
@@ -493,17 +598,23 @@ int IsComment(FILE* fptr, Token* t, int c)
             }
 
             prev = next;
+            UpdateLexeme(t, next);
         }
+
         t->type = COMMENT;
         return VALID;
     } 
     else if (next == '/')
     {
+        UpdateLexeme(t, next);
+
         /* Add EOF check */
         while((next = fgetc(fptr)) != '\n')
         {
             if(next == EOF)
                 break;
+
+            UpdateLexeme(t, next);
         }
         t->type = COMMENT;
         return VALID;
@@ -525,6 +636,12 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
         ; 
 
     return (DictLookup(d */
+
+    int next = c;
+    while(isalpha(next) || isdigit(next) || next == '_')
+    {
+        next = fgetc(fptr);
+    }
     return VALID;
 }
 
