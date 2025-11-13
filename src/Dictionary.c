@@ -18,10 +18,10 @@ Entry* DictLookup(Dict d, char* key)
 
     for(np = d[Hash(key)]; np != NULL; np = np->next)
     {
-        if(np->key == key)
+        if(strcmp(np->key, key) == 0)
             return np;
-        return NULL;
     }
+    return NULL;
 }
 
 Entry* DictInstall(Dict* d, char* key, int val)
@@ -43,7 +43,9 @@ Entry* DictInstall(Dict* d, char* key, int val)
     else 
         free((void *) np->key);
 
-    if((np->key = key) == NULL)
+    np->key = malloc(strlen(key) + 1);
+    strcpy(np->key, key);
+    if(np->key == NULL)
         return NULL;
 
     return np;
@@ -51,7 +53,7 @@ Entry* DictInstall(Dict* d, char* key, int val)
 
 Dict* DictMake(int count, ...)
 {
-    Dict* d = malloc(sizeof(Dict));;
+    Dict* d = malloc(sizeof(Dict));
 
     va_list args;
     va_start(args, count);
@@ -64,6 +66,7 @@ Dict* DictMake(int count, ...)
     }
 
     va_end(args);
+    DictPrint(*d);
     return d;
 }
 

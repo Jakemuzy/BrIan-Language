@@ -23,7 +23,7 @@ KeyVal kv8 = {"short", SHORT};
 KeyVal kv9 = {"int", INT};
 KeyVal kv10 = {"double", DOUBLE};	
 KeyVal kv11 = {"long", LONG};
-static Dict* KWmap;
+static Dict* KWmap = NULL;
 
 Token GetNextToken(FILE* fptr)
 {
@@ -626,7 +626,8 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
 {
     /* TODO: Fix this janky ass MAP creation, make static 
 */
-    KWmap = DictMake(11, kv1, kv2, kv3, kv4, kv5, kv6, kv7, kv8, kv9, kv10, kv11);
+    if(!KWmap)
+        KWmap = DictMake(11, &kv1, &kv2, &kv3, &kv4, &kv5, &kv6, &kv7, &kv8, &kv9, &kv10, &kv11);
 
     int next = c;
     while(next != '\n' && next != EOF)
