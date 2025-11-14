@@ -15,34 +15,73 @@ A Compiled Language built with **concurrency** in mind. Build mainly for embedde
 ---
 
 EBNF:  
-    ImportList ::= Import 
-    Import ::= '<'IDENT'>' | Import
+    ImportList ::= #import Import | e
+    Import ::= '<'IDENT'>' | ImportList
 
-	Prog ::= [ImportList] START Body UPDATE Body
+	Prog ::= ImportList START Body UPDATE Body
 	Thread ::= IDENT Body
 
 	Body ::= '{' StmtLst '}'
 	StmtList ::= Stmtist | Stmt
-	Stmt ::= DeclStmt | CtrlStmt | CompStmt
+	Stmt ::= DeclStmt | CtrlStmt | CompStmt | Expr
 	
-	DeclStmt ::= ( char | bool | int | long | double | float | void | string ) VarList;
+	DeclStmt ::= Type VarList;
 	CtrlStmt ::= ( for | while | if ) CompStmt Body | switch Var CompStmt case ':' CompStmt | do Body while 
-	CompStmt ::= ( IDENT | Expr ) ( == | != | <= | >= | < | > ) (IDENT | Expr)
+	CompStmt ::= '(' Expr ')'
 	 
-	VarList ::= Var | Var [AssgnExpr] ',' Varlist
-	Var = IDENT 
+	VarList ::= , Var ; | Var ;
+    Var = IDENT | IDENT Expr | VarList
 
-	Expr ::= UnaryExpr | MultExpr | AddExpr | AssgnExpr | BaseExpr
-	UnaryExpr ::= ( ! | + | - ) ExpExpr | ExpExpr 
-    ExpExpr ::= MultExpr ** 
-	MultExpr ::= ( * | / | % ) AddExpr 
-	AddExpr ::= ( + | - )
-	AssgnExpr ::= Var ( = | += | -= | /= | *= | %= ) Expr
+	Expr ::= LasgnExpr
+    LasgnExpr ::= ( '||=' | &&= ) BasgnExpr | BasgnExpr
+    BasgnExpr ::= ( &= | '|=' | ^= ) SasgnExpr | SasgnExpr
+    SasgnExpr ::= ( <<= | >>= ) AsgnExpr | AsgnExpr
+    AsgnExpr ::= ( += | -= | *= | /= | %= ) TernExpr | TernExpr
+    TernExpr ::= ? LorExpr : LorExpr | LorExpr
+    LorExpr ::= '||' LandExpr | LandExpr
+    LandExpr ::= && BorExpr | BorExpr
+    BorExpr ::= '|' XorExpr | XorExpr
+    XorExpr ::= ^ BandExpr | BandExpr
+    BandExpr ::= & EqqExpr | EqqExpr
+    EqqExpr ::= ( == | != ) CompExpr | CompExpr
+    CompExpr ::= ( < | <= | > | >= ) ShiftExpr | ShiftExpr
+    ShiftExpr ::= ( << | >> ) AddExpr | AddExpr
+	AddExpr ::= ( + | - ) MultExpr | MultExpr
+	MultExpr ::= ( * | / | % ) UnaryExpr | UnaryExpr
+    UnaryExpr ::= ( ++ | -- | ** | ! | ~ | (type) | * | & ) ImmExpr | ImmExpr
+    ImmExpr ::= '(' BaseExpr ')' | '[' BaseExpr ']' | ( . | -> ) BaseExpr | BaseExpr
     BaseExpr ::= Var | Expr
 
-
+    Type = ( char | bool | int | long | double | float | void | string )
 	...	
     
+---
+## Presedence
+
+1.)  () [] . ->
+2.)  ++ -- ** ! ~ (type) * &        **Unary**
+3.)  * / %                          **Arith**
+4.)  + -  
+5.)  << >>                          **Shift**
+6.)  < <= > >=                      **Logic**
+7.)  == !=
+8.)  &                              **Bit**
+9.)  ^
+10.) |
+11.) &&                     
+12.) || 
+13.) ?:                             **Tern**
+14.) += -= *= /= %= 
+15.) <<= >>=
+16.) &= ^= |= 
+17.) &&= ||= 
+
+### NOTES
+    BrIan does NOT short circuit
+    BrIan is type safe
+    BrIan allows for easy bit manipulation
+    BrIan has 
+
 ---
 
 DATA TYPES:
