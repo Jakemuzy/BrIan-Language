@@ -28,9 +28,6 @@ static Dict* KWmap = NULL;
 
 Token GetNextToken(FILE* fptr)
 {
-    /*  ORDER OF OERATIONS */
-    /* Is Unary -> Is Comparison -> Is Comment -> ... */
-
     Token next;
     next.lex.size = 0;
     next.lex.max = INIT_LEXEME;
@@ -62,6 +59,8 @@ Token GetNextToken(FILE* fptr)
 
     return next;
 }
+
+/* Put Token goes here */
 
 void UpdateLexeme(Token* t, int c)
 {

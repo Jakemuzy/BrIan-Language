@@ -6,7 +6,7 @@ typedef enum {
     IF, ELIF, ELSE, DO, WHILE, FOR, 
 
     /* Data Type Key Words */
-    IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, 
+    IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, BOOL,
 
     /* Assignment Operators */
     EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, PP, SS,
@@ -19,9 +19,6 @@ typedef enum {
 
     /* Bitwise Operators */
     NEG, XOR, OR, AND, LSHIFT, RSHIFT, 
-
-    /* Unary Operators */
-    /*FACT,  Also NOT */
 
     /* Brackets */
     LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK, LANGLE, RANGLE,
