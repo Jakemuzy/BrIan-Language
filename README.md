@@ -15,8 +15,7 @@ A Compiled Language built with **concurrency** in mind. Build mainly for embedde
 ---
 
 EBNF:  
-    ImportList ::= #import Import | e
-    Import ::= '<'IDENT'>' | ImportList
+    ImportList ::= { "#import" "<" IDENT ">" }
 
 	Prog ::= ImportList START Body UPDATE Body
 	Thread ::= IDENT Body
@@ -38,19 +37,19 @@ EBNF:
     SasgnExpr ::= ( <<= | >>= ) AsgnExpr | AsgnExpr
     AsgnExpr ::= ( += | -= | *= | /= | %= ) TernExpr | TernExpr
     TernExpr ::= ? LorExpr : LorExpr | LorExpr
-    LorExpr ::= '||' LandExpr | LandExpr
-    LandExpr ::= && BorExpr | BorExpr
-    BorExpr ::= '|' XorExpr | XorExpr
-    XorExpr ::= ^ BandExpr | BandExpr
-    BandExpr ::= & EqqExpr | EqqExpr
-    EqqExpr ::= ( == | != ) CompExpr | CompExpr
-    CompExpr ::= ( < | <= | > | >= ) ShiftExpr | ShiftExpr
-    ShiftExpr ::= ( << | >> ) AddExpr | AddExpr
-	AddExpr ::= ( + | - ) MultExpr | MultExpr
-	MultExpr ::= ( * | / | % ) UnaryExpr | UnaryExpr
-    UnaryExpr ::= ( ++ | -- | ** | ! | ~ | (type) | * | & ) ImmExpr | ImmExpr
-    ImmExpr ::= '(' BaseExpr ')' | '[' BaseExpr ']' | ( . | -> ) BaseExpr | BaseExpr
-    BaseExpr ::= Var | Expr
+    LorExpr ::= LandExpr { '||' LandExpr }
+    LandExpr ::= BorExpr { && BorExpr }
+    BorExpr ::= XorExpr { | XorExpr }
+    XorExpr ::= BandExpr { ^ BandExpr }
+    BandExpr ::= EqqExpr { & EqExpr }
+    EqqExpr ::= CompExpr { ( == | != ) CompExpr }
+    CompExpr ::= ShiftExpr { ( < | <= | > | >= ) ShiftExpr }
+    ShiftExpr ::= AddExpr { ( << | >> ) AddExpr }
+	AddExpr ::= MultEpxr { ( + | - ) MultExpr }
+	MultExpr ::= UnaryExpr { ( * | / | % ) UnaryExpr }
+    UnaryExpr ::= ( ++ | -- | ! | ~ | (type) | * | & ) ImmExpr | ImmExpr ( ++ | -- | ** | ! ) | ImmExpr
+    ImmExpr ::= '(' Primary ')' | '[' Primary ']' | Primary ( . | -> ) Primary | Primary
+    Primary ::= IDENT | LITERAL | '(' Expr ')'
 
     Type = ( char | bool | int | long | double | float | void | string )
 	...	

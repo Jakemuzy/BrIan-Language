@@ -1,12 +1,34 @@
 #ifndef _STRUCTS_H__
 #define _STRUCTS_H__
 
+/* TODO: Add
+    BOOL - bool keyword 
+    QUES - (?) 
+
+    SMEM - Safe member access ?.
+    SREF - Safe member access by ref ?->
+    SPLICE - Array splicing and Ternary op :
+
+    REG - Regsiter access @
+
+    BCLEAR - Bitwise clear &<2>
+    BSET - Bitwise set |<3>
+
+    CCONST - Char
+    SCONST - Short
+    ICONST - Int
+    FCONST - Float
+    DCONST - Double
+    LCONST - Long
+    RCONST - String 
+*/
+
 typedef enum {
     /* Ctrl Stmt Key Words */
     IF, ELIF, ELSE, DO, WHILE, FOR, 
 
     /* Data Type Key Words */
-    IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, BOOL,
+    IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG,
 
     /* Assignment Operators */
     EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, PP, SS,
@@ -23,7 +45,7 @@ typedef enum {
     /* Brackets */
     LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK, LANGLE, RANGLE,
 
-    /* Data Types */
+    /* Data Types REPLACE WITH CONST */
     INTEGRAL, DECIMAL,
 
     /* Other */
