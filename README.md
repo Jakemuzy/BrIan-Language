@@ -22,14 +22,16 @@ EBNF:
 
 	Body ::= '{' StmtLst '}' | Stmt
 	StmtList ::= { Stmt }
-	Stmt ::= DeclStmt | CtrlStmt | CompStmt | Expr
+	Stmt ::= DeclStmt | ExprStmt | CtrlStmt | CompStmt | ReturnStmt 
 	
-	DeclStmt ::= Type VarList;
-	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt 
+    ExprStmt ::= Expr ';'
+	DeclStmt ::= Type VarList ';'
+	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt
+    ReturnStmt ::= return ';'
 	CompStmt ::= '(' Expr ')'
 
     IfStmt ::= "if" CompStmt Body { "elif" Body } { "else" Body }
-    SwitchStmt ::= "switch" '(' Var ')' '{' {"case" Var ':' StmtList '}'
+    SwitchStmt ::= "switch" '(' Expr ')' '{' { "case" Expr ':' StmtList } [ "default" ':' StmtList ] '}'
     WhileStmt ::= "while" CompStmt Body
     DoWhileStmt ::= "do" Body "while" CompStmt ';'
     ForStmt ::= "for" '(' Expr ';' Expr ';' Expr ')'
@@ -39,27 +41,26 @@ EBNF:
     BasgnExpr ::= SasgnExpr { ( &= | '|=' | ^= ) SasgnExpr }
     SasgnExpr ::= AsgnExpr { ( <<= | >>= ) AsgnExpr }
     AsgnExpr ::= TernExpr { ( += | -= | *= | /= | %= ) TernExpr }
-    TernExpr ::= LandExpr ? LandExpr : LandExpr | LandExpr
-    LandExpr ::= LorExpr { && LorExpr }
-    LorExpr ::= BorExpr { '||' BorExpr }
+    TernExpr ::= Lor [ '?' Expr ':' Expr ]
+    LorExpr ::= LandExpr { '||' LandExpr }
+    LandExpr ::= BorExpr { && BorExpr }
     BorExpr ::= XorExpr { '|' XorExpr }
     XorExpr ::= BandExpr { '^' BandExpr }
-    BandExpr ::= EqqExpr { '&' EqExpr }
+    BandExpr ::= EqqExpr { '&' EqqExpr }
     EqqExpr ::= CompExpr { ( == | != ) CompExpr }
     CompExpr ::= ShiftExpr { ( < | <= | > | >= ) ShiftExpr }
     ShiftExpr ::= AddExpr { ( "<<" | ">>" ) AddExpr }
 	AddExpr ::= MultEpxr { ( + | - ) MultExpr }
-	MultExpr ::= UnaryExpr { ( * | / | % ) UnaryExpr }
-    UnaryExpr ::= ( ++ | -- | ! | ~ | '(' Type ')' | * | & ) ImmExpr | PostExpr
-    PostExpr ::= Primary { '!' }
-    PowExpr ::= UnaryExpr { '**' PowExpr }
-    ImmExpr ::= '(' Primary ')' | '[' Primary ']' | Primary ( . | -> ) Primary | Primary
+	MultExpr ::= PowExpr { ( * | / | % ) PowExpr }
+    PowExpr ::= Prefix { '**' PowExpr }
+    Prefix ::= ( ++ | -- | ! | ~ | '(' Type ')' | * | & ) Prefix | Postfix
+    Postfix ::= Primary { '[' Expr ']' | '.' IDENT | '->' IDENT | '++' | '--' | '!' }
     Primary ::= IDENT | LITERAL | '(' Expr ')'
 
     Type = ( char | bool | int | long | double | float | void | string )
 
-	VarList ::= Var ; | Var , Var;
-    Var = IDENT | IDENT Expr | VarList
+	VarList ::= Var { ',' Var }
+    Var = IDENT [ '=' Expr ]
 	...	
     
 ---
