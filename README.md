@@ -50,7 +50,9 @@ EBNF:
     ShiftExpr ::= AddExpr { ( "<<" | ">>" ) AddExpr }
 	AddExpr ::= MultEpxr { ( + | - ) MultExpr }
 	MultExpr ::= UnaryExpr { ( * | / | % ) UnaryExpr }
-    UnaryExpr ::= ( ++ | -- | ! | ~ | '(' Type ')' | * | & ) ImmExpr | ImmExpr ( ++ | -- | ** | ! ) | ImmExpr
+    UnaryExpr ::= ( ++ | -- | ! | ~ | '(' Type ')' | * | & ) ImmExpr | PostExpr
+    PostExpr ::= Primary { '!' }
+    PowExpr ::= UnaryExpr { '**' PowExpr }
     ImmExpr ::= '(' Primary ')' | '[' Primary ']' | Primary ( . | -> ) Primary | Primary
     Primary ::= IDENT | LITERAL | '(' Expr ')'
 
