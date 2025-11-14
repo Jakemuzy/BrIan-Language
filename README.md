@@ -20,38 +20,44 @@ EBNF:
 	Prog ::= ImportList START Body UPDATE Body
 	Thread ::= IDENT Body
 
-	Body ::= '{' StmtLst '}'
-	StmtList ::= Stmtist | Stmt
+	Body ::= '{' StmtLst '}' | Stmt
+	StmtList ::= { Stmt }
 	Stmt ::= DeclStmt | CtrlStmt | CompStmt | Expr
 	
 	DeclStmt ::= Type VarList;
-	CtrlStmt ::= ( for | while | if ) CompStmt Body | switch Var CompStmt case ':' CompStmt | do Body while 
+	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt 
 	CompStmt ::= '(' Expr ')'
-	 
-	VarList ::= , Var ; | Var ;
-    Var = IDENT | IDENT Expr | VarList
+
+    IfStmt ::= "if" CompStmt Body { "elif" Body } { "else" Body }
+    SwitchStmt ::= "switch" '(' Var ')' '{' {"case" Var ':' StmtList '}'
+    WhileStmt ::= "while" CompStmt Body
+    DoWhileStmt ::= "do" Body "while" CompStmt ';'
+    ForStmt ::= "for" '(' Expr ';' Expr ';' Expr ')'
 
 	Expr ::= LasgnExpr
-    LasgnExpr ::= ( '||=' | &&= ) BasgnExpr | BasgnExpr
-    BasgnExpr ::= ( &= | '|=' | ^= ) SasgnExpr | SasgnExpr
-    SasgnExpr ::= ( <<= | >>= ) AsgnExpr | AsgnExpr
-    AsgnExpr ::= ( += | -= | *= | /= | %= ) TernExpr | TernExpr
-    TernExpr ::= ? LorExpr : LorExpr | LorExpr
-    LorExpr ::= LandExpr { '||' LandExpr }
-    LandExpr ::= BorExpr { && BorExpr }
-    BorExpr ::= XorExpr { | XorExpr }
-    XorExpr ::= BandExpr { ^ BandExpr }
-    BandExpr ::= EqqExpr { & EqExpr }
+    LasgnExpr ::= BasgnExpr { ( '||=' | &&= ) BasgnExpr }
+    BasgnExpr ::= SasgnExpr { ( &= | '|=' | ^= ) SasgnExpr }
+    SasgnExpr ::= AsgnExpr { ( <<= | >>= ) AsgnExpr }
+    AsgnExpr ::= TernExpr { ( += | -= | *= | /= | %= ) TernExpr }
+    TernExpr ::= LandExpr ? LandExpr : LandExpr | LandExpr
+    LandExpr ::= LorExpr { && LorExpr }
+    LorExpr ::= BorExpr { '||' BorExpr }
+    BorExpr ::= XorExpr { '|' XorExpr }
+    XorExpr ::= BandExpr { '^' BandExpr }
+    BandExpr ::= EqqExpr { '&' EqExpr }
     EqqExpr ::= CompExpr { ( == | != ) CompExpr }
     CompExpr ::= ShiftExpr { ( < | <= | > | >= ) ShiftExpr }
-    ShiftExpr ::= AddExpr { ( << | >> ) AddExpr }
+    ShiftExpr ::= AddExpr { ( "<<" | ">>" ) AddExpr }
 	AddExpr ::= MultEpxr { ( + | - ) MultExpr }
 	MultExpr ::= UnaryExpr { ( * | / | % ) UnaryExpr }
-    UnaryExpr ::= ( ++ | -- | ! | ~ | (type) | * | & ) ImmExpr | ImmExpr ( ++ | -- | ** | ! ) | ImmExpr
+    UnaryExpr ::= ( ++ | -- | ! | ~ | '(' Type ')' | * | & ) ImmExpr | ImmExpr ( ++ | -- | ** | ! ) | ImmExpr
     ImmExpr ::= '(' Primary ')' | '[' Primary ']' | Primary ( . | -> ) Primary | Primary
     Primary ::= IDENT | LITERAL | '(' Expr ')'
 
     Type = ( char | bool | int | long | double | float | void | string )
+
+	VarList ::= Var ; | Var , Var;
+    Var = IDENT | IDENT Expr | VarList
 	...	
     
 ---
