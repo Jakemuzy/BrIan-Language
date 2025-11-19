@@ -1,3 +1,6 @@
+#ifndef _TOKENIZER_H__
+#define _TOKENIZER_H__
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
@@ -5,17 +8,16 @@
 
 #include "Token.h"
 #include "Dictionary.h"
-/*
-Map KeywordMap {
-    ("if", IF),
-    ("else", ELSE),
-    ("while", WHILE),
 
-}
-*/
+/* Jankiest Map I've seen but temporary */
+static Dict* KWmap = NULL;
 
-Token GetNextToken(FILE* fptr);
-void UpdateLexeme(Token* t, int c);
+/* Token Logic */
+static Token* Buffer = NULL;
+
+Token GetNextToken(FILE* fptr); 
+int   PutTokenBack(Token* t);
+void  UpdateLexeme(Token* t, int c);
 
 /* Categories */
 int IsOperato(FILE* fptr, Token* t, int c);
@@ -47,3 +49,5 @@ int IsOrl (FILE* fptr, Token* t, int c);
 
 
 int IdentOrKeyword(FILE* fptr, Token* t, int c);
+
+#endif

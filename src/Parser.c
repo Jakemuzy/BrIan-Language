@@ -38,10 +38,21 @@ void Program(FILE* fptr, AST* ast)
     }
 }
 
-void ImportList(FILE* fptr, AST* ast)
+int ImportList(FILE* fptr, AST* ast)
 {
+    Token t = GetNextToken(fptr);
+    if(!strcmp(t.lex.word, "#import"))
+    {
+        PutTokenBack(&t);
+        return -1;
+    }
+
+    return 0;
 }
 
-void Body(FILE* fptr, AST* ast)
+int Body(FILE* fptr, AST* ast)
 {
+    Token t = GetNextToken(fptr);
+    
+    return 0;
 }
