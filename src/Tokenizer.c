@@ -71,6 +71,7 @@ int PutTokenBack(Token* t)
     if(Buffer != NULL)
     {
         perror("ERROR: Attemping to write to a full buffer \n");
+        exit(-1);
         return -1;
     }
 
