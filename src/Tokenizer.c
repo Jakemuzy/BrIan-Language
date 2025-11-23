@@ -10,8 +10,6 @@
  * TODO: Keywords, Idents, Factorial, 
  *       Order of checks 
 */
-
-/* Jankiest Map I've seen but temporary */
 KeyVal kv1 = {"if", IF} ;
 KeyVal kv2 = {"elif", ELIF};
 KeyVal kv3 = {"else", ELSE};
@@ -22,13 +20,21 @@ KeyVal kv7 = {"char", CHAR};
 KeyVal kv8 = {"short", SHORT};
 KeyVal kv9 = {"int", INT};
 KeyVal kv10 = {"float", FLOAT};
-KeyVal kv11 = {"double", DOUBLE};	
+KeyVal kv11 = {"double", DOUBLE};
 KeyVal kv12 = {"long", LONG};
-static Dict* KWmap = NULL;
 
 Token GetNextToken(FILE* fptr)
 {
+    /* Check Buffer Before Grabbing New */
     Token next;
+    if (Buffer != NULL)
+    {
+        next = *Buffer;
+        Buffer = NULL;
+        return next;
+    }
+
+    /* Fetch new Tokeni From File */
     next.lex.size = 0;
     next.lex.max = INIT_LEXEME;
     next.lex.word = malloc(next.lex.max * sizeof(char));
@@ -60,7 +66,18 @@ Token GetNextToken(FILE* fptr)
     return next;
 }
 
-/* Put Token goes here */
+int PutTokenBack(Token* t)
+{
+    if(Buffer != NULL)
+    {
+        perror("ERROR: Attemping to write to a full buffer \n");
+        exit(-1);
+        return -1;
+    }
+
+    Buffer = t;
+    return 0;
+}
 
 void UpdateLexeme(Token* t, int c)
 {

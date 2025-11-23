@@ -24,49 +24,49 @@ static Dict TypeMap;
 /* ---------- Recursive Descent ---------- */
 
 void Program(FILE* fptr, AST* ast);
-void ImportList(FILE* fptr, AST* ast);
+int ImportList(FILE* fptr, AST* ast);
 
-void Thread(FILE* fptr, AST* ast);
+int Thread(FILE* fptr, AST* ast);
 
-void Body(FILE* fptr, AST* ast);
-void StmtList(FILE* fptr, AST* ast);
-void Stmt(FILE* fptr, AST* ast);
-void LineStmt(FILE* fptr, AST* ast);
+int Body(FILE* fptr, AST* ast);
+int StmtList(FILE* fptr, AST* ast);
+int Stmt(FILE* fptr, AST* ast);
+int LineStmt(FILE* fptr, AST* ast);
 
-void ExprStmt(FILE* fptr, AST* ast);
-void DeclStmt(FILE* fptr, AST* ast);
-void CtrlStmt(FILE* fptr, AST* ast);
-void ReturnStmt(FILE* fptr, AST* ast);
+int ExprStmt(FILE* fptr, AST* ast);
+int DeclStmt(FILE* fptr, AST* ast);
+int CtrlStmt(FILE* fptr, AST* ast);
+int ReturnStmt(FILE* fptr, AST* ast);
 
-void IfStmt(FILE* fptr, AST* ast);
-void SwitchStmt(FILE* fptr, AST* ast);
-void WhileStmt(FILE* fptr, AST* ast);
-void DoWhileStmt(FILE* fptr, AST* ast);
-void ForStmt(FILE* fptr, AST* ast);
+int IfStmt(FILE* fptr, AST* ast);
+int SwitchStmt(FILE* fptr, AST* ast);
+int WhileStmt(FILE* fptr, AST* ast);
+int DoWhileStmt(FILE* fptr, AST* ast);
+int ForStmt(FILE* fptr, AST* ast);
 
-void Expr(FILE* fptr, AST* ast);
-void LasgnExpr(FILE* fptr, AST* ast);
-void BasgnExpr(FILE* fptr, AST* ast);
-void SasgnExpr(FILE* fptr, AST* ast);
-void AsgnExpr(FILE* fptr, AST* ast);
-void TernExpr(FILE* fptr, AST* ast);
-void LorExpr(FILE* fptr, AST* ast);
-void LandExpr(FILE* fptr, AST* ast);
-void BorExpr(FILE* fptr, AST* ast);
-void XorExpr(FILE* fptr, AST* ast);
-void BandExpr(FILE* fptr, AST* ast);
-void EqqExpr(FILE* fptr, AST* ast);
-void CompExpr(FILE* fptr, AST* ast);
-void ShiftExpr(FILE* fptr, AST* ast);
-void AddExpr(FILE* fptr, AST* ast);
-void MultExpr(FILE* fptr, AST* ast);
-void PowExpr(FILE* fptr, AST* ast);
-void Prefix(FILE* fptr, AST* ast);
-void Postfix(FILE* fptr, AST* ast);
-void Primary(FILE* fptr, AST* ast);
+int Expr(FILE* fptr, AST* ast);
+int LasgnExpr(FILE* fptr, AST* ast);
+int BasgnExpr(FILE* fptr, AST* ast);
+int SasgnExpr(FILE* fptr, AST* ast);
+int AsgnExpr(FILE* fptr, AST* ast);
+int TernExpr(FILE* fptr, AST* ast);
+int LorExpr(FILE* fptr, AST* ast);
+int LandExpr(FILE* fptr, AST* ast);
+int BorExpr(FILE* fptr, AST* ast);
+int XorExpr(FILE* fptr, AST* ast);
+int BandExpr(FILE* fptr, AST* ast);
+int EqqExpr(FILE* fptr, AST* ast);
+int CompExpr(FILE* fptr, AST* ast);
+int ShiftExpr(FILE* fptr, AST* ast);
+int AddExpr(FILE* fptr, AST* ast);
+int MultExpr(FILE* fptr, AST* ast);
+int PowExpr(FILE* fptr, AST* ast);
+int Prefix(FILE* fptr, AST* ast);
+int Postfix(FILE* fptr, AST* ast);
+int Primary(FILE* fptr, AST* ast);
 
-void VarList(FILE* fptr, AST* ast);
-void Var(FILE* fptr, AST* ast);
+int VarList(FILE* fptr, AST* ast);
+int Var(FILE* fptr, AST* ast);
 
 
 

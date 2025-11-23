@@ -1,5 +1,5 @@
-#ifndef _STRUCTS_H__
-#define _STRUCTS_H__
+#ifndef _TOKEN_H__
+#define _TOKEN_H__
 
 /* TODO: Add
     BOOL - bool keyword 
