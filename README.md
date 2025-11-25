@@ -1,12 +1,15 @@
 # Introducing BrIan
 
-A Compiled Language built with **concurrency** in mind. Build mainly for embedded systems, compiles to the **RISC-V** ISA.
+A Compiled Language built with **concurrency** in mind. Built mainly for embedded systems, compiles to the **RISC-V** ISA
 
 ---
 
 ## PRINCIPLES:
     Brian's main goals are 
-        -Concurrency - Low memory utilization - Compiled - Type and memory safety
+        - Concurrency 
+        - Low memory utilization 
+        - Compiled 
+        - Type and memory safety
     BrIan strives to be simple but extremely powerful. By allowing programmers to interface directly with hardware, BrIan is extremely powerful, hence any error can be catastrophic. 
     Because of this BrIan is designed to be idiomatic and straight forward; avoiding confusing and hard to catch bugs that C++ is known for.
     Built upon the principles of C, BrIan is essentially a my attempt at a C++ without the verbosity, depreciation, and confusion. In BrIan, you won't need to constantly learn the latest and greatest functions in the standard library like C++; nor will you have to create everything by yourself like in C. BrIan takes the middle ground of these two, providing simple datastructures, algorithms and all that is required to build complex standalone projects, without the technical debt.
@@ -39,32 +42,32 @@ A Compiled Language built with **concurrency** in mind. Build mainly for embedde
 ## GRAMMAR
 
 ' 
-	Progam ::= ImportList "START" Body "UPDATE" Body
-    ImportList ::= { "#import" "<" IDENT ">" }
+	Progam ::= ImportList "START" Body "UPDATE" Body  
+    ImportList ::= { "#import" "<" IDENT ">" }  
 
-	Thread ::= "THREAD" IDENT Body
+	Thread ::= "THREAD" IDENT Body  
 
-	Body ::= '{' StmtList '}' | LineStmt
-	StmtList ::= { Stmt }
-	Stmt ::= CtrlStmt | LineStmt ';'
-    LineStmt ::= DeclStmt | ExprStmt | ReturnStmt
+	Body ::= '{' StmtList '}' | LineStmt  
+	StmtList ::= { Stmt }  
+	Stmt ::= CtrlStmt | LineStmt ';'  
+    LineStmt ::= DeclStmt | ExprStmt | ReturnStmt  
 
-    ExprStmt ::= Expr ';'
-	DeclStmt ::= Type VarList ';'
-	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt
-    ReturnStmt ::= return ';'
+    ExprStmt ::= Expr ';'  
+	DeclStmt ::= Type VarList ';'  
+	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
+    ReturnStmt ::= return ';'  
 
-    IfStmt ::= "if" '(' Expr ')' Body { "elif" '(' Expr ')' Body } { "else" Body }
-    SwitchStmt ::= "switch" '(' Expr ')' '{' { "case" Expr ':' StmtList } [ "default" ':' StmtList ] '}'
-    WhileStmt ::= "while" '(' Expr ')' Body
-    DoWhileStmt ::= "do" Body "while" CompStmt ';'
-    ForStmt ::= "for" '(' [Expr { ',' Expr} ] ';' Expr ';' Expr ')'
+    IfStmt ::= "if" '(' Expr ')' Body { "elif" '(' Expr ')' Body } { "else" Body }  
+    SwitchStmt ::= "switch" '(' Expr ')' '{' { "case" Expr ':' StmtList } [ "default" ':' StmtList ] '}'  
+    WhileStmt ::= "while" '(' Expr ')' Body  
+    DoWhileStmt ::= "do" Body "while" CompStmt ';'  
+    ForStmt ::= "for" '(' [Expr { ',' Expr} ] ';' Expr ';' Expr ')'  
 
-	Expr ::= LasgnExpr
-    LasgnExpr ::= BasgnExpr { ( '||=' | &&= ) BasgnExpr }
-    BasgnExpr ::= SasgnExpr { ( '&=' | '|=' | '^=' ) SasgnExpr }
-    SasgnExpr ::= AsgnExpr { ( '<<=' | '>>=' ) AsgnExpr }
-    AsgnExpr ::= TernExpr { ( '+=' | '-=' | '*=' | '/=' | '%=' ) TernExpr }
+	Expr ::= LasgnExpr  
+    LasgnExpr ::= BasgnExpr { ( '||=' | &&= ) BasgnExpr }  
+    BasgnExpr ::= SasgnExpr { ( '&=' | '|=' | '^=' ) SasgnExpr }  
+    SasgnExpr ::= AsgnExpr { ( '<<=' | '>>=' ) AsgnExpr }  
+    AsgnExpr ::= TernExpr { ( '+=' | '-=' | '*=' | '/=' | '%=' ) TernExpr }  
     TernExpr ::= LorExpr [ '?' Expr ':' Expr ]
     LorExpr ::= LandExpr { '||' LandExpr }
     LandExpr ::= BorExpr { '&&' BorExpr }
@@ -80,6 +83,17 @@ A Compiled Language built with **concurrency** in mind. Build mainly for embedde
     Prefix ::= ( '++' | '--' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix
     Postfix ::= Primary { '[' Expr ']' | '.' IDENT | '->' IDENT | '++' | '--' | '$' }
     Primary ::= IDENT | LITERAL | '(' Expr ')'
+
+    Expr ::= AsgnExpr  
+    AsgnExpr ::= LogicExpr { ( '*=' | '/=' | '%=' | '+=' | '-=' | '&=' | '|=' | '^=' | '>>=' | '<<=' | '||=' | '&&=' | '=' ) LogicExpr }  
+    LogicExpr ::= BitExpr { ( '<' '<=' '>' '>=' '==' '!=' '&& '||') BitExpr }  
+    BitExpr ::= AddExpr { ( '&' '^' '|' '>>' '<<') AddExpr }  
+	AddExpr ::= MultExpr { ( '+' | '-' ) MultExpr }  
+	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }  
+    PowExpr ::= Prefix [ '**' PowExpr ]  
+    Prefix ::= ( '++' | '--' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix  
+    Posfix ::= Primary { '++' | '--' | '$' }  
+    Primary ::= IDENT | LITERAL | '(' EXPR ')'  
 
     Type = ( char | bool | int | long | double | float | void | string )
 
