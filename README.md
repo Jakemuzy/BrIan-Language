@@ -4,17 +4,41 @@ A Compiled Language built with **concurrency** in mind. Build mainly for embedde
 
 ---
 
-## BUILDING
-    1.) Run the compilation script (unix only) ./compile.sh name.exe
-    1.5.) Include path to your source code
-    2.) Run the executable you created ./builds/name.exe
+## PRINCIPLES:
+    Brian's main goals are 
+        -Concurrency - Low memory utilization - Compiled - Type and memory safety
+    BrIan strives to be simple but extremely powerful. By allowing programmers to interface directly with hardware, BrIan is extremely powerful, hence any error can be catastrophic. 
+    Because of this BrIan is designed to be idiomatic and straight forward; avoiding confusing and hard to catch bugs that C++ is known for.
+    Built upon the principles of C, BrIan is essentially a my attempt at a C++ without the verbosity, depreciation, and confusion. In BrIan, you won't need to constantly learn the latest and greatest functions in the standard library like C++; nor will you have to create everything by yourself like in C. BrIan takes the middle ground of these two, providing simple datastructures, algorithms and all that is required to build complex standalone projects, without the technical debt.
+    There are many aspects of C and C++ that BrIan aims to fix:
+    - Confusing operator prescedence
+    - Confusing function pointers
+    - Confusing implicit casting rules
+    - Confusing pointer declarations 
+        * Think comparisons between unsigned and signed in C
+    - Lack of namespaces
+    - Lack of lambdas 
+    - Lack of interfaces and struct methods
+    - Unintuitive strings
+    - Ambiguous indentation with conditionals and loops
+    - Ambiguous standard library
+        * Especially regarding deprecated functions, best practices and obtuse implementations
+    - Safety concerns 
+        * BrIan will have safe pointers and safe dereferencing
+    - Switch fall throughs 
+    - Header files 
+    - Macros
 
-## GOALS:
-    Concurrency, low memory utilization, compiled, safe memory
+
+## BUILDING:
+
+## DOCUMENTATION:
 
 ---
 
-EBNF:  
+## GRAMMAR
+
+' 
 	Progam ::= ImportList "START" Body "UPDATE" Body
     ImportList ::= { "#import" "<" IDENT ">" }
 
@@ -62,7 +86,8 @@ EBNF:
 	VarList ::= Var { ',' Var }
     Var = IDENT [ '=' Expr ]
 	...	
-    
+'
+
 ---
 ## Presedence
 
@@ -90,8 +115,16 @@ EBNF:
     BrIan allows for easy bit manipulation
     BrIan has 
 
+## PROGRESS
+
+    - [x] Tokenizer
+    - [ ] All Tokens implemented
+    - [ ] Parser and AST
+    - [ ] Conversion to RISC V
+
 ---
 
+'
 DATA TYPES:
     Integral:
         char(1), bool(1), short(2), int(4), long(8)
@@ -105,4 +138,4 @@ TYPE QUALIFIERS:
 
 CONTROL STATEMENTS:
     if, else, do, while, switch, case, break, continue, goto, return
-
+'
