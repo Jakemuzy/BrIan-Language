@@ -73,8 +73,9 @@ int Body(FILE* fptr, AST* ast)
 int StmtList(FILE* fptr, AST* ast)
 {
     int retCode = VALID;
-
-    while(retCode != ERRP && retCode != NAP)
+    
+    /* TODO: while(retCode != ERRP && retCode != NAP) */
+    while (true)
         retCode = Stmt(fptr, ast);
     return retCode;
 }
@@ -165,9 +166,9 @@ int ReturnStmt(FILE* fptr, AST* ast)
 {
 	Token t = GetNextToken(fptr);
 
-	if(!strcmp(t.word.lex, "return"))
+	if(!strcmp(t.lex.word, "return"))
 	{
-		PutTokenBack(t);
+		PutTokenBack(&t);
 		return NAP;
 	}
 
@@ -176,7 +177,7 @@ int ReturnStmt(FILE* fptr, AST* ast)
 	t = GetNextToken(fptr);
 	if(t.type != SEMI)
 	{
-		PutTokenBack(t);
+		PutTokenBack(&t);
 		return ERRP;
 	}
 	return VALID;
@@ -191,7 +192,7 @@ int IfStmt(FILE* fptr, AST* ast)
 
 	if(t.type != IF)
 	{
-		PutTokenBack(t);
+		PutTokenBack(&t);
 		return NAP;
 	}
 
@@ -240,50 +241,24 @@ int ForStmt(FILE* fptr, AST* ast)
 int Expr(FILE* fptr, AST* ast)
 {
 	int status;
-	if((status = LasgnExpr(fptr, ast)) != VALID)
-		return status;
-
-	return VALI;
-}
-
-int LasgnExpr(FILE* fptr, AST* ast)
-{
-	int status;
-	Token t;
-
-	if((status = BasgnExpr(fptr, ast)) != VALID)
-		return status;
-	
-	t = GetNextToken(fptr);
-	if(t.type != OREQ && t.type != ANDEQ)
-	{
-		PutTokenBack(t);
-		return VALID;
-	}
-
-	if((status = BasgnExpr(fptr, ast)) != VALID)
+	if((status = AsgnExpr(fptr, ast)) != VALID)
 		return status;
 
 	return VALID;
 }
 
-int BasgnExpr(FILE* fptr, AST* ast)
+int AsgnExpr(FILE* fptr, AST* ast)
 {
 	int status;
 	Token t;
 
-	if((status = SasgnExpr(fptr, ast)) != VALID)
-		return status;
-	
-	t = GetNextToken(fptr);
-	if(t.type !=  && t.type != ANDEQ)
-	{
-		PutTokenBack(t);
-		return VALID;
-	}
-
-	if((status = BasgnExpr(fptr, ast)) != VALID)
-		return status;
-
 	return VALID;
+}
+
+
+int Type(FILE* fptr, AST* ast)
+{
+}
+int VarList(FILE* fptr, AST* ast)
+{
 }

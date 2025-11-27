@@ -63,27 +63,6 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     DoWhileStmt ::= "do" Body "while" CompStmt ';'  
     ForStmt ::= "for" '(' [Expr { ',' Expr} ] ';' Expr ';' Expr ')'  
 
-	Expr ::= LasgnExpr  
-    LasgnExpr ::= BasgnExpr { ( '||=' | &&= ) BasgnExpr }  
-    BasgnExpr ::= SasgnExpr { ( '&=' | '|=' | '^=' ) SasgnExpr }  
-    SasgnExpr ::= AsgnExpr { ( '<<=' | '>>=' ) AsgnExpr }  
-    AsgnExpr ::= TernExpr { ( '+=' | '-=' | '*=' | '/=' | '%=' ) TernExpr }  
-    TernExpr ::= LorExpr [ '?' Expr ':' Expr ]
-    LorExpr ::= LandExpr { '||' LandExpr }
-    LandExpr ::= BorExpr { '&&' BorExpr }
-    BorExpr ::= XorExpr { '|' XorExpr }
-    XorExpr ::= BandExpr { '^' BandExpr }
-    BandExpr ::= EqqExpr { '&' EqqExpr }
-    EqqExpr ::= CompExpr { ( '==' | '!=' ) CompExpr }
-    CompExpr ::= ShiftExpr { ( '<' | '<=' | '>' | '>=' ) ShiftExpr }
-    ShiftExpr ::= AddExpr { ( '<<' | '>>' ) AddExpr }
-	AddExpr ::= MultExpr { ( '+' | '-' ) MultExpr }
-	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }
-    PowExpr ::= Prefix [ '**' PowExpr ]
-    Prefix ::= ( '++' | '--' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix
-    Postfix ::= Primary { '[' Expr ']' | '.' IDENT | '->' IDENT | '++' | '--' | '$' }
-    Primary ::= IDENT | LITERAL | '(' Expr ')'
-
     Expr ::= AsgnExpr  
     AsgnExpr ::= LogicExpr { ( '*=' | '/=' | '%=' | '+=' | '-=' | '&=' | '|=' | '^=' | '>>=' | '<<=' | '||=' | '&&=' | '=' ) LogicExpr }  
     LogicExpr ::= BitExpr { ( '<' '<=' '>' '>=' '==' '!=' '&& '||') BitExpr }  
@@ -92,7 +71,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }  
     PowExpr ::= Prefix [ '**' PowExpr ]  
     Prefix ::= ( '++' | '--' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix  
-    Posfix ::= Primary { '++' | '--' | '$' }  
+    Postfix ::= Primary { '++' | '--' | '$' }  
     Primary ::= IDENT | LITERAL | '(' EXPR ')'  
 
     Type = ( char | bool | int | long | double | float | void | string )
