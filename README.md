@@ -49,19 +49,18 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
 	Body ::= '{' StmtList '}' | LineStmt  
 	StmtList ::= { Stmt }  
-	Stmt ::= CtrlStmt | LineStmt ';'  
-    LineStmt ::= DeclStmt | ExprStmt | ReturnStmt  
+	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt ';'  
 
     ExprStmt ::= Expr ';'  
 	DeclStmt ::= Type VarList ';'  
 	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
-    ReturnStmt ::= return ';'  
+    ReturnStmt ::= return [Expr] ';'  
 
     IfStmt ::= "if" '(' Expr ')' Body { "elif" '(' Expr ')' Body } { "else" Body }  
     SwitchStmt ::= "switch" '(' Expr ')' '{' { "case" Expr ':' StmtList } [ "default" ':' StmtList ] '}'  
     WhileStmt ::= "while" '(' Expr ')' Body  
     DoWhileStmt ::= "do" Body "while" CompStmt ';'  
-    ForStmt ::= "for" '(' [Expr { ',' Expr} ] ';' Expr ';' Expr ')'  
+    ForStmt ::= "for" '(' [Expr { ',' Expr} ] ';' Expr ';' Expr ')' Body  
 
     Expr ::= AsgnExpr  
     AsgnExpr ::= LogicExpr { ( '*=' | '/=' | '%=' | '+=' | '-=' | '&=' | '|=' | '^=' | '>>=' | '<<=' | '||=' | '&&=' | '=' ) LogicExpr }  
@@ -84,29 +83,10 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 ---
 ## Presedence
 
-1.)  () [] . ->  
-2.)  ++ -- ** ! ~ (type) * & $      **Unary**  
-3.)  * / %                          **Arith**  
-4.)  + -  
-5.)  << >>                          **Shift**  
-6.)  < <= > >=                      **Logic**  
-7.)  == !=  
-8.)  &                              **Bit**  
-9.)  ^  
-10.) |  
-11.) &&                      
-12.) ||  
-13.) ?:                             **Tern**  
-14.) += -= *= /= %=  
-15.) <<= >>=  
-16.) &= ^= |=  
-17.) &&= ||=  
 
 ### NOTES
-    BrIan does NOT short circuit
     BrIan is type safe
     BrIan allows for easy bit manipulation
-    BrIan has 
 
 ## PROGRESS
 

@@ -23,13 +23,26 @@ static Dict TypeMap;
 
 /* ---------- Determing Exprtyp --------- */
 
-static const int ASSIGNS = { MEQ, DEQ, MODEQ, PEQ, SEQ, ANDEQ, OREQ, XOREQ, RIGHTEQ, LEFTEQ, LOREQ, LANDEQ, EQ };
-static const int LOGICS = { LESS, LEQQ, GREAT, GEQQ, EQQ, NEQQ, ANDL, ORL };
+static const int ASSIGNS[] = { MEQ, DEQ, MODEQ, PEQ, SEQ, ANDEQ, OREQ, XOREQ, RIGHTEQ, LEFTEQ, LOREQ, LANDEQ, EQ };
+static const size_t ASSIGNS_COUNT = sizeof(ASSIGNS) / sizeof(ASSIGNS[0]);
+
+static const int LOGICS[] = { LESS, LEQQ, GREAT, GEQQ, EQQ, NEQQ, ANDL, ORL };
+static const size_t LOGICS_COUNT = sizeof(LOGICS) / sizeof(LOGICS[0]);
+
 static const int BITS = { AND, XOR, OR, RSHIFT, LSHIFT };
-static const int ADDS = { PLUS, MINUS };
-static const int MULTS = { MULT, DIV, MOD };
-static const int PREFIXS = { POW, INC, DEC, NOT, NEG, /* Cast */ MULT, AND };
-static const int POSTFIXS = { INC, DEC, REG };
+static const size_t BITS_COUNT = sizeof(BITS) / sizeof(BITS[0]);
+
+static const int ADDS[] = { PLUS, MINUS };
+static const size_t ADDS_COUNT = sizeof(ADDS) / sizeof(ADDS[0]);
+
+static const int MULTS[] = { MULT, DIV, MOD };
+static const size_t MULTS_COUNT = sizeof(MULTS) / sizeof(MULTS[0]);
+
+static const int PREFIXS[] = { POW, INC, DEC, NOT, NEG, /* Cast */ MULT, AND };
+static const size_t PREFIXS_COUNT = sizeof(PREFIXS) / sizeof(PREFIXS[0]);
+
+static const int POSTFIXS[] = { INC, DEC, REG };
+static const size_t POSTFIXS_COUNT = sizeof(POSTFIXS) / sizeof(POSTFIXS[0]);
 
 /* ---------- Recursive Descent ---------- */
 

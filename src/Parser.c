@@ -1,5 +1,18 @@
 #include "Parser.h"
 
+/* ---------- HELPER ---------- */
+
+int ValidTokType(int[] types, int arrSize, int type)
+{
+    int i;
+    for(i = 0; i < arrSize; i++)
+    {
+        if(types[i] == type)
+            return VALID;
+    }
+    return NAP;
+}
+
 AST* ConstructAST(FILE* fptr)
 {
     AST tree;
@@ -44,10 +57,10 @@ int ImportList(FILE* fptr, AST* ast)
     if(!strcmp(t.lex.word, "#import"))
     {
         PutTokenBack(&t);
-        return NAP;
+        return VALID;
     }
 
-    return VALID;
+    return NAP;
 }
 
 int Body(FILE* fptr, AST* ast)
@@ -73,10 +86,8 @@ int Body(FILE* fptr, AST* ast)
 int StmtList(FILE* fptr, AST* ast)
 {
     int retCode = VALID;
-    
-    /* TODO: while(retCode != ERRP && retCode != NAP) */
-    while (true)
-        retCode = Stmt(fptr, ast);
+    while((retcode = Stmt(fptr, ast)) == VALID)
+        ;
     return retCode;
 }
 int Stmt(FILE* fptr, AST* ast)
@@ -136,10 +147,10 @@ int ExprStmt(FILE* fptr, AST* ast)
 int DeclStmt(FILE* fptr, AST* ast)
 {
 	int status;
-	if((status = Type(fptr, ast) != VALID))
+	if((status = Type(fptr, ast)) != VALID)
 		return status;
 
-	if((status = VarList(fptr, ast) != VALID))
+	if((status = VarList(fptr, ast)) != VALID)
 		return status;
 
 	return VALID;
@@ -147,26 +158,36 @@ int DeclStmt(FILE* fptr, AST* ast)
 
 int CtrlStmt(FILE* fptr, AST* ast)
 {
-	int status;
-	if(!(status = IfStmt(fptr, ast)))
-		return status;
-	else if ((status = SwitchStmt(fptr, ast) != VALID))
-		return status;
-	else if((status = WhileStmt(fptr, ast) != VALID))
-		return status;
-	else if((status = DoWhileStmt(fptr, ast) != VALID))
-		return status;
-	else if((status = ForStmt(fptr, ast) != VALID))
-		return status;
+    int status;
 
-	return VALID;
+    status = IfStmt(fptr, ast);
+    if (status != NAP) 
+        return status;
+
+    status = SwitchStmt(fptr, ast);
+    if (status != NAP) 
+        return status;
+
+    status = WhileStmt(fptr, ast);
+    if (status != NAP) 
+        return status;
+
+    status = DoWhileStmt(fptr, ast);
+    if (status != NAP) 
+        return status;
+
+    status = ForStmt(fptr, ast);
+    if (status != NAP) 
+        return status;
+
+    return NAP;
 }
 
 int ReturnStmt(FILE* fptr, AST* ast)
 {
 	Token t = GetNextToken(fptr);
 
-	if(!strcmp(t.lex.word, "return"))
+	if(strcmp(t.lex.word, "return") != 0)
 	{
 		PutTokenBack(&t);
 		return NAP;
@@ -203,7 +224,7 @@ int IfStmt(FILE* fptr, AST* ast)
 		return ERRP;
 	}
 
-	if((status = Expr(fptr, ast) != VALID))
+	if((status = Expr(fptr, ast)) != VALID)
 		return status;
 
 	t = GetNextToken(fptr);
@@ -217,6 +238,8 @@ int IfStmt(FILE* fptr, AST* ast)
 		return status;
 
 	/* TODO option elif and else */
+    /* TODO allow chaining */
+    return VALID;
 }
 
 int SwitchStmt(FILE* fptr, AST* ast)
@@ -252,9 +275,123 @@ int AsgnExpr(FILE* fptr, AST* ast)
 	int status;
 	Token t;
 
-	return VALID;
+    if((status = LogicExpr(fptr, ast)) != VALID)
+        return status;
+    
+    while(true)
+    {
+
+        t = GetNextToken(fptr);
+        if((status = ValidTokType(ASSIGNS, ASSIGNS_COUNT, t.type)) != VALID)
+        {
+            PutTokenBack(&t);
+            break;
+        }
+     
+        if((status = LogicExpr(fptr, ast)) != VALID)
+            return status;
+
+        return VALID;
+    }
 }
 
+int LogicExpr(FILE* fptr, AST* ast)
+{
+	int status;
+	Token t;
+
+    if((status = LogicExpr(fptr, ast)) != VALID)
+        return status;
+    
+    while(true)
+    {
+
+        t = GetNextToken(fptr);
+        if((status = ValidTokType(ASSIGNS, ASSIGNS_COUNT, t.type)) != VALID)
+        {
+            PutTokenBack(&t);
+            break;
+        }
+     
+        if((status = LogicExpr(fptr, ast)) != VALID)
+            return status;
+
+        return VALID;
+    }
+}
+
+int BitExpr(FILE* fptr, AST* ast)
+{
+	int status;
+	Token t;
+
+    if((status = AddExpr(fptr, ast)) != VALID)
+        return status;
+    
+    while(true)
+    {
+
+        t = GetNextToken(fptr);
+        if((status = ValidTokType(ADDS, ADDS_COUNT, t.type)) != VALID)
+        {
+            PutTokenBack(&t);
+            break;
+        }
+     
+        if((status = AddExpr(fptr, ast)) != VALID)
+            return status;
+
+        return VALID;
+    }
+}
+
+int AddExpr(FILE* fptr, AST* ast)
+{
+	int status;
+	Token t;
+
+    if((status = MultExpr(fptr, ast)) != VALID)
+        return status;
+    
+    while(true)
+    {
+
+        t = GetNextToken(fptr);
+        if((status = ValidTokType(ADDS, ADDS_COUNT, t.type)) != VALID)
+        {
+            PutTokenBack(&t);
+            break;
+        }
+     
+        if((status = MultExpr(fptr, ast)) != VALID)
+            return status;
+    }
+
+    return VALID;
+}
+
+int MultExpr(FILE* fptr, AST* ast)
+{
+    int status;
+    if ((status = PowExpr(fptr, ast)) != VALID)
+        return status;
+
+    Token t;
+    while (true)
+    {
+        t = GetNextToken(fptr);
+        if (t.type != MULT && t.type != DIV && t.type != MOD)
+        {
+            PutTokenBack(&t);
+            break;
+        }
+
+        if ((status = PowExpr(fptr, ast)) != VALID)
+            return status;
+    }
+
+    return VALID;
+}
 
 int Type(FILE* fptr, AST* ast)
 {
