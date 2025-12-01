@@ -49,40 +49,18 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
 	Body ::= '{' StmtList '}' | LineStmt  
 	StmtList ::= { Stmt }  
-	Stmt ::= CtrlStmt | LineStmt ';'  
-    LineStmt ::= DeclStmt | ExprStmt | ReturnStmt  
+	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt ';'  
 
     ExprStmt ::= Expr ';'  
 	DeclStmt ::= Type VarList ';'  
 	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
-    ReturnStmt ::= return ';'  
+    ReturnStmt ::= return [Expr] ';'  
 
     IfStmt ::= "if" '(' Expr ')' Body { "elif" '(' Expr ')' Body } { "else" Body }  
     SwitchStmt ::= "switch" '(' Expr ')' '{' { "case" Expr ':' StmtList } [ "default" ':' StmtList ] '}'  
     WhileStmt ::= "while" '(' Expr ')' Body  
     DoWhileStmt ::= "do" Body "while" CompStmt ';'  
-    ForStmt ::= "for" '(' [Expr { ',' Expr} ] ';' Expr ';' Expr ')'  
-
-	Expr ::= LasgnExpr  
-    LasgnExpr ::= BasgnExpr { ( '||=' | &&= ) BasgnExpr }  
-    BasgnExpr ::= SasgnExpr { ( '&=' | '|=' | '^=' ) SasgnExpr }  
-    SasgnExpr ::= AsgnExpr { ( '<<=' | '>>=' ) AsgnExpr }  
-    AsgnExpr ::= TernExpr { ( '+=' | '-=' | '*=' | '/=' | '%=' ) TernExpr }  
-    TernExpr ::= LorExpr [ '?' Expr ':' Expr ]
-    LorExpr ::= LandExpr { '||' LandExpr }
-    LandExpr ::= BorExpr { '&&' BorExpr }
-    BorExpr ::= XorExpr { '|' XorExpr }
-    XorExpr ::= BandExpr { '^' BandExpr }
-    BandExpr ::= EqqExpr { '&' EqqExpr }
-    EqqExpr ::= CompExpr { ( '==' | '!=' ) CompExpr }
-    CompExpr ::= ShiftExpr { ( '<' | '<=' | '>' | '>=' ) ShiftExpr }
-    ShiftExpr ::= AddExpr { ( '<<' | '>>' ) AddExpr }
-	AddExpr ::= MultExpr { ( '+' | '-' ) MultExpr }
-	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }
-    PowExpr ::= Prefix [ '**' PowExpr ]
-    Prefix ::= ( '++' | '--' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix
-    Postfix ::= Primary { '[' Expr ']' | '.' IDENT | '->' IDENT | '++' | '--' | '$' }
-    Primary ::= IDENT | LITERAL | '(' Expr ')'
+    ForStmt ::= "for" '(' [Expr { ',' Expr} ] ';' Expr ';' Expr ')' Body  
 
     Expr ::= AsgnExpr  
     AsgnExpr ::= LogicExpr { ( '*=' | '/=' | '%=' | '+=' | '-=' | '&=' | '|=' | '^=' | '>>=' | '<<=' | '||=' | '&&=' | '=' ) LogicExpr }  
@@ -92,7 +70,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }  
     PowExpr ::= Prefix [ '**' PowExpr ]  
     Prefix ::= ( '++' | '--' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix  
-    Posfix ::= Primary { '++' | '--' | '$' }  
+    Postfix ::= Primary { '++' | '--' | '$' }  
     Primary ::= IDENT | LITERAL | '(' EXPR ')'  
 
     Type = ( char | bool | int | long | double | float | void | string )
@@ -105,29 +83,10 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 ---
 ## Presedence
 
-1.)  () [] . ->  
-2.)  ++ -- ** ! ~ (type) * & $      **Unary**  
-3.)  * / %                          **Arith**  
-4.)  + -  
-5.)  << >>                          **Shift**  
-6.)  < <= > >=                      **Logic**  
-7.)  == !=  
-8.)  &                              **Bit**  
-9.)  ^  
-10.) |  
-11.) &&                      
-12.) ||  
-13.) ?:                             **Tern**  
-14.) += -= *= /= %=  
-15.) <<= >>=  
-16.) &= ^= |=  
-17.) &&= ||=  
 
 ### NOTES
-    BrIan does NOT short circuit
     BrIan is type safe
     BrIan allows for easy bit manipulation
-    BrIan has 
 
 ## PROGRESS
 
