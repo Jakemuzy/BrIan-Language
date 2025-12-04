@@ -265,11 +265,31 @@ int IsComp(FILE* fptr, Token* t, int c)
 int IsBitwise(FILE* fptr, Token* t, int c)
 {
     if(c == '~') {
+        int next = fgetc(fptr);
+        if(next == '=')
+        {
+            t->type = NEGEQ;
+            UpdateLexeme(t, next);
+            return VALID;
+        }
+        else
+            fputc(fptr, next);
+
         t->type = NEG;
         UpdateLexeme(t, c);
         return VALID;
     }
     else if(c == '^') {
+        int next = fgetc(fptr);
+        if(next == '=')
+        {
+            t->type = XOREQ;
+            UpdateLexeme(t, next);
+            return VALID;
+        }
+        else
+            fputc(fptr, next);
+
         t->type = XOR;
         UpdateLexeme(t, c);
         return VALID;
@@ -510,6 +530,16 @@ int IsGeqq(FILE* fptr, Token* t, int c)
             return VALID;
         }
         else if(next == '>') {
+            int next = fgetc(fptr);
+            if(next == '=')
+            {
+                t->type = RIGHTEQ;
+                UpdateLexeme(t, next);
+                return VALID;
+            }
+            else
+                fputc(fptr, next);
+
             t->type = RSHIFT;
             UpdateLexeme(t, next);
             return VALID;
@@ -537,6 +567,16 @@ int IsLeqq(FILE* fptr, Token* t, int c)
             return VALID;
         }
         else if(next == '<') {
+            int next = fgetc(fptr);
+            if(next == '=')
+            {
+                t->type = LEFTEQ;
+                UpdateLexeme(t, next);
+                return VALID;
+            }
+            else
+                fputc(fptr, next);
+
             t->type = LSHIFT;
             UpdateLexeme(t, next);
             return VALID;
@@ -559,7 +599,22 @@ int IsAndl(FILE* fptr, Token* t, int c)
 
         int next = fgetc(fptr);
         if(next == '&') {
+            next = fgetc(fptr);
+            if(next == '=') {
+                t->type = ANDLEQ;
+                UpdateLexeme(t, next);
+                return VALID;
+            } 
+            else 
+                ungetc(next, fptr);
+
             t->type = ANDL;
+            UpdateLexeme(t, next);
+            return VALID;
+        }
+
+        if(next == '=') {
+            t->type = ANDEQ;
             UpdateLexeme(t, next);
             return VALID;
         }
@@ -580,8 +635,23 @@ int IsOrl(FILE* fptr, Token* t, int c)
         UpdateLexeme(t, c);
 
         int next = fgetc(fptr);
-        if(next == '|'){
+        if(next == '|'){ 
+            next = fgetc(fptr);
+            if(next == '=') {
+                t->type = ORLEQ;
+                UpdateLexeme(t, next);
+                return VALID;
+            }
+            else 
+                ungetc(next, fptr);
+
             t->type = ORL;
+            UpdateLexeme(t, next);
+            return VALID;
+        }
+
+        if(next == '=') {
+            t->type = OREQ;
             UpdateLexeme(t, next);
             return VALID;
         }
