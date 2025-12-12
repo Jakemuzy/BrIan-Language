@@ -28,7 +28,7 @@ typedef enum {
     IF, ELIF, ELSE, DO, WHILE, FOR, 
 
     /* Data Type Key Words */
-    IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG,
+    IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID,
 
     /* Assignment Operators */
     EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, ANDEQ, OREQ, ANDLEQ, ORLEQ, NEGEQ, XOREQ, RIGHTEQ, LEFTEQ, PP, SS, 
@@ -42,7 +42,7 @@ typedef enum {
     NEG, XOR, OR, AND, LSHIFT, RSHIFT, 
 
     /* Brackets */
-    LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK, LANGLE, RANGLE,
+    LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK, /* Langle and Rangle are < and > so less and great */
 
     /* Data Types REPLACE WITH CONST */
     INTEGRAL, DECIMAL,
@@ -51,7 +51,7 @@ typedef enum {
     TERN, COND_ACCESS, CONDP_ACCESS, REG, /* TODO: ?. ?-> tern operator and register access */
 
     /* Other */
-    SEMI, COLON, COMMENT, CLITERAL, SLITERAL, END, ERR,
+    SEMI, COLON, HASH, COMMENT, CLITERAL, SLITERAL, END, ERR,
 
     /* Currently Not Determinable */
     NA

@@ -45,6 +45,9 @@ static const size_t PREFIXS_COUNT = sizeof(PREFIXS) / sizeof(PREFIXS[0]);
 static const int POSTFIXS[] = { PP, SS, REG };
 static const size_t POSTFIXS_COUNT = sizeof(POSTFIXS) / sizeof(POSTFIXS[0]);
 
+static const TYPES[] = { CHAR, SHORT, INT, FLOAT, DOUBLE, LONG };
+static const size_t TYPES_COUNT = sizeof(TYPES) / sizeof(TYPES[0]);
+
 /* ---------- Recursive Descent ---------- */
 
 void Program(FILE* fptr, AST* ast);

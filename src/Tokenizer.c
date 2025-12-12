@@ -22,6 +22,7 @@ KeyVal kv9 = {"int", INT};
 KeyVal kv10 = {"float", FLOAT};
 KeyVal kv11 = {"double", DOUBLE};
 KeyVal kv12 = {"long", LONG};
+KeyVal kv13 = {"void", VOID};
 
 Token GetNextToken(FILE* fptr)
 {
@@ -229,12 +230,6 @@ int IsBracket(FILE* fptr, Token* t, int c)
         case ')':
             t->type = RPAREN;
             break;
-        case '<':
-            t->type = LANGLE;
-            break;
-        case '>':
-            t->type = RANGLE;
-            break;
         default:
             t->type = NA;
             return NAT;
@@ -265,6 +260,7 @@ int IsComp(FILE* fptr, Token* t, int c)
 int IsBitwise(FILE* fptr, Token* t, int c)
 {
     if(c == '~') {
+        UpdateLexeme(t, c);
         int next = fgetc(fptr);
         if(next == '=')
         {
@@ -276,10 +272,10 @@ int IsBitwise(FILE* fptr, Token* t, int c)
             fputc(next, fptr);
 
         t->type = NEG;
-        UpdateLexeme(t, c);
         return VALID;
     }
     else if(c == '^') {
+        UpdateLexeme(t, c);
         int next = fgetc(fptr);
         if(next == '=')
         {
@@ -291,7 +287,6 @@ int IsBitwise(FILE* fptr, Token* t, int c)
             fputc(next, fptr);
 
         t->type = XOR;
-        UpdateLexeme(t, c);
         return VALID;
     }
 
@@ -309,6 +304,11 @@ int IsUnary(FILE* fptr, Token* t, int c)
     }
     if(c == ':') {
         t->type = COLON;
+        UpdateLexeme(t, c);
+        return VALID;
+    }
+    if(c == '#'){
+        t->type = HASH;
         UpdateLexeme(t, c);
         return VALID;
     }
@@ -530,6 +530,7 @@ int IsGeqq(FILE* fptr, Token* t, int c)
             return VALID;
         }
         else if(next == '>') {
+            UpdateLexeme(t, c);
             int next = fgetc(fptr);
             if(next == '=')
             {
@@ -567,6 +568,7 @@ int IsLeqq(FILE* fptr, Token* t, int c)
             return VALID;
         }
         else if(next == '<') {
+            UpdateLexeme(t, c);
             int next = fgetc(fptr);
             if(next == '=')
             {
@@ -599,12 +601,14 @@ int IsAndl(FILE* fptr, Token* t, int c)
 
         int next = fgetc(fptr);
         if(next == '&') {
+            UpdateLexeme(t, next);
+
             next = fgetc(fptr);
             if(next == '=') {
                 t->type = ANDLEQ;
                 UpdateLexeme(t, next);
                 return VALID;
-            } 
+            }
             else 
                 ungetc(next, fptr);
 
@@ -636,6 +640,8 @@ int IsOrl(FILE* fptr, Token* t, int c)
 
         int next = fgetc(fptr);
         if(next == '|'){ 
+            UpdateLexeme(t, next);
+
             next = fgetc(fptr);
             if(next == '=') {
                 t->type = ORLEQ;
@@ -711,10 +717,10 @@ int IsComm(FILE* fptr, Token* t, int c)
 
 int IdentOrKeyword(FILE* fptr, Token* t, int c)
 {
-    /* TODO: Fix this janky ass MAP creation, make static 
+    /* TODO: Make these maps more like I have in the parser section
 */
     if(!KWmap)
-        KWmap = DictMake(12, &kv1, &kv2, &kv3, &kv4, &kv5, &kv6, &kv7, &kv8, &kv9, &kv10, &kv11, &kv12);
+        KWmap = DictMake(13, &kv1, &kv2, &kv3, &kv4, &kv5, &kv6, &kv7, &kv8, &kv9, &kv10, &kv11, &kv12, &kv13);
 
     int next = c;
     while(next != '\n' && next != EOF)
