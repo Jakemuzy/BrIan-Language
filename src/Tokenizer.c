@@ -273,7 +273,7 @@ int IsBitwise(FILE* fptr, Token* t, int c)
             return VALID;
         }
         else
-            fputc(fptr, next);
+            fputc(next, fptr);
 
         t->type = NEG;
         UpdateLexeme(t, c);
@@ -288,7 +288,7 @@ int IsBitwise(FILE* fptr, Token* t, int c)
             return VALID;
         }
         else
-            fputc(fptr, next);
+            fputc(next, fptr);
 
         t->type = XOR;
         UpdateLexeme(t, c);
@@ -538,7 +538,7 @@ int IsGeqq(FILE* fptr, Token* t, int c)
                 return VALID;
             }
             else
-                fputc(fptr, next);
+                fputc(next, fptr);
 
             t->type = RSHIFT;
             UpdateLexeme(t, next);
@@ -575,7 +575,7 @@ int IsLeqq(FILE* fptr, Token* t, int c)
                 return VALID;
             }
             else
-                fputc(fptr, next);
+                fputc(next, fptr);
 
             t->type = LSHIFT;
             UpdateLexeme(t, next);

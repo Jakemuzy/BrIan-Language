@@ -31,8 +31,7 @@ typedef enum {
     IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG,
 
     /* Assignment Operators */
-    EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, PP, SS,
-
+    EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, ANDEQ, OREQ, ANDLEQ, ORLEQ, NEGEQ, XOREQ, RIGHTEQ, LEFTEQ, PP, SS, 
     /* Equation Operators */
     PLUS, MINUS, DIV, MULT, POW, MOD, 
 
@@ -47,6 +46,9 @@ typedef enum {
 
     /* Data Types REPLACE WITH CONST */
     INTEGRAL, DECIMAL,
+
+    /* Memory */
+    TERN, COND_ACCESS, CONDP_ACCESS, REG, /* TODO: ?. ?-> tern operator and register access */
 
     /* Other */
     SEMI, COLON, COMMENT, CLITERAL, SLITERAL, END, ERR,
