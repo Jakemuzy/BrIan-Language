@@ -2,7 +2,7 @@
 
 /* ---------- HELPER ---------- */
 
-int ValidTokType(int[] types, int arrSize, int type)
+int ValidTokType(const int types[], int arrSize, int type)
 {
     int i;
     for(i = 0; i < arrSize; i++)
@@ -86,7 +86,7 @@ int Body(FILE* fptr, AST* ast)
 int StmtList(FILE* fptr, AST* ast)
 {
     int retCode = VALID;
-    while((retcode = Stmt(fptr, ast)) == VALID)
+    while((retCode = Stmt(fptr, ast)) == VALID)
         ;
     return retCode;
 }
@@ -391,6 +391,63 @@ int MultExpr(FILE* fptr, AST* ast)
     }
 
     return VALID;
+}
+
+int PowExpr(FILE* fptr, AST* ast)
+{
+    int status;
+    if ((status = Prefix(fptr, ast)) != VALID)
+        return status;
+
+    Token t;
+    t = GetNextToken(fptr);
+    if(t.type == POW)
+    {
+        if((status = PowExpr(fptr, ast)) != VALID)
+            return status;
+    }
+    else 
+        PutTokenBack(&t);
+
+    return VALID;
+}
+
+int Prefix(FILE* fptr, AST* ast)
+{
+    Token t;
+    t = GetNextToken(fptr);
+    if(ValidTokType(PREFIXS, PREFIXS_COUNT, t.type != VALID))
+    {
+        /* TODO: include cast here */ 
+        PutTokenBack(&t);
+        return NAP;
+    }
+    
+    int status;
+    if((status = Prefix(fptr, ast)) == VALID)
+        return VALID;
+    else if ((status = Postfix(fptr, ast)) != VALID)
+        return status;
+
+    return VALID;
+}
+
+int Postfix(FILE* fptr, AST* ast)
+{
+    int status;
+    if((status = Primary(fptr, ast)) != VALID)
+        return status;
+
+    Token t;
+    while(true)
+    {
+        if(ValidTokType(POSTFIXS, POSTFIXS_COUNT, t.type != VALID))
+        {
+            /* TODO: include cast here */ 
+            PutTokenBack(&t);
+            break;
+        }
+    }
 }
 
 int Type(FILE* fptr, AST* ast)

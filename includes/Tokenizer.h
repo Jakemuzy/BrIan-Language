@@ -20,7 +20,7 @@ int   PutTokenBack(Token* t);
 void  UpdateLexeme(Token* t, int c);
 
 /* Categories */
-int IsOperato(FILE* fptr, Token* t, int c);
+int IsOperator(FILE* fptr, Token* t, int c);
 int IsNumber (FILE* fptr, Token* t, int c);
 int IsLiteral(FILE* fptr, Token* t, int c);
 int IsBracket(FILE* fptr, Token* t, int c);
