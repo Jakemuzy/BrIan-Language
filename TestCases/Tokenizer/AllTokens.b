@@ -11,12 +11,21 @@ int
 float
 double
 long
+void
 =
 +=
 -=
 *=
 /=
 %=
+&=
+|=
+&&=
+||=
+~=
+^=
+>>=
+<<=
 ++
 --
 +
@@ -51,6 +60,7 @@ long
 .1234
 ;
 :
+#
 // Comment One
 /* Coment Two */
 'c'

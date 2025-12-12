@@ -10,9 +10,15 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
         - Low memory utilization 
         - Compiled 
         - Type and memory safety
-    BrIan strives to be simple but extremely powerful. By allowing programmers to interface directly with hardware, BrIan is extremely powerful, hence any error can be catastrophic. 
-    Because of this BrIan is designed to be idiomatic and straight forward; avoiding confusing and hard to catch bugs that C++ is known for.
-    Built upon the principles of C, BrIan is essentially a my attempt at a C++ without the verbosity, depreciation, and confusion. In BrIan, you won't need to constantly learn the latest and greatest functions in the standard library like C++; nor will you have to create everything by yourself like in C. BrIan takes the middle ground of these two, providing simple datastructures, algorithms and all that is required to build complex standalone projects, without the technical debt.
+    BrIan strives to be simple but extremely powerful. By allowing programmers to interface directly with hardware,
+    BrIan is extremely powerful, hence any error can be catastrophic. 
+    Because of this BrIan is designed to be idiomatic and straight forward; 
+        avoiding confusing and hard to catch bugs that C++ is known for.
+    Built upon the principles of C, BrIan is essentially my attempt at a C++ without the verbosity, depreciation, and confusion. 
+        In BrIan, you won't need to constantly learn the latest and greatest functions in the standard library like C++; 
+        nor will you have to create everything by yourself like in C. 
+        BrIan takes the middle ground of these two, providing simple algorithms, data structures and all that is required 
+        to build complex standalone projects, without the technical debt.
     There are many aspects of C and C++ that BrIan aims to fix:
     - Confusing operator prescedence
     - Confusing function pointers
@@ -25,7 +31,8 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     - Unintuitive strings
     - Ambiguous indentation with conditionals and loops
     - Ambiguous standard library
-        * Especially regarding deprecated functions, best practices and obtuse implementations
+        * Especially regarding deprecated functions, 
+          best practices and obtuse implementations
     - Safety concerns 
         * BrIan will have safe pointers and safe dereferencing
     - Switch fall throughs 
@@ -34,16 +41,22 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
 
 ## BUILDING:
+    1.) Make sure to have gcc installed
+    2.) ...
 
 ## DOCUMENTATION:
 
 ---
 
+## TODO
+    -   Allow preprocessor directives anywhere
+    -   
+
 ## GRAMMAR
 
 ' 
 	Progam ::= ImportList "START" Body "UPDATE" Body  
-    ImportList ::= { "#import" "<" IDENT ">" }  
+    ImportList ::= { "#include" "<" IDENT ">" }  
 
 	Thread ::= "THREAD" IDENT Body  
 
