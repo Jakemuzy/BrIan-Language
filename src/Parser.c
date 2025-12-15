@@ -20,11 +20,10 @@ int ValidTokType(const int types[], int arrSize, int type)
 
 AST* ConstructAST(FILE* fptr)
 {
-    AST tree;
-    tree.root = malloc(sizeof(ASTNode));
+    AST* ast = malloc(sizeof(AST));
+    ast->root = NULL;
 
-
-    return;
+    return ast;
 }
 
 /* ---------- EBNF ---------- */
@@ -32,15 +31,17 @@ AST* ConstructAST(FILE* fptr)
 void Program(FILE* fptr, AST* ast)
 {
     int status;
+    /* TODO: Skipped for testing, in preprocess (gettokenp)
     if((status = ImportList(fptr, ast)) != ERRP)
     {
         perror("ERROR: Program has malformed imports\n");
         exit(1);
     }
+    */
 
     Token t;
-    t = GetNextToken(fptr);
-    if(!strcmp(t.lex.word, "START"))
+    t = GetNextTokenP(fptr);
+    if(strcmp(t.lex.word, "START"))
     {
         /* TODO: output line num and col */
         perror("ERROR: Program must have START function\n");
@@ -54,8 +55,7 @@ void Program(FILE* fptr, AST* ast)
     }
 
     /* TODO: For now we will force an update function, fix this later */
-    t = GetNextToken(fptr);
-
+    t = GetNextTokenP(fptr);
     if(!strcmp(t.lex.word, "UPDATE"))
     {
         /* TODO: output line num and col */
@@ -66,23 +66,37 @@ void Program(FILE* fptr, AST* ast)
 
 int ImportList(FILE* fptr, AST* ast)
 {
-    
+    /* TODO: This should be a preprocessor step */ 
+
     Token t;
     while(true)
     {
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if(t.type != HASH)
         {
             PutTokenBack(&t);
             return NAP;
         }
         
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if(!strcmp(t.lex.word, "include"))
         {
             /* TODO: Check other prepocess types */
             return ERRP;
         }
+
+        t = GetNextTokenP(fptr);
+        if(t.type != LESS)
+            return ERRP;
+
+        t = GetNextTokenP(fptr);
+        if(t.type != IDENT)
+            return ERRP;
+
+        t = GetNextTokenP(fptr);
+        if(t.type != GREAT)
+            return ERRP;
+
     }
     return VALID;
 }
@@ -90,7 +104,8 @@ int ImportList(FILE* fptr, AST* ast)
 int Body(FILE* fptr, AST* ast)
 {
     int status;
-    Token t = GetNextToken(fptr);
+    Token t = GetNextTokenP(fptr);
+
     if(t.type != LBRACK)
     {
         PutTokenBack(&t);
@@ -102,7 +117,7 @@ int Body(FILE* fptr, AST* ast)
         return status;
     }
 
-    t = GetNextToken(fptr);
+    t = GetNextTokenP(fptr);
     if(t.type != RBRACK)
     {
         PutTokenBack(&t);
@@ -131,7 +146,7 @@ int Stmt(FILE* fptr, AST* ast)
         return status;
 
     Token t;
-    t = GetNextToken(fptr);
+    t = GetNextTokenP(fptr);
     if(t.type != SEMI)
     {
         perror("ERROR: Semicolon missing\n");
@@ -166,7 +181,7 @@ int ExprStmt(FILE* fptr, AST* ast)
 	if((status = Expr(fptr, ast)) != VALID)
 		return status;
 	
-	t = GetNextToken(fptr);
+	t = GetNextTokenP(fptr);
 	if(t.type != SEMI)
 	{
 		perror("ERROR: Semicolon missing\n");
@@ -212,7 +227,7 @@ int CtrlStmt(FILE* fptr, AST* ast)
 
 int ReturnStmt(FILE* fptr, AST* ast)
 {
-	Token t = GetNextToken(fptr);
+	Token t = GetNextTokenP(fptr);
 	if(strcmp(t.lex.word, "return") != 0)
 	{
 		PutTokenBack(&t);
@@ -231,7 +246,7 @@ int ReturnStmt(FILE* fptr, AST* ast)
 int IfStmt(FILE* fptr, AST* ast)
 {
 	int status;
-	Token t = GetNextToken(fptr);
+	Token t = GetNextTokenP(fptr);
 
 	if(t.type != IF)
 	{
@@ -243,7 +258,7 @@ int IfStmt(FILE* fptr, AST* ast)
     bool chain = true;
     while(chain)
     {
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if(t.type != LPAREN)
         {
             perror("ERROR: Missing left parenthesis for IF statement\n");
@@ -253,7 +268,7 @@ int IfStmt(FILE* fptr, AST* ast)
         if((status = Expr(fptr, ast)) != VALID)
             return status;
 
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if(t.type != RPAREN)
         {
             perror("ERROR: Missing right parenthesis for IF statement\n");
@@ -263,7 +278,7 @@ int IfStmt(FILE* fptr, AST* ast)
         if((status = Body(fptr, ast)) != VALID)
             return status; 
 
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if(t.type == ELIF)
         {
             continue;
@@ -320,7 +335,7 @@ int AsgnExpr(FILE* fptr, AST* ast)
     while(true)
     {
 
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if((status = ValidTokType(ASSIGNS, ASSIGNS_COUNT, t.type)) != VALID)
         {
             PutTokenBack(&t);
@@ -346,7 +361,7 @@ int LogicExpr(FILE* fptr, AST* ast)
     while(true)
     {
 
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if((status = ValidTokType(ASSIGNS, ASSIGNS_COUNT, t.type)) != VALID)
         {
             PutTokenBack(&t);
@@ -372,7 +387,7 @@ int BitExpr(FILE* fptr, AST* ast)
     while(true)
     {
 
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if((status = ValidTokType(ADDS, ADDS_COUNT, t.type)) != VALID)
         {
             PutTokenBack(&t);
@@ -397,7 +412,7 @@ int AddExpr(FILE* fptr, AST* ast)
     while(true)
     {
 
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if((status = ValidTokType(ADDS, ADDS_COUNT, t.type)) != VALID)
         {
             PutTokenBack(&t);
@@ -420,7 +435,7 @@ int MultExpr(FILE* fptr, AST* ast)
     Token t;
     while (true)
     {
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if (t.type != MULT && t.type != DIV && t.type != MOD)
         {
             PutTokenBack(&t);
@@ -441,7 +456,7 @@ int PowExpr(FILE* fptr, AST* ast)
         return status;
 
     Token t;
-    t = GetNextToken(fptr);
+    t = GetNextTokenP(fptr);
     if(t.type == POW)
     {
         if((status = PowExpr(fptr, ast)) != VALID)
@@ -456,7 +471,7 @@ int PowExpr(FILE* fptr, AST* ast)
 int Prefix(FILE* fptr, AST* ast)
 {
     int status;
-    Token t = GetNextToken(fptr);
+    Token t = GetNextTokenP(fptr);
     if(ValidTokType(PREFIXS, PREFIXS_COUNT, t.type) != VALID)
     {
         /* TODO: include cast here */ 
@@ -479,7 +494,7 @@ int Postfix(FILE* fptr, AST* ast)
     Token t;
     while(true)
     {
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if(ValidTokType(POSTFIXS, POSTFIXS_COUNT, t.type != VALID))
         {
             PutTokenBack(&t);
@@ -493,7 +508,7 @@ int Postfix(FILE* fptr, AST* ast)
 int Primary(FILE* fptr, AST* ast)
 {
     int status;
-    Token t = GetNextToken(fptr);
+    Token t = GetNextTokenP(fptr);
     if(t.type == IDENT || t.type == SLITERAL || t.type == CLITERAL || t.type == DECIMAL || t.type == INTEGRAL)
         return VALID;
     else if (t.type == LPAREN)
@@ -501,7 +516,7 @@ int Primary(FILE* fptr, AST* ast)
         if((status = Expr(fptr, ast)) != VALID)
             return status;
     
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if(t.type != RPAREN)
             return ERRP;
     }
@@ -512,8 +527,8 @@ int Primary(FILE* fptr, AST* ast)
 
 int Type(FILE* fptr, AST* ast)
 {
-    Token t = GetNextToken(fptr);
-    if(t.type != IDENT)
+    Token t = GetNextTokenP(fptr);
+    if(ValidTokType(TYPES, TYPES_COUNT, t.type != VALID))
     {
         perror("ERROR: Not a valid type");
         return ERRP;

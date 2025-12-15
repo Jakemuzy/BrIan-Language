@@ -58,6 +58,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	Progam ::= ImportList "START" Body "UPDATE" Body  
     ImportList ::= { "#include" "<" IDENT ">" }  
 
+    Function ::= IDENT '(' Expr ')' Body
 	Thread ::= "THREAD" IDENT Body  
 
 	Body ::= '{' StmtList '}' | LineStmt  

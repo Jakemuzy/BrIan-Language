@@ -2,11 +2,9 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-#include "DataStructures/Pair.h"
-#include "DataStructures/Queue.h"
-
-#include "DataStructures/Map.h"
 #include "Tokenizer.h"
+#include "Preprocessor.h"
+#include "Parser.h"
 
 
 int main(int argc, char* argv[])

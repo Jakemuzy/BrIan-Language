@@ -61,8 +61,12 @@ Token GetNextToken(FILE* fptr)
         ;
     else if(IsUnary(fptr, &next, c) != NAT)
         ;
-    else if(IdentOrKeyword(fptr, &next, c) != NAT)
-        ;
+    else if(isalpha(c) || c == '_')
+        IdentOrKeyword(fptr, &next, c);
+    else {
+        printf("ERROR: Uknown char: %c\n", c);
+        exit(1);
+    }
 
     return next;
 }
@@ -269,7 +273,7 @@ int IsBitwise(FILE* fptr, Token* t, int c)
             return VALID;
         }
         else
-            fputc(next, fptr);
+            ungetc(next, fptr);
 
         t->type = NEG;
         return VALID;
@@ -284,7 +288,7 @@ int IsBitwise(FILE* fptr, Token* t, int c)
             return VALID;
         }
         else
-            fputc(next, fptr);
+            ungetc(next, fptr);
 
         t->type = XOR;
         return VALID;
@@ -539,7 +543,7 @@ int IsGeqq(FILE* fptr, Token* t, int c)
                 return VALID;
             }
             else
-                fputc(next, fptr);
+                ungetc(next, fptr);
 
             t->type = RSHIFT;
             UpdateLexeme(t, next);
@@ -577,7 +581,7 @@ int IsLeqq(FILE* fptr, Token* t, int c)
                 return VALID;
             }
             else
-                fputc(next, fptr);
+                ungetc(next, fptr);
 
             t->type = LSHIFT;
             UpdateLexeme(t, next);
@@ -726,7 +730,10 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
     while(next != '\n' && next != EOF)
     {
         if(!isalnum(next) && next != '_')
+        {
+            ungetc(next, fptr);
             break;
+        }
         UpdateLexeme(t, next);
         next = fgetc(fptr);
     }
