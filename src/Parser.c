@@ -20,11 +20,10 @@ int ValidTokType(const int types[], int arrSize, int type)
 
 AST* ConstructAST(FILE* fptr)
 {
-    AST tree;
-    tree.root = malloc(sizeof(ASTNode));
+    AST* ast = malloc(sizeof(AST));
+    ast->root = NULL;
 
-
-    return;
+    return ast;
 }
 
 /* ---------- EBNF ---------- */
@@ -32,65 +31,37 @@ AST* ConstructAST(FILE* fptr)
 void Program(FILE* fptr, AST* ast)
 {
     int status;
+    /* TODO: Skipped for testing, in preprocess (gettokenp)
     if((status = ImportList(fptr, ast)) != ERRP)
     {
         perror("ERROR: Program has malformed imports\n");
         exit(1);
     }
+    */
 
     Token t;
-    t = GetNextToken(fptr);
-    if(!strcmp(t.lex.word, "START"))
+    t = GetNextTokenP(fptr);
+    if(strcmp(t.lex.word, "START"))
     {
         /* TODO: output line num and col */
-        perror("ERROR: Program must have START function\n");
+        printf("ERROR: Program must have START function\n");
         exit(1);
     }
 
     if((status = Body(fptr, ast)) != VALID)
     {
-        perror("ERROR: Program has malformed body after START\n"); 
+        printf("ERROR: Program has malformed body after START, %d\n", status); 
         exit(1);
     }
 
-    /* TODO: For now we will force an update function, fix this later */
-    t = GetNextToken(fptr);
-
-    if(!strcmp(t.lex.word, "UPDATE"))
-    {
-        /* TODO: output line num and col */
-        perror("ERROR: Program must have UPDATE function\n");
-        exit(1);
-    }
 }
 
-int ImportList(FILE* fptr, AST* ast)
-{
-    
-    Token t;
-    while(true)
-    {
-        t = GetNextToken(fptr);
-        if(t.type != HASH)
-        {
-            PutTokenBack(&t);
-            return NAP;
-        }
-        
-        t = GetNextToken(fptr);
-        if(!strcmp(t.lex.word, "include"))
-        {
-            /* TODO: Check other prepocess types */
-            return ERRP;
-        }
-    }
-    return VALID;
-}
 
 int Body(FILE* fptr, AST* ast)
 {
     int status;
-    Token t = GetNextToken(fptr);
+    Token t = GetNextTokenP(fptr);
+
     if(t.type != LBRACK)
     {
         PutTokenBack(&t);
@@ -98,14 +69,13 @@ int Body(FILE* fptr, AST* ast)
     }
 
     if((status = StmtList(fptr, ast)) == ERRP)
-    {
         return status;
-    }
 
-    t = GetNextToken(fptr);
+    t = GetNextTokenP(fptr);
     if(t.type != RBRACK)
     {
         PutTokenBack(&t);
+        printf("Missing RBRACK in BODY\n");
         return ERRP;
     }
 
@@ -127,24 +97,8 @@ int StmtList(FILE* fptr, AST* ast)
 int Stmt(FILE* fptr, AST* ast)
 {
     int status;
-    if((status = CtrlStmt(fptr, ast)) != VALID && (status = LineStmt(fptr, ast)) != VALID)
+    if((status = CtrlStmt(fptr, ast)) != NAP)
         return status;
-
-    Token t;
-    t = GetNextToken(fptr);
-    if(t.type != SEMI)
-    {
-        perror("ERROR: Semicolon missing\n");
-        return ERRP;
-    }
-    return VALID;
-}
-
-int LineStmt(FILE* fptr, AST* ast)
-{
-
-	int status;
-
 	if((status = DeclStmt(fptr, ast)) != NAP)
 		return status;
 	else if ((status = ExprStmt(fptr, ast)) != NAP)
@@ -152,12 +106,8 @@ int LineStmt(FILE* fptr, AST* ast)
 	else if ((status = ReturnStmt(fptr, ast)) != NAP)
 		return status;
 
-	return NAP;
+    return NAP;
 }
-
-
-
-
 
 int ExprStmt(FILE* fptr, AST* ast)
 {
@@ -166,10 +116,10 @@ int ExprStmt(FILE* fptr, AST* ast)
 	if((status = Expr(fptr, ast)) != VALID)
 		return status;
 	
-	t = GetNextToken(fptr);
+	t = GetNextTokenP(fptr);
 	if(t.type != SEMI)
 	{
-		perror("ERROR: Semicolon missing\n");
+		perror("ERROR: Semicolon missing in exprstmt\n");
 		return ERRP;
 	}	
 
@@ -185,7 +135,14 @@ int DeclStmt(FILE* fptr, AST* ast)
 	if((status = VarList(fptr, ast)) != VALID)
 		return status;
 
-	return VALID;
+    Token t;
+    t = GetNextTokenP(fptr);
+    if(t.type != SEMI)
+    {
+        perror("ERROR: Semicolon missing in declstmt\n");
+        return ERRP;
+    }
+    return VALID;
 }
 
 int CtrlStmt(FILE* fptr, AST* ast)
@@ -194,16 +151,12 @@ int CtrlStmt(FILE* fptr, AST* ast)
 
     if ((status = IfStmt(fptr, ast)) != NAP) 
         return status;
-
     if ((status = SwitchStmt(fptr, ast)) != NAP) 
         return status;
-
     if ((status = WhileStmt(fptr, ast)) != NAP) 
         return status;
-
     if ((status = DoWhileStmt(fptr, ast)) != NAP) 
         return status;
-
     if ((status = ForStmt(fptr, ast)) != NAP) 
         return status;
 
@@ -212,7 +165,7 @@ int CtrlStmt(FILE* fptr, AST* ast)
 
 int ReturnStmt(FILE* fptr, AST* ast)
 {
-	Token t = GetNextToken(fptr);
+	Token t = GetNextTokenP(fptr);
 	if(strcmp(t.lex.word, "return") != 0)
 	{
 		PutTokenBack(&t);
@@ -220,8 +173,18 @@ int ReturnStmt(FILE* fptr, AST* ast)
 	}
 
     int status;
-    if((status = ExprStmt(fptr, ast)) != NAP)
+    if((status = ExprStmt(fptr, ast)) == ERRP)
+    {
+        printf("Return Stmt has invalid ExprStmt\n");
         return status;
+    }
+
+    t = GetNextTokenP(fptr);
+    if(t.type != SEMI)
+    {
+        perror("ERROR: Semicolon missing in returnstmt\n");
+        return ERRP;
+    }
 
 	return VALID;
 }
@@ -231,7 +194,7 @@ int ReturnStmt(FILE* fptr, AST* ast)
 int IfStmt(FILE* fptr, AST* ast)
 {
 	int status;
-	Token t = GetNextToken(fptr);
+	Token t = GetNextTokenP(fptr);
 
 	if(t.type != IF)
 	{
@@ -243,7 +206,7 @@ int IfStmt(FILE* fptr, AST* ast)
     bool chain = true;
     while(chain)
     {
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if(t.type != LPAREN)
         {
             perror("ERROR: Missing left parenthesis for IF statement\n");
@@ -253,7 +216,7 @@ int IfStmt(FILE* fptr, AST* ast)
         if((status = Expr(fptr, ast)) != VALID)
             return status;
 
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if(t.type != RPAREN)
         {
             perror("ERROR: Missing right parenthesis for IF statement\n");
@@ -263,7 +226,7 @@ int IfStmt(FILE* fptr, AST* ast)
         if((status = Body(fptr, ast)) != VALID)
             return status; 
 
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if(t.type == ELIF)
         {
             continue;
@@ -283,15 +246,68 @@ int IfStmt(FILE* fptr, AST* ast)
 
 int SwitchStmt(FILE* fptr, AST* ast)
 {
+	int status;
+	Token t = GetNextTokenP(fptr);
+
+	if(t.type != SWITCH)
+	{
+		PutTokenBack(&t);
+		return NAP;
+	}
+
+    t = GetNextTokenP(fptr);
+    if(t.type != LPAREN)
+    {
+        printf("ERROR: no lparen in switch stmt\n");
+        return ERRP; 
+    }
+
+    if((status = Expr(fptr, ast)) != VALID)
+    {
+
+        printf("ERROR: no bad expr in switch stmt\n");
+        return ERRP;
+    }
+
+    t = GetNextTokenP(fptr);
+    if(t.type != RPAREN)
+    {
+        printf("ERROR: no rparen in switch stmt\n");
+        return ERRP; 
+    }
+
+    t = GetNextTokenP(fptr);
+    if(t.type != LBRACE)
+    {
+        printf("ERROR: no lbrace in switch stmt\n");
+        return ERRP; 
+    }
+
+    /* TODO: add cases */
+
+    t = GetNextTokenP(fptr);
+    if(t.type != RBRACE)
+    {
+        printf("ERROR: no lbrace in switch stmt\n");
+        return ERRP; 
+    }
+
+    return NAP;
 }
 int WhileStmt(FILE* fptr, AST* ast)
 {
+
+    return NAP;
 }
 int DoWhileStmt(FILE* fptr, AST* ast)
 {
+
+    return NAP;
 }
 int ForStmt(FILE* fptr, AST* ast)
 {
+
+    return NAP;
 }
 
 
@@ -320,7 +336,7 @@ int AsgnExpr(FILE* fptr, AST* ast)
     while(true)
     {
 
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if((status = ValidTokType(ASSIGNS, ASSIGNS_COUNT, t.type)) != VALID)
         {
             PutTokenBack(&t);
@@ -346,7 +362,7 @@ int LogicExpr(FILE* fptr, AST* ast)
     while(true)
     {
 
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if((status = ValidTokType(ASSIGNS, ASSIGNS_COUNT, t.type)) != VALID)
         {
             PutTokenBack(&t);
@@ -372,7 +388,7 @@ int BitExpr(FILE* fptr, AST* ast)
     while(true)
     {
 
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if((status = ValidTokType(ADDS, ADDS_COUNT, t.type)) != VALID)
         {
             PutTokenBack(&t);
@@ -397,7 +413,7 @@ int AddExpr(FILE* fptr, AST* ast)
     while(true)
     {
 
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if((status = ValidTokType(ADDS, ADDS_COUNT, t.type)) != VALID)
         {
             PutTokenBack(&t);
@@ -420,7 +436,7 @@ int MultExpr(FILE* fptr, AST* ast)
     Token t;
     while (true)
     {
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if (t.type != MULT && t.type != DIV && t.type != MOD)
         {
             PutTokenBack(&t);
@@ -441,7 +457,7 @@ int PowExpr(FILE* fptr, AST* ast)
         return status;
 
     Token t;
-    t = GetNextToken(fptr);
+    t = GetNextTokenP(fptr);
     if(t.type == POW)
     {
         if((status = PowExpr(fptr, ast)) != VALID)
@@ -456,7 +472,7 @@ int PowExpr(FILE* fptr, AST* ast)
 int Prefix(FILE* fptr, AST* ast)
 {
     int status;
-    Token t = GetNextToken(fptr);
+    Token t = GetNextTokenP(fptr);
     if(ValidTokType(PREFIXS, PREFIXS_COUNT, t.type) != VALID)
     {
         /* TODO: include cast here */ 
@@ -479,7 +495,7 @@ int Postfix(FILE* fptr, AST* ast)
     Token t;
     while(true)
     {
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if(ValidTokType(POSTFIXS, POSTFIXS_COUNT, t.type != VALID))
         {
             PutTokenBack(&t);
@@ -493,7 +509,7 @@ int Postfix(FILE* fptr, AST* ast)
 int Primary(FILE* fptr, AST* ast)
 {
     int status;
-    Token t = GetNextToken(fptr);
+    Token t = GetNextTokenP(fptr);
     if(t.type == IDENT || t.type == SLITERAL || t.type == CLITERAL || t.type == DECIMAL || t.type == INTEGRAL)
         return VALID;
     else if (t.type == LPAREN)
@@ -501,9 +517,12 @@ int Primary(FILE* fptr, AST* ast)
         if((status = Expr(fptr, ast)) != VALID)
             return status;
     
-        t = GetNextToken(fptr);
+        t = GetNextTokenP(fptr);
         if(t.type != RPAREN)
+        {
+            printf("Missing RPAREN in primary\n");
             return ERRP;
+        }
     }
 
     return NAP;
@@ -512,8 +531,8 @@ int Primary(FILE* fptr, AST* ast)
 
 int Type(FILE* fptr, AST* ast)
 {
-    Token t = GetNextToken(fptr);
-    if(t.type != IDENT)
+    Token t = GetNextTokenP(fptr);
+    if(ValidTokType(TYPES, TYPES_COUNT, t.type != VALID))
     {
         perror("ERROR: Not a valid type");
         return ERRP;

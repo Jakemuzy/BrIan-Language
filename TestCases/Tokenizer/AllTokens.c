@@ -2,39 +2,35 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-#include "Dictionary.h"
 #include "Tokenizer.h"
+
 
 int main(int argc, char* argv[])
 {
-    int retcode = 0;
-
+    
+    /* Open code file to read */
     FILE* fptr;
     fptr = fopen(argv[1], "r");
     if(!fptr)
     {
         printf("ERROR: Opening source file %s\n", argv[1]);
-        return -1;
+        return 1;
     }
 
-    
-    Token* t = NULL;
-    IdentOrKeyword(fptr, t, 3);
-/*
+    /* Iterate through each character */
+    int tokenCount = 0;
+    char c;
+
     Token next;
-    while(1)
+    next.type = IDENT;
+
+    while(next.type != ERR && next.type != END)
     {
-        Token correct = NA; *correctList++;
         next = GetNextToken(fptr);
+        printf("Token: %d\tValue: %d\tWord: %s\n", tokenCount, next.type, next.lex.word); 
 
-        if(next.TokenType != correct)
-        {
-            /*printf("FAIL: %s\n", correctList.second);
-            retcode++;
-        }
+        tokenCount++;
     }
-
-    printf("\nFailed Test Cases: %d\n", retcode);
-    */
-    return retcode;
+    
+	return 0;
 }

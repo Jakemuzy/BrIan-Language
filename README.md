@@ -54,15 +54,13 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
 ## GRAMMAR
 
-' 
-	Progam ::= ImportList "START" Body "UPDATE" Body  
-    ImportList ::= { "#include" "<" IDENT ">" }  
+``` 
+	Progam ::= { Function } "START" Body { Function }
+    Function ::= IDENT '(' Expr ')' Body
 
-	Thread ::= "THREAD" IDENT Body  
-
-	Body ::= '{' StmtList '}' | LineStmt  
+	Body ::= '{' StmtList '}'
 	StmtList ::= { Stmt }  
-	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt ';'  
+	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt 
 
     ExprStmt ::= Expr ';'  
 	DeclStmt ::= Type VarList ';'  
@@ -91,7 +89,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	VarList ::= Var { ',' Var }
     Var = IDENT [ '=' Expr ]
 	...	
-'
+```
 
 ---
 ## Presedence
@@ -110,7 +108,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
 ---
 
-'
+`
 DATA TYPES:
     Integral:
         char(1), bool(1), short(2), int(4), long(8)
@@ -124,4 +122,4 @@ TYPE QUALIFIERS:
 
 CONTROL STATEMENTS:
     if, else, do, while, switch, case, break, continue, goto, return
-'
+`

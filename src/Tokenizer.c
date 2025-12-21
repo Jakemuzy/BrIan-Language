@@ -16,13 +16,14 @@ KeyVal kv3 = {"else", ELSE};
 KeyVal kv4 = {"do", DO};
 KeyVal kv5 = {"while", WHILE};
 KeyVal kv6 = {"for", FOR};
-KeyVal kv7 = {"char", CHAR};
-KeyVal kv8 = {"short", SHORT};
-KeyVal kv9 = {"int", INT};
-KeyVal kv10 = {"float", FLOAT};
-KeyVal kv11 = {"double", DOUBLE};
-KeyVal kv12 = {"long", LONG};
-KeyVal kv13 = {"void", VOID};
+KeyVal kv7 = {"switch", SWITCH};
+KeyVal kv8 = {"char", CHAR};
+KeyVal kv9 = {"short", SHORT};
+KeyVal kv10 = {"int", INT};
+KeyVal kv11 = {"float", FLOAT};
+KeyVal kv12 = {"double", DOUBLE};
+KeyVal kv13 = {"long", LONG};
+KeyVal kv14 = {"void", VOID};
 
 Token GetNextToken(FILE* fptr)
 {
@@ -61,8 +62,12 @@ Token GetNextToken(FILE* fptr)
         ;
     else if(IsUnary(fptr, &next, c) != NAT)
         ;
-    else if(IdentOrKeyword(fptr, &next, c) != NAT)
-        ;
+    else if(isalpha(c) || c == '_')
+        IdentOrKeyword(fptr, &next, c);
+    else {
+        printf("ERROR: Uknown char: %c\n", c);
+        exit(1);
+    }
 
     return next;
 }
@@ -269,7 +274,7 @@ int IsBitwise(FILE* fptr, Token* t, int c)
             return VALID;
         }
         else
-            fputc(next, fptr);
+            ungetc(next, fptr);
 
         t->type = NEG;
         return VALID;
@@ -284,7 +289,7 @@ int IsBitwise(FILE* fptr, Token* t, int c)
             return VALID;
         }
         else
-            fputc(next, fptr);
+            ungetc(next, fptr);
 
         t->type = XOR;
         return VALID;
@@ -539,7 +544,7 @@ int IsGeqq(FILE* fptr, Token* t, int c)
                 return VALID;
             }
             else
-                fputc(next, fptr);
+                ungetc(next, fptr);
 
             t->type = RSHIFT;
             UpdateLexeme(t, next);
@@ -577,7 +582,7 @@ int IsLeqq(FILE* fptr, Token* t, int c)
                 return VALID;
             }
             else
-                fputc(next, fptr);
+                ungetc(next, fptr);
 
             t->type = LSHIFT;
             UpdateLexeme(t, next);
@@ -720,13 +725,16 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
     /* TODO: Make these maps more like I have in the parser section
 */
     if(!KWmap)
-        KWmap = DictMake(13, &kv1, &kv2, &kv3, &kv4, &kv5, &kv6, &kv7, &kv8, &kv9, &kv10, &kv11, &kv12, &kv13);
+        KWmap = DictMake(14, &kv1, &kv2, &kv3, &kv4, &kv5, &kv6, &kv7, &kv8, &kv9, &kv10, &kv11, &kv12, &kv13, &kv14);
 
     int next = c;
     while(next != '\n' && next != EOF)
     {
         if(!isalnum(next) && next != '_')
+        {
+            ungetc(next, fptr);
             break;
+        }
         UpdateLexeme(t, next);
         next = fgetc(fptr);
     }
