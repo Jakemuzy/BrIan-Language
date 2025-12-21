@@ -1,3 +1,6 @@
+#ifndef _PARSER_H__
+#define _PARSER_H__
+
 #include "Preprocessor.h"
 #include "Dictionary.h"
 
@@ -24,14 +27,10 @@ AST* ConstructAST(FILE* fptr);
 /* ---------- Recursive Descent ---------- */
 
 void Program(FILE* fptr, AST* ast);
-int ImportList(FILE* fptr, AST* ast);
-
-int Thread(FILE* fptr, AST* ast);
 
 int Body(FILE* fptr, AST* ast);
 int StmtList(FILE* fptr, AST* ast);
 int Stmt(FILE* fptr, AST* ast);
-int LineStmt(FILE* fptr, AST* ast);
 
 int ExprStmt(FILE* fptr, AST* ast);
 int DeclStmt(FILE* fptr, AST* ast);
@@ -58,3 +57,4 @@ int Primary(FILE* fptr, AST* ast);
 int VarList(FILE* fptr, AST* ast);
 int Var(FILE* fptr, AST* ast);
 
+#endif

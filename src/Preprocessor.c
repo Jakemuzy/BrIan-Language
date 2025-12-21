@@ -22,5 +22,46 @@ Token GetNextTokenP(FILE* fptr)
 
     } while (t.type == COMMENT || t.type == HASH);
 
+    printf("%s\n", t.lex.word);
+
     return t;
 }
+
+/*
+int ImportList(FILE* fptr, AST* ast)
+{
+   TODO: This should be a preprocessor step 
+
+    Token t;
+    while(true)
+    {
+        t = GetNextTokenP(fptr);
+        if(t.type != HASH)
+        {
+            PutTokenBack(&t);
+            return NAP;
+        }
+        
+        t = GetNextTokenP(fptr);
+        if(!strcmp(t.lex.word, "include"))
+        {
+            TODO: Check other prepocess types
+            return ERRP;
+        }
+
+        t = GetNextTokenP(fptr);
+        if(t.type != LESS)
+            return ERRP;
+
+        t = GetNextTokenP(fptr);
+        if(t.type != IDENT)
+            return ERRP;
+
+        t = GetNextTokenP(fptr);
+        if(t.type != GREAT)
+            return ERRP;
+
+    }
+    return VALID;
+}
+*/

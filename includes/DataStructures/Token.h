@@ -25,7 +25,7 @@
 
 typedef enum {
     /* Ctrl Stmt Key Words */
-    IF, ELIF, ELSE, DO, WHILE, FOR, 
+    IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH,
 
     /* Data Type Key Words */
     IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID,
@@ -76,7 +76,7 @@ typedef struct Token {
 
 /* ---------- Determing Exprtype --------- */
 
-static const int KEYWORDS[] = { IF, ELIF, ELSE, DO, WHILE, FOR, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID };
+static const int KEYWORDS[] = { IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID };
 static const size_t KEYWORDS_COUNT = sizeof(KEYWORDS) / sizeof(KEYWORDS[0]);
 
 static const int ASSIGNS[] = { MEQ, DEQ, MODEQ, PEQ, SEQ, ANDEQ, OREQ, NEGEQ, XOREQ, RIGHTEQ, LEFTEQ, ORLEQ, ANDLEQ, EQ };
