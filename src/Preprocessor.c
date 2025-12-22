@@ -13,7 +13,7 @@ Token GetNextTokenP(FILE* fptr)
         while (t.type == COMMENT)
             t = GetNextToken(fptr);
 
-        if (t.type == HASH) {
+        if (t.type == HASH) {           /* Ignore Preprocess Directives for now */
             do {
                 t = GetNextToken(fptr);
             } while (t.type != GREAT);

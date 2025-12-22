@@ -17,13 +17,15 @@ KeyVal kv4 = {"do", DO};
 KeyVal kv5 = {"while", WHILE};
 KeyVal kv6 = {"for", FOR};
 KeyVal kv7 = {"switch", SWITCH};
-KeyVal kv8 = {"char", CHAR};
-KeyVal kv9 = {"short", SHORT};
-KeyVal kv10 = {"int", INT};
-KeyVal kv11 = {"float", FLOAT};
-KeyVal kv12 = {"double", DOUBLE};
-KeyVal kv13 = {"long", LONG};
-KeyVal kv14 = {"void", VOID};
+KeyVal kv8 = {"case", CASE};
+KeyVal kv9 = {"default", DEFAULT};
+KeyVal kv10 = {"char", CHAR};
+KeyVal kv11 = {"short", SHORT};
+KeyVal kv12 = {"int", INT};
+KeyVal kv13 = {"float", FLOAT};
+KeyVal kv14 = {"double", DOUBLE};
+KeyVal kv15 = {"long", LONG};
+KeyVal kv16 = {"void", VOID};
 
 Token GetNextToken(FILE* fptr)
 {
@@ -81,6 +83,7 @@ int PutTokenBack(Token* t)
         return -1;
     }
 
+    printf("%s PUTBACK\n", t->lex.word);
     Buffer = t;
     return 0;
 }
@@ -725,7 +728,7 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
     /* TODO: Make these maps more like I have in the parser section
 */
     if(!KWmap)
-        KWmap = DictMake(14, &kv1, &kv2, &kv3, &kv4, &kv5, &kv6, &kv7, &kv8, &kv9, &kv10, &kv11, &kv12, &kv13, &kv14);
+        KWmap = DictMake(16, &kv1, &kv2, &kv3, &kv4, &kv5, &kv6, &kv7, &kv8, &kv9, &kv10, &kv11, &kv12, &kv13, &kv14, &kv15, &kv16);
 
     int next = c;
     while(next != '\n' && next != EOF)

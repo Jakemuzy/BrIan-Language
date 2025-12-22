@@ -1,6 +1,7 @@
 #include "Parser.h"
 
 /* TODO:
+ * Switch out peror with my own error alter system
  * 
 */
 
@@ -33,7 +34,7 @@ void Program(FILE* fptr, AST* ast)
     /* TODO: Skipped for testing, in preprocess (gettokenp)
     if((status = ImportList(fptr, ast)) != ERRP)
     {
-        printf("ERROR: Program has malformed imports\n");
+        perror("ERROR: Program has malformed imports\n");
         exit(1);
     }
     */
@@ -118,7 +119,7 @@ int ExprStmt(FILE* fptr, AST* ast)
 	t = GetNextTokenP(fptr);
 	if(t.type != SEMI)
 	{
-		printf("ERROR: Semicolon missing in exprstmt\n");
+		perror("ERROR: Semicolon missing in exprstmt\n");
 		return ERRP;
 	}	
 
@@ -138,7 +139,7 @@ int DeclStmt(FILE* fptr, AST* ast)
     t = GetNextTokenP(fptr);
     if(t.type != SEMI)
     {
-        printf("ERROR: Semicolon missing in declstmt\n");
+        perror("ERROR: Semicolon missing in declstmt\n");
         return ERRP;
     }
     return VALID;
@@ -181,7 +182,7 @@ int ReturnStmt(FILE* fptr, AST* ast)
     t = GetNextTokenP(fptr);
     if(t.type != SEMI)
     {
-        printf("ERROR: Semicolon missing in returnstmt\n");
+        perror("ERROR: Semicolon missing in returnstmt\n");
         return ERRP;
     }
 
@@ -208,7 +209,7 @@ int IfStmt(FILE* fptr, AST* ast)
         t = GetNextTokenP(fptr);
         if(t.type != LPAREN)
         {
-            printf("ERROR: Missing left parenthesis for IF statement\n");
+            perror("ERROR: Missing left parenthesis for IF statement\n");
             return ERRP;
         }
 
@@ -218,7 +219,7 @@ int IfStmt(FILE* fptr, AST* ast)
         t = GetNextTokenP(fptr);
         if(t.type != RPAREN)
         {
-            printf("ERROR: Missing right parenthesis for IF statement\n");
+            perror("ERROR: Missing right parenthesis for IF statement\n");
             return ERRP;
         }
 
@@ -531,7 +532,6 @@ int AndlExpr(FILE* fptr, AST* ast)
         if((status = OrExpr(fptr, ast)) != VALID)
         {
             printf("ERROR: improper OrExpr after && in AndlExpr\n");
-            return ERRP;
         }
     }
 
@@ -556,7 +556,6 @@ int OrExpr(FILE* fptr, AST* ast)
         if((status = XorExpr(fptr, ast)) != VALID)
         {
             printf("ERROR: improper XorExpr after | in OrExpr\n");
-            return ERRP;
         }
     }
 
@@ -581,7 +580,6 @@ int XorExpr(FILE* fptr, AST* ast)
         if((status = AndExpr(fptr, ast)) != VALID)
         {
             printf("ERROR: improper AndExpr after ^ in OrExpr\n");
-            return ERRP;
         }
     }
 
@@ -606,7 +604,6 @@ int AndExpr(FILE* fptr, AST* ast)
         if((status = EqqExpr(fptr, ast)) != VALID)
         {
             printf("ERROR: improper EqqExpr after & in OrExpr\n");
-            return ERRP;
         }
     }
 
@@ -631,13 +628,11 @@ int EqqExpr(FILE* fptr, AST* ast)
         if((status = RelationExpr(fptr, ast)) != VALID)
         {
             printf("ERROR: improper RelationExpr after == or != in EqqExpr\n");
-            return ERRP;
         }
     }
 
     return VALID;
 }
-
 int RelationExpr(FILE* fptr, AST* ast)
 {
     int status;
@@ -648,42 +643,18 @@ int RelationExpr(FILE* fptr, AST* ast)
     if(true)
     {
         t = GetNextTokenP(fptr);
-        if((status = ValidTokType(RELATIONAL, RELATIONAL_COUNT, t.type)) != VALID)
-        {
-            PutTokenBack(&t);
-            return status;
-        }
-        if((status = ShiftExpr(fptr, ast)) != VALID)
-        {
-            printf("ERROR: improper ShiftExpr after operator in RelationExpr\n");
-            return ERRP;
-        }
-    }
-
-    return VALID;
-}
-
-int ShiftExpr(FILE* fptr, AST* ast)
-{
-    int status;
-    Token t;
-    if((status = AddExpr(fptr, ast)) != VALID)
-        return status;
-
-    while(true)
-    {
-        t = GetNextTokenP(fptr);
-        if(t.type != LSHIFT && t.type != RSHIFT)
+        if(t.type != EQQ && t.type != NEQQ)
         {
             PutTokenBack(&t);
             break;
         }
-        if((status = AddExpr(fptr, ast)) != VALID)
+        if((status = ShiftExpr(fptr, ast)) != VALID)
         {
-            printf("ERROR: improper AddExpr after << or >> in ShiftExpr\n");
-            return ERRP;
+            printf("ERROR: improper EqqExpr after & in OrExpr\n");
         }
     }
+
+
 
     return VALID;
 }
@@ -820,7 +791,7 @@ int Type(FILE* fptr, AST* ast)
     Token t = GetNextTokenP(fptr);
     if(ValidTokType(TYPES, TYPES_COUNT, t.type != VALID))
     {
-        printf("ERROR: Not a valid type");
+        perror("ERROR: Not a valid type");
         return ERRP;
     }
 

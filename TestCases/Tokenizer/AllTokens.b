@@ -4,6 +4,9 @@ else
 do
 while
 for
+switch
+case
+default
 identifer
 char
 short

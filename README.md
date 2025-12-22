@@ -20,7 +20,6 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
         BrIan takes the middle ground of these two, providing simple algorithms, data structures and all that is required 
         to build complex standalone projects, without the technical debt.
     There are many aspects of C and C++ that BrIan aims to fix:
-    - Confusing operator prescedence
     - Confusing function pointers
     - Confusing implicit casting rules
     - Confusing pointer declarations 
@@ -70,19 +69,25 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     IfStmt ::= "if" '(' Expr ')' Body { "elif" '(' Expr ')' Body } { "else" Body }  
     SwitchStmt ::= "switch" '(' Expr ')' '{' { "case" Expr ':' StmtList } [ "default" ':' StmtList ] '}'  
     WhileStmt ::= "while" '(' Expr ')' Body  
-    DoWhileStmt ::= "do" Body "while" CompStmt ';'  
+    DoWhileStmt ::= "do" Body "while" '(' Expr ')' ';'  
     ForStmt ::= "for" '(' [Expr { ',' Expr} ] ';' Expr ';' Expr ')' Body  
 
     Expr ::= AsgnExpr  
-    AsgnExpr ::= LogicExpr { ( '*=' | '/=' | '%=' | '+=' | '-=' | '&=' | '|=' | '^=' | '>>=' | '<<=' | '||=' | '&&=' | '=' ) LogicExpr }  
-    LogicExpr ::= BitExpr { ( '<' '<=' '>' '>=' '==' '!=' '&& '||') BitExpr }  
-    BitExpr ::= AddExpr { ( '&' '^' '|' '>>' '<<') AddExpr }  
+    AsgnExpr ::= OrlExpr { ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') OrlExpr }  
+    OrlExpr ::= AndlExpr { '||' AndlExpr }  
+    AndlExpr ::= OrExpr { '&&' OrExpr } 
+    OrExpr ::= XorExpr { '|' XorExpr }
+    XorExpr ::= AndExpr { '^' AndExpr }
+    AndExpr ::= EqqExpr { '&' EqqExpr }
+    EqqExpr ::= RelationExpr { ('==' | '!=') RelationExpr }  
+    RelationExpr ::= ShiftExpr [ ('>' | '<' | '<=' | '>=') ShiftExpr ]  
+    ShiftExpr ::= AddExpr { ('<<' | '>>') AddExpr }  
 	AddExpr ::= MultExpr { ( '+' | '-' ) MultExpr }  
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }  
-    PowExpr ::= Prefix [ '**' PowExpr ]  
-    Prefix ::= ( '++' | '--' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix  
-    Postfix ::= Primary { '++' | '--' | '$' }  
-    Primary ::= IDENT | LITERAL | '(' EXPR ')'  
+    PowExpr ::= Prefix [ '**' PowExpr ]
+    Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix  
+    Postfix ::= Primary { '++' | '--' | '$' | '**' (IDENT | DECIMAL) | '[' (IDENT | DECIMAL) ']'}  
+    Primary ::= IDENT | LITERAL | '(' Expr ')'  
 
     Type = ( char | bool | int | long | double | float | void | string )
 
