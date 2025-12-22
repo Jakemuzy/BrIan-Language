@@ -51,7 +51,7 @@ typedef enum {
     TERN, COND_ACCESS, CONDP_ACCESS, REG, /* TODO: ?. ?-> tern operator and register access */
 
     /* Other */
-    SEMI, COLON, HASH, COMMENT, CLITERAL, SLITERAL, END, ERR,
+    SEMI, COLON, COMMA, HASH, COMMENT, CLITERAL, SLITERAL, END, ERR,
 
     /* Currently Not Determinable */
     NA
@@ -91,7 +91,7 @@ static const size_t ADDS_COUNT = sizeof(ADDS) / sizeof(ADDS[0]);
 static const int MULTS[] = { MULT, DIV, MOD };
 static const size_t MULTS_COUNT = sizeof(MULTS) / sizeof(MULTS[0]);
 
-static const int PREFIXS[] = { POW, PP, SS, NOT, NEG, /* Cast */ MULT, AND };
+static const int PREFIXS[] = { PP, SS, NOT, NEG, /* Cast */ MULT, AND };
 static const size_t PREFIXS_COUNT = sizeof(PREFIXS) / sizeof(PREFIXS[0]);
 
 static const int POSTFIXS[] = { PP, SS, REG };

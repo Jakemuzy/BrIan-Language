@@ -54,8 +54,12 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 ## GRAMMAR
 
 ``` 
-	Progam ::= { Function } "START" Body { Function }
-    Function ::= IDENT '(' Expr ')' Body
+	Progam ::=  { Function } 
+                [ "main" '(' [ ParamList ] ')' Body ] 
+                { Function }
+    Function ::= Type IDENT '(' [ ParamList ] ')' Body
+    ParamList ::= Param { ',' Param }
+    Param ::= Type IDENT
 
 	Body ::= '{' StmtList '}'
 	StmtList ::= { Stmt }  
@@ -64,35 +68,37 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     ExprStmt ::= Expr ';'  
 	DeclStmt ::= Type VarList ';'  
 	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
-    ReturnStmt ::= return [Expr] ';'  
+    ReturnStmt ::= "return" [Expr] ';'  
 
     IfStmt ::= "if" '(' Expr ')' Body { "elif" '(' Expr ')' Body } { "else" Body }  
     SwitchStmt ::= "switch" '(' Expr ')' '{' { "case" Expr ':' StmtList } [ "default" ':' StmtList ] '}'  
     WhileStmt ::= "while" '(' Expr ')' Body  
     DoWhileStmt ::= "do" Body "while" '(' Expr ')' ';'  
-    ForStmt ::= "for" '(' [Expr { ',' Expr} ] ';' Expr ';' Expr ')' Body  
+    ForStmt ::= "for" '(' [ ExprList ]';' [ Expr ] ';' [ ExprList ] ')' Body  
 
+    ExprList ::= Expr { ',' Expr }
     Expr ::= AsgnExpr  
-    AsgnExpr ::= OrlExpr { ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') OrlExpr }  
+    AsgnExpr ::= OrlExpr | OrlExpr { ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') OrlExpr }  
     OrlExpr ::= AndlExpr { '||' AndlExpr }  
     AndlExpr ::= OrExpr { '&&' OrExpr } 
     OrExpr ::= XorExpr { '|' XorExpr }
     XorExpr ::= AndExpr { '^' AndExpr }
     AndExpr ::= EqqExpr { '&' EqqExpr }
-    EqqExpr ::= RelationExpr { ('==' | '!=') RelationExpr }  
+    EqqExpr ::= RelationExpr [ ('==' | '!=') RelationExpr ]
     RelationExpr ::= ShiftExpr [ ('>' | '<' | '<=' | '>=') ShiftExpr ]  
     ShiftExpr ::= AddExpr { ('<<' | '>>') AddExpr }  
 	AddExpr ::= MultExpr { ( '+' | '-' ) MultExpr }  
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }  
     PowExpr ::= Prefix [ '**' PowExpr ]
     Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix  
-    Postfix ::= Primary { '++' | '--' | '$' | '**' (IDENT | DECIMAL) | '[' (IDENT | DECIMAL) ']'}  
+    Postfix ::= Primary { '++' | '--' | '$' | '[' (IDENT | DECIMAL) ']'}  
     Primary ::= IDENT | LITERAL | '(' Expr ')'  
 
-    Type = ( char | bool | int | long | double | float | void | string )
+    Type = ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" )
 
 	VarList ::= Var { ',' Var }
     Var = IDENT [ '=' Expr ]
+
 	...	
 ```
 

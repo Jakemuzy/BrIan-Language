@@ -43,6 +43,7 @@ int WhileStmt(FILE* fptr, AST* ast);
 int DoWhileStmt(FILE* fptr, AST* ast);
 int ForStmt(FILE* fptr, AST* ast);
 
+int ExprList(FILE* fptr, AST* ast);
 int Expr(FILE* fptr, AST* ast);
 int AsgnExpr(FILE* fptr, AST* ast);
 int OrlExpr(FILE* fptr, AST* ast);
