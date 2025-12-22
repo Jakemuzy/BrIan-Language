@@ -1,9 +1,10 @@
 #include <>
 
-START {
+main() {
     int xyz = 4;
 }
 
-UPDATE {
-
+void func() 
+{
 }
+
