@@ -27,6 +27,9 @@ AST* ConstructAST(FILE* fptr);
 /* ---------- Recursive Descent ---------- */
 
 void Program(FILE* fptr, AST* ast);
+int Function(FILE* fptr, AST* ast);
+int ParamList(FILE* fptr, AST* ast);
+int Param(FILE* fptr, AST* ast);
 
 int Body(FILE* fptr, AST* ast);
 int StmtList(FILE* fptr, AST* ast);

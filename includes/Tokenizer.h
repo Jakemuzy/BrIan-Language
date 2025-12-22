@@ -13,7 +13,8 @@
 static Dict* KWmap = NULL;
 
 /* Token Logic */
-static Token* Buffer = NULL;
+static Token Buffer;
+static bool BufferFull = false;
 
 Token GetNextToken(FILE* fptr); 
 int   PutTokenBack(Token* t);

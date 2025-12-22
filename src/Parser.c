@@ -27,33 +27,137 @@ AST* ConstructAST(FILE* fptr)
 
 /* ---------- EBNF ---------- */
 
-void Program(FILE* fptr, AST* ast)
+int Param(FILE* fptr, AST* ast)
 {
     int status;
-    /* TODO: Skipped for testing, in preprocess (gettokenp)
-    if((status = ImportList(fptr, ast)) != ERRP)
+    if((status = Type(fptr, ast)) != VALID)
+       return status; 
+
+    Token t = GetNextTokenP(fptr);
+    if(t.type != IDENT)
     {
-        printf("ERROR: Program has malformed imports\n");
-        exit(1);
+        printf("ERROR: param doesn't have a name\n");
+        return ERRP;
     }
-    */
+
+    return VALID;
+}
+
+int ParamList(FILE* fptr, AST* ast)
+{
+    int status;
+    if((status = Param(fptr, ast)) != VALID)
+        return status;
 
     Token t;
-    t = GetNextTokenP(fptr);
-    if(strcmp(t.lex.word, "START"))
+    while(true)
     {
-        /* TODO: output line num and col */
-        printf("ERROR: Program must have START function\n");
-        exit(1);
+        t = GetNextToken(fptr);
+        if(t.type != COMMA)
+        {
+            PutTokenBack(&t);
+            break;
+        }
+
+        if((status = Param(fptr, ast)) != VALID)
+            return ERRP;
+    }
+
+    return VALID;
+}
+
+int Function(FILE* fptr, AST* ast)
+{
+    /* TODO: Would also have to have global vars */
+    int status;
+    if((status = Type(fptr, ast)) != VALID)
+       return status; 
+
+    Token t = GetNextTokenP(fptr);
+    if(t.type != IDENT)
+    {
+        printf("ERROR: function doesn't have a name\n");
+        return ERRP;
+    }
+
+    t = GetNextTokenP(fptr);
+    if(t.type != LPAREN)
+    {
+        printf("ERROR: Missing left parenthesis in function\n");
+        return ERRP;
+    }
+
+    if((status = ParamList(fptr, ast)) == ERRP)
+    {
+        printf("ERROR: Invalid ParamList in function\n");
+        return ERRP;
+    }
+
+    t = GetNextTokenP(fptr);
+    if(t.type != RPAREN)
+    {
+        printf("ERROR: Missing right parenthesis in function\n");
+        return ERRP;
     }
 
     if((status = Body(fptr, ast)) != VALID)
     {
-        printf("ERROR: Program has malformed body after START, %d\n", status); 
+        printf("ERROR: Invalid body in function\n");
+        return status;
+    }
+
+    return VALID;
+}
+
+void Program(FILE* fptr, AST* ast)
+{
+    int status;
+    if((status = Function(fptr, ast)) == ERRP)
+    {
+        printf("ERROR: Invalid function\n");
         exit(1);
     }
 
+    Token t = GetNextTokenP(fptr);
+    if(strcmp(t.lex.word, "main") == 0)
+    {
+        t = GetNextTokenP(fptr);
+        if(t.type != LPAREN)
+        {
+            printf("ERROR: Missing left parenthesis in main\n");
+            exit(1);
+        }
+
+        if((status = ParamList(fptr, ast)) == ERRP)
+        {
+            printf("ERROR: Invalid Param List in main\n");
+            exit(1);
+        }
+
+        t = GetNextTokenP(fptr);
+        if(t.type != RPAREN)
+        {
+            printf("ERROR: Missing right parenthesis in main\n");
+            exit(1);
+        }
+
+        int status;
+        if((status = Body(fptr, ast)) != VALID)
+        {
+            printf("ERROR: Program has malformed body after START, %d\n", status); 
+            exit(1);
+        }
+    }
+
+    if((status = Function(fptr, ast)) == ERRP)
+    {
+        printf("ERROR: Invalid function\n");
+        exit(1);
+    }
 }
+
+
+
 
 
 int Body(FILE* fptr, AST* ast)
@@ -73,7 +177,6 @@ int Body(FILE* fptr, AST* ast)
     t = GetNextTokenP(fptr);
     if(t.type != RBRACK)
     {
-        PutTokenBack(&t);
         printf("Missing RBRACK in BODY\n");
         return ERRP;
     }
@@ -135,7 +238,10 @@ int DeclStmt(FILE* fptr, AST* ast)
 		return status;
 
 	if((status = VarList(fptr, ast)) != VALID)
-		return status;
+    {
+        printf("ERROR: Invalid VarList in DeclStmt\n");
+		return ERRP;
+    }
 
     Token t;
     t = GetNextTokenP(fptr);
@@ -175,7 +281,7 @@ int ReturnStmt(FILE* fptr, AST* ast)
 	}
 
     int status;
-    if((status = ExprStmt(fptr, ast)) == ERRP)
+    if((status = Expr(fptr, ast)) == ERRP)
     {
         printf("Return Stmt has invalid ExprStmt\n");
         return status;
@@ -286,14 +392,13 @@ int SwitchStmt(FILE* fptr, AST* ast)
     }
 
     /* TODO: add cases */
-    int cases = 1;
-    while(cases)
+    while(true)
     {
         t = GetNextTokenP(fptr);
         if(t.type != CASE)
         {
             PutTokenBack(&t);
-            printf("ERROR: no case in switch stmt\n");
+            break;
         }
 
         t = GetNextTokenP(fptr);
@@ -301,35 +406,36 @@ int SwitchStmt(FILE* fptr, AST* ast)
         {
             PutTokenBack(&t);
             printf("ERROR: no colon for case in switch stmt\n");
+            return ERRP;
         }
 
-        if((status = StmtList(fptr, ast)) == ERRP)
+        if((status = StmtList(fptr, ast)) != VALID)
         {
             printf("ERROR: Invalid StmtList in body of case in switch stmt\n");
-            return status;
+            return ERRP;
         }
 
     }
 
     t = GetNextTokenP(fptr);
-    if(t.type != DEFAULT)
+    if(t.type == DEFAULT)
     {
-        PutTokenBack(&t);
-        printf("ERROR: no case in switch stmt\n");
-    }
+        t = GetNextTokenP(fptr);
+        if(t.type != COLON)
+        {
+            printf("ERROR: no colon for case in switch stmt\n");
+            return ERRP;
+        }
 
-    t = GetNextTokenP(fptr);
-    if(t.type != COLON)
-    {
+        if((status = StmtList(fptr, ast)) != VALID)
+        {
+            printf("ERROR: Invalid StmtList in body of default in switch stmt\n");
+            return ERRP;
+        }
+    }
+    else 
         PutTokenBack(&t);
-        printf("ERROR: no colon for case in switch stmt\n");
-    }
 
-    if((status = StmtList(fptr, ast)) == ERRP)
-    {
-        printf("ERROR: Invalid StmtList in body of default in switch stmt\n");
-        return status;
-    }
 
     t = GetNextTokenP(fptr);
     if(t.type != RBRACE)
@@ -385,6 +491,7 @@ int DoWhileStmt(FILE* fptr, AST* ast)
     if((status = Body(fptr, ast)) != VALID)
         return status;
 
+    t = GetNextTokenP(fptr);
     if(t.type != WHILE)
     {
         PutTokenBack(&t);
@@ -497,8 +604,11 @@ int ExprList(FILE* fptr, AST* ast)
             break;
         }
 
-        if((status = Expr(fptr, ast)) != ERRP)
-            return VALID;
+        if((status = Expr(fptr, ast)) != VALID)
+        {
+            printf("ERROR: Expr in ExprList is invalid\n");
+            return ERRP;
+        }
     }
     
     return VALID;
@@ -520,7 +630,7 @@ int AsgnExpr(FILE* fptr, AST* ast)
         return status;
     
     Token t = GetNextTokenP(fptr);
-    if((status = ValidTokType(ASSIGNS, ASSIGNS_COUNT, t.type)) != VALID)
+    if((status = ValidTokType(ASSIGNS, ASSIGNS_COUNT, t.type)) == VALID)
     {
         if((status = AsgnExpr(fptr, ast)) != VALID)
             return status;
@@ -534,10 +644,10 @@ int AsgnExpr(FILE* fptr, AST* ast)
 int OrlExpr(FILE* fptr, AST* ast)
 {
     int status;
-    Token t;
     if((status = AndlExpr(fptr, ast)) != VALID)
         return status;
 
+    Token t;
     while(true)
     {
         t = GetNextTokenP(fptr);
@@ -559,10 +669,10 @@ int OrlExpr(FILE* fptr, AST* ast)
 int AndlExpr(FILE* fptr, AST* ast)
 {
     int status;
-    Token t;
     if((status = OrExpr(fptr, ast)) != VALID)
         return status;
 
+    Token t;
     while(true)
     {
         t = GetNextTokenP(fptr);
@@ -584,12 +694,14 @@ int AndlExpr(FILE* fptr, AST* ast)
 int OrExpr(FILE* fptr, AST* ast)
 {
     int status;
-    Token t;
     if((status = XorExpr(fptr, ast)) != VALID)
         return status;
 
+    Token t;
     while(true)
     {
+        t = GetNextTokenP(fptr);
+        if(t.type != OR)
         {
             PutTokenBack(&t);
             break;
@@ -607,10 +719,10 @@ int OrExpr(FILE* fptr, AST* ast)
 int XorExpr(FILE* fptr, AST* ast)
 {
     int status;
-    Token t;
     if((status = AndExpr(fptr, ast)) != VALID)
         return status;
 
+    Token t;
     while(true)
     {
         t = GetNextTokenP(fptr);
@@ -632,10 +744,10 @@ int XorExpr(FILE* fptr, AST* ast)
 int AndExpr(FILE* fptr, AST* ast)
 {
     int status;
-    Token t;
     if((status = EqqExpr(fptr, ast)) != VALID)
         return status;
 
+    Token t;
     while(true)
     {
         t = GetNextTokenP(fptr);
@@ -657,11 +769,10 @@ int AndExpr(FILE* fptr, AST* ast)
 int EqqExpr(FILE* fptr, AST* ast)
 {
     int status;
-    Token t;
     if((status = RelationExpr(fptr, ast)) != VALID)
         return status;
 
-    t = GetNextTokenP(fptr);
+    Token t = GetNextTokenP(fptr);
     if(t.type != EQQ && t.type != NEQQ)
     {
         PutTokenBack(&t);
@@ -679,10 +790,10 @@ int EqqExpr(FILE* fptr, AST* ast)
 int RelationExpr(FILE* fptr, AST* ast)
 {
     int status;
-    Token t;
     if((status = ShiftExpr(fptr, ast)) != VALID)
         return status;
 
+    Token t;
     if(true)
     {
         t = GetNextTokenP(fptr);
@@ -704,10 +815,10 @@ int RelationExpr(FILE* fptr, AST* ast)
 int ShiftExpr(FILE* fptr, AST* ast)
 {
     int status;
-    Token t;
     if((status = AddExpr(fptr, ast)) != VALID)
         return status;
 
+    Token t;
     while(true)
     {
         t = GetNextTokenP(fptr);
@@ -729,11 +840,10 @@ int ShiftExpr(FILE* fptr, AST* ast)
 int AddExpr(FILE* fptr, AST* ast)
 {
 	int status;
-	Token t;
-
     if((status = MultExpr(fptr, ast)) != VALID)
         return status;
     
+	Token t;
     while(true)
     {
 
@@ -847,9 +957,10 @@ int Primary(FILE* fptr, AST* ast)
             printf("Missing RPAREN in primary\n");
             return ERRP;
         }
+        return VALID;
     }
 
-    return VALID;
+    return NAP;
 }
 
 
@@ -858,13 +969,55 @@ int Type(FILE* fptr, AST* ast)
     Token t = GetNextTokenP(fptr);
     if(ValidTokType(TYPES, TYPES_COUNT, t.type) != VALID)
     {
-        printf("ERROR: Not a valid type: %s \n", t.lex.word);
-        return ERRP;
+        PutTokenBack(&t);
+        return NAP;
     }
-
      
     return VALID;
 }
+
 int VarList(FILE* fptr, AST* ast)
 {
+    int status;
+    if((status = Var(fptr, ast)) != VALID)
+        return status;
+
+    Token t;
+    while(true)
+    {
+        t = GetNextToken(fptr);
+        if(t.type != COMMA)
+        {
+            PutTokenBack(&t);
+            break;
+        }
+
+        if((status = Var(fptr, ast)) != VALID)
+            return ERRP;
+    }
+
+    return VALID;
+}
+
+int Var(FILE* fptr, AST* ast)
+{
+    Token t = GetNextTokenP(fptr);
+    if(t.type != IDENT)
+        return NAP;
+
+    t = GetNextTokenP(fptr);
+    if(t.type != EQ)
+    {
+        PutTokenBack(&t);
+        return VALID;
+    }
+
+    int status;
+    if((status = Expr(fptr, ast)) != VALID)
+    {
+        printf("ERROR: Invalid Expr equivalent to var\n");
+        return ERRP;
+    }
+
+    return VALID;
 }

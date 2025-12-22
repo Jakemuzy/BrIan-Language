@@ -31,17 +31,17 @@ Token GetNextToken(FILE* fptr)
 {
     /* Check Buffer Before Grabbing New */
     Token next;
-    if (Buffer != NULL)
+    if(BufferFull)
     {
-        next = *Buffer;
-        Buffer = NULL;
-        return next;
+        BufferFull = false;
+        return Buffer;
     }
 
-    /* Fetch new Tokeni From File */
+    /* Fetch new Token From File */
     next.lex.size = 0;
     next.lex.max = INIT_LEXEME;
     next.lex.word = malloc(next.lex.max * sizeof(char));
+    next.lex.word[0] = '\0';
     
     int c;
     do {
@@ -76,21 +76,22 @@ Token GetNextToken(FILE* fptr)
 
 int PutTokenBack(Token* t)
 {
-    if(Buffer != NULL)
+    if(BufferFull)
     {
-        perror("ERROR: Attemping to write to a full buffer \n");
+        printf("ERROR: Attemping to write to a full buffer \n");
         exit(-1);
-        return -1;
     }
 
     printf("%s PUTBACK\n", t->lex.word);
-    Buffer = t;
+
+    Buffer = *t;
+    BufferFull = true;
     return 0;
 }
 
 void UpdateLexeme(Token* t, int c)
 {
-    if (t->lex.size >= t->lex.max)
+    if (t->lex.size + 1 >= t->lex.max) /* +1 for null terminator */
     {
         t->lex.max *= 2;
         t->lex.word = realloc(t->lex.word, t->lex.max * sizeof(char));
@@ -98,6 +99,7 @@ void UpdateLexeme(Token* t, int c)
 
     t->lex.word[t->lex.size] = c;
     t->lex.size++;
+    t->lex.word[t->lex.size] = '\0'; 
 }
 
 /* ---------- CATEGORIES ---------- */
