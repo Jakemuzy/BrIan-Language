@@ -320,6 +320,11 @@ int IsUnary(FILE* fptr, Token* t, int c)
         UpdateLexeme(t, c);
         return VALID;
     }
+    if(c == ','){
+        t->type = COMMA;
+        UpdateLexeme(t, c);
+        return VALID;
+    }
 
     t->type = NA;
     return NAT;
