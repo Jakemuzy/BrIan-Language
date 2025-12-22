@@ -25,7 +25,7 @@
 
 typedef enum {
     /* Ctrl Stmt Key Words */
-    IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH,
+    IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH, CASE, DEFAULT,
 
     /* Data Type Key Words */
     IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID,
@@ -79,15 +79,11 @@ typedef struct Token {
 static const int KEYWORDS[] = { IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID };
 static const size_t KEYWORDS_COUNT = sizeof(KEYWORDS) / sizeof(KEYWORDS[0]);
 
-static const int ASSIGNS[] = { MEQ, DEQ, MODEQ, PEQ, SEQ, ANDEQ, OREQ, NEGEQ, XOREQ, RIGHTEQ, LEFTEQ, ORLEQ, ANDLEQ, EQ };
+static const int ASSIGNS[] = { EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, LEFTEQ, RIGHTEQ, ANDEQ, OREQ, XOREQ, NEGEQ, ORLEQ, ANDLEQ };
 static const size_t ASSIGNS_COUNT = sizeof(ASSIGNS) / sizeof(ASSIGNS[0]);
 
-static const int LOGICS[] = { LESS, LEQQ, GREAT, GEQQ, EQQ, NEQQ, ANDL, ORL };
-static const size_t LOGICS_COUNT = sizeof(LOGICS) / sizeof(LOGICS[0]);
-
-
-static const int BITS[] = { AND, XOR, OR, RSHIFT, LSHIFT };
-static const size_t BITS_COUNT = sizeof(BITS) / sizeof(BITS[0]);
+static const int RELATIONAL[] = { GREAT, LESS, LEQQ, GEQQ };
+static const size_t RELATIONAL_COUNT = sizeof(RELATIONAL) / sizeof(RELATIONAL[0]);
 
 static const int ADDS[] = { PLUS, MINUS };
 static const size_t ADDS_COUNT = sizeof(ADDS) / sizeof(ADDS[0]);

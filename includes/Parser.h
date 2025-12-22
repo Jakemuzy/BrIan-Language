@@ -45,8 +45,13 @@ int ForStmt(FILE* fptr, AST* ast);
 
 int Expr(FILE* fptr, AST* ast);
 int AsgnExpr(FILE* fptr, AST* ast);
-int LogicExpr(FILE* fptr, AST* ast);
-int BitExpr(FILE* fptr, AST* ast);
+int OrlExpr(FILE* fptr, AST* ast);
+int AndlExpr(FILE* fptr, AST* ast);
+int OrExpr(FILE* fptr, AST* ast);
+int XorExpr(FILE* fptr, AST* ast);
+int AndExpr(FILE* fptr, AST* ast);
+int EqqExpr(FILE* fptr, AST* ast);
+int RelationExpr(FILE* fptr, AST* ast);
 int AddExpr(FILE* fptr, AST* ast);
 int MultExpr(FILE* fptr, AST* ast);
 int PowExpr(FILE* fptr, AST* ast);

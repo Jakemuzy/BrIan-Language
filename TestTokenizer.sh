@@ -7,7 +7,7 @@ TEST_CASES_PATH="TestCases/Tokenizer"
 PROG_NAME="AllTokens"
 FOLDER="Tokenizer"
 
-"$COMPILER" "$PROG_NAME"
+"$COMPILER" "$PROG_NAME" "$FOLDER"
 printf "\n"
 
 IFS=" "
