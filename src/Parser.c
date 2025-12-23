@@ -793,20 +793,16 @@ int RelationExpr(FILE* fptr, AST* ast)
     if((status = ShiftExpr(fptr, ast)) != VALID)
         return status;
 
-    Token t;
-    if(true)
+    Token t = GetNextTokenP(fptr);
+    if((status = ValidTokType(RELATIONAL, RELATIONAL_COUNT, t.type)) != VALID)
     {
-        t = GetNextTokenP(fptr);
-        if((status = ValidTokType(RELATIONAL, RELATIONAL_COUNT, t.type)) != VALID)
-        {
-            PutTokenBack(&t);
-            return status;
-        }
-        if((status = ShiftExpr(fptr, ast)) != VALID)
-        {
-            printf("ERROR: improper ShiftExpr after operator in RelationExpr\n");
-            return ERRP;
-        }
+        PutTokenBack(&t);
+        return NAP;
+    }
+    if((status = ShiftExpr(fptr, ast)) != VALID)
+    {
+        printf("ERROR: improper ShiftExpr after operator in RelationExpr\n");
+        return ERRP;
     }
 
     return VALID;
@@ -855,7 +851,10 @@ int AddExpr(FILE* fptr, AST* ast)
         }
      
         if((status = MultExpr(fptr, ast)) != VALID)
-            return status;
+        {
+            printf("ERROR: improper MultExpr after + or - in AddExpr\n");
+            return ERRP;
+        }
     }
 
     return VALID;
@@ -878,7 +877,10 @@ int MultExpr(FILE* fptr, AST* ast)
         }
 
         if ((status = PowExpr(fptr, ast)) != VALID)
-            return status;
+        {
+            printf("ERROR: improper PowExpr after *, / or %% in MultExpr\n");
+            return ERRP;
+        }
     }
 
     return VALID;
@@ -895,7 +897,10 @@ int PowExpr(FILE* fptr, AST* ast)
     if(t.type == POW)
     {
         if((status = PowExpr(fptr, ast)) != VALID)
-            return status;
+        {
+            printf("ERROR: improper PowExpr after ** in PowExpr\n");
+            return ERRP;
+        }
     }
     else 
         PutTokenBack(&t);
@@ -929,6 +934,7 @@ int Postfix(FILE* fptr, AST* ast)
     Token t;
     while(true)
     {
+        /* TODO: include array index [] here */
         t = GetNextTokenP(fptr);
         if(ValidTokType(POSTFIXS, POSTFIXS_COUNT, t.type) != VALID)
         {
@@ -949,7 +955,10 @@ int Primary(FILE* fptr, AST* ast)
     else if (t.type == LPAREN)
     {
         if((status = Expr(fptr, ast)) != VALID)
-            return status;
+        {
+            printf("ERROR: improper Expr after ( in Primary\n");
+            return ERRP;
+        }
     
         t = GetNextTokenP(fptr);
         if(t.type != RPAREN)
@@ -993,7 +1002,10 @@ int VarList(FILE* fptr, AST* ast)
         }
 
         if((status = Var(fptr, ast)) != VALID)
+        {
+            printf("ERROR: improper Var after , in VarList\n");
             return ERRP;
+        }
     }
 
     return VALID;
@@ -1003,7 +1015,10 @@ int Var(FILE* fptr, AST* ast)
 {
     Token t = GetNextTokenP(fptr);
     if(t.type != IDENT)
+    {
+        PutTokenBack(&t);
         return NAP;
+    }
 
     t = GetNextTokenP(fptr);
     if(t.type != EQ)
