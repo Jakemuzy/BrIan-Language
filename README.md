@@ -78,7 +78,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
     ExprList ::= Expr { ',' Expr }
     Expr ::= AsgnExpr  
-    AsgnExpr ::= OrlExpr | OrlExpr { ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') OrlExpr }  
+    AsgnExpr ::= OrlExpr | OrlExpr ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') AsgnExpr 
     OrlExpr ::= AndlExpr { '||' AndlExpr }  
     AndlExpr ::= OrExpr { '&&' OrExpr } 
     OrExpr ::= XorExpr { '|' XorExpr }
@@ -91,8 +91,8 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }  
     PowExpr ::= Prefix [ '**' PowExpr ]
     Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix  
-    Postfix ::= Primary { '++' | '--' | '$' | '[' (IDENT | DECIMAL) ']'}  
-    Primary ::= IDENT | LITERAL | '(' Expr ')'  
+    Postfix ::= Primary { '++' | '--' | '$' | '[' (IDENT | INTEGRAL) ']'}  
+    Primary ::= IDENT | DECIAL | INTEGRAL | SLITERAL | CLITERAL | '(' Expr ')'  
 
     Type = ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" )
 
