@@ -92,7 +92,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     PowExpr ::= Prefix [ '**' PowExpr ]
     Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix  
     Postfix ::= Primary { '++' | '--' | '$' | '[' (IDENT | INTEGRAL) ']'}  
-    Primary ::= IDENT | DECIAL | INTEGRAL | SLITERAL | CLITERAL | '(' Expr ')'  
+    Primary ::= IDENT | DECIMAL | INTEGRAL | SLITERAL | CLITERAL | '(' Expr ')'  
 
     Type = ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" )
 
