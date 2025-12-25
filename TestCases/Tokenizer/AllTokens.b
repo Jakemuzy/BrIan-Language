@@ -7,6 +7,7 @@ for
 switch
 case
 default
+return
 identifer
 char
 short

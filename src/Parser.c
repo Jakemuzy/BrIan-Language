@@ -209,7 +209,7 @@ int Stmt(FILE* fptr, AST* ast)
         return status;
 	if((status = DeclStmt(fptr, ast)) != NAP)
 		return status;
-	else if ((status = ExprStmt(fptr, ast)) != NAP) /* TODO: This is causing errors with RBRACK, maybe not putting back? */
+	else if ((status = ExprStmt(fptr, ast)) != NAP) 
 		return status;
 	else if ((status = ReturnStmt(fptr, ast)) != NAP)
 		return status;
@@ -219,15 +219,21 @@ int Stmt(FILE* fptr, AST* ast)
 
 int ExprStmt(FILE* fptr, AST* ast)
 {
-	Token t;
+	Token t = GetNextTokenP(fptr);
+    if(t.type == SEMI)
+        return VALID;
+    else
+        PutTokenBack(&t);
+
     int status;
+    /* TODO: Not accepting blank exprs */
 	if((status = Expr(fptr, ast)) != VALID)
 		return status;
 	
 	t = GetNextTokenP(fptr);
 	if(t.type != SEMI)
 	{
-		printf("ERROR: Semicolon missing in exprstmt\n");
+		printf("ERROR: Semicolon missing in ExprStmt\n");
 		return ERRP;
 	}	
 
@@ -277,7 +283,7 @@ int CtrlStmt(FILE* fptr, AST* ast)
 int ReturnStmt(FILE* fptr, AST* ast)
 {
 	Token t = GetNextTokenP(fptr);
-	if(strcmp(t.lex.word, "return") != 0)
+	if(t.type != RET)
 	{
 		PutTokenBack(&t);
 		return NAP;
