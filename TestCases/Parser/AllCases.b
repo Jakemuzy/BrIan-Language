@@ -47,7 +47,23 @@ main() {
     string t4 = "space   ";
     string t5 = "line 
                 ";
-    
+
+    // Empty
+    if () {
+    }
+
+    if(x < y) { }
+    if(x > y) {     }
+    if(x <= y) { ; }
+    if  (y >= x) {}
+    if ( t1 != t2 ) { } 
+    if(!5) {}
+    if(4 && 5) { }
+    if(5 || x) { }
+    if (x == y)
+    {
+    }
+
 }
 
 
