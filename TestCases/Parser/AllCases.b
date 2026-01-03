@@ -48,10 +48,8 @@ main() {
     string t5 = "line 
                 ";
 
-    // Empty
     if () {
     }
-
     if(x < y) { }
     if(x > y) {     }
     if(x <= y) { ; }
@@ -63,6 +61,113 @@ main() {
     if (x == y)
     {
     }
+
+    if () { } elif () {}
+    if (x < y)
+    {
+    } elif (y > x) {
+        int f = 10 + 10;
+    }
+    if (9+10) {
+        9 + 10;
+    }
+    else {
+    10 + 9;
+    }
+    if (10 < 11) {} elif ( 11 > 10 ) {} else {
+        int x = y;
+    } 
+
+    switch(x) {
+    }
+
+    switch (x) {
+        case 1:
+    }
+
+    switch(x + y) {
+        case 1:
+            x = 10;
+    }
+
+    switch (5) {
+        case 1:
+            ;
+        case 2:
+            x = y;
+    }
+
+    switch(x) {
+        default:
+    }
+
+    switch(x) {
+        case 1:
+            x = 1;
+        case 2:
+            y = 2;
+        default:
+            z = 3;
+    }
+
+    switch(x) {
+        case (1 + 2):
+            int a = 10;
+            a = a + 1;
+    }
+
+    switch(x) {
+        case 1:
+            switch(y) {
+                case 2:
+                    z = 3;
+            }
+    }
+
+    while(x) {}
+
+    while (x < y) {
+    }
+
+    while(1) {
+        x = x + 1;
+    }
+
+    while(0) { }
+
+    while (x && y) {
+        ;
+    }
+
+    while (x || y) {
+        x = y;
+    }
+
+    while (!x) {
+        while(y) {
+            y = y - 1;
+        }
+    }
+
+    do {} while(x);
+
+    do {
+    } while (x < y);
+
+    do {
+        x = x + 1;
+    } while(1);
+
+    do {
+        ;
+    } while(0);
+
+    do {
+        do {
+            y = y - 1;
+        } while(y);
+    } while(x);
+
 
 }
 

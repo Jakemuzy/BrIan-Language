@@ -170,11 +170,12 @@ int Body(FILE* fptr, AST* ast)
         PutTokenBack(&t);
         return NAP;
     }
+    printf("After LBRACK in BODY\n");
 
     int status;
     if((status = StmtList(fptr, ast)) == ERRP)
         return status;
-    printf("After STMTLIST\n");
+    printf("After STMTLIST in BODY\n");
 
     t = GetNextTokenP(fptr);
     if(t.type != RBRACK)
@@ -309,13 +310,15 @@ int ReturnStmt(FILE* fptr, AST* ast)
 
 int IfStmt(FILE* fptr, AST* ast)
 {
+    /* TODO: If body not valid, check for ExprStmt\ */
+
 	Token t = GetNextTokenP(fptr);
 	if(t.type != IF)
 	{
 		PutTokenBack(&t);
 		return NAP;
 	}
-
+    
 	/* Infinite elif and final else */
 	int status;
     while(true)
@@ -327,7 +330,7 @@ int IfStmt(FILE* fptr, AST* ast)
             return ERRP;
         }
 
-        if((status = Expr(fptr, ast)) != VALID)
+        if((status = Expr(fptr, ast)) == ERRP)
             return status;
 
         t = GetNextTokenP(fptr);
@@ -391,9 +394,9 @@ int SwitchStmt(FILE* fptr, AST* ast)
     }
 
     t = GetNextTokenP(fptr);
-    if(t.type != LBRACE)
+    if(t.type != LBRACK)
     {
-        printf("ERROR: no lbrace in switch stmt\n");
+        printf("ERROR: no LBRACK in SwitchStmt stmt\n");
         return ERRP; 
     }
 
@@ -405,6 +408,12 @@ int SwitchStmt(FILE* fptr, AST* ast)
         {
             PutTokenBack(&t);
             break;
+        }
+
+        if((status = Expr(fptr, ast)) != VALID)
+        {
+            printf("ERROR: Invalid case in switch stmt\n");
+            return ERRP;
         }
 
         t = GetNextTokenP(fptr);
@@ -444,9 +453,9 @@ int SwitchStmt(FILE* fptr, AST* ast)
 
 
     t = GetNextTokenP(fptr);
-    if(t.type != RBRACE)
+    if(t.type != RBRACK)
     {
-        printf("ERROR: no RBRACE in switch stmt\n");
+        printf("ERROR: no RBRACK in SwitchStmt\n");
         return ERRP; 
     }
 
@@ -471,7 +480,9 @@ int WhileStmt(FILE* fptr, AST* ast)
 
     int status;
     if((status = Expr(fptr, ast)) != VALID)
-        return status;
+    {
+        return ERRP;
+    }
 
     t = GetNextTokenP(fptr);
     if(t.type != RPAREN)
@@ -480,8 +491,15 @@ int WhileStmt(FILE* fptr, AST* ast)
         return ERRP;
     }
 
-    if((status = Body(fptr, ast)) != VALID)
-        return status;
+    if((status = Body(fptr, ast)) == VALID)
+        ;
+    else {
+        if((status = ExprStmt(fptr, ast)) != VALID )
+        {
+            printf("ERROR: Invalid Body after Do in DoWhileStmt\n");
+            return ERRP;
+        }
+    }
 
     return VALID;
 }
@@ -496,30 +514,40 @@ int DoWhileStmt(FILE* fptr, AST* ast)
     }
 
     int status;
-    if((status = Body(fptr, ast)) != VALID)
-        return status;
+    if((status = Body(fptr, ast)) == VALID)
+        ;
+    else {
+        if((status = ExprStmt(fptr, ast)) != VALID )
+        {
+            printf("ERROR: Invalid Body after Do in DoWhileStmt\n");
+            return ERRP;
+        }
+    }
 
     t = GetNextTokenP(fptr);
     if(t.type != WHILE)
     {
         PutTokenBack(&t);
-        return NAP;
+        return ERRP;
     }
 
     t = GetNextTokenP(fptr);
     if(t.type != LPAREN)
     {
-        printf("ERROR: no LPAREN in do while stmt\n");
+        printf("ERROR: no LPAREN in DoWhileStmt\n");
         return ERRP;
     }
 
     if((status = Expr(fptr, ast)) != VALID)
+    {
+        printf("ERROR: Invalid Expr in while of DoWhileStmt\n");
         return status;
+    }
 
     t = GetNextTokenP(fptr);
     if(t.type != RPAREN)
     {
-        printf("ERROR: no RPAREN in do while stmt\n");
+        printf("ERROR: no RPAREN in DoWhileStmt\n");
         return ERRP;
     }
 

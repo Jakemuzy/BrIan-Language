@@ -53,7 +53,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
 ## GRAMMAR
 
-``` 
+`` `
 	Progam ::=  { Function } 
                 [ "main" '(' [ ParamList ] ')' Body ] 
                 { Function }
