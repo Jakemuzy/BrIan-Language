@@ -318,8 +318,7 @@ int IfStmt(FILE* fptr, AST* ast)
 
 	/* Infinite elif and final else */
 	int status;
-    bool chain = true;
-    while(chain)
+    while(true)
     {
         t = GetNextTokenP(fptr);
         if(t.type != LPAREN)
@@ -346,14 +345,15 @@ int IfStmt(FILE* fptr, AST* ast)
         {
             continue;
         }
-        else if(t.type != ELSE)
+        else if(t.type == ELSE)
         {
-            chain = false;
-            continue;
+            if((status = Body(fptr, ast)) != VALID)
+                return status;
+            break;
         }
-        
+
         PutTokenBack(&t);
-        chain = false;
+        break;
     }
 
     return VALID;
