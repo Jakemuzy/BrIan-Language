@@ -1,6 +1,6 @@
 // Program to test integral arithmetic
 
-Start {
+main() {
     int UMax = 4294967295;
     int UMin = 0;
 
@@ -24,4 +24,6 @@ Start {
     // Factorial Testing
 
     // Powers Testing
+
+    return 0;
 }

@@ -7,9 +7,10 @@
 /* KNOWN BUGS */
 
 /*
- * TODO: Keywords, Idents, Factorial, 
- *       Order of checks 
+ * TODO: Factorials, line and column tracking 
+ *       
 */
+
 KeyVal kv1 = {"if", IF} ;
 KeyVal kv2 = {"elif", ELIF};
 KeyVal kv3 = {"else", ELSE};
@@ -19,13 +20,15 @@ KeyVal kv6 = {"for", FOR};
 KeyVal kv7 = {"switch", SWITCH};
 KeyVal kv8 = {"case", CASE};
 KeyVal kv9 = {"default", DEFAULT};
-KeyVal kv10 = {"char", CHAR};
-KeyVal kv11 = {"short", SHORT};
-KeyVal kv12 = {"int", INT};
-KeyVal kv13 = {"float", FLOAT};
-KeyVal kv14 = {"double", DOUBLE};
-KeyVal kv15 = {"long", LONG};
-KeyVal kv16 = {"void", VOID};
+KeyVal kv10 = {"return", RET};
+KeyVal kv11 = {"char", CHAR};
+KeyVal kv12 = {"short", SHORT};
+KeyVal kv13 = {"int", INT};
+KeyVal kv14 = {"float", FLOAT};
+KeyVal kv15 = {"double", DOUBLE};
+KeyVal kv16 = {"long", LONG};
+KeyVal kv17 = {"void", VOID};
+KeyVal kv18 = {"string", STRING};
 
 Token GetNextToken(FILE* fptr)
 {
@@ -735,7 +738,7 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
     /* TODO: Make these maps more like I have in the parser section
 */
     if(!KWmap)
-        KWmap = DictMake(16, &kv1, &kv2, &kv3, &kv4, &kv5, &kv6, &kv7, &kv8, &kv9, &kv10, &kv11, &kv12, &kv13, &kv14, &kv15, &kv16);
+        KWmap = DictMake(18, &kv1, &kv2, &kv3, &kv4, &kv5, &kv6, &kv7, &kv8, &kv9, &kv10, &kv11, &kv12, &kv13, &kv14, &kv15, &kv16, &kv17, &kv18);
 
     int next = c;
     while(next != '\n' && next != EOF)

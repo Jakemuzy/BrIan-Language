@@ -25,10 +25,10 @@
 
 typedef enum {
     /* Ctrl Stmt Key Words */
-    IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH, CASE, DEFAULT,
+    IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH, CASE, DEFAULT, RET,
 
     /* Data Type Key Words */
-    IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID,
+    IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID, STRING,
 
     /* Assignment Operators */
     EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, ANDEQ, OREQ, ANDLEQ, ORLEQ, NEGEQ, XOREQ, RIGHTEQ, LEFTEQ, PP, SS, 
@@ -76,7 +76,7 @@ typedef struct Token {
 
 /* ---------- Determing Exprtype --------- */
 
-static const int KEYWORDS[] = { IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID };
+static const int KEYWORDS[] = { IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH, CASE, DEFAULT, RET, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID, STRING };
 static const size_t KEYWORDS_COUNT = sizeof(KEYWORDS) / sizeof(KEYWORDS[0]);
 
 static const int ASSIGNS[] = { EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, LEFTEQ, RIGHTEQ, ANDEQ, OREQ, XOREQ, NEGEQ, ORLEQ, ANDLEQ };
@@ -91,13 +91,13 @@ static const size_t ADDS_COUNT = sizeof(ADDS) / sizeof(ADDS[0]);
 static const int MULTS[] = { MULT, DIV, MOD };
 static const size_t MULTS_COUNT = sizeof(MULTS) / sizeof(MULTS[0]);
 
-static const int PREFIXS[] = { PP, SS, NOT, NEG, /* Cast */ MULT, AND };
+static const int PREFIXS[] = { PP, SS, NOT, NEG, MINUS, /* Cast */ MULT, AND };
 static const size_t PREFIXS_COUNT = sizeof(PREFIXS) / sizeof(PREFIXS[0]);
 
 static const int POSTFIXS[] = { PP, SS, REG };
 static const size_t POSTFIXS_COUNT = sizeof(POSTFIXS) / sizeof(POSTFIXS[0]);
 
-static const TYPES[] = { CHAR, SHORT, INT, FLOAT, DOUBLE, LONG };
+static const TYPES[] = { CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID, STRING };
 static const size_t TYPES_COUNT = sizeof(TYPES) / sizeof(TYPES[0]);
 
 #endif
