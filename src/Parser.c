@@ -4,6 +4,47 @@
  * 
 */
 
+/* ---------- AST ----------- */
+
+AST* ASTInit(FILE* fptr)
+{
+    AST* ast = malloc(sizeof(AST));
+    
+    ast->root = malloc(sizeof(ASTNode));
+    ast->root->children = NULL;
+    ast->root->parent = NULL;
+    ast->root->childCount = 0;
+
+    ast->leaf = ast->root;
+    return ast;
+}
+
+void ASTAddChild(AST* ast, Token t)
+{
+    ASTNode* leaf = ast->leaf;
+
+    int childIndex = leaf->childCount;
+
+    leaf->children = realloc(leaf->children, (childIndex + 1) * sizeof(ASTNode*));
+
+    ASTNode* child = malloc(sizeof(ASTNode));
+    child->children = NULL;
+    child->parent = leaf;
+    child->childCount = 0;
+    child->token = t;
+
+    (leaf->children)[childIndex] = child;
+    leaf->childCount++;
+
+    ast->leaf = child;
+}
+
+void TraverseUpAST(AST* ast)
+{
+    if(ast->leaf->parent)
+        ast->leaf = ast->leaf->parent;
+}
+
 /* ---------- HELPER ---------- */
 
 int ValidTokType(const int types[], int arrSize, int type)
@@ -33,86 +74,10 @@ int CompareToken(FILE* fptr, TokenType desired, char* errMessage, int errType)
     return VALID;
 }
 
-AST* ConstructAST(FILE* fptr)
-{
-    AST* ast = malloc(sizeof(AST));
-    ast->root = NULL;
-
-    return ast;
-}
-
 /* ---------- EBNF ---------- */
-
-int Param(FILE* fptr, AST* ast)
-{
-    int status;
-    if((status = Type(fptr, ast)) != VALID)
-       return status; 
-
-    if(CompareToken(fptr, IDENT, "param doesn't have a name", ERRP) != VALID)
-        return ERRP;
-
-    return VALID;
-}
-
-int ParamList(FILE* fptr, AST* ast)
-{
-    int status;
-    if((status = Param(fptr, ast)) != VALID)
-        return status;
-
-    Token t;
-    while(true)
-    {
-        t = GetNextToken(fptr);
-        if(t.type != COMMA)
-        {
-            PutTokenBack(&t);
-            break;
-        }
-
-        if((status = Param(fptr, ast)) != VALID)
-            return ERRP;
-    }
-
-    return VALID;
-}
-
-int Function(FILE* fptr, AST* ast)
-{
-    /* TODO: Would also have to have global vars */
-    int status;
-    if((status = Type(fptr, ast)) != VALID)
-       return status; 
-
-    if(CompareToken(fptr, IDENT, "Function does not have a name", ERRP) != VALID)
-        return ERRP;
-
-    if(CompareToken(fptr, LPAREN, "Missing left parenthesis in function", ERRP) != VALID)
-        return ERRP;
-
-    if((status = ParamList(fptr, ast)) == ERRP)
-    {
-        printf("ERROR: Invalid ParamList in function\n");
-        return ERRP;
-    }
-
-    if(CompareToken(fptr, RPAREN, "Missing right parenthesis in function", ERRP) != VALID)
-        return ERRP;
-
-    if((status = Body(fptr, ast)) != VALID)
-    {
-        printf("ERROR: Invalid body in function");
-        return status;
-    }
-
-    return VALID;
-}
 
 void Program(FILE* fptr, AST* ast)
 {
-    /* TODO: Main is technically a function, shouldn't treat it separately */
-
     Token t; 
     int status; 
     while(true)
@@ -146,7 +111,75 @@ void Program(FILE* fptr, AST* ast)
 
 }
 
+int Function(FILE* fptr, AST* ast)
+{
+    /* TODO: Would also have to have global vars */
+    int status;
+    if((status = Type(fptr, ast)) != VALID)
+       return status; 
 
+    if(CompareToken(fptr, IDENT, "Function does not have a name", ERRP) != VALID)
+        return ERRP;
+
+    if(CompareToken(fptr, LPAREN, "Missing left parenthesis in function", ERRP) != VALID)
+        return ERRP;
+
+    if((status = ParamList(fptr, ast)) == ERRP)
+    {
+        printf("ERROR: Invalid ParamList in function\n");
+        return ERRP;
+    }
+
+    if(CompareToken(fptr, RPAREN, "Missing right parenthesis in function", ERRP) != VALID)
+        return ERRP;
+
+    if((status = Body(fptr, ast)) != VALID)
+    {
+        printf("ERROR: Invalid body in function");
+        return status;
+    }
+
+    return VALID;
+}
+
+int ParamList(FILE* fptr, AST* ast)
+{
+    int status;
+    if((status = Param(fptr, ast)) != VALID)
+        return status;
+
+    Token t;
+    while(true)
+    {
+        t = GetNextToken(fptr);
+        if(t.type != COMMA)
+        {
+            PutTokenBack(&t);
+            break;
+        }
+
+        if((status = Param(fptr, ast)) != VALID)
+            return ERRP;
+    }
+
+    return VALID;
+}
+
+int Param(FILE* fptr, AST* ast)
+{
+    int status;
+    if((status = Type(fptr, ast)) != VALID)
+       return status; 
+
+    if(CompareToken(fptr, IDENT, "param doesn't have a name", ERRP) != VALID)
+        return ERRP;
+
+    return VALID;
+}
+
+
+
+/* ---------- Statements ---------- */
 
 int Body(FILE* fptr, AST* ast)
 {
@@ -483,6 +516,8 @@ int ForStmt(FILE* fptr, AST* ast)
 }
 
 
+
+/* ---------- Expressions ---------- */
 
 int ExprList(FILE* fptr, AST* ast)
 {
@@ -871,6 +906,9 @@ int Primary(FILE* fptr, AST* ast)
     return NAP;
 }
 
+ 
+
+/* ---------- Etc ---------- */
 
 int Type(FILE* fptr, AST* ast)
 {

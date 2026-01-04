@@ -16,6 +16,7 @@ float
 double
 long
 void
+string
 =
 +=
 -=
@@ -64,6 +65,7 @@ void
 .1234
 ;
 :
+,
 #
 // Comment One
 /* Coment Two */

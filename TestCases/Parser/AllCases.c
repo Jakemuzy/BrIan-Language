@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
     }
 
     /* Build the ast */
-    AST* ast = ConstructAST(fptr);
+    AST* ast = ASTInit(fptr);
     Program(fptr, ast); 
 	return 0;
 }

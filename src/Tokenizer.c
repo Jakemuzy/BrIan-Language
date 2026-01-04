@@ -85,7 +85,7 @@ int PutTokenBack(Token* t)
         exit(-1);
     }
 
-    printf("%s PUTBACK\n", t->lex.word);
+    /*printf("%s PUTBACK\n", t->lex.word);*/
 
     Buffer = *t;
     BufferFull = true;

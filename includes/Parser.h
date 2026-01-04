@@ -10,19 +10,21 @@
 
 typedef struct ASTNode
 {
-    struct ASTNode* children; 
-    int count;
-    Token t;
+    struct ASTNode** children; 
+    struct ASTNode*  parent;
+    int childCount;
+    Token token;
 } ASTNode;
 
 typedef struct AST
 {
     ASTNode* root;
+    ASTNode* leaf;
 } AST;
 
-AST* ConstructAST(FILE* fptr);
-
-
+AST* ASTInit(FILE* fptr);
+void ASTAddChild(AST* ast, Token t);
+void TraverseUpAST(AST* ast);
 
 /* ---------- Recursive Descent ---------- */
 
