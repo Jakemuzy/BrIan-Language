@@ -1,6 +1,6 @@
 // Test to see if start and update funtion works
 
-main() {
+int main() {
 
 }
 

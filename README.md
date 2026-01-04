@@ -53,10 +53,8 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
 ## GRAMMAR
 
-`` `
-	Progam ::=  { Function } 
-                [ "main" '(' [ ParamList ] ')' Body ] 
-                { Function }
+```
+	Program ::=  { Function | DeclStmt }
     Function ::= Type IDENT '(' [ ParamList ] ')' Body
     ParamList ::= Param { ',' Param }
     Param ::= Type IDENT
@@ -70,15 +68,23 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
     ReturnStmt ::= "return" [Expr] ';'  
 
-    IfStmt ::= "if" '(' Expr ')' Body { "elif" '(' Expr ')' Body } { "else" Body }  
-    SwitchStmt ::= "switch" '(' Expr ')' '{' { "case" Expr ':' StmtList } [ "default" ':' StmtList ] '}'  
-    WhileStmt ::= "while" '(' Expr ')' Body  
-    DoWhileStmt ::= "do" Body "while" '(' Expr ')' ';'  
+    IfStmt ::= "if" '(' Expr ')' Body 
+               { "elif" '(' Expr ')' Body } 
+               { "else" Body }  
+    SwitchStmt ::= "switch" '(' Expr ')' 
+                   '{' 
+                        { "case" Expr ':' StmtList } 
+                        [ "default" ':' StmtList ] 
+                   '}'  
+    WhileStmt ::= "while" '(' Expr ')' ( Body | ExprStmt )
+    DoWhileStmt ::= "do" ( Body | ExprStmt ) 
+                    "while" '(' Expr ')' ';'  
     ForStmt ::= "for" '(' [ ExprList ]';' [ Expr ] ';' [ ExprList ] ')' Body  
 
     ExprList ::= Expr { ',' Expr }
     Expr ::= AsgnExpr  
-    AsgnExpr ::= OrlExpr | OrlExpr ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') AsgnExpr 
+    AsgnExpr ::= OrlExpr 
+                 | OrlExpr ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') AsgnExpr 
     OrlExpr ::= AndlExpr { '||' AndlExpr }  
     AndlExpr ::= OrExpr { '&&' OrExpr } 
     OrExpr ::= XorExpr { '|' XorExpr }
@@ -91,10 +97,11 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }  
     PowExpr ::= Prefix [ '**' PowExpr ]
     Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix  
-    Postfix ::= Primary { '++' | '--' | '$' | '[' (IDENT | INTEGRAL) ']'}  
-    Primary ::= IDENT | DECIMAL | INTEGRAL | SLITERAL | CLITERAL | '(' Expr ')'  
+    Postfix ::= Primary { '++' | '--' | '$' | '[' Expr ']' | IDENT '('[ ArgList ] ') }
+    Primary ::= IDENT | DECIMAL | INTEGRAL | SLITERAL | CLITERAL | '(' Expr ')'
 
     Type = ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" )
+    ArgList = Expr { ',' Expr }
 
 	VarList ::= Var { ',' Var }
     Var = IDENT [ '=' Expr ]
