@@ -1,6 +1,6 @@
 // Program to test integral arithmetic
 
-main() {
+int main() {
     int UMax = 4294967295;
     int UMin = 0;
 

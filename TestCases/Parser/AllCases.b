@@ -1,6 +1,6 @@
 #include <>
 
-main() {
+int main() {
     // Etc
     ;
 
@@ -48,7 +48,19 @@ main() {
     string t5 = "line 
                 ";
 
-    if () {
+    IfStmts();
+    SwitchStmts();
+    WhileStmts();
+    DoWhileStmts();
+    ForStmts();
+
+    return 0;
+}
+
+void IfStmts()
+{
+
+    if (1) {
     }
     if(x < y) { }
     if(x > y) {     }
@@ -62,7 +74,7 @@ main() {
     {
     }
 
-    if () { } elif () {}
+    if (2) { } elif (1) {}
     if (x < y)
     {
     } elif (y > x) {
@@ -77,7 +89,10 @@ main() {
     if (10 < 11) {} elif ( 11 > 10 ) {} else {
         int x = y;
     } 
+}
 
+void SwitchStmts()
+{
     switch(x) {
     }
 
@@ -123,7 +138,10 @@ main() {
                     z = 3;
             }
     }
+}
 
+void WhileStmts()
+{
     while(x) {}
 
     while (x < y) {
@@ -148,7 +166,10 @@ main() {
             y = y - 1;
         }
     }
+}
 
+void DoWhileStmts()
+{
     do {} while(x);
 
     do {
@@ -167,8 +188,32 @@ main() {
             y = y - 1;
         } while(y);
     } while(x);
-
-
 }
 
-
+void ForStmts()
+{
+    for (;;) ;
+    for (; x < y; ) {
+        x = x + 1;
+    }
+    for (x = 0; x < y; x = x + 1) {
+        y = y - 1;
+    }
+    for (x = 0, y = 10; x < y; x = x + 1, y = y - 1) {
+        ;
+    }
+    for (x = 0; ; x = x + 1) {
+        ;
+    }
+    for (; x; x = x - 1) {
+        ;
+    }
+    for (x = 10; x > 0; ) {
+        x = x - 1;
+    }
+    for (x = 0; x < 5; x = x + 1) {
+        for (y = 10; y; y = y - 1) {
+            ;
+        }
+    }
+}

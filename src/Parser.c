@@ -25,6 +25,17 @@ AST* ConstructAST(FILE* fptr)
     return ast;
 }
 
+int CompareToken(Token current, TokenType desired, char* errMessage)
+{
+    int status;
+    if(current.type != desired)
+    {
+        printf("%s\n", errMessage);
+        return NAP;
+    }
+
+}
+
 /* ---------- EBNF ---------- */
 
 int Param(FILE* fptr, AST* ast)
@@ -73,6 +84,7 @@ int Function(FILE* fptr, AST* ast)
     if((status = Type(fptr, ast)) != VALID)
        return status; 
 
+    char* funcName;
     Token t = GetNextTokenP(fptr);
     if(t.type != IDENT)
     {
@@ -80,29 +92,30 @@ int Function(FILE* fptr, AST* ast)
         return ERRP;
     }
 
+    funcName = t.lex.word;
     t = GetNextTokenP(fptr);
     if(t.type != LPAREN)
     {
-        printf("ERROR: Missing left parenthesis in function\n");
+        printf("ERROR: Missing left parenthesis in function %s\n", funcName);
         return ERRP;
     }
 
     if((status = ParamList(fptr, ast)) == ERRP)
     {
-        printf("ERROR: Invalid ParamList in function\n");
+        printf("ERROR: Invalid ParamList in function %s\n", funcName);
         return ERRP;
     }
 
     t = GetNextTokenP(fptr);
     if(t.type != RPAREN)
     {
-        printf("ERROR: Missing right parenthesis in function\n");
+        printf("ERROR: Missing right parenthesis in function %s\n", funcName);
         return ERRP;
     }
 
     if((status = Body(fptr, ast)) != VALID)
     {
-        printf("ERROR: Invalid body in function\n");
+        printf("ERROR: Invalid body in function, %s\n", funcName);
         return status;
     }
 
@@ -111,51 +124,39 @@ int Function(FILE* fptr, AST* ast)
 
 void Program(FILE* fptr, AST* ast)
 {
+    /* TODO: Main is technically a function, shouldn't treat it separately */
+
+    Token t;
     int status;
-    if((status = Function(fptr, ast)) == ERRP)
-    {
-        printf("ERROR: Invalid function\n");
-        exit(1);
-    }
-
-    Token t = GetNextTokenP(fptr);
-    if(strcmp(t.lex.word, "main") == 0)
+    while(true)
     {
         t = GetNextTokenP(fptr);
-        if(t.type != LPAREN)
+        if(t.type == END)
+            exit(0);
+        PutTokenBack(&t);
+
+        if((status = Function(fptr, ast)) == VALID)
+            continue;
+        else if(status == ERRP)
         {
-            printf("ERROR: Missing left parenthesis in main\n");
+            printf("ERROR: Invalid Function in Program\n");
             exit(1);
         }
 
-        if((status = ParamList(fptr, ast)) == ERRP)
+        if((status = DeclStmt(fptr, ast)) == VALID)
+            continue;
+        else if(status == ERRP)
         {
-            printf("ERROR: Invalid Param List in main\n");
+            printf("ERROR: Invalid global DeclStmt in Program\n");
             exit(1);
         }
-
-        t = GetNextTokenP(fptr);
-        if(t.type != RPAREN)
-        {
-            printf("ERROR: Missing right parenthesis in main\n");
-            exit(1);
-        }
-
-        int status;
-        if((status = Body(fptr, ast)) != VALID)
-        {
-            printf("ERROR: Program has malformed body after main, %d\n", status); 
-            exit(1);
-        }
+        
+        printf("ERROR: Unexpected token in global scope\n"); 
+        break;
     }
 
-    if((status = Function(fptr, ast)) == ERRP)
-    {
-        printf("ERROR: Invalid function\n");
-        exit(1);
-    }
+    exit(1);
 
-    exit(0);
 }
 
 
@@ -174,7 +175,10 @@ int Body(FILE* fptr, AST* ast)
 
     int status;
     if((status = StmtList(fptr, ast)) == ERRP)
-        return status;
+    {
+        printf("ERROR: Invalid StmtList in Body\n");
+        return ERRP;
+    }
     printf("After STMTLIST in BODY\n");
 
     t = GetNextTokenP(fptr);
@@ -234,7 +238,7 @@ int ExprStmt(FILE* fptr, AST* ast)
 	t = GetNextTokenP(fptr);
 	if(t.type != SEMI)
 	{
-		printf("ERROR: Semicolon missing in ExprStmt\n");
+		printf("ERROR: Semicolon missing in ExprStmt: \"%s\"\n", t.lex.word);
 		return ERRP;
 	}	
 
@@ -330,8 +334,11 @@ int IfStmt(FILE* fptr, AST* ast)
             return ERRP;
         }
 
-        if((status = Expr(fptr, ast)) == ERRP)
+        if((status = Expr(fptr, ast)) != VALID)
+        {
+            printf("ERROR: Invalid Expr in IfStmt\n");
             return status;
+        }
 
         t = GetNextTokenP(fptr);
         if(t.type != RPAREN)
@@ -615,6 +622,17 @@ int ForStmt(FILE* fptr, AST* ast)
     {
         printf("ERROR: no RPAREN in for stmt\n");
         return ERRP;
+    }
+
+    /* Body */
+    if((status = Body(fptr, ast)) == VALID)
+        ;
+    else {
+        if((status = ExprStmt(fptr, ast)) != VALID )
+        {
+            printf("ERROR: Invalid Body in ForStmt\n");
+            return ERRP;
+        }
     }
 
 
@@ -972,13 +990,47 @@ int Postfix(FILE* fptr, AST* ast)
     Token t;
     while(true)
     {
-        /* TODO: include array index [] here */
         t = GetNextTokenP(fptr);
-        if(ValidTokType(POSTFIXS, POSTFIXS_COUNT, t.type) != VALID)
+        if(ValidTokType(POSTFIXS, POSTFIXS_COUNT, t.type) == VALID)
+            continue;
+
+        /* [] */
+        if(t.type == LBRACK)
         {
-            PutTokenBack(&t);
-            break;
+            if((status = Expr(fptr, ast)) != VALID)
+            {
+                printf("ERROR: Invalid Expr while array indexing\n");
+                return ERRP;
+            }
+
+            t = GetNextTokenP(fptr);
+            if(t.type != RBRACK)
+            {
+                printf("ERROR: Missing RBRACK while array indexing\n");
+                return ERRP;
+            }
+            continue;
         }
+        /* ( function ) */
+        else if(t.type == LPAREN)
+        {
+            if((status = ArgList(fptr, ast)) == ERRP)
+            {
+               printf("ERROR: Invalid ArgList in function calling\n");
+               return ERRP;
+            }
+
+            t = GetNextTokenP(fptr);
+            if(t.type != RPAREN)
+            {
+                printf("ERROR: Missing RPAREN while function calling\n");
+                return ERRP;
+            }
+            continue;
+        }
+
+        PutTokenBack(&t);
+        break;
     }
 
     return VALID;
@@ -1022,6 +1074,30 @@ int Type(FILE* fptr, AST* ast)
     }
      
     return VALID;
+}
+
+int ArgList(FILE* fptr, AST* ast)
+{
+    int status;
+    if((status = Primary(fptr, ast)) != VALID)
+        return NAP;
+
+    Token t;
+    while(true)
+    {
+        t = GetNextTokenP(fptr);
+        if(t.type != COMMA)
+        {
+            PutTokenBack(&t);
+            return VALID;
+        }
+
+        if((status = Primary(fptr, ast)) != VALID)
+        {
+            printf("ERROR: Invalid ArgList\n");
+            return ERRP;
+        }
+    }
 }
 
 int VarList(FILE* fptr, AST* ast)

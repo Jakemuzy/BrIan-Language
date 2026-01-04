@@ -24,7 +24,7 @@ void StringParam(string s){
 
 }
 
-Start {
+int main() {
     NoParam();
 
     int i = 5;
@@ -51,7 +51,7 @@ Start {
     FloatParam(841.917664);
     FloatParam(f1);
     FloatParam(f2);
-    FloatParam(d1)
+    FloatParam(d1);
     FloatParam(d2);
     FloatParam(i);
 
