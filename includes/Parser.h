@@ -62,8 +62,9 @@ int PowExpr(FILE* fptr, AST* ast);
 int Prefix(FILE* fptr, AST* ast);
 int Postfix(FILE* fptr, AST* ast);
 int Primary(FILE* fptr, AST* ast);
-int ArgList(FILE* fptr, AST* ast);
 
+int Type(FILE* fptr, AST* ast);
+int ArgList(FILE* fptr, AST* ast);
 int VarList(FILE* fptr, AST* ast);
 int Var(FILE* fptr, AST* ast);
 

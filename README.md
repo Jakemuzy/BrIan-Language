@@ -6,9 +6,9 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
 ## PRINCIPLES:
     Brian's main goals are 
+        - Compiled 
         - Concurrency 
         - Low memory utilization 
-        - Compiled 
         - Type and memory safety
     BrIan strives to be simple but extremely powerful. By allowing programmers to interface directly with hardware,
     BrIan is extremely powerful, hence any error can be catastrophic. 
@@ -17,7 +17,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     Built upon the principles of C, BrIan is essentially my attempt at a C++ without the verbosity, depreciation, and confusion. 
         In BrIan, you won't need to constantly learn the latest and greatest functions in the standard library like C++; 
         nor will you have to create everything by yourself like in C. 
-        BrIan takes the middle ground of these two, providing simple algorithms, data structures and all that is required 
+        BrIan takes the middle ground of these two, providing simple algorithms, data structures and everything that is required 
         to build complex standalone projects, without the technical debt.
     There are many aspects of C and C++ that BrIan aims to fix:
     - Confusing function pointers
@@ -34,7 +34,6 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
           best practices and obtuse implementations
     - Safety concerns 
         * BrIan will have safe pointers and safe dereferencing
-    - Switch fall throughs 
     - Header files 
     - Macros
 
