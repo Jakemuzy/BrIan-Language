@@ -15,34 +15,35 @@ AST* ASTInit(FILE* fptr)
     ast->root->parent = NULL;
     ast->root->childCount = 0;
 
-    ast->leaf = ast->root;
     return ast;
 }
 
-void ASTAddChild(AST* ast, Token t)
+void ASTAddToken(ASTNode* node, Token t)
 {
-    ASTNode* leaf = ast->leaf;
-
-    int childIndex = leaf->childCount;
-
-    leaf->children = realloc(leaf->children, (childIndex + 1) * sizeof(ASTNode*));
+    int childIndex = node->childCount;
+    node->children = realloc(node->children, (childIndex + 1) * sizeof(ASTNode*));
 
     ASTNode* child = malloc(sizeof(ASTNode));
     child->children = NULL;
-    child->parent = leaf;
+    child->parent = node;
     child->childCount = 0;
     child->token = t;
 
-    (leaf->children)[childIndex] = child;
-    leaf->childCount++;
+    (node->children)[childIndex] = child;
+    node->childCount++;
 
-    ast->leaf = child;
+    return child;
 }
 
-void TraverseUpAST(AST* ast)
+void ASTAddChild(ASTNode* curr, ASTNode* child)
 {
-    if(ast->leaf->parent)
-        ast->leaf = ast->leaf->parent;
+    int childIndex = curr->childCount;
+    curr->children = realloc(curr->children, (childIndex + 1) * sizeof(ASTNode*));
+
+    (curr->children)[childIndex] = child;
+    curr->childCount++;
+
+    return curr;
 }
 
 /* ---------- HELPER ---------- */
@@ -70,7 +71,7 @@ int CompareToken(FILE* fptr, TokenType desired, char* errMessage, int errType)
             PutTokenBack(&current);
         return errType;
     }
-    
+   
     return VALID;
 }
 
