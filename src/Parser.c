@@ -6,45 +6,76 @@
 
 /* ---------- AST ----------- */
 
-AST* ASTInit(FILE* fptr)
+AST* InitAST()
 {
     AST* ast = malloc(sizeof(AST));
     
     ast->root = malloc(sizeof(ASTNode));
     ast->root->children = NULL;
-    ast->root->parent = NULL;
     ast->root->childCount = 0;
 
     return ast;
 }
 
-void ASTAddToken(ASTNode* node, Token t)
+ASTNode* InitASTNode()
+{
+    ASTNode* node = malloc(sizeof(ASTNode));
+
+    node->children = NULL;
+    node->childCount = 0;
+
+    return node;
+}
+
+
+void ASTPushTokNode(ASTNode* node, Token t)
+{
+    ASTNode* newChild = InitASTNode();
+    newChild->token = t;
+
+    int childIndex = node->childCount;
+    ASTNode** temp = realloc(node->children, (childIndex + 1) * sizeof(ASTNode*));
+    if (!temp) 
+    {
+        printf("ERROR: Realloc has failed\n");
+        return 1;
+    }
+    node->children = temp;
+
+    (node->children)[childIndex] = newChild;
+    node->childCount++;
+
+    return 0;
+}
+
+void ASTPushChildNode(ASTNode* node, ASTNode* child)
 {
     int childIndex = node->childCount;
-    node->children = realloc(node->children, (childIndex + 1) * sizeof(ASTNode*));
-
-    ASTNode* child = malloc(sizeof(ASTNode));
-    child->children = NULL;
-    child->parent = node;
-    child->childCount = 0;
-    child->token = t;
+    ASTNode** temp = realloc(node->children, (childIndex + 1) * sizeof(ASTNode*));
+    if (!temp) 
+    {
+        printf("ERROR: Realloc has failed\n");
+        return 1;
+    }
 
     (node->children)[childIndex] = child;
     node->childCount++;
 
-    return child;
+    return 0;
 }
 
-void ASTAddChild(ASTNode* curr, ASTNode* child)
+void ASTFreeNode(ASTNode* node)
 {
-    int childIndex = curr->childCount;
-    curr->children = realloc(curr->children, (childIndex + 1) * sizeof(ASTNode*));
-
-    (curr->children)[childIndex] = child;
-    curr->childCount++;
-
-    return curr;
+    if(node->children)
+    {
+        for(i = node->childCount; i < node->childCount; i++)
+            free((node->children)[i]);
+        free(children);
+    } 
+    free(node);
 }
+
+
 
 /* ---------- HELPER ---------- */
 
@@ -81,26 +112,38 @@ void Program(FILE* fptr, AST* ast)
 {
     Token t; 
     int status; 
+		
     while(true)
     {
+    	ASTNode* node = InitASTNode();
+
         t = GetNextTokenP(fptr);
         if(t.type == END)
             exit(0);
         PutTokenBack(&t);
 
-        if((status = Function(fptr, ast)) == VALID)
+        if((status = Function(fptr, node)) == VALID)
+        {
+            ASTNodeAddChild(ast->root, node);	
             continue;
+        }
         else if(status == ERRP)
         {
             printf("ERROR: Invalid Function in Program\n");
+            ASTFreeNode(node);
             exit(1);
         }
-
-        if((status = DeclStmt(fptr, ast)) == VALID)
+        
+        node = InitASTNode();
+        if((status = DeclStmt(fptr, node)) == VALID)
+        {
+            ASTNodeAddChild(ast->root, node);
             continue;
+        }
         else if(status == ERRP)
         {
             printf("ERROR: Invalid global DeclStmt in Program\n");
+            ASTFreeNode(node);
             exit(1);
         }
         
@@ -108,37 +151,48 @@ void Program(FILE* fptr, AST* ast)
         break;
     }
 
+    /* TODO: Would also have to have global vars */
     exit(1);
-
 }
 
-int Function(FILE* fptr, AST* ast)
+int Function(FILE* fptr, ASTNode* parent)
 {
-    /* TODO: Would also have to have global vars */
+    ASTNode* node = InitASTNode();
+
     int status;
-    if((status = Type(fptr, ast)) != VALID)
-       return status; 
+    if((status = Type(fptr, node)) != VALID)
+    {
+        ASTFreeNode(node);
+        return status; 
+    }
+    ASTPushChildNode(parent, node);
 
     if(CompareToken(fptr, IDENT, "Function does not have a name", ERRP) != VALID)
         return ERRP;
 
     if(CompareToken(fptr, LPAREN, "Missing left parenthesis in function", ERRP) != VALID)
         return ERRP;
-
-    if((status = ParamList(fptr, ast)) == ERRP)
+    
+    node = InitASTNode();
+    if((status = ParamList(fptr, paramListNode)) == ERRP)
     {
         printf("ERROR: Invalid ParamList in function\n");
+        ASTFreeNode(node);
         return ERRP;
     }
+    ASTPushChildNode(parent, node);
 
+    node = InitASTNode();
     if(CompareToken(fptr, RPAREN, "Missing right parenthesis in function", ERRP) != VALID)
         return ERRP;
 
-    if((status = Body(fptr, ast)) != VALID)
+    if((status = Body(fptr, node)) != VALID)
     {
         printf("ERROR: Invalid body in function");
+        ASTFreeNode();
         return status;
     }
+    ASTPushChildNode(parent, node);
 
     return VALID;
 }
