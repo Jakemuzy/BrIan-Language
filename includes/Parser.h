@@ -3,41 +3,15 @@
 
 #include "Preprocessor.h"
 #include "Dictionary.h"
+#include "AST.h"
 
 #define ERRP -1
 #define NAP   0
 #define VALID 1
 
-enum NodeTypes
-{
-	TOKEN_NODE, 
-	FUNCTION_NODE,
-	IDENT_NODE,
-}
-
-typedef struct ASTNode
-{
-    struct ASTNode** children; 
-    char* name;		/* TODO: Need to store ident names */
-    int childCount;
-    Token token;
-} ASTNode;
-
-typedef struct AST
-{
-    ASTNode* root;
-} AST;
-
-AST* InitAST();
-
-ASTNode* InitASTNode();
-void ASTPushTokNode(ASTNode* node, Token t);
-void ASTPushChildNode(ASTNode* node, ASTNode* child);
-void ASTFreeNode(ASTNode* node);
-
 /* ---------- Recursive Descent ---------- */
 
-ASTNode* Program(FILE* fptr, ASTNode* ast);
+AST* Program(FILE* fptr, AST* ast);
 int Function(FILE* fptr, ASTNode* parent);
 int ParamList(FILE* fptr, ASTNode* parent);
 int Param(FILE* fptr, ASTNode* parent);

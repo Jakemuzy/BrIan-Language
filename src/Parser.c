@@ -1,82 +1,5 @@
 #include "Parser.h"
 
-/* TODO:
- * 
-*/
-
-/* ---------- AST ----------- */
-
-AST* InitAST()
-{
-    AST* ast = malloc(sizeof(AST));
-    
-    ast->root = malloc(sizeof(ASTNode));
-    ast->root->children = NULL;
-    ast->root->childCount = 0;
-
-    return ast;
-}
-
-ASTNode* InitASTNode()
-{
-    ASTNode* node = malloc(sizeof(ASTNode));
-
-    node->children = NULL;
-    node->childCount = 0;
-
-    return node;
-}
-
-
-void ASTPushTokNode(ASTNode* node, Token t)
-{
-    ASTNode* newChild = InitASTNode();
-    newChild->token = t;
-
-    int childIndex = node->childCount;
-    ASTNode** temp = realloc(node->children, (childIndex + 1) * sizeof(ASTNode*));
-    if (!temp) 
-    {
-        printf("ERROR: Realloc has failed\n");
-        return 1;
-    }
-    node->children = temp;
-
-    (node->children)[childIndex] = newChild;
-    node->childCount++;
-
-    return 0;
-}
-
-void ASTPushChildNode(ASTNode* node, ASTNode* child)
-{
-    int childIndex = node->childCount;
-    ASTNode** temp = realloc(node->children, (childIndex + 1) * sizeof(ASTNode*));
-    if (!temp) 
-    {
-        printf("ERROR: Realloc has failed\n");
-        return 1;
-    }
-
-    (node->children)[childIndex] = child;
-    node->childCount++;
-
-    return 0;
-}
-
-void ASTFreeNode(ASTNode* node)
-{
-    if(node->children)
-    {
-        for(i = node->childCount; i < node->childCount; i++)
-            free((node->children)[i]);
-        free(children);
-    } 
-    free(node);
-}
-
-
-
 /* ---------- HELPER ---------- */
 
 int ValidTokType(const int types[], int arrSize, int type)
@@ -108,7 +31,7 @@ int CompareToken(FILE* fptr, TokenType desired, char* errMessage, int errType)
 
 /* ---------- EBNF ---------- */
 
-void Program(FILE* fptr, AST* ast)
+AST* Program(FILE* fptr, AST* ast)
 {
     Token t; 
     int status; 
@@ -123,20 +46,21 @@ void Program(FILE* fptr, AST* ast)
         ASTNode* funcNode = InitASTNode();
         if((status = Function(fptr, funcNode)) == VALID)
         {
-            ASTNodeAddChild(ast->root, funcNode);	
+            ASTPushChildNode(ast->root, funcNode);	
             continue;
         }
         else if(status == ERRP)
         { 
             printf("ERROR: Invalid Function in Program\n");
             ASTFreeNode(funcNode);
+            AST
             exit(1);
         }
         
     	ASTNode* declNode = InitASTNode();
         if((status = DeclStmt(fptr, declNode)) == VALID)
         {
-            ASTNodeAddChild(ast->root, declNode);
+            ASTPushChildNode(ast->root, declNode);
             continue;
         }
         else if(status == ERRP)
@@ -197,7 +121,7 @@ int Function(FILE* fptr, ASTNode* parent)
     return VALID;
 }
 
-int ParamList(FILE* fptr, AST* parent)
+int ParamList(FILE* fptr, ASTNode* parent)
 {
     int status;
 
@@ -220,7 +144,7 @@ int ParamList(FILE* fptr, AST* parent)
         }
 
         paramNode = InitASTNode(); 
-        if((status = Param(fptr, ast)) != VALID)
+        if((status = Param(fptr, paramNode)) != VALID)
         {
             ASTFreeNode(paramNode);
             return ERRP;
@@ -231,12 +155,12 @@ int ParamList(FILE* fptr, AST* parent)
     return VALID;
 }
 
-int Param(FILE* fptr, AST* parent)
+int Param(FILE* fptr, ASTNode* parent)
 {
     int status;
 
     ASTNode* typeNode = InitASTNode();
-    if((status = Type(fptr, ast)) != VALID)
+    if((status = Type(fptr, typeNode)) != VALID)
     {
         ASTFreeNode(typeNode);
         return status; 
@@ -254,7 +178,7 @@ int Param(FILE* fptr, AST* parent)
 
 /* ---------- Statements ---------- */
 
-int Body(FILE* fptr, AST* parent)
+int Body(FILE* fptr, ASTNode* parent)
 {
     if(CompareToken(fptr, LBRACK, "", NAP) != VALID)
         return NAP;
@@ -274,7 +198,7 @@ int Body(FILE* fptr, AST* parent)
     return VALID;
 }
 
-int StmtList(FILE* fptr, AST* parent)
+int StmtList(FILE* fptr, ASTNode* parent)
 {
     int status;
     while(true)
@@ -295,7 +219,7 @@ int StmtList(FILE* fptr, AST* parent)
     return VALID;
 }
 
-int Stmt(FILE* fptr, AST* parent)
+int Stmt(FILE* fptr, ASTNode* parent)
 {
     /* TODO: fix this so ASTPushChildNode discerns ERRP and VALID */
     int status;
@@ -309,7 +233,7 @@ int Stmt(FILE* fptr, AST* parent)
     ASTFreeNode(ctrlNode);
 
     ASTNode* declNode = InitASTNode();
-	if((status = DeclStmt(fptr, ast)) != NAP)
+	if((status = DeclStmt(fptr, declNode)) != NAP)
     {
         ASTPushChildNode(parent, declNode);
 		return status;
@@ -317,17 +241,17 @@ int Stmt(FILE* fptr, AST* parent)
     ASTFreeNode(declNode);
 
     ASTNode* exprNode = InitASTNode();
-	if ((status = ExprStmt(fptr, ast)) != NAP) 
+	if ((status = ExprStmt(fptr, exprNode)) != NAP) 
     {
-        ASTPushChildNode(exprNode);
+        ASTPushChildNode(parent, exprNode);
 		return status;
     }
     ASTFreeNode(exprNode);
 
     ASTNode* returnNode = InitASTNode();
-	if ((status = ReturnStmt(fptr, ast)) != NAP)
+	if ((status = ReturnStmt(fptr, returnNode)) != NAP)
     {
-        ASTPushChildNode(returnNode);
+        ASTPushChildNode(parent, returnNode);
 		return status;
     }
     ASTFreeNode(returnNode);
@@ -335,7 +259,7 @@ int Stmt(FILE* fptr, AST* parent)
     return NAP;
 }
 
-int ExprStmt(FILE* fptr, AST* parent)
+int ExprStmt(FILE* fptr, ASTNode* parent)
 {
 	Token t = GetNextTokenP(fptr);
     if(t.type == SEMI)
@@ -345,7 +269,7 @@ int ExprStmt(FILE* fptr, AST* parent)
     int status;
 
     ASTNode* exprNode = InitASTNode();
-	if((status = Expr(fptr, ast)) != VALID)
+	if((status = Expr(fptr, exprNode)) != VALID)
     {
         ASTFreeNode(exprNode);
 		return status;
@@ -358,12 +282,12 @@ int ExprStmt(FILE* fptr, AST* parent)
 	return VALID;
 }
 
-int DeclStmt(FILE* fptr, AST* parent)
+int DeclStmt(FILE* fptr, ASTNode* parent)
 {
 	int status;
 
     ASTNode* typeNode = InitASTNode();
-	if((status = Type(fptr, ast)) != VALID)
+	if((status = Type(fptr, typeNode)) != VALID)
     {
         ASTFreeNode(typeNode);
 		return status;
@@ -371,7 +295,7 @@ int DeclStmt(FILE* fptr, AST* parent)
     ASTPushChildNode(parent, typeNode);
 
     ASTNode* varListNode = InitASTNode();
-	if((status = VarList(fptr, ast)) != VALID)
+	if((status = VarList(fptr, varListNode)) != VALID)
     {
         printf("ERROR: Invalid VarList in DeclStmt\n");
         ASTFreeNode(varListNode);
@@ -385,47 +309,47 @@ int DeclStmt(FILE* fptr, AST* parent)
     return VALID;
 }
 
-int CtrlStmt(FILE* fptr, AST* ast)
+int CtrlStmt(FILE* fptr, ASTNode* parent)
 {
     /* TODO: fix this so ASTPushChildNode discerns ERRP and VALID */
     int status;
 
     ASTNode* ifNode = InitASTNode();
-    if ((status = IfStmt(fptr, ast)) != NAP) 
+    if ((status = IfStmt(fptr, ifNode)) != NAP) 
     {
-        ASTPushChildNode(ifNode);
+        ASTPushChildNode(parent, ifNode);
         return status;
     }
     ASTFreeNode(ifNode);
 
     ASTNode* switchNode = InitASTNode();
-    if ((status = SwitchStmt(fptr, ast)) != NAP) 
+    if ((status = SwitchStmt(fptr, switchNode)) != NAP) 
     {
-        ASTPushChildNode(switchNode);
+        ASTPushChildNode(parent, switchNode);
         return status;
     }
     ASTFreeNode(switchNode);
 
     ASTNode* whileNode = InitASTNode();
-    if ((status = WhileStmt(fptr, ast)) != NAP) 
+    if ((status = WhileStmt(fptr, whileNode)) != NAP) 
     {
-        ASTPushChildNode(whileNode);
+        ASTPushChildNode(parent, whileNode);
         return status;
     }
     ASTFreeNode(whileNode);
 
     ASTNode* doWhileNode = InitASTNode();
-    if ((status = DoWhileStmt(fptr, ast)) != NAP) 
+    if ((status = DoWhileStmt(fptr, doWhileNode)) != NAP) 
     {
-        ASTPushChildNode(doWhileNode);
+        ASTPushChildNode(parent, doWhileNode);
         return status;
     }
     ASTFreeNode(doWhileNode);
 
     ASTNode* forNode = InitASTNode();
-    if ((status = ForStmt(fptr, ast)) != NAP) 
+    if ((status = ForStmt(fptr, forNode)) != NAP) 
     {
-        ASTPushChildNode(forNode);
+        ASTPushChildNode(parent, forNode);
         return status;
     }
     ASTFreeNode(forNode);
@@ -433,17 +357,24 @@ int CtrlStmt(FILE* fptr, AST* ast)
     return NAP;
 }
 
-int ReturnStmt(FILE* fptr, AST* ast)
+int ReturnStmt(FILE* fptr, ASTNode* parent)
 {
     if(CompareToken(fptr, RET, "", NAP) != VALID)
         return NAP;
 
     int status;
-    if((status = Expr(fptr, ast)) == ERRP)
+    
+    ASTNode* exprNode = InitASTNode();
+    if((status = Expr(fptr, exprNode)) == ERRP)
     {
         printf("Return Stmt has invalid ExprStmt\n");
+        ASTFreeNode(exprNode);
         return status;
     }
+    if(status == VALID)
+        ASTPushChildNode(parent, exprNode);
+    else 
+        ASTFreeNode(exprNode);
 
     if(CompareToken(fptr, SEMI, "Semicolon missing in ReturnStmt", ERRP) != VALID)
         return ERRP;
@@ -452,7 +383,7 @@ int ReturnStmt(FILE* fptr, AST* ast)
 }
 
 
-int IfStmt(FILE* fptr, AST* ast)
+int IfStmt(FILE* fptr, ASTNode* parent)
 {
     /* TODO: If body not valid, check for ExprStmt\ */
     if(CompareToken(fptr, IF, "", NAP) != VALID)
@@ -465,25 +396,38 @@ int IfStmt(FILE* fptr, AST* ast)
         if(CompareToken(fptr, LPAREN, "Missing left parenthesis for IfStmt", ERRP) != VALID) 
             return ERRP;
 
-        if((status = Expr(fptr, ast)) != VALID)
+        ASTNode* exprNode = InitASTNode();
+        if((status = Expr(fptr, exprNode)) != VALID)
         {
             printf("ERROR: Invalid Expr in IfStmt\n");
+            ASTFreeNode(exprNode);
             return status;
         }
+        ASTPushChildNode(parent, exprNode);
 
         if(CompareToken(fptr, RPAREN, "Missing right parenthesis for IfStmt", ERRP) != VALID) 
             return ERRP;
-
-        if((status = Body(fptr, ast)) != VALID)
+        
+        ASTNode* bodyNode = InitASTNode();
+        if((status = Body(fptr, bodyNode)) != VALID)
+        {
+            ASTFreeNode(bodyNode);
             return status; 
+        }
+        ASTPushChildNode(parent, bodyNode);
 
         t = GetNextTokenP(fptr);
         if(t.type == ELIF)
             continue;
         else if(t.type == ELSE)
         {
-            if((status = Body(fptr, ast)) != VALID)
+            bodyNode = InitASTNode();
+            if((status = Body(fptr, bodyNode)) != VALID)
+            {
+                ASTFreeNode(bodyNode);
                 return status;
+            }
+            ASTPushChildNode(parent, bodyNode);
             break;
         }
 
@@ -494,7 +438,7 @@ int IfStmt(FILE* fptr, AST* ast)
     return VALID;
 }
 
-int SwitchStmt(FILE* fptr, AST* ast)
+int SwitchStmt(FILE* fptr, ASTNode* parent)
 {
     if(CompareToken(fptr, SWITCH, "", NAP) != VALID)
         return NAP;
@@ -503,12 +447,15 @@ int SwitchStmt(FILE* fptr, AST* ast)
         return ERRP;
 
 	int status;
-    if((status = Expr(fptr, ast)) != VALID)
-    {
 
+    ASTNode* exprNode = InitASTNode();
+    if((status = Expr(fptr, exprNode)) != VALID)
+    {
         printf("ERROR: no bad expr in switch stmt\n");
+        ASTFreeNode(exprNode);
         return ERRP;
     }
+    ASTPushChildNode(parent, exprNode);
 
     if(CompareToken(fptr, RPAREN, "No LPAREN in SwitchStmt", ERRP) != VALID)
         return ERRP;
@@ -521,21 +468,26 @@ int SwitchStmt(FILE* fptr, AST* ast)
     {
         if(CompareToken(fptr, CASE, "", NAP) != VALID)
             break;
-
-        if((status = Expr(fptr, ast)) != VALID)
+        exprNode = InitASTNode();
+        if((status = Expr(fptr, exprNode)) != VALID)
         {
             printf("ERROR: Invalid case in switch stmt\n");
+            ASTFreeNode(exprNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, exprNode);
 
         if(CompareToken(fptr, COLON, "No colon found for case in SwitchStmt", ERRP) != VALID)
             return ERRP;
 
-        if((status = StmtList(fptr, ast)) != VALID)
+        ASTNode* stmtListNode = InitASTNode();
+        if((status = StmtList(fptr, stmtListNode)) != VALID)
         {
             printf("ERROR: Invalid StmtList in body of case in switch stmt\n");
+            ASTFreeNode(stmtListNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, stmtListNode);
 
     }
 
@@ -543,12 +495,15 @@ int SwitchStmt(FILE* fptr, AST* ast)
     {
         if(CompareToken(fptr, COLON, "No colon found for default in SwitchStmt", ERRP) != VALID)
             return ERRP;
-
-        if((status = StmtList(fptr, ast)) != VALID)
+        
+        ASTNode* stmtListNode = InitASTNode();
+        if((status = StmtList(fptr, stmtListNode)) != VALID)
         {
             printf("ERROR: Invalid StmtList in body of default in switch stmt\n");
+            ASTFreeNode(stmtListNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, stmtListNode);
     }
 
     if(CompareToken(fptr, RBRACK, "No RBRACK in SwitchStmt", ERRP) != VALID)
@@ -557,7 +512,7 @@ int SwitchStmt(FILE* fptr, AST* ast)
     return VALID;
 }
 
-int WhileStmt(FILE* fptr, AST* ast)
+int WhileStmt(FILE* fptr, ASTNode* parent)
 {
     if(CompareToken(fptr, WHILE, "", NAP) != VALID)
         return NAP;
@@ -565,40 +520,63 @@ int WhileStmt(FILE* fptr, AST* ast)
     if(CompareToken(fptr, LPAREN, "No LPAREN in WhileStmt", ERRP) != VALID)
         return ERRP;
 
-    if(Expr(fptr, ast) != VALID)
+    ASTNode* exprNode = InitASTNode();
+    if(Expr(fptr, exprNode) != VALID)
     {
         printf("ERROR: Invalid Expr in WhileStmt\n");
+        ASTFreeNode(exprNode);
         return ERRP;
     }
+    ASTPushChildNode(parent, exprNode);
 
     if(CompareToken(fptr, RPAREN, "No RPAREN in WhileStmt", ERRP) != VALID)
         return ERRP;
 
-    if(Body(fptr, ast) != VALID)
+    int status;
+
+    ASTNode* bodyNode = InitASTNode();
+    if((status = Body(fptr, bodyNode)) != VALID)
     {
-        if(ExprStmt(fptr, ast) != VALID )
+        ASTFreeNode(bodyNode);
+
+        exprNode = InitASTNode();
+        if(ExprStmt(fptr, exprNode) != VALID )
         {
             printf("ERROR: Invalid Body in WhileStmt\n");
+            ASTFreeNode(exprNode); 
             return ERRP;
         }
+        ASTPushChildNode(parent, exprNode); 
     }
+    if(status == VALID)
+        ASTPushChildNode(parent, bodyNode);
 
     return VALID;
 }
 
-int DoWhileStmt(FILE* fptr, AST* ast)
+int DoWhileStmt(FILE* fptr, ASTNode* parent)
 {
     if(CompareToken(fptr, DO, "", NAP) != VALID)
         return NAP;
 
-    if(Body(fptr, ast) != VALID)
+    int status;
+
+    ASTNode* bodyNode = InitASTNode();
+    if((status = Body(fptr, bodyNode)) != VALID)
     {
-        if(ExprStmt(fptr, ast) != VALID )
+        ASTFreeNode(bodyNode);
+
+        ASTNode* exprNode = InitASTNode();
+        if(ExprStmt(fptr, exprNode) != VALID )
         {
             printf("ERROR: Invalid Body after Do in DoWhileStmt\n");
+            ASTFreeNode(exprNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, exprNode);
     }
+    if(status == VALID)
+        ASTPushChildNode(parent, bodyNode);
 
     if(CompareToken(fptr, WHILE, "No while after in DoWhileStmt", ERRP) != VALID)
         return ERRP;
@@ -606,11 +584,14 @@ int DoWhileStmt(FILE* fptr, AST* ast)
     if(CompareToken(fptr, LPAREN, "No LPAREN in DoWhileStmt", ERRP) != VALID)
         return ERRP;
 
-    if(Expr(fptr, ast) != VALID)
+    ASTNode* exprNode = InitASTNode();
+    if(Expr(fptr, exprNode) != VALID)
     {
         printf("ERROR: Invalid Expr in while of DoWhileStmt\n");
+        ASTFreeNode(exprNode);
         return ERRP;
     }
+    ASTPushChildNode(parent, exprNode);
 
     if(CompareToken(fptr, RPAREN, "No RPAREN in DoWhileStmt", ERRP) != VALID)
         return ERRP;
@@ -621,7 +602,7 @@ int DoWhileStmt(FILE* fptr, AST* ast)
     return VALID;
 }
 
-int ForStmt(FILE* fptr, AST* ast)
+int ForStmt(FILE* fptr, ASTNode* parent)
 {
     if(CompareToken(fptr, FOR, "", NAP) != VALID)
         return NAP;
@@ -629,41 +610,60 @@ int ForStmt(FILE* fptr, AST* ast)
     if(CompareToken(fptr, LPAREN, "No LPAREN in ForStmt", ERRP) != VALID)
         return ERRP;
 
-    if(ExprList(fptr, ast) == ERRP)
+    ASTNode* exprListNode = InitASTNode();
+    if(ExprList(fptr, exprListNode) == ERRP)
     {
         printf("ERROR: invalid Inital Expr in for stmt\n");
+        ASTFreeNode(exprListNode);
         return ERRP;
     }
+    ASTPushChildNode(parent, exprListNode);
 
     if(CompareToken(fptr, SEMI, "No SEMI in ForStmt", ERRP) != VALID)
         return ERRP;
 
-    if(Expr(fptr, ast) == ERRP)
+    ASTNode* exprNode = InitASTNode();
+    if(Expr(fptr, exprNode) == ERRP)
     {
         printf("ERROR: invalid Comparison Expr in for stmt\n");
+        ASTFreeNode(exprNode);
         return ERRP;
     }
+    ASTPushChildNode(parent, exprNode);
 
     if(CompareToken(fptr, SEMI, "No SEMI in ForStmt", ERRP) != VALID)
         return ERRP;
 
-    if(ExprList(fptr, ast) == ERRP)
+    exprListNode = InitASTNode();
+    if(ExprList(fptr, exprListNode) == ERRP)
     {
         printf("ERROR: invalid Increment Expr in for stmt\n");
+        ASTFreeNode(exprListNode);
         return ERRP;
     }
+    ASTPushChildNode(parent, exprListNode);
 
     if(CompareToken(fptr, RPAREN, "No LPAREN in ForStmt", ERRP) != VALID)
         return ERRP;
 
-    if(Body(fptr, ast) != VALID)
+    int status;
+
+    ASTNode* bodyNode = InitASTNode();
+    if((status = Body(fptr, bodyNode)) != VALID)
     {
-        if(ExprStmt(fptr, ast) != VALID )
+        ASTFreeNode(bodyNode);
+
+        ASTNode* exprStmtNode = InitASTNode();
+        if(ExprStmt(fptr, exprStmtNode) != VALID )
         {
-            printf("ERROR: Invalid Body in ForStmt\n");
+            printf("ERROR: Invalid Body after Do in ForStmt\n");
+            ASTFreeNode(exprStmtNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, exprStmtNode);
     }
+    if(status == VALID)
+        ASTPushChildNode(parent, bodyNode);
 
     return VALID;
 }
@@ -672,11 +672,17 @@ int ForStmt(FILE* fptr, AST* ast)
 
 /* ---------- Expressions ---------- */
 
-int ExprList(FILE* fptr, AST* ast)
+int ExprList(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if((status = Expr(fptr, ast)) != VALID)
+    
+    ASTNode* exprNode = InitASTNode();
+    if((status = Expr(fptr, exprNode)) != VALID)
+    {
+        ASTFreeNode(exprNode);
         return status;
+    }
+    ASTPushChildNode(parent, exprNode);
 
     Token t;
     while(true)
@@ -684,39 +690,57 @@ int ExprList(FILE* fptr, AST* ast)
         if(CompareToken(fptr, COMMA, "", NAP) != VALID)
             break;
 
-        if(Expr(fptr, ast) != VALID)
+        exprNode = InitASTNode();
+        if(Expr(fptr, exprNode) != VALID)
         {
             printf("ERROR: Expr in ExprList is invalid\n");
+            ASTFreeNode(exprNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, exprNode);
     }
     
     return VALID;
 }
 
-int Expr(FILE* fptr, AST* ast)
+int Expr(FILE* fptr, ASTNode* parent)
 {
 	int status;
-	if((status = AsgnExpr(fptr, ast)) != VALID)
+
+    ASTNode* asgnExprNode = InitASTNode();
+	if((status = AsgnExpr(fptr, asgnExprNode)) != VALID)
+    {
+        ASTFreeNode(asgnExprNode);
 		return status;
+    }
+    ASTPushChildNode(parent, asgnExprNode);
 
 	return VALID;
 }
 
-int AsgnExpr(FILE* fptr, AST* ast)
+int AsgnExpr(FILE* fptr, ASTNode* parent)
 {
 	int status;
-    if((status = OrlExpr(fptr, ast)) != VALID)
+
+    ASTNode* orlNode = InitASTNode();
+    if((status = OrlExpr(fptr, orlNode)) != VALID)
+    {
+        ASTFreeNode(orlNode);
         return status;
+    }
+    ASTPushChildNode(parent, orlNode);
     
     Token t = GetNextTokenP(fptr);
     if((status = ValidTokType(ASSIGNS, ASSIGNS_COUNT, t.type)) == VALID)
     {
-        if((status = AsgnExpr(fptr, ast)) != VALID)
+        ASTNode* asgnExprNode = InitASTNode();
+        if((status = AsgnExpr(fptr, asgnExprNode)) != VALID)
         {
             printf("ERROR: improper AsgnExpr after operator in AsgnExpr\n");
+            ASTFreeNode(asgnExprNode);
             return status;
         }
+        ASTPushChildNode(parent, asgnExprNode);
     }
     else    
         PutTokenBack(&t);
@@ -724,99 +748,141 @@ int AsgnExpr(FILE* fptr, AST* ast)
     return VALID;
 }
 
-int OrlExpr(FILE* fptr, AST* ast)
+int OrlExpr(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if((status = AndlExpr(fptr, ast)) != VALID)
+
+    ASTNode* andlNode = InitASTNode();
+    if((status = AndlExpr(fptr, andlNode)) != VALID)
+    {
+        ASTFreeNode(andlNode);
         return status;
+    }
+    ASTPushChildNode(parent, andlNode);
 
     Token t;
     while(true)
     {
         if(CompareToken(fptr, ORL, "", NAP) != VALID)
             break;
-
-        if(AndlExpr(fptr, ast) != VALID)
+        
+        andlNode = InitASTNode();
+        if(AndlExpr(fptr, andlNode) != VALID)
         {
             printf("ERROR: improper AndlExpr after || in OrlExpr\n");
+            ASTFreeNode(andlNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, andlNode);
     }
 
     return VALID;
 }
 
-int AndlExpr(FILE* fptr, AST* ast)
+int AndlExpr(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if((status = OrExpr(fptr, ast)) != VALID)
+
+    ASTNode* orNode = InitASTNode();
+    if((status = OrExpr(fptr, orNode)) != VALID)
+    {
+        ASTFreeNode(orNode);
         return status;
+    }
+    ASTPushChildNode(parent, orNode);
 
     Token t;
     while(true)
     {
         if(CompareToken(fptr, ANDL, "", NAP) != VALID)
             break;
-
-        if(OrExpr(fptr, ast) != VALID)
+        
+        orNode = InitASTNode(); 
+        if(OrExpr(fptr, orNode) != VALID)
         {
             printf("ERROR: improper OrExpr after && in AndlExpr\n");
+            ASTFreeNode(orNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, orNode);
     }
 
     return VALID;
 }
 
-int OrExpr(FILE* fptr, AST* ast)
+int OrExpr(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if((status = XorExpr(fptr, ast)) != VALID)
+    
+    ASTNode* xorNode = InitASTNode();
+    if((status = XorExpr(fptr, xorNode)) != VALID)
+    {
+        ASTFreeNode(xorNode);
         return status;
+    }
+    ASTPushChildNode(parent, xorNode);
 
     Token t;
     while(true)
     {
         if(CompareToken(fptr, OR, "", NAP) != VALID)
             break;
-
-        if(XorExpr(fptr, ast) != VALID)
+    
+        xorNode = InitASTNode();
+        if(XorExpr(fptr, xorNode) != VALID)
         {
             printf("ERROR: improper XorExpr after | in OrExpr\n");
+            ASTFreeNode(xorNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, xorNode);
     }
 
     return VALID;
 }
 
-int XorExpr(FILE* fptr, AST* ast)
+int XorExpr(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if((status = AndExpr(fptr, ast)) != VALID)
+
+    ASTNode* andNode = InitASTNode();
+    if((status = AndExpr(fptr, andNode)) != VALID)
+    {
+        ASTFreeNode(andNode);
         return status;
+    }
+    ASTPushChildNode(parent, andNode);
 
     Token t;
     while(true)
     {
         if(CompareToken(fptr, XOR, "", NAP) != VALID)
             break;
-
-        if((status = AndExpr(fptr, ast)) != VALID)
+    
+        andNode = InitASTNode();
+        if((status = AndExpr(fptr, andNode)) != VALID)
         {
             printf("ERROR: improper AndExpr after ^ in OrExpr\n");
+            ASTFreeNode(andNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, andNode);
     }
 
     return VALID;
 }
 
-int AndExpr(FILE* fptr, AST* ast)
+int AndExpr(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if((status = EqqExpr(fptr, ast)) != VALID)
+
+    ASTNode* eqqNode = InitASTNode();
+    if((status = EqqExpr(fptr, eqqNode)) != VALID)
+    {
+        ASTFreeNode(eqqNode);
         return status;
+    }
+    ASTPushChildNode(parent, eqqNode);
 
     Token t;
     while(true)
@@ -824,30 +890,42 @@ int AndExpr(FILE* fptr, AST* ast)
         if(CompareToken(fptr, AND, "", NAP) != VALID)
             break;
 
-        if(EqqExpr(fptr, ast) != VALID)
+        eqqNode = InitASTNode();
+        if(EqqExpr(fptr, eqqNode) != VALID)
         {
             printf("ERROR: improper EqqExpr after & in OrExpr\n");
+            ASTFreeNode(eqqNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, eqqNode);
     }
 
     return VALID;
 }
 
-int EqqExpr(FILE* fptr, AST* ast)
+int EqqExpr(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if((status = RelationExpr(fptr, ast)) != VALID)
+
+    ASTNode* relationNode = InitASTNode();
+    if((status = RelationExpr(fptr, relationNode)) != VALID)
+    {
+        ASTFreeNode(relationNode);
         return status;
+    }
+    ASTPushChildNode(parent, relationNode);
 
     Token t = GetNextTokenP(fptr);
     if(t.type == EQQ || t.type == NEQQ)
     {
-        if(RelationExpr(fptr, ast) != VALID)
+        relationNode = InitASTNode();
+        if(RelationExpr(fptr, relationNode) != VALID)
         {
             printf("ERROR: improper RelationExpr after == or != in EqqExpr\n");
+            ASTFreeNode(relationNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, relationNode);
     }
     else
         PutTokenBack(&t);
@@ -855,20 +933,29 @@ int EqqExpr(FILE* fptr, AST* ast)
     return VALID;
 }
 
-int RelationExpr(FILE* fptr, AST* ast)
+int RelationExpr(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if((status = ShiftExpr(fptr, ast)) != VALID)
+
+    ASTNode* shiftNode = InitASTNode();
+    if((status = ShiftExpr(fptr, shiftNode)) != VALID)
+    {
+        ASTFreeNode(shiftNode);
         return status;
+    }
+    ASTPushChildNode(parent, shiftNode);
 
     Token t = GetNextTokenP(fptr);
     if((status = ValidTokType(RELATIONAL, RELATIONAL_COUNT, t.type)) == VALID)
     {
-        if(ShiftExpr(fptr, ast) != VALID)
+        shiftNode = InitASTNode();
+        if(ShiftExpr(fptr, shiftNode) != VALID)
         {
             printf("ERROR: improper ShiftExpr after operator in RelationExpr\n");
+            ASTFreeNode(shiftNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, shiftNode);
     }
     else 
         PutTokenBack(&t);
@@ -876,11 +963,17 @@ int RelationExpr(FILE* fptr, AST* ast)
     return VALID;
 }
 
-int ShiftExpr(FILE* fptr, AST* ast)
+int ShiftExpr(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if((status = AddExpr(fptr, ast)) != VALID)
+
+    ASTNode* addNode = InitASTNode();
+    if((status = AddExpr(fptr, addNode)) != VALID)
+    {
+        ASTFreeNode(addNode);
         return status;
+    }
+    ASTPushChildNode(parent, addNode);
 
     Token t;
     while(true)
@@ -891,21 +984,31 @@ int ShiftExpr(FILE* fptr, AST* ast)
             PutTokenBack(&t);
             break;
         }
-        if(AddExpr(fptr, ast) != VALID)
+
+        addNode = InitASTNode();
+        if(AddExpr(fptr, addNode) != VALID)
         {
             printf("ERROR: improper AddExpr after << or >> in ShiftExpr\n");
+            ASTFreeNode(addNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, addNode);
     }
 
     return VALID;
 }
 
-int AddExpr(FILE* fptr, AST* ast)
+int AddExpr(FILE* fptr, ASTNode* parent)
 {
 	int status;
-    if((status = MultExpr(fptr, ast)) != VALID)
+
+    ASTNode* multNode = InitASTNode();
+    if((status = MultExpr(fptr, multNode)) != VALID)
+    {
+        ASTFreeNode(multNode);
         return status;
+    }
+    ASTPushChildNode(parent, multNode);
     
 	Token t;
     while(true)
@@ -916,22 +1019,31 @@ int AddExpr(FILE* fptr, AST* ast)
             PutTokenBack(&t);
             break;
         }
-     
-        if(MultExpr(fptr, ast) != VALID)
+    
+        multNode = InitASTNode();
+        if(MultExpr(fptr, multNode) != VALID)
         {
             printf("ERROR: improper MultExpr after + or - in AddExpr\n");
+            ASTFreeNode(multNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, multNode);
     }
 
     return VALID;
 }
 
-int MultExpr(FILE* fptr, AST* ast)
+int MultExpr(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if ((status = PowExpr(fptr, ast)) != VALID)
+    
+    ASTNode* powNode = InitASTNode();
+    if ((status = PowExpr(fptr, powNode)) != VALID)
+    {
+        ASTFreeNode(powNode);
         return status;
+    }
+    ASTPushChildNode(parent, powNode);
 
     Token t;
     while (true)
@@ -943,56 +1055,90 @@ int MultExpr(FILE* fptr, AST* ast)
             break;
         }
 
-        if (PowExpr(fptr, ast) != VALID)
+        powNode = InitASTNode();
+        if (PowExpr(fptr, powNode) != VALID)
         {
             printf("ERROR: improper PowExpr after *, / or %% in MultExpr\n");
+            ASTFreeNode(powNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, powNode);
     }
 
     return VALID;
 }
 
-int PowExpr(FILE* fptr, AST* ast)
+int PowExpr(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if ((status = Prefix(fptr, ast)) != VALID)
+
+    ASTNode* prefixNode = InitASTNode();
+    if ((status = Prefix(fptr, prefixNode)) != VALID)
+    {
+        ASTFreeNode(prefixNode);
         return status;
+    }
+    ASTPushChildNode(parent, prefixNode);
 
     if(CompareToken(fptr, POW, "", NAP) == VALID)
     {
-        if((status = PowExpr(fptr, ast)) != VALID)
+        prefixNode = InitASTNode();
+        if((status = PowExpr(fptr, prefixNode)) != VALID)
         {
             printf("ERROR: improper PowExpr after ** in PowExpr\n");
+            ASTFreeNode(prefixNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, prefixNode);
     }
 
     return VALID;
 }
 
-int Prefix(FILE* fptr, AST* ast)
+int Prefix(FILE* fptr, ASTNode* parent)
 {
+    int status;
     Token t = GetNextTokenP(fptr);
     if(ValidTokType(PREFIXS, PREFIXS_COUNT, t.type) != VALID)
     {
         /* TODO: include cast here */ 
         PutTokenBack(&t);
-        return Postfix(fptr, ast);
+
+        ASTNode* postfixNode = InitASTNode();
+        if((status = Postfix(fptr, postfixNode)) == ERRP)
+        {
+            printf("ERROR: postfix node invalid\n");
+            ASTFreeNode(postfixNode);
+            return ERRP;
+        }
+        else if (status == VALID)
+            ASTPushChildNode(parent, postfixNode);
+
+        return status;
     }
     
-    int status;
-    if((status = Prefix(fptr, ast)) != VALID)
+    ASTNode* prefixNode = InitASTNode();
+    if((status = Prefix(fptr, prefixNode)) != VALID)
+    {
+        ASTFreeNode(prefixNode);
         return status;
+    }
+    ASTPushChildNode(parent, prefixNode);
 
     return VALID;
 }
 
-int Postfix(FILE* fptr, AST* ast)
+int Postfix(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if((status = Primary(fptr, ast)) != VALID)
+
+    ASTNode* primaryNode = InitASTNode();
+    if((status = Primary(fptr, primaryNode)) != VALID)
+    {
+        ASTFreeNode(primaryNode);
         return status;
+    }
+    ASTPushChildNode(parent, primaryNode);
 
     Token t;
     while(true)
@@ -1004,11 +1150,14 @@ int Postfix(FILE* fptr, AST* ast)
         /* [] */
         if(t.type == LBRACK)
         {
-            if(Expr(fptr, ast) != VALID)
+            ASTNode* exprNode = InitASTNode();
+            if(Expr(fptr, exprNode) != VALID)
             {
                 printf("ERROR: Invalid Expr while indexing an array\n");
+                ASTFreeNode(exprNode);
                 return ERRP;
             }
+            ASTPushChildNode(parent, exprNode);
 
             if(CompareToken(fptr, RBRACK, "Missing RBRACK in while indexing an array", ERRP) != VALID)
                 return ERRP;
@@ -1017,11 +1166,14 @@ int Postfix(FILE* fptr, AST* ast)
         /* ( function ) */
         else if(t.type == LPAREN)
         {
-            if(ArgList(fptr, ast) == ERRP)
+            ASTNode* argListNode = InitASTNode();
+            if(ArgList(fptr, argListNode) == ERRP)
             {
                printf("ERROR: Invalid ArgList in function calling\n");
+               ASTFreeNode(argListNode);
                return ERRP;
             }
+            ASTPushChildNode(parent, argListNode);
 
             if(CompareToken(fptr, RPAREN, "Missing RPAREN in while calling a function", ERRP) != VALID)
                 return ERRP;
@@ -1036,19 +1188,24 @@ int Postfix(FILE* fptr, AST* ast)
     return VALID;
 }
 
-int Primary(FILE* fptr, AST* ast)
+int Primary(FILE* fptr, ASTNode* parent)
 {
     int status;
     Token t = GetNextTokenP(fptr);
+
+    /* TODO: have tokens be stored */
     if(t.type == IDENT || t.type == SLITERAL || t.type == CLITERAL || t.type == DECIMAL || t.type == INTEGRAL)
         return VALID;
     else if (t.type == LPAREN)
     { 
-        if(Expr(fptr, ast) != VALID)
+        ASTNode* exprNode = InitASTNode();
+        if(Expr(fptr, exprNode) != VALID)
         {
             printf("ERROR: improper Expr after ( in Primary\n");
+            ASTFreeNode(exprNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, exprNode);
     
         if(CompareToken(fptr, RPAREN, "Missing RPAREN in Primary", ERRP) != VALID)
             return ERRP;
@@ -1063,7 +1220,7 @@ int Primary(FILE* fptr, AST* ast)
 
 /* ---------- Etc ---------- */
 
-int Type(FILE* fptr, AST* ast)
+int Type(FILE* fptr, ASTNode* parent)
 {
     Token t = GetNextTokenP(fptr);
     if(ValidTokType(TYPES, TYPES_COUNT, t.type) != VALID)
@@ -1075,49 +1232,67 @@ int Type(FILE* fptr, AST* ast)
     return VALID;
 }
 
-int ArgList(FILE* fptr, AST* ast)
+int ArgList(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if((status = Primary(fptr, ast)) != VALID)
+
+    ASTNode* exprNode = InitASTNode();
+    if((status = Expr(fptr, exprNode)) != VALID)
+    {
+        ASTFreeNode(exprNode);
         return status;
+    }
+    ASTPushChildNode(parent, exprNode);
 
     while(true)
     {
         if(CompareToken(fptr, COMMA, "", NAP) != VALID)
             break;
 
-        if(Primary(fptr, ast) != VALID)
+        exprNode = InitASTNode();
+        if(Expr(fptr, epxrNode) != VALID)
         {
             printf("ERROR: Invalid ArgList\n");
+            ASTFreeNode(exprNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, exprNode);
     }
     
     return VALID;
 }
 
-int VarList(FILE* fptr, AST* ast)
+int VarList(FILE* fptr, ASTNode* parent)
 {
     int status;
-    if((status = Var(fptr, ast)) != VALID)
+
+    ASTNode* varNode = InitASTNode();
+    if((status = Var(fptr, varNode)) != VALID)
+    {
+        ASTFreeNode(varNode);
         return status;
+    }
+    ASTPushChildNode(parent, varNode);
 
     while(true)
     {
         if(CompareToken(fptr, COMMA, "", NAP) != VALID)
             break;
 
-        if(Var(fptr, ast) != VALID)
+        varNode = InitASTNode();
+        if(Var(fptr, varNode) != VALID)
         {
             printf("ERROR: improper Var after , in VarList\n");
+            ASTFreeNode(varNode);
             return ERRP;
         }
+        ASTPushChildNode(parent, varNode);
     }
 
     return VALID;
 }
 
-int Var(FILE* fptr, AST* ast)
+int Var(FILE* fptr, ASTNode* parent)
 {
     if(CompareToken(fptr, IDENT, "", NAP) != VALID)
         return NAP;
@@ -1125,11 +1300,14 @@ int Var(FILE* fptr, AST* ast)
     if(CompareToken(fptr, EQ, "", NAP) != VALID)
         return VALID;
 
-    if(Expr(fptr, ast) != VALID)
+    ASTNode* exprNode = InitASTNode();
+    if(Expr(fptr, exprNode) != VALID)
     {
         printf("ERROR: Invalid Expr equivalent to var\n");
+        ASTFreeNode(exprNode);
         return ERRP;
     }
+    ASTPushChildNode(parent, exprNode);
 
     return VALID;
 }
