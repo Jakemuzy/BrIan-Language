@@ -1,6 +1,8 @@
 #ifndef _TOKEN_H__
 #define _TOKEN_H__
 
+#include <stddef.h>
+
 /* TODO: Add
     BOOL - bool keyword 
     QUES - (?) 
