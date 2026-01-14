@@ -46,28 +46,27 @@ AST* Program(FILE* fptr, AST* ast)
         ASTNode* funcNode = InitASTNode();
         if((status = Function(fptr, funcNode)) == VALID)
         {
-            ASTPushChildNode(ast->root, funcNode);	
+            ASTPushChildNode(ast->root, funcNode, FUNC_NODE);	
             continue;
         }
         else if(status == ERRP)
         { 
             printf("ERROR: Invalid Function in Program\n");
             ASTFreeNode(funcNode);
-            AST
-            exit(1);
+            return NULL;
         }
         
-    	ASTNode* declNode = InitASTNode();
-        if((status = DeclStmt(fptr, declNode)) == VALID)
+    	ASTNode* declStmtNode = InitASTNode();
+        if((status = DeclStmt(fptr, declStmtNode)) == VALID)
         {
-            ASTPushChildNode(ast->root, declNode);
+            ASTPushChildNode(ast->root, declStmtNode, DECL_STMT_NODE);
             continue;
         }
         else if(status == ERRP)
         {
             printf("ERROR: Invalid global DeclStmt in Program\n");
-            ASTFreeNode(declNode);
-            exit(1);
+            ASTFreeNode(declStmtNode);
+	    return NULL;
         }
         
         printf("ERROR: Unexpected token in global scope\n"); 
@@ -75,7 +74,8 @@ AST* Program(FILE* fptr, AST* ast)
     }
 
     /* TODO: Would also have to have global vars */
-    exit(1);
+
+    return ast;
 }
 
 int Function(FILE* fptr, ASTNode* parent)
@@ -88,7 +88,7 @@ int Function(FILE* fptr, ASTNode* parent)
         ASTFreeNode(typeNode);
         return status; 
     }
-    ASTPushChildNode(parent, typeNode);
+    ASTPushChildNode(parent, typeNode, TYPE_NODE);
     
     /* TODO: add function name to the ast */
     if(CompareToken(fptr, IDENT, "Function does not have a name", ERRP) != VALID)
@@ -104,7 +104,7 @@ int Function(FILE* fptr, ASTNode* parent)
         ASTFreeNode(paramListNode);
         return ERRP;
     }
-    ASTPushChildNode(parent, paramListNode);
+    ASTPushChildNode(parent, paramListNode, PARAM_LIST_NODE);
 
     if(CompareToken(fptr, RPAREN, "Missing right parenthesis in function", ERRP) != VALID)
         return ERRP;
@@ -116,7 +116,7 @@ int Function(FILE* fptr, ASTNode* parent)
         ASTFreeNode(bodyNode);
         return status;
     }
-    ASTPushChildNode(parent, bodyNode);
+    ASTPushChildNode(parent, bodyNode, BODY_NODE);
 
     return VALID;
 }
@@ -131,7 +131,7 @@ int ParamList(FILE* fptr, ASTNode* parent)
         ASTFreeNode(paramNode);
         return status;
     }
-    ASTPushChildNode(parent, paramNode);
+    ASTPushChildNode(parent, paramNode, PARAM_NODE);
 
     Token t;
     while(true)
@@ -149,7 +149,7 @@ int ParamList(FILE* fptr, ASTNode* parent)
             ASTFreeNode(paramNode);
             return ERRP;
         }
-        ASTPushChildNode(parent, paramNode);
+        ASTPushChildNode(parent, paramNode, PARAM_NODE);
     }
 
     return VALID;
@@ -165,7 +165,7 @@ int Param(FILE* fptr, ASTNode* parent)
         ASTFreeNode(typeNode);
         return status; 
     }
-    ASTPushChildNode(parent, typeNode);
+    ASTPushChildNode(parent, typeNode, TYPE_NODE);
     
     /* TODO: have it register param name */
     if(CompareToken(fptr, IDENT, "param doesn't have a name", ERRP) != VALID)
@@ -190,7 +190,7 @@ int Body(FILE* fptr, ASTNode* parent)
         ASTFreeNode(stmtListNode);
         return ERRP;
     }
-    ASTPushChildNode(parent, stmtListNode);
+    ASTPushChildNode(parent, stmtListNode, STMT_LIST_NODE);
 
     if(CompareToken(fptr, RBRACK, "Missing RBRACK in Body", ERRP) != VALID)
         return ERRP;
@@ -203,10 +203,14 @@ int StmtList(FILE* fptr, ASTNode* parent)
     int status;
     while(true)
     {
+
+        /* Mayhaps this would be better to put parent node in the Stmt function
+           Because right now stmt is there between stmtlist and the actual stmt type  
+        */
         ASTNode* stmtNode = InitASTNode();
         if((status = Stmt(fptr, stmtNode)) == VALID)
         {
-            ASTPushChildNode(parent, stmtNode);
+            ASTPushChildNode(parent, stmtNode, STMT_NODE);
             continue;
         }
         ASTFreeNode(stmtNode);
@@ -224,37 +228,37 @@ int Stmt(FILE* fptr, ASTNode* parent)
     /* TODO: fix this so ASTPushChildNode discerns ERRP and VALID */
     int status;
 
-    ASTNode* ctrlNode = InitASTNode();
-    if((status = CtrlStmt(fptr, ctrlNode)) != NAP)
+    ASTNode* ctrlStmtNode = InitASTNode();
+    if((status = CtrlStmt(fptr, ctrlStmtNode)) != NAP)
     {
-        ASTPushChildNode(parent, ctrlNode);
+        ASTPushChildNode(parent, ctrlStmtNode, CTRL_STMT_NODE);
         return status;
     }
-    ASTFreeNode(ctrlNode);
+    ASTFreeNode(ctrlStmtNode);
 
-    ASTNode* declNode = InitASTNode();
-	if((status = DeclStmt(fptr, declNode)) != NAP)
+    ASTNode* declStmtNode = InitASTNode();
+	if((status = DeclStmt(fptr, declStmtNode)) != NAP)
     {
-        ASTPushChildNode(parent, declNode);
+        ASTPushChildNode(parent, declStmtNode, DECL_STMT_NODE);
 		return status;
     }
-    ASTFreeNode(declNode);
+    ASTFreeNode(declStmtNode);
 
-    ASTNode* exprNode = InitASTNode();
-	if ((status = ExprStmt(fptr, exprNode)) != NAP) 
+    ASTNode* exprStmtNode = InitASTNode();
+	if ((status = ExprStmt(fptr, exprStmtNode)) != NAP) 
     {
-        ASTPushChildNode(parent, exprNode);
+        ASTPushChildNode(parent, exprStmtNode, EXPR_STMT_NODE);
 		return status;
     }
-    ASTFreeNode(exprNode);
+    ASTFreeNode(exprStmtNode);
 
-    ASTNode* returnNode = InitASTNode();
-	if ((status = ReturnStmt(fptr, returnNode)) != NAP)
+    ASTNode* returnStmtNode = InitASTNode();
+	if ((status = ReturnStmt(fptr, returnStmtNode)) != NAP)
     {
-        ASTPushChildNode(parent, returnNode);
+        ASTPushChildNode(parent, returnStmtNode, RETURN_STMT_NODE);
 		return status;
     }
-    ASTFreeNode(returnNode);
+    ASTFreeNode(returnStmtNode);
 
     return NAP;
 }
@@ -274,7 +278,7 @@ int ExprStmt(FILE* fptr, ASTNode* parent)
         ASTFreeNode(exprNode);
 		return status;
     }
-    ASTPushChildNode(parent, exprNode);
+    ASTPushChildNode(parent, exprNode, EXPR_NODE);
 
     if(CompareToken(fptr, SEMI, "Semicolon missing in ExprStmt", ERRP) != VALID)
         return ERRP;
@@ -292,7 +296,7 @@ int DeclStmt(FILE* fptr, ASTNode* parent)
         ASTFreeNode(typeNode);
 		return status;
     }
-    ASTPushChildNode(parent, typeNode);
+    ASTPushChildNode(parent, typeNode, TYPE_NODE);
 
     ASTNode* varListNode = InitASTNode();
 	if((status = VarList(fptr, varListNode)) != VALID)
@@ -301,7 +305,7 @@ int DeclStmt(FILE* fptr, ASTNode* parent)
         ASTFreeNode(varListNode);
 		return ERRP;
     }
-    ASTPushChildNode(parent, varListNode);
+    ASTPushChildNode(parent, varListNode, VAR_LIST_NODE);
 
     if(CompareToken(fptr, SEMI, "Semicolon missing in DeclStmt", ERRP) != VALID)
         return ERRP;
@@ -314,37 +318,37 @@ int CtrlStmt(FILE* fptr, ASTNode* parent)
     /* TODO: fix this so ASTPushChildNode discerns ERRP and VALID */
     int status;
 
-    ASTNode* ifNode = InitASTNode();
-    if ((status = IfStmt(fptr, ifNode)) != NAP) 
+    ASTNode* ifStmtNode = InitASTNode();
+    if ((status = IfStmt(fptr, ifStmtNode)) != NAP) 
     {
-        ASTPushChildNode(parent, ifNode);
+        ASTPushChildNode(parent, ifStmtNode, IF_STMT_NODE);
         return status;
     }
-    ASTFreeNode(ifNode);
+    ASTFreeNode(ifStmtNode);
 
-    ASTNode* switchNode = InitASTNode();
-    if ((status = SwitchStmt(fptr, switchNode)) != NAP) 
+    ASTNode* switchStmtNode = InitASTNode();
+    if ((status = SwitchStmt(fptr, switchStmtNode)) != NAP) 
     {
-        ASTPushChildNode(parent, switchNode);
+        ASTPushChildNode(parent, switchStmtNode, SWITCH_STMT_NODE);
         return status;
     }
-    ASTFreeNode(switchNode);
+    ASTFreeNode(switchStmtNode);
 
-    ASTNode* whileNode = InitASTNode();
-    if ((status = WhileStmt(fptr, whileNode)) != NAP) 
+    ASTNode* whileStmtNode = InitASTNode();
+    if ((status = WhileStmt(fptr, whileStmtNode)) != NAP) 
     {
-        ASTPushChildNode(parent, whileNode);
+        ASTPushChildNode(parent, whileStmtNode, WHILE_STMT_NODE);
         return status;
     }
-    ASTFreeNode(whileNode);
+    ASTFreeNode(whileStmtNode);
 
-    ASTNode* doWhileNode = InitASTNode();
-    if ((status = DoWhileStmt(fptr, doWhileNode)) != NAP) 
+    ASTNode* doWhileStmtNode = InitASTNode();
+    if ((status = DoWhileStmt(fptr, doWhileStmtNode)) != NAP) 
     {
-        ASTPushChildNode(parent, doWhileNode);
+        ASTPushChildNode(parent, doWhileStmtNode, DO_WHILE_STMT_NODE);
         return status;
     }
-    ASTFreeNode(doWhileNode);
+    ASTFreeNode(doWhileStmtNode);
 
     ASTNode* forNode = InitASTNode();
     if ((status = ForStmt(fptr, forNode)) != NAP) 
@@ -1250,7 +1254,7 @@ int ArgList(FILE* fptr, ASTNode* parent)
             break;
 
         exprNode = InitASTNode();
-        if(Expr(fptr, epxrNode) != VALID)
+        if(Expr(fptr, exprNode) != VALID)
         {
             printf("ERROR: Invalid ArgList\n");
             ASTFreeNode(exprNode);
