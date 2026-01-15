@@ -9,6 +9,11 @@
 #define NAP   0
 #define VALID 1
 
+/* ---------- Helpers ---------- */
+int ValidTokType(const int types[], int arrSize, int type);
+int CompareToken(FILE* fptr, TokenType desired, char* errMessage, int errType);
+bool ParseOperatorToken(FILE* fptr, TokenType esired, ASTNode** resultNode);
+
 /* ---------- Recursive Descent ---------- */
 
 AST* Program(FILE* fptr, AST* ast);
