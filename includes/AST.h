@@ -10,12 +10,21 @@
 typedef enum NodeType {
     PROG_NODE, FUNC_NODE, PARAM_LIST_NODE, PARAM_NODE,
     BODY_NODE, STMT_LIST_NODE, STMT_NODE,
+
     EXPR_STMT_NODE, DECL_STMT_NODE, CTRL_STMT_NODE, RETURN_STMT_NODE,
+
     IF_STMT_NODE, SWITCH_STMT_NODE, WHILE_STMT_NODE, DO_WHILE_STMT_NODE, FOR_STMT_NODE,
+
     EXPR_LIST_NODE, EXPR_NODE,
-    /* The following nodes will be known by their token type or the operator they apply on their children */
-    TOK_NODE,	/* ie.) Instead of ADD_NDOE, SUB_NODE ... they will simply use their token type */
-    TYPE_NODE, ARG_LIST_NODE, VAR_LIST_NODE, VAR_NODE
+
+    /*
+    ASGN_EXPR_NODE, ORL_EXPR_NODE, ANDL_EXPR_NODE, OR_EXPR_NODE, XOR_EXPR_NODE,
+    AND_EXPR_NODE, EQQ_EXPR_NODE, RELATION_EXPR_NODE, SHIFT_EXPR_NODE, ADD_EXPR_NODE, MULT_EXPR_NODE,
+    POW_EXPR_NODE, PREFIX_NODE, POSTFIX_NODE, PRIMARY_NODE,
+    */
+
+    TYPE_NODE, ARG_LIST_NODE, VAR_LIST_NODE, VAR_NODE,
+    TOK_NODE, OPERATOR_NODE  
 } NodeType;
 
 typedef struct ASTNode
@@ -35,7 +44,7 @@ AST* ASTInit();
 int ASTFree();
 
 ASTNode* InitASTNode();
-int ASTPushTokNode(ASTNode* node, Token t);
+int ASTMakeTokNode(ASTNode* node, Token t);
 int ASTPushChildNode(ASTNode* node, ASTNode* child, NodeType type);
 int ASTFreeNode(ASTNode* node);
 
