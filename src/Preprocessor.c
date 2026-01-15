@@ -27,6 +27,15 @@ Token GetNextTokenP(FILE* fptr)
     return t;
 }
 
+Token PeekNextTokenP(FILE* fptr, TokenType desired)
+{
+    Token tok = GetNextTokenP(fptr);
+    if (tok.type != desired)
+        PutTokenBack(&tok);
+
+    return tok;
+}
+
 /*
 int ImportList(FILE* fptr, AST* ast)
 {

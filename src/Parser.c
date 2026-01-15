@@ -82,7 +82,7 @@ AST* Program(FILE* fptr, AST* ast)
         {
             printf("ERROR: Invalid global DeclStmt in Program\n");
             ASTFreeNode(declStmtNode);
-	    return NULL;
+	        return NULL;
         }
         
         printf("ERROR: Unexpected token in global scope\n"); 

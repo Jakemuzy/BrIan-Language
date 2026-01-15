@@ -17,6 +17,7 @@ static Token Buffer;
 static bool BufferFull = false;
 
 Token GetNextToken(FILE* fptr); 
+Token PeekNextToken(FILE* fptr);
 int   PutTokenBack(Token* t);
 void  UpdateLexeme(Token* t, int c);
 

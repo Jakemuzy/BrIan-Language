@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include "Token.h"
 
@@ -24,7 +25,7 @@ typedef enum NodeType {
     */
 
     TYPE_NODE, ARG_LIST_NODE, VAR_LIST_NODE, VAR_NODE,
-    TOK_NODE, OPERATOR_NODE  
+    TOK_NODE, OPERATOR_NODE, OPERAND_NODE 
 } NodeType;
 
 typedef struct ASTNode
@@ -46,6 +47,6 @@ int ASTFree();
 ASTNode* InitASTNode();
 int ASTMakeTokNode(ASTNode* node, Token t);
 int ASTPushChildNode(ASTNode* node, ASTNode* child, NodeType type);
-int ASTFreeNode(ASTNode* node);
+int ASTFreeNodes(int count, ...);
 
 #endif 
