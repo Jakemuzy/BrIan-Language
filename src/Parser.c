@@ -16,7 +16,7 @@ int ValidTokType(const int types[], int arrSize, int type)
 /* Reads current token, displays error message and returns error type if not valid */ 
 int CompareToken(FILE* fptr, TokenType desired, char* errMessage, int errType)
 {
-    Token current  = GetNextToken(fptr);
+    Token current = GetNextToken(fptr);
     if(current.type != desired)
     {   
         if(errType == ERRP)
@@ -27,6 +27,25 @@ int CompareToken(FILE* fptr, TokenType desired, char* errMessage, int errType)
     }
    
     return VALID;
+}
+
+bool ParseOperatorToken(FILE* fptr, ASTNode* parent, TokenType desired, ASTNode** resultNode)
+{
+    Token current = GetNextToken(fptr);
+    if(current.type != desired)
+    {
+        PutTokenBack(&current);
+        return false;
+    }
+
+    ASTNode* operatorNode = InitASTNode();
+    ASTMakeTokNode(operatorNode, current);
+    *resultNode = operatorNode;
+
+    if(parent != NULL)
+        ASTPushChildNode(parent, operatorNode, OPERATOR_NODE);
+   
+    return true;
 }
 
 /* ---------- EBNF ---------- */
@@ -712,20 +731,18 @@ int Expr(FILE* fptr, ASTNode* parent)
 	int status;
 
     /* For all of these pass parent to AsgnExpr so can assign the correct operator */
-
-    ASTNode* asgnExprNode = InitASTNode();
-	if((status = AsgnExpr(fptr, asgnExprNode)) != VALID)
-    {
-        ASTFreeNode(asgnExprNode);
+	if((status = AsgnExpr(fptr, parent)) != VALID)
 		return status;
-    }
-    ASTPushChildNode(parent, asgnExprNode);
 
 	return VALID;
 }
 
 int AsgnExpr(FILE* fptr, ASTNode* parent)
 {
+    /* TODO: Need to differentiate between Operators and Operands, only the child knows
+       whether or not it contains an operator or it is passing an operand higher up the tree.
+       Therefore, in this case we would need to get the tokentype from the child
+    */
 	int status;
 
     ASTNode* orlNode = InitASTNode();
@@ -734,22 +751,32 @@ int AsgnExpr(FILE* fptr, ASTNode* parent)
         ASTFreeNode(orlNode);
         return status;
     }
-    ASTPushChildNode(parent, orlNode);
     
     Token t = GetNextTokenP(fptr);
     if((status = ValidTokType(ASSIGNS, ASSIGNS_COUNT, t.type)) == VALID)
     {
+        ASTNode* operatorNode = InitASTNode();
+        ASTMakeTokNode(operatorNode, t);
+
+        ASTPushChildNode(operatorNode, orlNode, OPERATOR_NODE);
+        
         ASTNode* asgnExprNode = InitASTNode();
         if((status = AsgnExpr(fptr, asgnExprNode)) != VALID)
         {
             printf("ERROR: improper AsgnExpr after operator in AsgnExpr\n");
+            ASTFree(operatorNode);
             ASTFreeNode(asgnExprNode);
             return status;
         }
-        ASTPushChildNode(parent, asgnExprNode);
+
+        ASTPushChildNode(operatorNode, asgnExprNode, OPERATOR_NODE);
+        ASTPushChildNode(parent, operatorNode, OPERATOR_NODE);
     }
     else    
+    {
+        ASTPushChildNode(parent, orlNode, OPERATOR_NODE);
         PutTokenBack(&t);
+    }
 
     return VALID;
 }
@@ -758,28 +785,35 @@ int OrlExpr(FILE* fptr, ASTNode* parent)
 {
     int status;
 
-    ASTNode* andlNode = InitASTNode();
-    if((status = AndlExpr(fptr, andlNode)) != VALID)
+    ASTNode* lhs = InitASTNode();
+    if((status = AndlExpr(fptr, lhs)) != VALID)
     {
-        ASTFreeNode(andlNode);
+        ASTFreeNode(lhs);
         return status;
     }
-    ASTPushChildNode(parent, andlNode);
 
-    Token t;
     while(true)
     {
-        if(CompareToken(fptr, ORL, "", NAP) != VALID)
+        ASTNode* operatorNode = NULL;
+        if(!ParseOperatorToken(fptr, NULL, ORL, &operatorNode))
+        {
+            ASTPushChildNode(parent, lhs, OPERATOR_NODE);
             break;
-        
-        andlNode = InitASTNode();
-        if(AndlExpr(fptr, andlNode) != VALID)
+        }
+
+        ASTNode* rhs = InitASTNode();
+        if(AndlExpr(fptr, rhs) != VALID)
         {
             printf("ERROR: improper AndlExpr after || in OrlExpr\n");
-            ASTFreeNode(andlNode);
+            ASTFreeNode(rhs);
+            ASTFreeNode(operatorNode);
             return ERRP;
         }
-        ASTPushChildNode(parent, andlNode);
+
+        ASTPushChildNode(operatorNode, lhs, OPERATOR_NODE);
+        ASTPushChildNode(operatorNode, rhs, OPERATOR_NODE);
+
+        lhs = operatorNode;
     }
 
     return VALID;
