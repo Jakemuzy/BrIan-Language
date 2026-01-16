@@ -1,4 +1,28 @@
 #include "Parser.h"
+/* ----------- Error Propogation ---------- */
+
+ASTNode* PARSE_FAIL(ParseError code)
+{
+    PARSE_ERROR = code;
+    return NULL;
+}
+
+ASTNode* ERROR_MESSAGE(char* message, int count, ...) {
+    printf("ERROR: %s, on line... \n", message); 
+    
+    va_list args;
+    va_start(args, count);
+
+    for (int i = 0; i < count; i++)
+    {
+        ASTNode* node = va_arg(args, ASTNode*);
+        if (node)
+            ASTFreeNodes(1, node);  // reuse your ASTFreeNodes
+    }
+
+    va_end(args);
+    return NULL;
+}
 
 /* ---------- HELPER ---------- */
 
