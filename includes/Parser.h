@@ -5,52 +5,69 @@
 #include "Dictionary.h"
 #include "AST.h"
 
-#define ERRP -1
-#define NAP   0
-#define VALID 1
+/* ---------- Global Error Propogation ----------*/
+
+typedef enum ParseError {
+    VALID, 
+    NAP,    /* Not applicable */
+    ERRP,   /* Errored */
+    EOFP    /* EOF */
+} ParseError;
+
+ParseError PARSE_ERROR = VALID;     /* Global Error Token */
+ASTNode* PARSE_FAIL(ParseError code);
+ASTNode* ERROR_MESSAGE(char* message, int count, ...);
+
+/* ---------- Helpers ---------- */
+
+int ValidTokType(const int types[], int arrSize, int type);
+int CompareToken(FILE* fptr, TokenType desired, char* errMessage, int errType);
 
 /* ---------- Recursive Descent ---------- */
 
-AST* Program(FILE* fptr, AST* ast);
-int Function(FILE* fptr, ASTNode* parent);
-int ParamList(FILE* fptr, ASTNode* parent);
-int Param(FILE* fptr, ASTNode* parent);
+AST* Program(FILE* fptr);
+ASTNode* Function(FILE* fptr);
+ASTNode* ParamList(FILE* fptr);
+ASTNode* Param(FILE* fptr);
 
-int Body(FILE* fptr, ASTNode* parent);
-int StmtList(FILE* fptr, ASTNode* parent);
-int Stmt(FILE* fptr, ASTNode* parent);
+ASTNode* Body(FILE* fptr);
+ASTNode* StmtList(FILE* fptr);
+ASTNode* Stmt(FILE* fptr);
 
-int ExprStmt(FILE* fptr, ASTNode* parent);
-int DeclStmt(FILE* fptr, ASTNode* parent);
-int CtrlStmt(FILE* fptr, ASTNode* parent);
-int ReturnStmt(FILE* fptr, ASTNode* parent);
+ASTNode* ExprStmt(FILE* fptr);
+ASTNode* DeclStmt(FILE* fptr);
+ASTNode* CtrlStmt(FILE* fptr);
+ASTNode* ReturnStmt(FILE* fptr);
 
-int IfStmt(FILE* fptr, ASTNode* parent);
-int SwitchStmt(FILE* fptr, ASTNode* parent);
-int WhileStmt(FILE* fptr, ASTNode* parent);
-int DoWhileStmt(FILE* fptr, ASTNode* parent);
-int ForStmt(FILE* fptr, ASTNode* parent);
+ASTNode* IfStmt(FILE* fptr);
+    ASTNode* IfElifElse(FILE* fptr, TokenType type);
+ASTNode* SwitchStmt(FILE* fptr);
+    ASTNode* Case(FILE* fptr);
+    ASTNode* Default(FILE* fptr);
+ASTNode* WhileStmt(FILE* fptr);
+ASTNode* DoWhileStmt(FILE* fptr);
+ASTNode* ForStmt(FILE* fptr);
 
-int ExprList(FILE* fptr, ASTNode* parent);
-int Expr(FILE* fptr, ASTNode* parent);
-int AsgnExpr(FILE* fptr, ASTNode* parent);
-int OrlExpr(FILE* fptr, ASTNode* parent);
-int AndlExpr(FILE* fptr, ASTNode* parent);
-int OrExpr(FILE* fptr, ASTNode* parent);
-int XorExpr(FILE* fptr, ASTNode* parent);
-int AndExpr(FILE* fptr, ASTNode* parent);
-int EqqExpr(FILE* fptr, ASTNode* parent);
-int RelationExpr(FILE* fptr, ASTNode* parent);
-int AddExpr(FILE* fptr, ASTNode* parent);
-int MultExpr(FILE* fptr, ASTNode* parent);
-int PowExpr(FILE* fptr, ASTNode* parent);
-int Prefix(FILE* fptr, ASTNode* parent);
-int Postfix(FILE* fptr, ASTNode* parent);
-int Primary(FILE* fptr, ASTNode* parent);
+ASTNode* ExprList(FILE* fptr);
+ASTNode* Expr(FILE* fptr);
+ASTNode* AsgnExpr(FILE* fptr);
+ASTNode* OrlExpr(FILE* fptr);
+ASTNode* AndlExpr(FILE* fptr);
+ASTNode* OrExpr(FILE* fptr);
+ASTNode* XorExpr(FILE* fptr);
+ASTNode* AndExpr(FILE* fptr);
+ASTNode* EqqExpr(FILE* fptr);
+ASTNode* RelationExpr(FILE* fptr);
+ASTNode* AddExpr(FILE* fptr);
+ASTNode* MultExpr(FILE* fptr);
+ASTNode* PowExpr(FILE* fptr);
+ASTNode* Prefix(FILE* fptr);
+ASTNode* Postfix(FILE* fptr);
+ASTNode* Primary(FILE* fptr);
 
-int Type(FILE* fptr, ASTNode* parent);
-int ArgList(FILE* fptr, ASTNode* parent);
-int VarList(FILE* fptr, ASTNode* parent);
-int Var(FILE* fptr, ASTNode* parent);
+ASTNode* Type(FILE* fptr);
+ASTNode* ArgList(FILE* fptr);
+ASTNode* VarList(FILE* fptr);
+ASTNode* Var(FILE* fptr);
 
 #endif

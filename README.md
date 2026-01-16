@@ -63,22 +63,21 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt 
 
     ExprStmt ::= ';' | Expr ';'  
-	DeclStmt ::= Type VarList ';'  
+	DeclStmt ::= Type VarLkkist ';'  
 	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
     ReturnStmt ::= "return" [Expr] ';'  
 
-    IfStmt ::= "if" '(' Expr ')' Body 
-               { "elif" '(' Expr ')' Body } 
-               { "else" Body }  
-    SwitchStmt ::= "switch" '(' Expr ')' 
-                   '{' 
-                        { "case" Expr ':' StmtList } 
-                        [ "default" ':' StmtList ] 
-                   '}'  
-    WhileStmt ::= "while" '(' Expr ')' ( Body | ExprStmt )
-    DoWhileStmt ::= "do" ( Body | ExprStmt ) 
+    IfStmt ::= If { Elif } [ Else ] 
+        If ::= "if" '(' Expr ')' Body
+        Elif ::= "elif" '(' Expr ')' Body 
+        Else ::= "else" Body 
+    SwitchStmt ::= "switch" '(' Expr ')' '{' {CaseStmt} [DefaultStmt] '}'
+        CaseStmt ::= "case" Expr ':' StmtList
+        DefaultStmt ::= "default" ':' StmtList
+    WhileStmt ::= "while" '(' Expr ')' Body
+    DoWhileStmt ::= "do" ( Body ) 
                     "while" '(' Expr ')' ';'  
-    ForStmt ::= "for" '(' [ ExprList ]';' [ Expr ] ';' [ ExprList ] ')' Body  
+    ForStmt ::= "for" '(' [ ExprList ]';' [ Expr ] ';' [ ExprList ] ')' Body
 
     ExprList ::= Expr { ',' Expr }
     Expr ::= AsgnExpr  

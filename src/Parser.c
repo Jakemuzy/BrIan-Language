@@ -1,4 +1,28 @@
 #include "Parser.h"
+/* ----------- Error Propogation ---------- */
+
+ASTNode* PARSE_FAIL(ParseError code)
+{
+    PARSE_ERROR = code;
+    return NULL;
+}
+
+ASTNode* ERROR_MESSAGE(char* message, int count, ...) {
+    printf("ERROR: %s, on line... \n", message); 
+    
+    va_list args;
+    va_start(args, count);
+
+    for (int i = 0; i < count; i++)
+    {
+        ASTNode* node = va_arg(args, ASTNode*);
+        if (node)
+            ASTFreeNodes(1, node);  // reuse your ASTFreeNodes
+    }
+
+    va_end(args);
+    return NULL;
+}
 
 /* ---------- HELPER ---------- */
 
@@ -29,7 +53,7 @@ int CompareToken(FILE* fptr, TokenType desired, char* errMessage, int errType)
     return VALID;
 }
 
-bool ParseOperatorToken(FILE* fptr, ASTNode* parent, TokenType desired, ASTNode** resultNode)
+bool ParseOperatorToken(FILE* fptr, TokenType desired, ASTNode** resultNode)
 {
     Token current = GetNextToken(fptr);
     if(current.type != desired)
@@ -38,13 +62,10 @@ bool ParseOperatorToken(FILE* fptr, ASTNode* parent, TokenType desired, ASTNode*
         return false;
     }
 
-    ASTNode* operatorNode = InitASTNode();
-    ASTMakeTokNode(operatorNode, current);
-    *resultNode = operatorNode;
+    ASTNode* tokNode = InitASTNode();
+    ASTMakeTokNode(tokNode, current);
+    *resultNode = tokNode;
 
-    if(parent != NULL)
-        ASTPushChildNode(parent, operatorNode, OPERATOR_NODE);
-   
     return true;
 }
 
@@ -85,7 +106,7 @@ AST* Program(FILE* fptr, AST* ast)
         {
             printf("ERROR: Invalid global DeclStmt in Program\n");
             ASTFreeNode(declStmtNode);
-	    return NULL;
+	        return NULL;
         }
         
         printf("ERROR: Unexpected token in global scope\n"); 
@@ -745,10 +766,10 @@ int AsgnExpr(FILE* fptr, ASTNode* parent)
     */
 	int status;
 
-    ASTNode* orlNode = InitASTNode();
-    if((status = OrlExpr(fptr, orlNode)) != VALID)
+    ASTNode* lhs = InitASTNode();
+    if((status = OrlExpr(fptr, lhs)) != VALID)
     {
-        ASTFreeNode(orlNode);
+        ASTFreeNode(lhs);
         return status;
     }
     
@@ -757,24 +778,23 @@ int AsgnExpr(FILE* fptr, ASTNode* parent)
     {
         ASTNode* operatorNode = InitASTNode();
         ASTMakeTokNode(operatorNode, t);
-
-        ASTPushChildNode(operatorNode, orlNode, OPERATOR_NODE);
+        ASTPushChildNode(operatorNode, lhs, OPERATOR_NODE);
         
-        ASTNode* asgnExprNode = InitASTNode();
-        if((status = AsgnExpr(fptr, asgnExprNode)) != VALID)
+        ASTNode* rhs = InitASTNode();
+        if((status = AsgnExpr(fptr, rhs)) != VALID)
         {
             printf("ERROR: improper AsgnExpr after operator in AsgnExpr\n");
             ASTFree(operatorNode);
-            ASTFreeNode(asgnExprNode);
+            ASTFreeNode(rhs);
             return status;
         }
 
-        ASTPushChildNode(operatorNode, asgnExprNode, OPERATOR_NODE);
+        ASTPushChildNode(operatorNode, rhs, OPERATOR_NODE);
         ASTPushChildNode(parent, operatorNode, OPERATOR_NODE);
     }
     else    
     {
-        ASTPushChildNode(parent, orlNode, OPERATOR_NODE);
+        ASTPushChildNode(parent, lhs, OPERATOR_NODE);
         PutTokenBack(&t);
     }
 
@@ -795,11 +815,8 @@ int OrlExpr(FILE* fptr, ASTNode* parent)
     while(true)
     {
         ASTNode* operatorNode = NULL;
-        if(!ParseOperatorToken(fptr, NULL, ORL, &operatorNode))
-        {
-            ASTPushChildNode(parent, lhs, OPERATOR_NODE);
+        if(!ParseOperatorToken(fptr, ORL, &operatorNode))
             break;
-        }
 
         ASTNode* rhs = InitASTNode();
         if(AndlExpr(fptr, rhs) != VALID)
@@ -816,6 +833,7 @@ int OrlExpr(FILE* fptr, ASTNode* parent)
         lhs = operatorNode;
     }
 
+    ASTPushChildNode(parent, lhs, OPERATOR_NODE); 
     return VALID;
 }
 
@@ -823,21 +841,23 @@ int AndlExpr(FILE* fptr, ASTNode* parent)
 {
     int status;
 
-    ASTNode* orNode = InitASTNode();
-    if((status = OrExpr(fptr, orNode)) != VALID)
+    ASTNode* lhs = InitASTNode();
+    if((status = OrExpr(fptr, lhs)) != VALID)
     {
-        ASTFreeNode(orNode);
+        ASTFreeNode(lhs);
         return status;
     }
-    ASTPushChildNode(parent, orNode);
 
-    Token t;
     while(true)
     {
-        if(CompareToken(fptr, ANDL, "", NAP) != VALID)
+        ASTNode* operatorNode = NULL;
+        if(!ParseOperatorToken(fptr, operatorNode, ANDL, operatorNode))
+        {
+            ASTPushChildNode(parent, lhs, OPERATOR_NODE);
             break;
+        }
         
-        orNode = InitASTNode(); 
+        ASTNode* rhs = InitASTNode(); 
         if(OrExpr(fptr, orNode) != VALID)
         {
             printf("ERROR: improper OrExpr after && in AndlExpr\n");

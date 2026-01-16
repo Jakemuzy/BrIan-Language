@@ -17,7 +17,7 @@ AST* ASTInit(FILE* fptr)
 int ASTFree(AST* ast)
 {
     if (!ast) return -1;
-    ASTFreeNode(ast->root);
+    ASTFreeNodes(1, ast->root);
     free(ast);
     return 0;
 }
@@ -39,21 +39,8 @@ ASTNode* InitASTNode()
 
 int ASTMakeTokNode(ASTNode* node, Token t)
 {
-    int index = node->childCount;
-
-    ASTNode** tmp = realloc(node->children, (index + 1) * sizeof(ASTNode*));
-    if (!tmp) return -1;
-    node->children = tmp;
-
-    ASTNode* child = InitASTNode();
-    if (!child) return -1;
-
-    child->token = t;
+    node->token = t;
     node->type = TOK_NODE;
-
-    node->children[index] = child;
-    node->childCount++;
-
     return 0;
 }
 
@@ -72,17 +59,26 @@ int ASTPushChildNode(ASTNode* node, ASTNode* child, NodeType type)
     return 0;
 }
 
-int ASTFreeNode(ASTNode* node)
+int ASTFreeNodes(int count, ...)
 {
-    if (!node) return -1;
+    va_list args; 
+    va_start(args, count);
 
-    int i = 0;
-    for (i = 0; i < node->childCount; i++) {
-        ASTFreeNode(node->children[i]);
+    int i;
+    for(i = 0; i < count; i++)
+    {
+        ASTNode* node = va_arg(args, ASTNode*); 
+        if (!node) continue;
+
+        int j = 0;
+        for (j = 0; j < node->childCount; j++) {
+            ASTFreeNodes(1, node->children[j]);
+        }
+
+        free(node->children);
+        free(node);
     }
 
-    free(node->children);
-    free(node);
-
+    va_end(args);
     return 0;
 }
