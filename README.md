@@ -107,7 +107,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 ```
 
 ---
-## Presedence
+## Presedence And Associativity
 
 
 ### NOTES

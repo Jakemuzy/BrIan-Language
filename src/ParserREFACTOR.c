@@ -744,6 +744,37 @@ ASTNode* OrlExpr(FILE* fptr)
         }
 
         ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE; /* TODO: Not entirely sure it needs to be Expr_Node since the parent makes it LHS or RHS anyways */
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+
+        lhs = operatorNode;
+    }
+
+    return lhs;
+}
+
+ASTNode* AndlExpr(FILE* fptr)
+{
+    ASTNode* lhs = OrEpxr(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid OrExpr in AndlExpr", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    while (PeekNextTokenP(fptr) == ANDL) {
+        Token tok = GetNextTokenP(fptr);
+
+        ASTNode* rhs = OrExpr(fptr);
+        if (!rhs) {
+            ERROR_MESSAGE("Invalid OrExpr in AndlExpr", 1, lhs);
+            return PARSER_FAIL(ERRP);
+        }
+
+        ASTNode* operatorNode = InitASTNode();
         operatorNode->type = EXPR_NODE;
         operatorNode->token = tok;
 
@@ -753,6 +784,159 @@ ASTNode* OrlExpr(FILE* fptr)
         lhs = operatorNode;
     }
 
+    return lhs;
+}
+
+ASTNode* OrExpr(FILE* fptr)
+{
+    ASTNode* lhs = XorExpr(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid XorExpr in OrExpr", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    while (PeekNextTokenP(fptr) == OR) {
+        Token tok = GetNextTokenP(fptr);
+
+        ASTNode* rhs = OrExpr(fptr);
+        if (!rhs) {
+            ERROR_MESSAGE("Invalid XorExpr in OrExpr", 1, lhs);
+            return PARSER_FAIL(ERRP);
+        }
+
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE;
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+
+        lhs = operatorNode;
+    }
+
+    return lhs;
+}
+
+ASTNode* XorExpr(FILE* fptr)
+{
+    ASTNode* lhs = AndExpr(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid AndExpr in XorExpr", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    while (PeekNextTokenP(fptr) == XOR) {
+        Token tok = GetNextTokenP(fptr);
+
+        ASTNode* rhs = AndExpr(fptr);
+        if (!rhs) {
+            ERROR_MESSAGE("Invalid AndExpr in XorExpr", 1, lhs);
+            return PARSER_FAIL(ERRP);
+        }
+
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE;
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+
+        lhs = operatorNode;
+    }
+
+    return lhs;
+}
+
+ASTNode* AndExpr(FILE* fptr) 
+{
+    ASTNode* lhs = EqqExpr(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid EqqExpr in AndExpr", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    while (PeekNextTokenP(fptr) == AND) {
+        Token tok = GetNextTokenP(fptr);
+
+        ASTNode* rhs = EqqExpr(fptr);
+        if (!rhs) {
+            ERROR_MESSAGE("Invalid EqqExpr in AndExpr", 1, lhs);
+            return PARSER_FAIL(ERRP);
+        }
+
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE;
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+
+        lhs = operatorNode;
+    }
+
+    return lhs;
+}
+
+ASTNode* EqqExpr(FILE* fptr) 
+{
+    ASTNode* lhs = RelationExpr(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid RelationExpr in EqqExpr", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    Token tok = GetNextTokenP(fptr);
+    if (tok.type == EQQ || tok.type == NEQQ) {
+        ASTNode* rhs = RelationExpr(fptr);
+        if (!rhs) {
+            ERROR_MESSAGE("Invalid RelationExpr in EqqExpr", 1, lhs);
+            return PARSER_FAIL(ERRP);
+        }
+
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE;
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+
+        lhs = operatorNode;
+    }
+
+    return lhs;
+}
+
+ASTNode* RelationExpr(FILE* fptr)
+{
+    ASTNode* lhs = ShiftExpr(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid ShitExpr in RelationExpr", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    while (PeekNextTokenP(fptr) == AND) {
+        Token tok = GetNextTokenP(fptr);
+
+        ASTNode* rhs = ShiftExpr(fptr);
+        if (!rhs) {
+            ERROR_MESSAGE("Invalid ShitExpr in RelationExpr", 1, lhs);
+            return PARSER_FAIL(ERRP);
+        }
+
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE;
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+
+        lhs = operatorNode;
+    }
 
     return lhs;
 }
