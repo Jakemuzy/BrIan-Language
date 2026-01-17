@@ -99,6 +99,9 @@ static const size_t PREFIXS_COUNT = sizeof(PREFIXS) / sizeof(PREFIXS[0]);
 static const int POSTFIXS[] = { PP, SS, REG };
 static const size_t POSTFIXS_COUNT = sizeof(POSTFIXS) / sizeof(POSTFIXS[0]);
 
+static const int PRIMARYS[] = { IDENT, DECIMAL, INTEGRAL, SLITERAL, CLITERAL };
+static const PRIMARYS_COUNT = sizeof(PRIMARYS) / sizeof(PRIMARYS[0]);
+
 static const TYPES[] = { CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID, STRING };
 static const size_t TYPES_COUNT = sizeof(TYPES) / sizeof(TYPES[0]);
 

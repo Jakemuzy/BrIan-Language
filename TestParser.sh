@@ -4,7 +4,7 @@
 
 COMPILER="./compile.sh"
 TEST_CASES_PATH="TestCases/Parser"
-PROG_NAME="AllCases" # Change this to work will all programs 
+PROG_NAME="AllCases" # Change this to work with all programs 
 FOLDER="Parser"
 
 "$COMPILER" "$PROG_NAME" "$FOLDER"

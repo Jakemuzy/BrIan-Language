@@ -2,7 +2,6 @@
 
 #include "Parser.h"
 
-
 int main(int argc, char* argv[])
 {
     /* Open code file to read */
@@ -15,7 +14,10 @@ int main(int argc, char* argv[])
     }
 
     /* Build the ast */
-    AST* ast = ASTInit(fptr);
-    Program(fptr, ast); 
+    printf("Starting AST generation...\n");
+    AST* ast = Program(fptr); 
+    if (!ast) {
+        printf("ERROR: ast failed to build\n");
+    }
 	return 0;
 }
