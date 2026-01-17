@@ -697,7 +697,6 @@ ASTNode* Expr(FILE* fptr)
 
 ASTNode* AsgnExpr(FILE* fptr)
 {
-
     ASTNode* lhs = OrlExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
@@ -705,15 +704,55 @@ ASTNode* AsgnExpr(FILE* fptr)
         return PARSER_FAIL(NAP);
     }
 
+    TokenType tokType = PeekNextTokenP(fptr);
+
+    if (ValidTokType(ASSIGNS, ASSIGNS_COUNT, tokType) != VALID) 
+        return lhs;
     Token tok = GetNextTokenP(fptr);
-    if (ValidTokType(ASSIGNS, ASSIGNS_COUNT, tok.type) != VALID) {
-        ERROR_MESSAGE()
-    }
 
     ASTNode* rhs = AsgnExpr(fptr);
     if (!rhs) {
-
+        ERROR_MESSAGE("Invalid AsgnExpr in AsgnExpr", 1, lhs);
+        return PARSER_FAIL(ERRP);
     }
     
     ASTNode* operatorNode = InitASTNode();
+    operatorNode->type = EXPR_NODE;
+    operatorNode->token = tok;
+
+    ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+    ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+    return operatorNode;
+}
+
+ASTNode* OrlExpr(FILE* fptr) 
+{
+    ASTNode* lhs = AndlExpr(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid AndlExpr in OrlExpr", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    while (PeekNextTokenP(fptr) == ORL) {
+        Token tok = GetNextTokenP(fptr);
+
+        ASTNode* rhs = AndlExpr(fptr);
+        if (!rhs) {
+            ERROR_MESSAGE("Invalid AndlExpr in OrlExpr", 1, lhs);
+            return PARSER_FAIL(ERRP);
+        }
+
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE;
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+
+        lhs = operatorNode;
+    }
+
+
+    return lhs;
 }

@@ -81,8 +81,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
     ExprList ::= Expr { ',' Expr }
     Expr ::= AsgnExpr  
-    AsgnExpr ::= OrlExpr 
-                 | OrlExpr ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') AsgnExpr 
+    AsgnExpr ::= OrlExpr [ ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') AsgnExpr ]
     OrlExpr ::= AndlExpr { '||' AndlExpr }  
     AndlExpr ::= OrExpr { '&&' OrExpr } 
     OrExpr ::= XorExpr { '|' XorExpr }
