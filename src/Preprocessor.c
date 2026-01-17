@@ -1,10 +1,10 @@
 #include "Preprocessor.h"
 
 /* Just Skip Comments and Directives for now */
+/* TODO: Imports */
 
 Token GetNextTokenP(FILE* fptr)
 {
-
     Token t;
 
     do {
@@ -22,55 +22,15 @@ Token GetNextTokenP(FILE* fptr)
 
     } while (t.type == COMMENT || t.type == HASH);
 
-    /*printf("%s\n", t.lex.word);*/
+    printf("%s\n", t.lex.word);
 
     return t;
 }
 
-Token PeekNextTokenP(FILE* fptr, TokenType desired)
+TokenType PeekNextTokenP(FILE* fptr)
 {
     Token tok = GetNextTokenP(fptr);
-    if (tok.type != desired)
-        PutTokenBack(&tok);
-
-    return tok;
+    PutTokenBack(&tok);
+    
+    return tok.type;
 }
-
-/*
-int ImportList(FILE* fptr, AST* ast)
-{
-   TODO: This should be a preprocessor step 
-
-    Token t;
-    while(true)
-    {
-        t = GetNextTokenP(fptr);
-        if(t.type != HASH)
-        {
-            PutTokenBack(&t);
-            return NAP;
-        }
-        
-        t = GetNextTokenP(fptr);
-        if(!strcmp(t.lex.word, "include"))
-        {
-            TODO: Check other prepocess types
-            return ERRP;
-        }
-
-        t = GetNextTokenP(fptr);
-        if(t.type != LESS)
-            return ERRP;
-
-        t = GetNextTokenP(fptr);
-        if(t.type != IDENT)
-            return ERRP;
-
-        t = GetNextTokenP(fptr);
-        if(t.type != GREAT)
-            return ERRP;
-
-    }
-    return VALID;
-}
-*/

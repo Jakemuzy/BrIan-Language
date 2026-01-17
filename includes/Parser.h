@@ -14,16 +14,17 @@ typedef enum ParseError {
     EOFP    /* EOF */
 } ParseError;
 
-ParseError PARSE_ERROR = VALID;     /* Global Error Token */
+extern ParseError PARSE_ERROR;     /* Global Error Token */
 ASTNode* PARSE_FAIL(ParseError code);
 ASTNode* ERROR_MESSAGE(char* message, int count, ...);
 
 /* ---------- Helpers ---------- */
 
 int ValidTokType(const int types[], int arrSize, int type);
-int CompareToken(FILE* fptr, TokenType desired, char* errMessage, int errType);
+int CompareToken(FILE* fptr, TokenType desired, char* errMessage, ParseError errType);
 
 /* ---------- Recursive Descent ---------- */
+/* Indendented Functions Represent Helpers */
 
 AST* Program(FILE* fptr);
 ASTNode* Function(FILE* fptr);
@@ -58,11 +59,15 @@ ASTNode* XorExpr(FILE* fptr);
 ASTNode* AndExpr(FILE* fptr);
 ASTNode* EqqExpr(FILE* fptr);
 ASTNode* RelationExpr(FILE* fptr);
+ASTNode* ShiftExpr(FILE* fptr);
 ASTNode* AddExpr(FILE* fptr);
 ASTNode* MultExpr(FILE* fptr);
 ASTNode* PowExpr(FILE* fptr);
 ASTNode* Prefix(FILE* fptr);
+    ASTNode* Cast(FILE* fptr);
 ASTNode* Postfix(FILE* fptr);
+    ASTNode* Index(FILE* fptr);
+    ASTNode* CallFunc(FILE* fptr);
 ASTNode* Primary(FILE* fptr);
 
 ASTNode* Type(FILE* fptr);
