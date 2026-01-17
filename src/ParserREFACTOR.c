@@ -1,5 +1,11 @@
 #include "Parser.h"
 
+/* TODO: 
+        - GetNextTokenP after PeekNextTokenP might be dangerous, but since the 
+          Preprocessor only skips for now it is fine
+        - 
+*/
+
 /* ----------- HELPER ---------- */
 
 int ValidTokType(const int types[], int arrSize, int type)
@@ -235,6 +241,7 @@ ASTNode* ExprStmt(FILE* fptr)
     }
 
     ASTNode* exprNode = Expr(fptr);
+    exprNode->type = EXPR_STMT_NODE;
     if (!exprNode) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid Expr in ExprStmt", 0);
@@ -270,6 +277,7 @@ ASTNode* DeclStmt(FILE* fptr)
     }
 
     ASTNode* declStmtNode = InitASTNode();
+    declStmtNode->type = DECL_STMT_NODE;
     ASTPushChildNode(declStmtNode, typeNode, TYPE_NODE);
     ASTPushChildNode(declStmtNode, varListNode, VAR_LIST_NODE);
     return declStmtNode;
@@ -341,6 +349,7 @@ ASTNode* ReturnStmt(FILE* fptr)
 ASTNode* IfStmt(FILE* fptr) 
 {
     ASTNode* ifStmtNode = InitASTnode();
+    ifStmtNode->type = IF_STMT_NODE;
 
     ASTNode* ifNode = IfElifElse(fptr, IF);
     if (!ifNode) {
@@ -379,26 +388,33 @@ ASTNode* IfElifElse(FILE* fptr, TokenType type)
         return PARSE_FAIL(NAP);
     GetNextTokenP(fptr);
 
-    if (CompareToken(fptr, LPAREN, "Missing LPAREN in IfStm", ERRP) != VALID) 
-        return PARSE_FAIL(ERRP);
+    ASTNode* ifElifElseNode = InitASTNode();
 
-    ASTNode* exprNode = Expr(fptr);
-    if (!exprNode) {
-        ERROR_MESSAGE("Invalid Expr in IfStmt", 0);
-        return PARSE_FAIL(ERRP);    
+    if (type != ELSE) {
+        if (CompareToken(fptr, LPAREN, "Missing LPAREN in IfStmt", ERRP) != VALID) {
+            ASTFreeNodes(ifElifElseNode);
+            return PARSE_FAIL(ERRP);
+        }
+
+        ASTNode* exprNode = Expr(fptr);
+        if (!exprNode) {
+            ERROR_MESSAGE("Invalid Expr in IfStmt", 1, ifElifElseNode);
+            return PARSE_FAIL(ERRP);    
+        }
+
+        if (CompareToken(fptr, RPAREN, "Missing RPAREN in IfStmt", ERRP) != VALID) {
+            ASTFreeNodes(exprNode, ifElifElseNode);
+            return PARSE_FAIL(ERRP);
+        }
+
+        ASTPushChildNode(ifElifElseNode, exprNode, EXPR_NODE);
     }
-
-    if (CompareToken(fptr, RPAREN, "Missing RPAREN in IfStmt", ERRP) != VALID) 
-        return PARSE_FAIL(ERRP);
 
     ASTNode* bodyNode = Body(fptr);
     if (!bodyNode) {
-        ERROR_MESSAGE("Invalid Body in IfStmt", 1, exprNode);
+        ERROR_MESSAGE("Invalid Body in IfStmt", 1, ifElifElseNode);
         return PARSE_FAIL(ERRP); 
     }
-
-    ASTNode* ifElifElseNode = InitASTNode();
-    ASTPushChildNode(ifElifElseNode, exprNode, EXPR_NODE);
     ASTPushChildNode(ifElifElseNode, bodyNode, BODY_NODE);
 
     return ifElifElseNode;
@@ -407,6 +423,7 @@ ASTNode* IfElifElse(FILE* fptr, TokenType type)
 ASTNode* SwitchStmt(FILE* fptr) 
 {
     ASTNode* switchStmtNode = InitASTNode();
+    switchStmtNode->type = SWITCH_STMT_NODE;
 
     if (PeekNextTokenP(fptr) != SWITCH)
         return PARSE_FAIL(NAP);
@@ -503,4 +520,200 @@ ASTNode* Default(FILE* fptr)
     ASTNode* defaultNode = InitASTNode();
     ASTPushChildNode(defaultNode, stmtListNode, STMT_LIST_NODE);
     return defaultNode;
+}
+
+ASTNode* WhileStmt(FILE* fptr)
+{
+    if (PeekNextTokenP(fptr) != WHILE)
+        return PARSE_FAIL(NAP);
+    GetNextTokenP(fptr);
+
+    if (CompareToken(fptr, LPAREN, "No LPAREN found in WhileStmt", ERRP) != VALID)
+        return PARSE_FAIL(ERRP);
+
+    ASTNode* exprNode = Expr(fptr);
+    if (!exprNode) {
+        ERROR_MESSAGE("Invalid Expr in WhileStmt", 0);
+        return PARSE_FAIL(ERRP);
+    }
+
+    if (CompareToken(fptr, RPAREN, "No RPAREN found in WhileStmt", ERRP) != VALID) { 
+        ASTFreeNodes(exprNode);
+        return PARSE_FAIL(ERRP);
+    }
+    
+    ASTNode* bodyNode = Body(fptr);
+    if (!bodyNode) {
+        ERROR_MESSAGE("Invalid Body in WhileStmt", 1, exprNode);
+        return PARSE_FAIL(ERRP);
+    }
+
+    ASTNode* whileStmtNode = InitASTNode();
+    whileStmtNode->type = WHILE_STMT_NODE;
+    ASTPushChildNode(whileStmtNode, exprNode, EXPR_NODE);
+    ASTPushChildNode(whileStmtNode, bodyNode, BODY_NODE);
+    return whileStmtNode;
+}
+
+ASTNode* DoWhileStmt(FILE* fptr) 
+{
+    if (PeekNextTokenP(fptr) != DO)
+        return PARSE_FAIL(NAP);
+    GetNextTokenP(fptr);
+
+    ASTNode* bodyNode = Body(fptr);
+    if (!bodyNode) {
+        ERROR_MESSAGE("Invalid Body in DoWhileStmt", 0);
+        return PARSE_FAIL(ERRP);
+    }
+
+    if (CompareToken(fptr, WHILE, "No WHILE found in DoWhileStmt", ERRP) != VALID) {
+        ASTFreeNodes(bodyNode);
+        return PARSE_FAIL(ERRP);
+    }
+
+    if (CompareToken(fptr, LPAREN, "No LPAREN found in DoWhileStmt", ERRP) != VALID) {
+        ASTFreeNodes(bodyNode);
+        return PARSE_FAIL(ERRP);
+    }
+
+    ASTNode* exprNode = Expr(fptr);
+    if (!exprNode) {
+        ERROR_MESSAGE("Invalid Expr in WhileStmt", 1, bodyNode);
+        return PARSE_FAIL(ERRP);
+    }
+
+    if (CompareToken(fptr, RPAREN, "No RPAREN found in WhileStmt", ERRP) != VALID) {
+        ASTFreeNodes(bodyNode, exprNode);
+        return PARSE_FAIL(ERRP);
+    }
+
+    if (CompareToken(fptr, SEMI, "No SEMI in DoWhileStmt", ERRP) != VALID) {
+        ASTFreeNodes(bodyNode, exprNode);
+        return PARSE_FAIL(ERRP);
+    }
+
+    ASTNode* doWhileStmtNode = InitASTNode();
+    doWhileStmtNode->type = DO_WHILE_STMT_NODE ;
+    ASTPushChildNode(doWhileStmtNode, bodyNode, BODY_NODE);
+    ASTPushChildNode(doWhileStmtNode, exprNode, EXPR_NODE);
+    return doWhileStmtNode;
+}
+
+ASTNode* ForStmt(FILE* fptr) 
+{
+    /* TODO: All Expr and ExprList are optional, make them behave like it */
+
+    if (PeekNextTokenP(fptr) != FOR)
+        return PARSE_FAIL(NAP);
+    GetNextTokenP(fptr);
+
+    if (CompareToken(fptr, LPAREN, "No LPAREN found in ForStmt", ERRP) != VALID)
+        return PARSE_FAIL(ERRP);
+
+    ASTNode* exprListNode = ExprList(fptr);
+    if (!exprListNode) {
+        ERROR_MESSAGE("Invalid ExprList in ForStmt", 0);
+        return PARSE_FAIL(ERRP);
+    }
+
+    if (CompareToken(fptr, SEMI, "Missing SEMI in ForStmt", ERRP)) {
+        ASTFreeNodes(exprListNode);
+        return PARSE_FAIL(ERRP);
+    }
+
+    ASTNode* exprNode = Expr(fptr);
+    if (!exprNode) {
+        ERROR_MESSAGE("Invalid Expr in ForStmt", 1, exprListNode);
+        return PARSE_FAIL(ERRP);
+    }
+
+    if (CompareToken(fptr, SEMI, "Missing SEMI in ForStmt", ERRP)) {
+        ASTFreeNodes(exprListNode, exprNode);
+        return PARSE_FAIL(ERRP);
+    }
+
+    ASTNode* exprListNode2 = ExprList(fptr);
+    if (!exprListNode2) {
+        ERROR_MESSAGE("Invalid ExprList in ForStmt", 2, exprListNode, exprNode);
+        return PARSE_FAIL(ERRP);
+    }
+
+    if (CompareToken(fptr, RPAREN, "No RPAREN found in ForStmt", ERRP) != VALID) { 
+        ASTFreeNodes(exprListNode, exprNode, exprListNode2);
+        return PARSE_FAIL(ERRP);
+    }
+    
+    ASTNode* bodyNode = Body(fptr);
+    if (!bodyNode) {
+        ERROR_MESSAGE("Invalid Body in ForStmt", 3, exprListNode, exprNode, exprListNode2);
+        return PARSE_FAIL(ERRP);
+    }
+
+    ASTNode* forStmtNode = InitASTNode();
+    forStmtNode->type = FOR_STMT_NODE;
+    ASTPushChildNode(forStmtNode, exprListNode, EXPR_LIST_NODE);
+    ASTPushChildNode(forStmtNode, exprNode, EXPR_NODE);
+    ASTPushChildNode(forStmtNode, exprListNode2, EXPR_LIST_NODE);
+    return forStmtNode;
+}
+
+/* ----------- Expressions ---------- */
+
+ASTNode* ExprList(FILE* fptr) 
+{
+    ASTNode* exprListNode = InitASTNode();
+
+    ASTNode* exprNode = Expr(fptr);
+    if (!exprNode) {
+        if (PARSE_ERROR == ERRP) 
+            return ERROR_MESSAGE("Invalid Expr in ExprList", 0);
+        return PARSE_FAIL(NAP);
+    }
+    ASTPushChildNode(exprListNode, exprNode, EXPR_NODE);
+
+    while (true) {
+        if (PeekNextTokenP(fptr) != COMMA) 
+            break;
+        GetNextTokenP(fptr);
+
+        exprNode = Expr(fptr);
+        if (!exprNode) {
+            if (PARSE_ERROR == ERRP) 
+                return ERROR_MESSAGE("Invalid Expr in ExprList", 2, exprNode, exprListNode);
+            return PARSE_FAIL(NAP);
+        }
+        ASTPushChildNode(exprListNode, exprNode, EXPR_NODE);
+    }
+
+    return exprListNode;
+}
+
+ASTNode* Expr(FILE* fptr) 
+{   
+    /* TODO: Technically an Alias for AsgnEpxr, but allows for easier readability */
+    return AsgnExpr(fptr);
+}
+
+ASTNode* AsgnExpr(FILE* fptr)
+{
+
+    ASTNode* lhs = OrlExpr(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid OrlExpr in AsgnExpr", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    Token tok = GetNextTokenP(fptr);
+    if (ValidTokType(ASSIGNS, ASSIGNS_COUNT, tok.type) != VALID) {
+        ERROR_MESSAGE()
+    }
+
+    ASTNode* rhs = AsgnExpr(fptr);
+    if (!rhs) {
+
+    }
+    
+    ASTNode* operatorNode = InitASTNode();
 }
