@@ -2,8 +2,9 @@
 
 /* TODO: 
         - GetNextTokenP after PeekNextTokenP might be dangerous, but since the 
-          Preprocessor only skips for now it is fine
-        - 
+          preprocessor only skips directors, for now it is fine
+        - Can easily simplify most of the expressions with a helper function to reduce
+          reused code, which is making the file artifically longer than it needs
 */
 
 /* ----------- HELPER ---------- */
@@ -704,25 +705,26 @@ ASTNode* AsgnExpr(FILE* fptr)
         return PARSER_FAIL(NAP);
     }
 
-    TokenType tokType = PeekNextTokenP(fptr);
+    if (ValidTokType(ASSIGNS, ASSIGNS_COUNT, PeekNextTokenP(fptr)) == VALID) 
+    {
+        Token tok = GetNextTokenP(fptr);
 
-    if (ValidTokType(ASSIGNS, ASSIGNS_COUNT, tokType) != VALID) 
-        return lhs;
-    Token tok = GetNextTokenP(fptr);
+        ASTNode* rhs = AsgnExpr(fptr);
+        if (!rhs) {
+            ERROR_MESSAGE("Invalid AsgnExpr in AsgnExpr", 1, lhs);
+            return PARSER_FAIL(ERRP);
+        }
+        
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE;
+        operatorNode->token = tok;
 
-    ASTNode* rhs = AsgnExpr(fptr);
-    if (!rhs) {
-        ERROR_MESSAGE("Invalid AsgnExpr in AsgnExpr", 1, lhs);
-        return PARSER_FAIL(ERRP);
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+
+        lhs = operatorNode;
     }
-    
-    ASTNode* operatorNode = InitASTNode();
-    operatorNode->type = EXPR_NODE;
-    operatorNode->token = tok;
-
-    ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-    ASTPushChildNode(operatorNode, rhs, RHS_NODE);
-    return operatorNode;
+    return lhs;
 }
 
 ASTNode* OrlExpr(FILE* fptr) 
@@ -889,8 +891,10 @@ ASTNode* EqqExpr(FILE* fptr)
         return PARSER_FAIL(NAP);
     }
 
-    Token tok = GetNextTokenP(fptr);
-    if (tok.type == EQQ || tok.type == NEQQ) {
+    TokenType tokType = PeekNextTokenP(fptr);
+    if (tokType == EQQ || tokType == NEQQ) {
+        Token tok = GetNextTokenP(fptr);
+
         ASTNode* rhs = RelationExpr(fptr);
         if (!rhs) {
             ERROR_MESSAGE("Invalid RelationExpr in EqqExpr", 1, lhs);
@@ -915,16 +919,18 @@ ASTNode* RelationExpr(FILE* fptr)
     ASTNode* lhs = ShiftExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid ShitExpr in RelationExpr", 0);
+            return ERROR_MESSAGE("Invalid ShiftExpr in RelationExpr", 0);
         return PARSER_FAIL(NAP);
     }
 
-    while (PeekNextTokenP(fptr) == AND) {
+    TokenType tokType = PeekNextTokenP(fptr);
+    if (ValidTokType(RELATIONAL, RELATIONAL_COUNT, tokType) == VALID) 
+    {
         Token tok = GetNextTokenP(fptr);
 
         ASTNode* rhs = ShiftExpr(fptr);
         if (!rhs) {
-            ERROR_MESSAGE("Invalid ShitExpr in RelationExpr", 1, lhs);
+            ERROR_MESSAGE("Invalid ShiftExpr in RelationExpr", 1, lhs);
             return PARSER_FAIL(ERRP);
         }
 
@@ -939,4 +945,190 @@ ASTNode* RelationExpr(FILE* fptr)
     }
 
     return lhs;
+}
+
+ASTNode* ShiftEpxr(FILE* fptr)
+{
+    ASTNode* lhs = AddExpr(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid AddExpr in ShiftExpr", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    TokenType tokType;
+    while ((tokType = PeekNextTokenP(fptr)) == LSHIFT || tokType == RSHIFT) {
+        Token tok = GetNextTokenP(fptr);
+
+        ASTNode* rhs = AddExpr(fptr);
+        if (!rhs) {
+            ERROR_MESSAGE("Invalid AddExpr in ShiftExpr", 1, lhs);
+            return PARSER_FAIL(ERRP);
+        }
+
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE;
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+
+        lhs = operatorNode;
+    }
+
+    return lhs;
+}
+
+ASTNode* AddExpr(FILE* fptr)
+{
+    ASTNode* lhs = MultExpr(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid MultExpr in AddExpr", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    while (ValidTokType(ADDS, ADDS_COUNT, PeekNextTokenP(fptr)) == VALID) {
+        Token tok = GetNextTokenP(fptr);
+
+        ASTNode* rhs = AddExpr(fptr);
+        if (!rhs) {
+            ERROR_MESSAGE("Invalid AddExpr in ShiftExpr", 1, lhs);
+            return PARSER_FAIL(ERRP);
+        }
+
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE;
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+
+        lhs = operatorNode;
+    }
+
+    return lhs;
+}
+
+ASTNode* MultExpr(FILE* fptr)
+{
+    ASTNode* lhs = PowExpr(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid PowExpr in MultExpr", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    while (ValidTokType(MULTS, MULTS_COUNT, PeekNextTokenP(fptr)) == VALID) {
+        Token tok = GetNextTokenP(fptr);
+
+        ASTNode* rhs = AddExpr(fptr);
+        if (!rhs) {
+            ERROR_MESSAGE("Invalid PowExpr in MultExpr", 1, lhs);
+            return PARSER_FAIL(ERRP);
+        }
+
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE;
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+
+        lhs = operatorNode;
+    }
+
+    return lhs;
+}
+
+ASTNode* PowExpr(FILE* fptr)
+{
+    ASTNode* lhs = Prefix(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid Prefix in PowExpr", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    if (PeekNextTokenP(fptr) == POW) {
+        Token tok = GetNextTokenP(fptr);
+
+        ASTNode* rhs = PowExpr(fptr);
+        if (!rhs) {
+            ERROR_MESSAGE("Invalid PowExpr in PowExpr", 1, lhs);
+            return PARSER_FAIL(ERRP);
+        }
+
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE;
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+
+        lhs = operatorNode;
+    }
+
+    return lhs;
+}
+
+ASTNode* Prefix(FILE* fptr)
+{
+    /* TODO: Add Casts */
+
+    TokenType tokType = PeekNextTokenP(fptr);
+    if (ValidTokType(PREFIXS, PREFIXS_COUNT, tokType) == VALID) {
+        Token tok = GetNextTokenP(fptr);
+
+        ASTNode* operandNode = Prefix(fptr);
+        if (!operandNode) {
+            ERROR_MESSAGE("Invalid Prefix in Prefix", 0);
+            return PARSER_FAIL(ERRP);
+        }
+
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = OPERATOR_NODE;
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, operandNode, OPERAND_NODE);
+        return operatorNode;
+    }
+
+    ASTNode* postfix = Postfix(fptr);
+    if (!postfix) {
+        if (PARSE_ERROR == ERRP) 
+            return ERROR_MESSAGE("Invalid Postfix in Prefix", 0);
+        return PARSE_FAIL(NAP);
+    }
+
+    return postfix;
+}
+
+ASTNode* Postfix(FILE* fptr)
+{
+    /* TODO: Include Array Indexing and Function Calling */
+    ASTNode* lhs = Primary(fptr);
+    if (!lhs) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid Primary in Postfix", 0);
+        return PARSER_FAIL(NAP);
+    }
+
+    while (ValidTokType(POSTFIXS, POSTFIXS_COUNT, PeekNextTokenP(fptr)) == VALID) {
+        Token tok = GetNextTokenP(fptr);
+
+        ASTNode* operatorNode = InitASTNode();
+        operatorNode->type = EXPR_NODE;
+        operatorNode->token = tok;
+
+        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        lhs = operatorNode;
+    }
+
+    return lhs;
+}
+
+ASTNode* Primary(FILE* fptr)
+{
+
 }

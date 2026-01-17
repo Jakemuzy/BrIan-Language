@@ -24,6 +24,7 @@ int ValidTokType(const int types[], int arrSize, int type);
 int CompareToken(FILE* fptr, TokenType desired, char* errMessage, int errType);
 
 /* ---------- Recursive Descent ---------- */
+/* Indendented Functions Represent Helpers */
 
 AST* Program(FILE* fptr);
 ASTNode* Function(FILE* fptr);
@@ -62,7 +63,10 @@ ASTNode* AddExpr(FILE* fptr);
 ASTNode* MultExpr(FILE* fptr);
 ASTNode* PowExpr(FILE* fptr);
 ASTNode* Prefix(FILE* fptr);
+    ASTNode* Cast(FILE* fptr);
 ASTNode* Postfix(FILE* fptr);
+    ASTNode* Index(FILE* fptr);
+    ASTNode* CallFunc(FILE* fptr);
 ASTNode* Primary(FILE* fptr);
 
 ASTNode* Type(FILE* fptr);

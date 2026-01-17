@@ -93,8 +93,11 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	AddExpr ::= MultExpr { ( '+' | '-' ) MultExpr }  
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }  
     PowExpr ::= Prefix [ '**' PowExpr ]
-    Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '(' Type ')' | '*' | '&' ) Prefix | Postfix  
-    Postfix ::= Primary { '++' | '--' | '$' | '[' Expr ']' | IDENT '('[ ArgList ] ') }
+    Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '*' | '&' | Cast ) Prefix | Postfix 
+        Cast ::= '(' Type ')'
+    Postfix ::= Primary { '++' | '--' | '$' | Index | CallFunc }
+        Index ::= '[' Expr' ']'
+        CallFunc ::= IDENT '(' [ ArgList ] ')'
     Primary ::= IDENT | DECIMAL | INTEGRAL | SLITERAL | CLITERAL | '(' Expr ')'
 
     Type = ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" )
