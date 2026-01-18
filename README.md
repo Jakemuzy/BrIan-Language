@@ -63,7 +63,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt 
 
     ExprStmt ::= ';' | Expr ';'  
-	DeclStmt ::= Type VarLkkist ';'  
+	DeclStmt ::= Type Varlist ';'  
 	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
     ReturnStmt ::= "return" [Expr] ';'  
 
