@@ -14,30 +14,26 @@
 
 /* ----------- ERRORS ---------- */
 
-ParseResult PARSE_RESULT(ASTNode* node, ParseStatus code)
+ParseResult PARESE_VALID(ASTNode* node)
 {
-    ParseResult result = {code, node};
+    ParseResult result = {VALID, node};
     return result;
 }
 
-ParseResult ERROR_MESSAGE(char* message, int count, ...)
+ParseResult PARSE_NAP() 
 {
-    printf("ERROR: %s, on line...\n", message);
-
-    va_list args;
-    va_start(args, count);
-
-    int i;
-    for(i = 0; i < count; i++)
-    {
-        ASTNode* node = va_arg(args, ASTNode*);
-        if (node)
-            ASTFreeNodes(1, node);
-    }
-
-    va_end(args);
-    return NULL;
+    ParseResult result = {NAP, NULL};
+    return result;
 }
+
+ParseResult PARSE_ERRP(char* message)
+{
+    ParseResult result = {ERRP, NULL};
+    ERROR_MESSAGE(message);
+    return result;
+}
+
+
 
 /* ----------- HELPER ---------- */
 
@@ -52,23 +48,20 @@ int ValidTokType(const int types[], int arrSize, int type)
     return NAP;
 }
 
-/* Reads current token, displays error message and returns error type if not valid */ 
-int CompareToken(FILE* fptr, TokenType desired, char* errMessage, ParseStatus errType)
+ParseResult IdentNode(Token tok)
 {
-    /* TODO: Too many things for one function to do */
-    Token current = GetNextTokenP(fptr);
-    if(current.type != desired)
-    {   
-        printf("%s", current.lex.word);
-        if(errType == ERRP)
-            ERROR_MESSAGE(errMessage, 0);
-        else if (errType == NAP) 
-            PutTokenBack(&current);
-        return errType;
-    }
-   
-    return VALID;
+    ASTNode* identNode = InitASTNode();
+    identNode->token = tok;
+    return PARSE_VALID(identNode);
 }
+
+ParseResult EmptyNode()
+{
+    ASTNode* emptyNode = InitASTNode();
+    emptyNode->type = EMPTY_NODE;
+    return PARSE_VALID(emptyNode)
+}
+
 
 /* ---------- EBNF ---------- */
 
@@ -84,7 +77,7 @@ AST* Program(FILE* fptr)
             return ast;
 
         ParseResult node = Function(fptr);
-        if (node) {
+        if (node->node) {
             if (!node){
                 ERROR_MESSAGE("Invalid Function", 0);
                 return NULL;
@@ -111,65 +104,63 @@ ParseResult Function(FILE* fptr)
 {
     printf("Starting Function\n");
     ParseResult typeNode = Type(fptr);
-    if (!typeNode)
-    {
-        if (PARSE_ERROR != VALID)
-            return ERROR_MESSAGE("Invalid Type in Function", 0);
-        return PARSE_FAIL(NAP);
-    }
+    if (typeNode.status == ERRP)
+        return PARSE_ERRP("Invalid Type in Function");
+    else if (typeNode.status == NAP)
+        return PARSE_NAP();
 
-    /* TODO: add function name to the ast */
-    if (CompareToken(fptr, IDENT, "Function does not have a name", ERRP) != VALID) {
-        ASTFreeNodes(1, typeNode);
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != IDENT) {
+        ASTFreeNodes(1, typeNode.node);
+        return PARSE_ERRP("Function does not have a name");
     }
+    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
 
-    if (CompareToken(fptr, LPAREN, "Missing left parenthesis in function", ERRP) != VALID) {
-        ASTFreeNodes(1, typeNode);
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != LPAREN) {
+        ASTFreeNodes(2, typeNode.node, identNode.node);
+        return PARSE_ERRP("Missing left parenthesis in function");
     }
+    GetNextTokenP(fptr);
 
     ParseResult paramListNode = ParamList(fptr);
-    if (!paramListNode) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid ParamList in function", 0);
+    if (paramListNode.status != VALID ) {
+        ASTFreeNodes(2, typeNode.node, identNode.node);
+        return PARSE_ERRP("Invalid ParamList in Function");
     }
 
-    if (CompareToken(fptr, RPAREN, "Missing right parenthesis in function", ERRP) != VALID) {
-        ASTFreeNodes(1, paramListNode);
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != RPAREN) {
+        ASTFreeNodes(3, typeNode.node, paramListNode.node, identNode.node);
+        return PARSE_ERRP("Missing right parenthesis in function");
     }
+    GetNextTokenP(fptr);
 
     ParseResult bodyNode = Body(fptr);
-    if(!bodyNode) 
-        return ERROR_MESSAGE("Invalid Body in Function", 1, paramListNode);
-        
-    ParseResult funcNode = InitASTNode();
-    ASTPushChildNode(funcNode, typeNode, TYPE_NODE);
-    ASTPushChildNode(funcNode, paramListNode, PARAM_LIST_NODE);
-    ASTPushChildNode(funcNode, bodyNode, BODY_NODE);
-    return funcNode;
+    if (bodyNode.status != VALID) {
+        ASTFreeNodes(3, typeNode.node, paramListNode.node, identNode);
+        return PARSE_ERRP("Invalid Body in Function");
+    }
+
+    ASTNode* funcNode = InitASTNode();
+    ASTPushChildNode(funcNode, typeNode.node, TYPE_NODE);
+    ASTPushChildNode(funcNode, identNode.node, IDENT_NODE);
+    ASTPushChildNode(funcNode, paramListNode.node, PARAM_LIST_NODE);
+    ASTPushChildNode(funcNode, bodyNode.node, BODY_NODE);
+    return PARSE_VALID(funcNode);
 }
 
 ParseResult ParamList(FILE* fptr)
 {
-    if (PeekNextTokenP(fptr) == RPAREN) {
-        ParseResult emptyNode = InitASTNode();
-        emptyNode->type = EMPTY_NODE;
-        return emptyNode;
-    }
-
-    /* TODO: "Peek" to see if ParamList Ended for empty params. Right now just returns NAP and Function allows it */
     printf("Starting ParamList\n");
+    if (PeekNextTokenP(fptr) == RPAREN) 
+        return EmptyNode();
     
     ParseResult paramNode = Param(fptr);
-    if (!paramNode) {
-        if (PARSE_ERROR == ERRP) return ERROR_MESSAGE("Invalid Param in ParamList", 0);
-        return PARSE_FAIL(NAP);
-    }
+    if (paramNode.status == ERRP)
+        return PARSE_ERRP("Invalid Param in ParamList");
+    else if (paramNode.status == NAP)
+        return PARSE_NAP();
 
-    ParseResult paramListNode = InitASTNode();
-    ASTPushChildNode(paramListNode, paramNode, PARAM_NODE);
+    ASTNode* paramListNode = InitASTNode();
+    ASTPushChildNode(paramListNode, paramNode.node, PARAM_NODE);
 
     while(true)
     {
@@ -178,35 +169,36 @@ ParseResult ParamList(FILE* fptr)
         GetNextTokenP(fptr);
 
         paramNode = Param(fptr);
-        if (!paramNode) {
-            ERROR_MESSAGE("Invalid Param in ParamList", 1, paramListNode);
-            return PARSE_FAIL(ERRP);
+        if (paramNode.status != VALID){
+            ASTFreeNodes(2, paramNode.node, paramListNode);
+            return PARSE_ERRP("Invalid Param in ParamList");
         }
-        ASTPushChildNode(paramListNode, paramNode, PARAM_NODE);
+        ASTPushChildNode(paramListNode, paramNode.node, PARAM_NODE);
     }
 
-    return paramListNode;
+    return PARSE_VALID(paramListNode);
 }
 
 ParseResult Param(FILE* fptr)
 {
     printf("Starting Param\n");
-    
-    ParseResult typeNode = Type(fptr);
-    if (!typeNode) {
-        if(PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid Param", 0);
-        return PARSE_FAIL(NAP);
-    }
-    /* TODO: Add name as a child node */ 
-    if (CompareToken(fptr, IDENT, "Param doesn't have a name", ERRP) != VALID)  {
-        ASTFreeNodes(1, typeNode);
-        return PARSE_FAIL(ERRP);
-    }
 
-    ParseResult paramNode = InitASTNode();
-    ASTPushChildNode(paramNode, typeNode, TYPE_NODE);
-    return paramNode;
+    ParseResult typeNode = Type(fptr);
+    if (typeNode.status == ERRP)
+        return PARSE_ERRP("Invalid Param");
+    else if (typeNode.status == NAP)
+        return PARSE_NAP();
+
+    if (PeekNextTokenP(fptr) != IDENT) {
+        ASTFreeNodes(1, typeNode.node);
+        return PARSE_ERRP("Param does not have a name");
+    }
+    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
+
+    ASTNode* paramNode = InitASTNode();
+    ASTPushChildNode(paramNode, typeNode.node, TYPE_NODE);
+    ASTPushChildNode(paramNode, identNode.node, IDENT_NODE);
+    return PARSE_VALID(paramNode);;
 }
 
 /* ---------- Statements ----------- */
@@ -216,34 +208,32 @@ ParseResult Body(FILE* fptr)
     printf("Entering Body\n");
     
     if (PeekNextTokenP(fptr) != LBRACK)
-        return PARSE_FAIL(NAP);
+        return PARSE_NAP();
     GetNextTokenP(fptr);
 
     ParseResult stmtListNode = StmtList(fptr);
-    if (!stmtListNode){
-        ERROR_MESSAGE("Invalid StmtList in Body", 0);
-        return PARSE_FAIL(ERRP);
+    if (stmtListNode.status != VALID)
+        return PARSE_ERRP("Invalid StmtList in Body");
+
+    if (PeekNextTokenP(fptr) != RBRACK) {
+        ASTFreeNodes(1, stmtListNode.node);
+        return PARSE_ERRP("Missing Right Bracket in Body");
     }
 
-    if (CompareToken(fptr, RBRACK, "Missing RBRACK in Body", NAP) != VALID) {
-        ASTFreeNodes(1, stmtListNode);
-        return PARSE_FAIL(ERRP);
-    }
-
-    ParseResult bodyNode = InitASTNode();
-    ASTPushChildNode(bodyNode, stmtListNode, STMT_LIST_NODE);
-    return bodyNode;
+    ASTNode* bodyNode = InitASTNode();
+    ASTPushChildNode(bodyNode, stmtListNode.node, STMT_LIST_NODE);
+    return PARSE_VALID(bodyNode);
 }
 
 ParseResult StmtList(FILE* fptr)
 {
     printf("Entering StmtList\n");
     
-    ParseResult stmtListNode = InitASTNode();
+    ASTNode* stmtListNode = InitASTNode();
 
     while (true) {
-        if (PeekNextTokenP(fptr) == RBRACK)
-            return PARSE_FAIL(NAP);
+        if (PeekNextTokenP(fptr) == RBRACK) /* Clear Error, not all StmtList Callers end with RBRACK */
+            return PARSE_FAIL(NAP);     /* Could Fix by having them all be bodies instead (Case and Default) */
 
         ParseResult stmtNode = Stmt(fptr);
         if (stmtNode) {

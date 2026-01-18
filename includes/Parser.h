@@ -19,13 +19,18 @@ typedef struct ParseResult {
     ASTNode* node;
 } ParseResult;
 
-ParseResult PARSE_RESULT(ASTNode* node, ParseStatus code);
-ParseResult ERROR_MESSAGE(char* message, int count, ...);
+ParseResult PARSE_VALID(ASTNode* node);
+ParseResult PARSE_NAP();
+ParseResult PARSE_ERRP(char* message);
+#define ERROR_MESSAGE(message) printf("ERROR: %s, on line...\n", message);
 
 /* ---------- Helpers ---------- */
 
 int ValidTokType(const int types[], int arrSize, int type);
 int CompareToken(FILE* fptr, TokenType desired, char* errMessage, ParseStatus errType);
+
+ParseResult IdentNode(Token tok);
+ParseResult EmptyNode();
 
 /* ---------- Recursive Descent ---------- */
 /* Indendented Functions Represent Helpers */
