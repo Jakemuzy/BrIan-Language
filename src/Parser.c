@@ -57,9 +57,10 @@ int ValidTokType(const int types[], int arrSize, int type)
 int CompareToken(FILE* fptr, TokenType desired, char* errMessage, ParseError errType)
 {
     /* TODO: Too many things for one function to do */
-    Token current = GetNextToken(fptr);
+    Token current = GetNextTokenP(fptr);
     if(current.type != desired)
     {   
+        printf("%s", current.lex.word);
         if(errType == ERRP)
             ERROR_MESSAGE(errMessage, 0);
         else if (errType == NAP) 
@@ -112,6 +113,7 @@ AST* Program(FILE* fptr)
 ASTNode* Function(FILE* fptr)
 {
     printf("Starting Function\n");
+    PARSE_ERROR = VALID;
     ASTNode* typeNode = Type(fptr);
     if (!typeNode)
     {
@@ -132,8 +134,10 @@ ASTNode* Function(FILE* fptr)
     }
 
     ASTNode* paramListNode = ParamList(fptr);
-    if (!paramListNode) 
-        return ERROR_MESSAGE("Invalid ParamList in function", 0);
+    if (!paramListNode) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid ParamList in function", 0);
+    }
 
     if (CompareToken(fptr, RPAREN, "Missing right parenthesis in function", ERRP) != VALID) {
         ASTFreeNodes(1, paramListNode);
@@ -153,7 +157,9 @@ ASTNode* Function(FILE* fptr)
 
 ASTNode* ParamList(FILE* fptr)
 {
+    /* TODO: "Peek" to see if ParamList Ended for empty params. Right now just returns NAP and Function allows it */
     printf("Starting ParamList\n");
+    PARSE_ERROR = VALID;
     ASTNode* paramNode = Param(fptr);
     if (!paramNode) {
         if (PARSE_ERROR == ERRP)
@@ -184,6 +190,7 @@ ASTNode* ParamList(FILE* fptr)
 ASTNode* Param(FILE* fptr)
 {
     printf("Starting Param\n");
+    PARSE_ERROR = VALID;
     ASTNode* typeNode = Type(fptr);
     if (!typeNode) {
         if(PARSE_ERROR == ERRP)
@@ -205,8 +212,11 @@ ASTNode* Param(FILE* fptr)
 
 ASTNode* Body(FILE* fptr)
 {
-    if (CompareToken(fptr, LBRACK, "", NAP) != VALID) /* TODO: replace with Peek */
+    printf("Entering Body\n");
+    PARSE_ERROR = VALID;
+    if (PeekNextTokenP(fptr) != LBRACK)
         return PARSE_FAIL(NAP);
+    GetNextTokenP(fptr);
 
     ASTNode* stmtListNode = StmtList(fptr);
     if (!stmtListNode){
@@ -226,6 +236,8 @@ ASTNode* Body(FILE* fptr)
 
 ASTNode* StmtList(FILE* fptr)
 {
+    printf("Entering StmtList\n");
+    PARSE_ERROR = VALID;
     ASTNode* stmtListNode = InitASTNode();
 
     while (true) {
@@ -246,6 +258,8 @@ ASTNode* StmtList(FILE* fptr)
 
 ASTNode* Stmt(FILE* fptr)
 {
+    printf("Entering Stmt\n");
+    PARSE_ERROR = VALID;
     ASTNode* ctrlStmtNode = CtrlStmt(fptr);
     if (ctrlStmtNode)
         return ctrlStmtNode;
@@ -275,6 +289,8 @@ ASTNode* Stmt(FILE* fptr)
 
 ASTNode* ExprStmt(FILE* fptr)
 {
+    printf("Entering ExprStmt\n");
+    PARSE_ERROR = VALID;
     if (PeekNextTokenP(fptr) == SEMI) {
         GetNextTokenP(fptr);
         ASTNode* emptyNode = InitASTNode();
@@ -283,12 +299,13 @@ ASTNode* ExprStmt(FILE* fptr)
     }
 
     ASTNode* exprNode = Expr(fptr);
-    exprNode->type = EXPR_STMT_NODE;
     if (!exprNode) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid Expr in ExprStmt", 0);
+        printf("Exiting Expr\n");
         return PARSE_FAIL(NAP);
     }
+    exprNode->type = EXPR_NODE;
 
     if(CompareToken(fptr, SEMI, "Semicolon missing in ExprStmt", ERRP) != VALID) {
         ASTFreeNodes(1, exprNode);
@@ -300,6 +317,8 @@ ASTNode* ExprStmt(FILE* fptr)
 
 ASTNode* DeclStmt(FILE* fptr)
 {
+    printf("Enter DeclStmt\n");
+    PARSE_ERROR = VALID;
     ASTNode* typeNode = Type(fptr);
     if (!typeNode) {
         if (PARSE_ERROR == ERRP)
@@ -327,6 +346,8 @@ ASTNode* DeclStmt(FILE* fptr)
 
 ASTNode* CtrlStmt(FILE* fptr) 
 {
+    printf("Entering CtrlStmt\n");
+    PARSE_ERROR = VALID;
     ASTNode* ifStmtNode = IfStmt(fptr);
     if (ifStmtNode)
         return ifStmtNode;
@@ -362,6 +383,8 @@ ASTNode* CtrlStmt(FILE* fptr)
 
 ASTNode* ReturnStmt(FILE* fptr) 
 {
+    printf("Entering ReturnStmt\n");
+    PARSE_ERROR = VALID;
     if (PeekNextTokenP(fptr) != RET)
         return PARSE_FAIL(NAP);
     GetNextTokenP(fptr);
@@ -390,6 +413,8 @@ ASTNode* ReturnStmt(FILE* fptr)
 
 ASTNode* IfStmt(FILE* fptr) 
 {
+    printf("Entering IfStmt\n");
+    PARSE_ERROR = VALID;
     ASTNode* ifStmtNode = InitASTNode();
     ifStmtNode->type = IF_STMT_NODE;
 
@@ -426,6 +451,8 @@ ASTNode* IfStmt(FILE* fptr)
 
 ASTNode* IfElifElse(FILE* fptr, TokenType type) 
 {
+    printf("Entering IfElifElse\n");
+    PARSE_ERROR = VALID;
     if (PeekNextTokenP(fptr) != type)
         return PARSE_FAIL(NAP);
     GetNextTokenP(fptr);
@@ -464,6 +491,8 @@ ASTNode* IfElifElse(FILE* fptr, TokenType type)
 
 ASTNode* SwitchStmt(FILE* fptr) 
 {
+    printf("Entering SwtichStmt\n");
+    PARSE_ERROR = VALID;
     ASTNode* switchStmtNode = InitASTNode();
     switchStmtNode->type = SWITCH_STMT_NODE;
 
@@ -517,6 +546,8 @@ ASTNode* SwitchStmt(FILE* fptr)
 
 ASTNode* Case(FILE* fptr) 
 {
+    printf("Entering Case\n");
+    PARSE_ERROR = VALID;
     if (PeekNextTokenP(fptr) != CASE)
         return PARSE_FAIL(NAP);
     GetNextTokenP(fptr);
@@ -546,6 +577,8 @@ ASTNode* Case(FILE* fptr)
 
 ASTNode* Default(FILE* fptr) 
 {
+    printf("Entering Default\n");
+    PARSE_ERROR = VALID;
     if (PeekNextTokenP(fptr) != DEFAULT)
         return PARSE_FAIL(NAP);
     GetNextTokenP(fptr);
@@ -566,6 +599,8 @@ ASTNode* Default(FILE* fptr)
 
 ASTNode* WhileStmt(FILE* fptr)
 {
+    printf("Entering WhileStmt\n");
+    PARSE_ERROR = VALID;
     if (PeekNextTokenP(fptr) != WHILE)
         return PARSE_FAIL(NAP);
     GetNextTokenP(fptr);
@@ -599,6 +634,8 @@ ASTNode* WhileStmt(FILE* fptr)
 
 ASTNode* DoWhileStmt(FILE* fptr) 
 {
+    printf("Entering DoWhileStmt\n");
+    PARSE_ERROR = VALID;
     if (PeekNextTokenP(fptr) != DO)
         return PARSE_FAIL(NAP);
     GetNextTokenP(fptr);
@@ -644,6 +681,8 @@ ASTNode* DoWhileStmt(FILE* fptr)
 
 ASTNode* ForStmt(FILE* fptr) 
 {
+    printf("Entering ForStmt\n");
+    PARSE_ERROR = VALID;
     /* TODO: All Expr and ExprList are optional, make them behave like it */
 
     if (PeekNextTokenP(fptr) != FOR)
@@ -704,12 +743,15 @@ ASTNode* ForStmt(FILE* fptr)
 
 ASTNode* ExprList(FILE* fptr) 
 {
+    printf("Entering ExprList\n");
+    PARSE_ERROR = VALID;
     ASTNode* exprListNode = InitASTNode();
 
     ASTNode* exprNode = Expr(fptr);
     if (!exprNode) {
         if (PARSE_ERROR == ERRP) 
             return ERROR_MESSAGE("Invalid Expr in ExprList", 0);
+        printf("Exiting Expr\n");
         return PARSE_FAIL(NAP);
     }
     ASTPushChildNode(exprListNode, exprNode, EXPR_NODE);
@@ -733,16 +775,28 @@ ASTNode* ExprList(FILE* fptr)
 
 ASTNode* Expr(FILE* fptr) 
 {   
+    printf("Entering Expr\n");
+    PARSE_ERROR = VALID;
     /* TODO: Technically an Alias for AsgnEpxr, but allows for easier readability */
-    return AsgnExpr(fptr);
+    ASTNode* asgnExpr = AsgnExpr(fptr);
+    if (!asgnExpr) {
+        if (PARSE_ERROR == ERRP)
+            return ERROR_MESSAGE("Invalid AsgnExpr in Expr", 0);
+        printf("Exiting AsgnExpr\n");
+        return PARSE_FAIL(NAP);
+    }
+    return asgnExpr;
 }
 
 ASTNode* AsgnExpr(FILE* fptr)
 {
+    printf("Entering AsgnExpr\n");
+    PARSE_ERROR = VALID;
     ASTNode* lhs = OrlExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid OrlExpr in AsgnExpr", 0);
+        printf("Exiting OrlExpr\n");
         return PARSE_FAIL(NAP);
     }
 
@@ -770,10 +824,13 @@ ASTNode* AsgnExpr(FILE* fptr)
 
 ASTNode* OrlExpr(FILE* fptr) 
 {
+    printf("Entering OrlExpr\n");
+    PARSE_ERROR = VALID;
     ASTNode* lhs = AndlExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid AndlExpr in OrlExpr", 0);
+        printf("Exiting AndlExpr\n");
         return PARSE_FAIL(NAP);
     }
 
@@ -801,10 +858,13 @@ ASTNode* OrlExpr(FILE* fptr)
 
 ASTNode* AndlExpr(FILE* fptr)
 {
+    printf("Entering AndlExpr\n");
+    PARSE_ERROR = VALID;
     ASTNode* lhs = OrExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid OrExpr in AndlExpr", 0);
+        printf("Exiting OrExpr\n");
         return PARSE_FAIL(NAP);
     }
 
@@ -832,10 +892,13 @@ ASTNode* AndlExpr(FILE* fptr)
 
 ASTNode* OrExpr(FILE* fptr)
 {
+    printf("Entering OrExpr\n");
+    PARSE_ERROR = VALID;
     ASTNode* lhs = XorExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid XorExpr in OrExpr", 0);
+        printf("Exiting XorExpr\n");
         return PARSE_FAIL(NAP);
     }
 
@@ -863,10 +926,13 @@ ASTNode* OrExpr(FILE* fptr)
 
 ASTNode* XorExpr(FILE* fptr)
 {
+    printf("Entering XorExpr\n");
+    PARSE_ERROR = VALID;
     ASTNode* lhs = AndExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid AndExpr in XorExpr", 0);
+        printf("Exiting AndExpr\n");
         return PARSE_FAIL(NAP);
     }
 
@@ -894,10 +960,13 @@ ASTNode* XorExpr(FILE* fptr)
 
 ASTNode* AndExpr(FILE* fptr) 
 {
+    printf("Entering AndExpr\n");
+    PARSE_ERROR = VALID;
     ASTNode* lhs = EqqExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid EqqExpr in AndExpr", 0);
+        printf("Exiting EqqExpr\n");
         return PARSE_FAIL(NAP);
     }
 
@@ -925,10 +994,13 @@ ASTNode* AndExpr(FILE* fptr)
 
 ASTNode* EqqExpr(FILE* fptr) 
 {
+    printf("Entering EqqExpr\n");
+    PARSE_ERROR = VALID;
     ASTNode* lhs = RelationExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid RelationExpr in EqqExpr", 0);
+        printf("Exiting RelationExpr\n");
         return PARSE_FAIL(NAP);
     }
 
@@ -957,10 +1029,13 @@ ASTNode* EqqExpr(FILE* fptr)
 
 ASTNode* RelationExpr(FILE* fptr)
 {
+    printf("Entering RelationExpr\n");
+    PARSE_ERROR = VALID;
     ASTNode* lhs = ShiftExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid ShiftExpr in RelationExpr", 0);
+        printf("Exiting ShiftExpr\n");        
         return PARSE_FAIL(NAP);
     }
 
@@ -990,10 +1065,13 @@ ASTNode* RelationExpr(FILE* fptr)
 
 ASTNode* ShiftExpr(FILE* fptr)
 {
+    printf("Entering ShiftExpr\n");
+    PARSE_ERROR = VALID;
     ASTNode* lhs = AddExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid AddExpr in ShiftExpr", 0);
+        printf("Exiting AddExpr\n");        
         return PARSE_FAIL(NAP);
     }
 
@@ -1022,10 +1100,13 @@ ASTNode* ShiftExpr(FILE* fptr)
 
 ASTNode* AddExpr(FILE* fptr)
 {
+    printf("Entering AddExpr\n");
+    PARSE_ERROR = VALID;
     ASTNode* lhs = MultExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid MultExpr in AddExpr", 0);
+        printf("Exiting MultExpr\n");        
         return PARSE_FAIL(NAP);
     }
 
@@ -1053,10 +1134,13 @@ ASTNode* AddExpr(FILE* fptr)
 
 ASTNode* MultExpr(FILE* fptr)
 {
+    printf("Entering MultExpr\n");
+    PARSE_ERROR = VALID;
     ASTNode* lhs = PowExpr(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid PowExpr in MultExpr", 0);
+        printf("Exiting PowEpxr\n");        
         return PARSE_FAIL(NAP);
     }
 
@@ -1084,10 +1168,13 @@ ASTNode* MultExpr(FILE* fptr)
 
 ASTNode* PowExpr(FILE* fptr)
 {
+    printf("Entering PowExpr\n");
+    PARSE_ERROR = VALID;
     ASTNode* lhs = Prefix(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid Prefix in PowExpr", 0);
+        printf("Exiting Prefix\n");        
         return PARSE_FAIL(NAP);
     }
 
@@ -1115,6 +1202,8 @@ ASTNode* PowExpr(FILE* fptr)
 
 ASTNode* Prefix(FILE* fptr)
 {
+    printf("Entering Prefix\n");
+    PARSE_ERROR = VALID;
     /* TODO: Add Casts */
 
     TokenType tokType = PeekNextTokenP(fptr);
@@ -1139,6 +1228,7 @@ ASTNode* Prefix(FILE* fptr)
     if (!postfix) {
         if (PARSE_ERROR == ERRP) 
             return ERROR_MESSAGE("Invalid Postfix in Prefix", 0);
+        printf("Exiting Postfix\n");
         return PARSE_FAIL(NAP);
     }
 
@@ -1147,11 +1237,14 @@ ASTNode* Prefix(FILE* fptr)
 
 ASTNode* Postfix(FILE* fptr)
 {
+    printf("Entering Postfix\n");
+    PARSE_ERROR = VALID;
     /* TODO: Include Array Indexing and Function Calling */
     ASTNode* lhs = Primary(fptr);
     if (!lhs) {
         if (PARSE_ERROR == ERRP)
             return ERROR_MESSAGE("Invalid Primary in Postfix", 0);
+        printf("Exiting Primary\n");
         return PARSE_FAIL(NAP);
     }
 
@@ -1171,40 +1264,29 @@ ASTNode* Postfix(FILE* fptr)
 
 ASTNode* Primary(FILE* fptr)
 {
+    printf("Entering Primary\n");
+    PARSE_ERROR = VALID;
     /* TODO: Clean up Expr */
 
-    ASTNode* operandNode;
     if (ValidTokType(PRIMARYS, PRIMARYS_COUNT, PeekNextTokenP(fptr)) == VALID) {
         Token tok = GetNextTokenP(fptr);
 
-        operandNode = InitASTNode();
+        ASTNode* operandNode = InitASTNode();
         operandNode->type = OPERAND_NODE;
         operandNode->token = tok;
+        return operandNode;
+    } 
 
-        
-    } else if (PeekNextTokenP(fptr) == LPAREN) {
-        GetNextTokenP(fptr);
-
-        operandNode = Expr(fptr);
-        if (!operandNode) {
-            if (PARSE_ERROR == ERRP)
-                return ERROR_MESSAGE("Invalid Expr in Primary", 0);
-            return PARSE_FAIL(NAP);
-        }
-
-        if (PeekNextTokenP(fptr) != RPAREN) {
-            PARSE_FAIL(ERRP);
-            return ERROR_MESSAGE("Invalid RPAREN in Primary", 1, operandNode) ;
-        }
-    }
-
-    return operandNode; 
+    printf("Failed to Parse Primary, Climbing Tree\n");
+    return PARSE_FAIL(NAP);
 }
 
 /* ---------- Etc ---------- */
 
 ASTNode* Type(FILE* fptr) 
 {
+    printf("Entering Type\n");
+    PARSE_ERROR = VALID;
     if (ValidTokType(TYPES, TYPES_COUNT, PeekNextTokenP(fptr)) != VALID) 
         return PARSE_FAIL(NAP);
 
@@ -1216,6 +1298,8 @@ ASTNode* Type(FILE* fptr)
 
 ASTNode* ArgList(FILE* fptr) 
 {
+    printf("Entering ArgList\n");
+    PARSE_ERROR = VALID;
     ASTNode* exprNode = Expr(fptr);
     if (!exprNode) {
         if (PARSE_ERROR == ERRP)
@@ -1245,6 +1329,8 @@ ASTNode* ArgList(FILE* fptr)
 
 ASTNode* VarList(FILE* fptr) 
 {
+    printf("Entering VarList\n");
+    PARSE_ERROR = VALID;
     ASTNode* varNode = Expr(fptr);
     if (!varNode) {
         if (PARSE_ERROR == ERRP)
@@ -1274,8 +1360,9 @@ ASTNode* VarList(FILE* fptr)
 
 ASTNode* Var(FILE* fptr) 
 {
+    printf("Entering Var\n");
+    PARSE_ERROR = VALID;
     ASTNode* varNode;
-
     if (PeekNextTokenP(fptr) != IDENT) {
         if (PARSE_ERROR == ERRP) 
             return ERROR_MESSAGE("Invalid IDENT in Var", 0);
