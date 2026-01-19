@@ -46,8 +46,7 @@ AST* ASTInit();
 int ASTFree();
 
 ASTNode* InitASTNode();
-int ASTMakeTokNode(ASTNode* node, Token t);
-int ASTPushChildNode(ASTNode* node, ASTNode* child, NodeType type);
+int ASTPushChildNode(ASTNode* node, ASTNode* child);
 int ASTFreeNodes(int count, ...);
 
 #endif 

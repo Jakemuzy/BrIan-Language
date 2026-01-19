@@ -14,9 +14,10 @@
 
 /* ----------- ERRORS ---------- */
 
-ParseResult PARESE_VALID(ASTNode* node)
+ParseResult PARSE_VALID(ASTNode* node, NodeType type)
 {
     ParseResult result = {VALID, node};
+    result.node->type = type;
     return result;
 }
 
@@ -52,14 +53,21 @@ ParseResult IdentNode(Token tok)
 {
     ASTNode* identNode = InitASTNode();
     identNode->token = tok;
-    return PARSE_VALID(identNode);
+    return PARSE_VALID(identNode, IDENT_NODE);
+}
+
+ParseResult ExprNode(Token tok)
+{
+    ASTNode* exprNode = InitASTNode();
+    exprNode->token = tok;
+    return PARSE_VALID(exprNode, EXPR_NODE);
 }
 
 ParseResult EmptyNode()
 {
     ASTNode* emptyNode = InitASTNode();
     emptyNode->type = EMPTY_NODE;
-    return PARSE_VALID(emptyNode)
+    return PARSE_VALID(emptyNode, EMPTY_NODE)
 }
 
 
@@ -140,11 +148,11 @@ ParseResult Function(FILE* fptr)
     }
 
     ASTNode* funcNode = InitASTNode();
-    ASTPushChildNode(funcNode, typeNode.node, TYPE_NODE);
-    ASTPushChildNode(funcNode, identNode.node, IDENT_NODE);
-    ASTPushChildNode(funcNode, paramListNode.node, PARAM_LIST_NODE);
-    ASTPushChildNode(funcNode, bodyNode.node, BODY_NODE);
-    return PARSE_VALID(funcNode);
+    ASTPushChildNode(funcNode, typeNode.node);
+    ASTPushChildNode(funcNode, identNode.node);
+    ASTPushChildNode(funcNode, paramListNode.node);
+    ASTPushChildNode(funcNode, bodyNode.node);
+    return PARSE_VALID(funcNode, FUNC_NODE);
 }
 
 ParseResult ParamList(FILE* fptr)
@@ -160,7 +168,7 @@ ParseResult ParamList(FILE* fptr)
         return PARSE_NAP();
 
     ASTNode* paramListNode = InitASTNode();
-    ASTPushChildNode(paramListNode, paramNode.node, PARAM_NODE);
+    ASTPushChildNode(paramListNode, paramNode.node);
 
     while(true)
     {
@@ -173,10 +181,10 @@ ParseResult ParamList(FILE* fptr)
             ASTFreeNodes(2, paramNode.node, paramListNode);
             return PARSE_ERRP("Invalid Param in ParamList");
         }
-        ASTPushChildNode(paramListNode, paramNode.node, PARAM_NODE);
+        ASTPushChildNode(paramListNode, paramNode.node);
     }
 
-    return PARSE_VALID(paramListNode);
+    return PARSE_VALID(paramListNode, PARAM_LIST_NODE);
 }
 
 ParseResult Param(FILE* fptr)
@@ -196,9 +204,9 @@ ParseResult Param(FILE* fptr)
     ParseResult identNode = IdentNode(GetNextTokenP(fptr));
 
     ASTNode* paramNode = InitASTNode();
-    ASTPushChildNode(paramNode, typeNode.node, TYPE_NODE);
-    ASTPushChildNode(paramNode, identNode.node, IDENT_NODE);
-    return PARSE_VALID(paramNode);;
+    ASTPushChildNode(paramNode, typeNode.node);
+    ASTPushChildNode(paramNode, identNode.node);
+    return PARSE_VALID(paramNode, PARAM_NODE);;
 }
 
 /* ---------- Statements ----------- */
@@ -221,8 +229,8 @@ ParseResult Body(FILE* fptr)
     }
 
     ASTNode* bodyNode = InitASTNode();
-    ASTPushChildNode(bodyNode, stmtListNode.node, STMT_LIST_NODE);
-    return PARSE_VALID(bodyNode);
+    ASTPushChildNode(bodyNode, stmtListNode.node);
+    return PARSE_VALID(bodyNode, BODY_NODE);
 }
 
 ParseResult StmtList(FILE* fptr)
@@ -232,81 +240,79 @@ ParseResult StmtList(FILE* fptr)
     ASTNode* stmtListNode = InitASTNode();
 
     while (true) {
-        if (PeekNextTokenP(fptr) == RBRACK) /* Clear Error, not all StmtList Callers end with RBRACK */
-            return PARSE_FAIL(NAP);     /* Could Fix by having them all be bodies instead (Case and Default) */
+        if (PeekNextTokenP(fptr) == RBRACK)
+            return PARSE_NAP();
 
         ParseResult stmtNode = Stmt(fptr);
-        if (stmtNode) {
-            ASTPushChildNode(stmtListNode, stmtNode, STMT_NODE);
+        if (stmtNode.status == VALID) {
+            ASTPushChildNode(stmtListNode, stmtNode.node);
             continue;
-        }
-
-        if (PARSE_ERROR == NAP)
+        } else if (stmtNode.status == NAP)
             break;
 
-        return ERROR_MESSAGE("Invalid Stmt in StmtList", 1, stmtListNode);
+        ASTFreeNodes(2, stmtNode.node, stmtListNode);
+        return PARSE_ERRP("Invalid Stmt in StmtList");
     }
 
-    return stmtListNode;
+    return PARSE_VALID(stmtListNode, STMT_LIST_NODE);
 }
 
 ParseResult Stmt(FILE* fptr)
 {
     printf("Entering Stmt\n");
-    
+
     ParseResult ctrlStmtNode = CtrlStmt(fptr);
-    if (ctrlStmtNode)
-        return ctrlStmtNode;
-    else if (PARSE_ERROR == ERRP)
-        return ERROR_MESSAGE("Invalid CtrlStmt in Stmt", 0);
+    if (ctrlStmtNode.status == VALID)
+        return PARSE_VALID(ctrlStmtNode.node, CTRL_STMT_NODE);
+    else if (ctrlStmtNode.status == ERRP)
+        return PARSE_ERRP("Invalid CtrlStmt in Stmt");
 
     ParseResult declStmtNode = DeclStmt(fptr);
-    if (declStmtNode)
-        return declStmtNode;
-    else if (PARSE_ERROR == ERRP)
-        return ERROR_MESSAGE("Invalid DeclStmt in Stmt", 0);
+    if (declStmtNode.status == VALID)
+        return PARSE_VALID(declStmtNode.node, DECL_STMT_NODE);
+    else if (declStmtNode.status == ERRP)
+        return PARSE_ERRP("Invalid DeclStmt in Stmt");
 
     ParseResult exprStmtNode = ExprStmt(fptr);
-    if (exprStmtNode)
-        return exprStmtNode;
-    else if (PARSE_ERROR == ERRP)
-        return ERROR_MESSAGE("Invalid ExprStmt in Stmt", 0);
+    if (exprStmtNode.status == VALID)
+        return PARSE_VALID(exprStmtNode.node, EXPR_STMT_NODE);
+    else if (exprStmtNode.status == ERRP)
+        return PARSE_ERRP("Invalid ExprStmt in Stmt");
 
     ParseResult returnStmtNode = ReturnStmt(fptr);
-    if (returnStmtNode)
-        return returnStmtNode;
-    else if (PARSE_ERROR == ERRP)
-        return ERROR_MESSAGE("Invalid ReturnStmt in Stmt", 0);
+    if (returnStmtNode.status == VALID)
+        return PARSE_VALID(returnStmtNode.node, RETURN_STMT_NODE);
+    else if (returnStmtNode.status == ERRP)
+        return PARSE_ERRP("Invalid ReturnStmt in Stmt");
  
-    return PARSE_FAIL(NAP);
+    return PARSE_NAP();
 }
 
 ParseResult ExprStmt(FILE* fptr)
 {
     printf("Entering ExprStmt\n");
-    
+
     if (PeekNextTokenP(fptr) == SEMI) {
         GetNextTokenP(fptr);
-        ParseResult emptyNode = InitASTNode();
-        emptyNode->type = EMPTY_NODE;
-        return emptyNode;
+        return EmptyNode();
     }
-
+    
     ParseResult exprNode = Expr(fptr);
-    if (!exprNode) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid Expr in ExprStmt", 0);
-        printf("Exiting Expr\n");
-        return PARSE_FAIL(NAP);
-    }
-    exprNode->type = EXPR_NODE;
+    if (exprNode.status == ERRP) 
+        return PARSE_ERRP("Invalid Expr in ExprStmt");
+    else if (exprNode.status == NAP)
+        return PARSE_NAP();
 
-    if(CompareToken(fptr, SEMI, "Semicolon missing in ExprStmt", ERRP) != VALID) {
-        ASTFreeNodes(1, exprNode);
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != SEMI) {
+        ASTFreeNodes(1, exprNode.node);
+        return PARSE_ERRP("No Semicolon after Expr in ExprStmt");
     }
+    GetNextTokenP(fptr);
 
-    return exprNode;
+    ASTNode* stmt = InitASTNode();
+    ASTPushChildNode(stmt, exprNode.node);
+
+    return PARSE_VALID(exprNode.node, EXPR_STMT_NODE);
 }
 
 ParseResult DeclStmt(FILE* fptr)
@@ -314,28 +320,26 @@ ParseResult DeclStmt(FILE* fptr)
     printf("Enter DeclStmt\n");
     
     ParseResult typeNode = Type(fptr);
-    if (!typeNode) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid Type in DeclStmt", 0);
-        return PARSE_FAIL(NAP);
-    }
+    if (typeNode.status == ERRP)
+        return PARSE_ERRP("Invalid Type in DeclStmt");
+    else if (typeNode.status == NAP)
+        return PARSE_NAP();
 
     ParseResult varListNode = VarList(fptr);
-    if (!varListNode) {
-        ERROR_MESSAGE("Invalid VarList in DeclStmt", 1, typeNode);
-        return PARSE_FAIL(ERRP);
+    if (varListNode.status != VALID) {
+        ASTFreeNodes(1, typeNode.node);
+        return PARSE_ERRP("invalid VarList in DeclStmt");
     }
 
-    if (CompareToken(fptr, SEMI, "Semicolon missing in DeclStmt", ERRP) != VALID) {
+    if (PeekNextTokenP(fptr) != SEMI) {
         ASTFreeNodes(2, typeNode, varListNode);
-        return PARSE_FAIL(ERRP);
+        return PARSE_ERRP("Semicolon missing in DeclStmt");
     }
 
-    ParseResult declStmtNode = InitASTNode();
-    declStmtNode->type = DECL_STMT_NODE;
-    ASTPushChildNode(declStmtNode, typeNode, TYPE_NODE);
-    ASTPushChildNode(declStmtNode, varListNode, VAR_LIST_NODE);
-    return declStmtNode;
+    ASTNode* declStmtNode = InitASTNode();
+    ASTPushChildNode(declStmtNode, typeNode.node);
+    ASTPushChildNode(declStmtNode, varListNode.node);
+    return PARSE_VALID(declStmtNode, DECL_STMT_NODE);
 }
 
 ParseResult CtrlStmt(FILE* fptr) 
