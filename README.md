@@ -115,6 +115,24 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 ---
 ## Presedence And Associativity
     Similar to C, but simplier 
+    | Precedence | Operators / Constructs                                     | Associativity    |
+    |-----------:|-----------------------------------------------------------|----------------|
+    | 1 (lowest) | `=` `+=` `-=` `*=` `/=` `%=` `<<=` `>>=` `&=` `^=` `|=` `&&=` `||=` | Right-to-left  |
+    | 2          | `||`                                                      | Left-to-right  |
+    | 3          | `&&`                                                      | Left-to-right  |
+    | 4          | `|`                                                       | Left-to-right  |
+    | 5          | `^`                                                       | Left-to-right  |
+    | 6          | `&`                                                       | Left-to-right  |
+    | 7          | `==` `!=`                                                 | Left-to-right  |
+    | 8          | `>` `<` `>=` `<=`                                         | Left-to-right  |
+    | 9          | `<<` `>>`                                                 | Left-to-right  |
+    | 10         | `+` `-`                                                   | Left-to-right  |
+    | 11         | `*` `/` `%`                                               | Left-to-right  |
+    | 12         | `**`                                                      | Right-to-left  |
+    | 13         | Prefix: `++` `--` `+` `-` `!` `~` `*` `&` Cast            | Right-to-left  |
+    | 14         | Postfix: `++` `--` `$` Index `CallFunc`                   | Left-to-right  |
+    | 15 (highest)| Primary: `IDENT` `DECIMAL` `INTEGRAL` `SLITERAL` `CLITERAL` `(` `Expr` `)` | N/A            |
+
 
 ### NOTES
     BrIan is type safe
@@ -132,13 +150,13 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 ---
 
 `
-DATA TYPES:
+DATA TYPES [WIP]:
     Integral:
         char(1), bool(1), short(2), int(4), long(8)
     Decimal:
         float(4), double(8)
     Special:
-        binary(1), hexadecimal(8), string(inf), safeptr(inf), struct(inf), enum(inf), thread(inf)
+        binary(1), hexadecimal(8), string(inf), safeptr(inf), struct(inf), enum(inf)
 
 TYPE QUALIFIERS:
     unsigned, signed, const, new
