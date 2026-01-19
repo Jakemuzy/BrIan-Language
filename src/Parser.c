@@ -96,12 +96,12 @@ AST* Program(FILE* fptr)
             continue;
         }
         else if (declStmtNode.status == ERRP) {
-            printf("Invalid DeclStmt in Global Scope");
+            DEBUG_MESSAGE("Invalid DeclStmt in Global Scope");
             ASTFreeNodes(1, progNode);
             return NULL;
         }
 
-        printf("Failed to Parse AST\n");
+        DEBUG_MESSAGE("Failed to Parse AST\n");
         ASTFreeNodes(1, progNode);
         return NULL;
     }
@@ -112,7 +112,7 @@ AST* Program(FILE* fptr)
 
 ParseResult Function(FILE* fptr)
 {
-    printf("Starting Function\n");
+    DEBUG_MESSAGE("Starting Function\n");
     ParseResult typeNode = Type(fptr);
     if (typeNode.status == ERRP)
         return PARSE_ERRP("Invalid Type in Function");
@@ -159,7 +159,7 @@ ParseResult Function(FILE* fptr)
 
 ParseResult ParamList(FILE* fptr)
 {
-    printf("Starting ParamList\n");
+    DEBUG_MESSAGE("Starting ParamList\n");
     if (PeekNextTokenP(fptr) == RPAREN) 
         return EmptyNode();
     
@@ -191,7 +191,7 @@ ParseResult ParamList(FILE* fptr)
 
 ParseResult Param(FILE* fptr)
 {
-    printf("Starting Param\n");
+    DEBUG_MESSAGE("Starting Param\n");
 
     ParseResult typeNode = Type(fptr);
     if (typeNode.status == ERRP)
@@ -215,7 +215,7 @@ ParseResult Param(FILE* fptr)
 
 ParseResult Body(FILE* fptr)
 {
-    printf("Entering Body\n");
+    DEBUG_MESSAGE("Entering Body\n");
     
     if (PeekNextTokenP(fptr) != LBRACK)
         return PARSE_NAP();
@@ -238,7 +238,7 @@ ParseResult Body(FILE* fptr)
 
 ParseResult StmtList(FILE* fptr)
 {
-    printf("Entering StmtList\n");
+    DEBUG_MESSAGE("Entering StmtList\n");
     
     ASTNode* stmtListNode = InitASTNode();
 
@@ -262,7 +262,7 @@ ParseResult StmtList(FILE* fptr)
 
 ParseResult Stmt(FILE* fptr)
 {
-    printf("Entering Stmt\n");
+    DEBUG_MESSAGE("Entering Stmt\n");
 
     ParseResult ctrlStmtNode = CtrlStmt(fptr);
     if (ctrlStmtNode.status == VALID)
@@ -293,7 +293,7 @@ ParseResult Stmt(FILE* fptr)
 
 ParseResult ExprStmt(FILE* fptr)
 {
-    printf("Entering ExprStmt\n");
+    DEBUG_MESSAGE("Entering ExprStmt\n");
 
     if (PeekNextTokenP(fptr) == SEMI) {
         GetNextTokenP(fptr);
@@ -320,7 +320,7 @@ ParseResult ExprStmt(FILE* fptr)
 
 ParseResult DeclStmt(FILE* fptr)
 {
-    printf("Enter DeclStmt\n");
+    DEBUG_MESSAGE("Enter DeclStmt\n");
     
     ParseResult typeNode = Type(fptr);
     if (typeNode.status == ERRP)
@@ -348,7 +348,7 @@ ParseResult DeclStmt(FILE* fptr)
 
 ParseResult CtrlStmt(FILE* fptr) 
 {
-    printf("Entering CtrlStmt\n");
+    DEBUG_MESSAGE("Entering CtrlStmt\n");
     
     ParseResult ifStmtNode = IfStmt(fptr);
     if (ifStmtNode.status == VALID)
@@ -380,13 +380,13 @@ ParseResult CtrlStmt(FILE* fptr)
     else if (forStmtNode.status == ERRP)
         return PARSE_ERRP("Invalid ForStmt in Stmt");
 
-    printf("Not a CtrlStmt\n");
+    DEBUG_MESSAGE("Not a CtrlStmt\n");
     return PARSE_NAP();
 }
 
 ParseResult ReturnStmt(FILE* fptr) 
 {
-    printf("Entering ReturnStmt\n");
+    DEBUG_MESSAGE("Entering ReturnStmt\n");
     
     if (PeekNextTokenP(fptr) != RET)
         return PARSE_NAP();
@@ -414,7 +414,7 @@ ParseResult ReturnStmt(FILE* fptr)
 
 ParseResult IfStmt(FILE* fptr) 
 {
-    printf("Entering IfStmt\n");
+    DEBUG_MESSAGE("Entering IfStmt\n");
     
     ASTNode* ifStmtNode = InitASTNode();
 
@@ -451,7 +451,7 @@ ParseResult IfStmt(FILE* fptr)
 
 ParseResult IfElifElse(FILE* fptr, TokenType type) 
 {
-    printf("Entering IfElifElse\n");
+    DEBUG_MESSAGE("Entering IfElifElse\n");
     
     if (PeekNextTokenP(fptr) != type)
         return PARSE_NAP();
@@ -499,7 +499,7 @@ ParseResult IfElifElse(FILE* fptr, TokenType type)
 
 ParseResult SwitchStmt(FILE* fptr) 
 {
-    printf("Entering SwtichStmt\n");
+    DEBUG_MESSAGE("Entering SwtichStmt\n");
     
     ASTNode* switchStmtNode = InitASTNode();
 
@@ -563,7 +563,7 @@ ParseResult SwitchStmt(FILE* fptr)
 
 ParseResult Case(FILE* fptr) 
 {
-    printf("Entering Case\n");
+    DEBUG_MESSAGE("Entering Case\n");
     
     if (PeekNextTokenP(fptr) != CASE)
         return PARSE_NAP();
@@ -587,7 +587,7 @@ ParseResult Case(FILE* fptr)
 
 ParseResult Default(FILE* fptr) 
 {
-    printf("Entering Default\n");
+    DEBUG_MESSAGE("Entering Default\n");
     
     if (PeekNextTokenP(fptr) != DEFAULT)
         return PARSE_NAP();
@@ -604,7 +604,7 @@ ParseResult Default(FILE* fptr)
 
 ParseResult WhileStmt(FILE* fptr)
 {
-    printf("Entering WhileStmt\n");
+    DEBUG_MESSAGE("Entering WhileStmt\n");
     
     if (PeekNextTokenP(fptr) != WHILE)
         return PARSE_NAP();
@@ -638,7 +638,7 @@ ParseResult WhileStmt(FILE* fptr)
 
 ParseResult DoWhileStmt(FILE* fptr) 
 {
-    printf("Entering DoWhileStmt\n");
+    DEBUG_MESSAGE("Entering DoWhileStmt\n");
     
     if (PeekNextTokenP(fptr) != DO)
         return PARSE_NAP();
@@ -686,7 +686,7 @@ ParseResult DoWhileStmt(FILE* fptr)
 
 ParseResult ForStmt(FILE* fptr) 
 {
-    printf("Entering ForStmt\n");
+    DEBUG_MESSAGE("Entering ForStmt\n");
     
     /* TODO: Expr does not check for semi colon, therefore empty exprs not allowed rn
        Need to have a helper function to determine if it is valid.
@@ -764,7 +764,7 @@ ParseResult OptionalExpr(FILE* fptr)
 
 ParseResult ExprList(FILE* fptr) 
 {
-    printf("Entering ExprList\n");
+    DEBUG_MESSAGE("Entering ExprList\n");
 
     if (PeekNextTokenP(fptr) == SEMI || PeekNextTokenP(fptr) == RPAREN)     /* Empty ExprList in ForStmt */
         return EmptyNode();
@@ -798,7 +798,7 @@ ParseResult ExprList(FILE* fptr)
 
 ParseResult Expr(FILE* fptr) 
 {   
-    printf("Entering Expr\n");
+    DEBUG_MESSAGE("Entering Expr\n");
     
     /* TODO: Technically an Alias for AsgnEpxr, but allows for easier readability */
     return AsgnExpr(fptr);
@@ -806,7 +806,7 @@ ParseResult Expr(FILE* fptr)
 
 ParseResult AsgnExpr(FILE* fptr)
 {
-    printf("Entering AsgnExpr\n");
+    DEBUG_MESSAGE("Entering AsgnExpr\n");
     
     ParseResult lhs = OrlExpr(fptr);
     if (lhs.status == ERRP) 
@@ -836,7 +836,7 @@ ParseResult AsgnExpr(FILE* fptr)
 
 ParseResult OrlExpr(FILE* fptr) 
 {
-    printf("Entering OrlExpr\n");
+    DEBUG_MESSAGE("Entering OrlExpr\n");
     
     ParseResult lhs = AndlExpr(fptr);
     if (lhs.status == ERRP)
@@ -866,7 +866,7 @@ ParseResult OrlExpr(FILE* fptr)
 
 ParseResult AndlExpr(FILE* fptr)
 {
-    printf("Entering AndlExpr\n");
+    DEBUG_MESSAGE("Entering AndlExpr\n");
     
     ParseResult lhs = OrExpr(fptr);
     if (lhs.status == ERRP) 
@@ -895,7 +895,7 @@ ParseResult AndlExpr(FILE* fptr)
 
 ParseResult OrExpr(FILE* fptr)
 {
-    printf("Entering OrExpr\n");
+    DEBUG_MESSAGE("Entering OrExpr\n");
     
     ParseResult lhs = XorExpr(fptr);
     if (lhs.status == ERRP)
@@ -924,7 +924,7 @@ ParseResult OrExpr(FILE* fptr)
 
 ParseResult XorExpr(FILE* fptr)
 {
-    printf("Entering XorExpr\n");
+    DEBUG_MESSAGE("Entering XorExpr\n");
     
     ParseResult lhs = AndExpr(fptr);
     if (lhs.status == ERRP)
@@ -953,7 +953,7 @@ ParseResult XorExpr(FILE* fptr)
 
 ParseResult AndExpr(FILE* fptr) 
 {
-    printf("Entering AndExpr\n");
+    DEBUG_MESSAGE("Entering AndExpr\n");
     
     ParseResult lhs = EqqExpr(fptr);
     if (lhs.status == ERRP)
@@ -981,7 +981,7 @@ ParseResult AndExpr(FILE* fptr)
 
 ParseResult EqqExpr(FILE* fptr) 
 {
-    printf("Entering EqqExpr\n");
+    DEBUG_MESSAGE("Entering EqqExpr\n");
     
     ParseResult lhs = RelationExpr(fptr);
     if (lhs.status == ERRP)
@@ -1010,7 +1010,7 @@ ParseResult EqqExpr(FILE* fptr)
 
 ParseResult RelationExpr(FILE* fptr)
 {
-    printf("Entering RelationExpr\n");
+    DEBUG_MESSAGE("Entering RelationExpr\n");
     
     ParseResult lhs = ShiftExpr(fptr);
     if (lhs.status == ERRP)
@@ -1040,7 +1040,7 @@ ParseResult RelationExpr(FILE* fptr)
 
 ParseResult ShiftExpr(FILE* fptr)
 {
-    printf("Entering ShiftExpr\n");
+    DEBUG_MESSAGE("Entering ShiftExpr\n");
     
     ParseResult lhs = AddExpr(fptr);
     if (lhs.status == ERRP)
@@ -1070,7 +1070,7 @@ ParseResult ShiftExpr(FILE* fptr)
 
 ParseResult AddExpr(FILE* fptr)
 {
-    printf("Entering AddExpr\n");
+    DEBUG_MESSAGE("Entering AddExpr\n");
     
     ParseResult lhs = MultExpr(fptr);
     if (lhs.status == ERRP)
@@ -1098,7 +1098,7 @@ ParseResult AddExpr(FILE* fptr)
 
 ParseResult MultExpr(FILE* fptr)
 {
-    printf("Entering MultExpr\n");
+    DEBUG_MESSAGE("Entering MultExpr\n");
     
     ParseResult lhs = PowExpr(fptr);
     if (lhs.status == ERRP)
@@ -1126,7 +1126,7 @@ ParseResult MultExpr(FILE* fptr)
 
 ParseResult PowExpr(FILE* fptr)
 {
-    printf("Entering PowExpr\n");
+    DEBUG_MESSAGE("Entering PowExpr\n");
     
     ParseResult lhs = Prefix(fptr);
     if (lhs.status == ERRP)
@@ -1154,7 +1154,7 @@ ParseResult PowExpr(FILE* fptr)
 
 ParseResult Prefix(FILE* fptr)
 {
-    printf("Entering Prefix\n");
+    DEBUG_MESSAGE("Entering Prefix\n");
     
     /* TODO: Add Casts */
 
@@ -1181,7 +1181,7 @@ ParseResult Prefix(FILE* fptr)
 
 ParseResult Postfix(FILE* fptr)
 {
-    printf("Entering Postfix\n");
+    DEBUG_MESSAGE("Entering Postfix\n");
     
     /* TODO: Include Array Indexing and Function Calling */
     ParseResult lhs = Primary(fptr);
@@ -1238,7 +1238,7 @@ ParseResult CallFunc(FILE* fptr, ASTNode* callee)
 
 ParseResult Primary(FILE* fptr)
 {
-    printf("Entering Primary\n");
+    DEBUG_MESSAGE("Entering Primary\n");
     
     /* TODO: Clean up Expr */
 
@@ -1265,7 +1265,7 @@ ParseResult Primary(FILE* fptr)
         return exprNode;
     }
 
-    printf("Failed to Parse Primary, Climbing Tree\n");
+    DEBUG_MESSAGE("Failed to Parse Primary, Climbing Tree\n");
     return PARSE_NAP();
 }
 
@@ -1273,7 +1273,7 @@ ParseResult Primary(FILE* fptr)
 
 ParseResult Type(FILE* fptr) 
 {
-    printf("Entering Type\n");
+    DEBUG_MESSAGE("Entering Type\n");
     
     if (ValidTokType(TYPES, TYPES_COUNT, PeekNextTokenP(fptr)) != VALID) 
         return PARSE_NAP();
@@ -1285,7 +1285,7 @@ ParseResult Type(FILE* fptr)
 
 ParseResult ArgList(FILE* fptr) 
 {
-    printf("Entering ArgList\n");
+    DEBUG_MESSAGE("Entering ArgList\n");
     if (PeekNextTokenP(fptr) == RPAREN) 
         return EmptyNode();
     
@@ -1317,7 +1317,7 @@ ParseResult ArgList(FILE* fptr)
 
 ParseResult VarList(FILE* fptr) 
 {
-    printf("Entering VarList\n");
+    DEBUG_MESSAGE("Entering VarList\n");
     
     ParseResult varNode = Var(fptr);
     if (varNode.status == ERRP)
@@ -1348,7 +1348,7 @@ ParseResult VarList(FILE* fptr)
 
 ParseResult Var(FILE* fptr) 
 {
-    printf("Entering Var\n");
+    DEBUG_MESSAGE("Entering Var\n");
     
     if (PeekNextTokenP(fptr) != IDENT) 
         return PARSE_NAP();

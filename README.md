@@ -38,9 +38,12 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     - Macros
 
 
-## BUILDING:
-    1.) Make sure to have gcc installed
-    2.) ...
+## BUILDING [WIP]:
+    1.) Make sure to have gcc and cmake installed
+    2.) Compile the source code for your machine 
+    3.) Run bcc on your .b file 
+        ie.) ./bcc TestCases.b
+    4.) ...
 
 ## DOCUMENTATION:
 
@@ -111,7 +114,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
 ---
 ## Presedence And Associativity
-
+    Similar to C, but simplier 
 
 ### NOTES
     BrIan is type safe
@@ -121,8 +124,10 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
     - [x] Tokenizer
     - [ ] All Tokens implemented
-    - [ ] Parser and AST
-    - [ ] Conversion to RISC V
+    - [ ] Proper Preprocessor 
+    - [x] Parser and AST
+    - [ ] Conversion to RISC V 
+    - [ ] [OPTIONAL] Conversion to LLVM IR
 
 ---
 
