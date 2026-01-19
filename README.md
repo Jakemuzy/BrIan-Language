@@ -113,25 +113,27 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 ```
 
 ---
-## Presedence And Associativity
-    Similar to C, but simplier 
-    | Precedence | Operators / Constructs                                     | Associativity    |
-    |-----------:|-----------------------------------------------------------|----------------|
-    | 1 (lowest) | `=` `+=` `-=` `*=` `/=` `%=` `<<=` `>>=` `&=` `^=` `|=` `&&=` `||=` | Right-to-left  |
-    | 2          | `||`                                                      | Left-to-right  |
-    | 3          | `&&`                                                      | Left-to-right  |
-    | 4          | `|`                                                       | Left-to-right  |
-    | 5          | `^`                                                       | Left-to-right  |
-    | 6          | `&`                                                       | Left-to-right  |
-    | 7          | `==` `!=`                                                 | Left-to-right  |
-    | 8          | `>` `<` `>=` `<=`                                         | Left-to-right  |
-    | 9          | `<<` `>>`                                                 | Left-to-right  |
-    | 10         | `+` `-`                                                   | Left-to-right  |
-    | 11         | `*` `/` `%`                                               | Left-to-right  |
-    | 12         | `**`                                                      | Right-to-left  |
-    | 13         | Prefix: `++` `--` `+` `-` `!` `~` `*` `&` Cast            | Right-to-left  |
-    | 14         | Postfix: `++` `--` `$` Index `CallFunc`                   | Left-to-right  |
-    | 15 (highest)| Primary: `IDENT` `DECIMAL` `INTEGRAL` `SLITERAL` `CLITERAL` `(` `Expr` `)` | N/A            |
+## Precedence and Associativity
+Similar to C, but simpler.
+
+| Precedence     | Operators / Constructs                                      | Associativity    |
+|---------------:|------------------------------------------------------------|----------------|
+| 1 (lowest)     | `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `<<=`, `>>=`, `&=`, `^=`, `|=`, `&&=`, `||=` | Right-to-left  |
+| 2              | `||`                                                      | Left-to-right  |
+| 3              | `&&`                                                      | Left-to-right  |
+| 4              | `|`                                                       | Left-to-right  |
+| 5              | `^`                                                       | Left-to-right  |
+| 6              | `&`                                                       | Left-to-right  |
+| 7              | `==`, `!=`                                                | Left-to-right  |
+| 8              | `>`, `<`, `>=`, `<=`                                      | Left-to-right  |
+| 9              | `<<`, `>>`                                                | Left-to-right  |
+| 10             | `+`, `-`                                                  | Left-to-right  |
+| 11             | `*`, `/`, `%`                                             | Left-to-right  |
+| 12             | `**`                                                      | Right-to-left  |
+| 13             | Prefix: `++`, `--`, `+`, `-`, `!`, `~`, `*`, `&`, Cast   | Right-to-left  |
+| 14             | Postfix: `++`, `--`, `$`, Index, CallFunc                 | Left-to-right  |
+| 15 (highest)   | Primary: `IDENT`, `DECIMAL`, `INTEGRAL`, `SLITERAL`, `CLITERAL`, `(` `Expr` `)` | N/A            |
+
 
 
 ### NOTES
