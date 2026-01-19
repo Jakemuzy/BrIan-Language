@@ -205,7 +205,7 @@ void DoWhileStmts()
 
 void ForStmts()
 {
-    for (;;) ;
+    for (;;) { }
     for (; x < y; ) {
         x = x + 1;
     }

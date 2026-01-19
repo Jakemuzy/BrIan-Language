@@ -7,6 +7,8 @@
 
 /* ---------- Error Propogation ----------*/
 
+static bool DEBUG = false;
+
 typedef enum ParseStatus {
     VALID, 
     NAP,    /* Not applicable */
@@ -23,6 +25,9 @@ ParseResult PARSE_VALID(ASTNode* node, NodeType type);
 ParseResult PARSE_NAP();
 ParseResult PARSE_ERRP(char* message);
 #define ERROR_MESSAGE(message) printf("ERROR: %s, on line...\n", message);
+#define DEBUG_MESSAGE(message) do { \
+        if (DEBUG == true)  { printf("%s", message); }\
+    while(0)
 
 /* ---------- Helpers ---------- */
 
@@ -58,6 +63,7 @@ ParseResult SwitchStmt(FILE* fptr);
 ParseResult WhileStmt(FILE* fptr);
 ParseResult DoWhileStmt(FILE* fptr);
 ParseResult ForStmt(FILE* fptr);
+    ParseResult OptionalExpr(FILE* fptr);
 
 ParseResult ExprList(FILE* fptr);
 ParseResult Expr(FILE* fptr);
