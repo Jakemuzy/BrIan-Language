@@ -56,13 +56,6 @@ ParseResult IdentNode(Token tok)
     return PARSE_VALID(identNode, IDENT_NODE);
 }
 
-ParseResult ExprNode(Token tok)
-{
-    ASTNode* exprNode = InitASTNode();
-    exprNode->token = tok;
-    return PARSE_VALID(exprNode, EXPR_NODE);
-}
-
 ParseResult EmptyNode()
 {
     ASTNode* emptyNode = InitASTNode();
@@ -70,6 +63,12 @@ ParseResult EmptyNode()
     return PARSE_VALID(emptyNode, EMPTY_NODE)
 }
 
+ParseResult ArbitraryNode(Token tok, NodeType type)
+{
+    ASTNode* arbitraryNode = InitASTNode();
+    arbitraryNode->token = tok;
+    return PARSE_VALID(arbitraryNode, type);
+}
 
 /* ---------- EBNF ---------- */
 
@@ -201,6 +200,8 @@ ParseResult Param(FILE* fptr)
         ASTFreeNodes(1, typeNode.node);
         return PARSE_ERRP("Param does not have a name");
     }
+    GetNextTokenP(fptr);
+
     ParseResult identNode = IdentNode(GetNextTokenP(fptr));
 
     ASTNode* paramNode = InitASTNode();
@@ -227,6 +228,7 @@ ParseResult Body(FILE* fptr)
         ASTFreeNodes(1, stmtListNode.node);
         return PARSE_ERRP("Missing Right Bracket in Body");
     }
+    GetNextTokenP(fptr);
 
     ASTNode* bodyNode = InitASTNode();
     ASTPushChildNode(bodyNode, stmtListNode.node);
@@ -240,7 +242,7 @@ ParseResult StmtList(FILE* fptr)
     ASTNode* stmtListNode = InitASTNode();
 
     while (true) {
-        if (PeekNextTokenP(fptr) == RBRACK)
+        if (PeekNextTokenP(fptr) == RBRACK) /* Assume all StmtLists are followed by RBRACK */
             return PARSE_NAP();
 
         ParseResult stmtNode = Stmt(fptr);
@@ -335,6 +337,7 @@ ParseResult DeclStmt(FILE* fptr)
         ASTFreeNodes(2, typeNode, varListNode);
         return PARSE_ERRP("Semicolon missing in DeclStmt");
     }
+    GetNextTokenP(fptr);
 
     ASTNode* declStmtNode = InitASTNode();
     ASTPushChildNode(declStmtNode, typeNode.node);
@@ -347,36 +350,36 @@ ParseResult CtrlStmt(FILE* fptr)
     printf("Entering CtrlStmt\n");
     
     ParseResult ifStmtNode = IfStmt(fptr);
-    if (ifStmtNode)
-        return ifStmtNode;
-    else if (PARSE_ERROR == ERRP)
-        return ERROR_MESSAGE("Invalid IfStmt in Stmt", 0);
+    if (ifStmtNode.status == VALID)
+        return PARSE_VALID(ifStmtNode.node, IF_STMT_NODE);
+    else if (ifStmtNode.status == ERRP)
+        return PARSE_ERRP("Invalid IfStmt in Stmt");
 
     ParseResult switchStmtNode = SwitchStmt(fptr);
-    if (switchStmtNode)
-        return switchStmtNode;
-    else if (PARSE_ERROR == ERRP)
-        return ERROR_MESSAGE("Invalid SwitchStmt in Stmt", 0);
+    if (switchStmtNode.status = VALID)
+        return PARSE_VALID(switchStmtNode.node, SWITCH_STMT_NODE);
+    else if (switchStmtNode.status == ERRP)
+        return PARSE_ERRP("Invalid SwitchStmt in Stmt");
 
     ParseResult whileStmtNode = WhileStmt(fptr);
-    if (whileStmtNode)
-        return whileStmtNode;
-    else if (PARSE_ERROR == ERRP)
-        return ERROR_MESSAGE("Invalid WhileStmt in Stmt", 0);
+    if (whileStmtNode.status == VALID)
+        return PARSE_VALID(whileStmtNode.node, WHILE_STMT_NODE);
+    else if (whileStmtNode.status == ERRP)
+        return PARSE_ERRP("Invalid WhileStmt in Stmt");
 
     ParseResult doWhileStmtNode = DoWhileStmt(fptr);
-    if (doWhileStmtNode)
-        return doWhileStmtNode;
-    else if (PARSE_ERROR == ERRP)
-        return ERROR_MESSAGE("Invalid DoWhileStmt in Stmt", 0);
+    if (doWhileStmtNode.status == VALID)
+        return PARSE_VALID(doWhileStmtNode.node, DO_WHILE_STMT_NODE);
+    else if (doWhileStmtNode.status == ERRP)
+        return  PARSE_ERRP("Invalid DoWhileStmt in Stmt");
 
     ParseResult forStmtNode = ForStmt(fptr);
-    if (forStmtNode)
-        return forStmtNode;
-    else if (PARSE_ERROR == ERRP)
-        return ERROR_MESSAGE("Invalid ForStmt in Stmt", 0);
+    if (forStmtNode.node == VALID)
+        return PARSE_VALID(forStmtNode.node, FOR_STMT_NODE);
+    else if (forStmtNode.status == ERRP)
+        return PARSE_ERRP("Invalid ForStmt in Stmt");
  
-    return PARSE_FAIL(NAP);
+    return PARSE_NAP();
 }
 
 ParseResult ReturnStmt(FILE* fptr) 
@@ -384,66 +387,63 @@ ParseResult ReturnStmt(FILE* fptr)
     printf("Entering ReturnStmt\n");
     
     if (PeekNextTokenP(fptr) != RET)
-        return PARSE_FAIL(NAP);
+        return PARSE_NAP();
     GetNextTokenP(fptr);
 
+    if (PeekNextTokenP(fptr) == SEMI) {
+        GetNextTokenP(fptr);
+        return EmptyNode();
+    }
+
     ParseResult exprNode = Expr(fptr);
-    if (!exprNode) {
-
-        if (PARSE_ERROR == ERRP) 
-            return ERROR_MESSAGE("Invalid Expr in ReturnStmt", 0);
-         
-        exprNode = InitASTNode();
-        exprNode->type = EMPTY_NODE;
+    if (exprNode.status != VALID)
+        return PARSE_ERRP("Invalid Expr in ReturnStmt");
+    
+    if (PeekNextTokenP(fptr) != SEMI) {
+        ASTFreeNodes(1, exprNode.node);
+        return PARSE_ERRP("No semicolon in ReturnStmt");
     }
+    GetNextTokenP(fptr);
 
-    if (CompareToken(fptr, SEMI, "Semicolon missing in ReturnStmt", ERRP) != VALID) {
-        ASTFreeNodes(1, exprNode);
-        return PARSE_FAIL(ERRP);
-    }
-
-    ParseResult returnStmtNode = InitASTNode();
-    returnStmtNode->type = RETURN_STMT_NODE;
-    ASTPushChildNode(returnStmtNode, exprNode, EXPR_NODE);
-
-    return returnStmtNode;
+    ASTNode* returnStmtNode = InitASTNode();
+    ASTPushChildNode(returnStmtNode, exprNode.node);
+    return PARSE_VALID(returnStmtNode, RETURN_STMT_NODE);
 }
 
 ParseResult IfStmt(FILE* fptr) 
 {
     printf("Entering IfStmt\n");
     
-    ParseResult ifStmtNode = InitASTNode();
-    ifStmtNode->type = IF_STMT_NODE;
+    ASTNode* ifStmtNode = InitASTNode();
 
     ParseResult ifNode = IfElifElse(fptr, IF);
-    if (!ifNode) {
-        if (PARSE_ERROR == ERRP) 
-            return ERROR_MESSAGE("Invalid If in IfStmt", 1, ifStmtNode);
-
-        return PARSE_FAIL(NAP);
-    }
-    ASTPushChildNode(ifStmtNode, ifNode, IF_NODE);
+    if (ifNode.status == ERRP)
+        return PARSE_ERRP("Invalid IfStmt");
+    if (ifNode.status == NAP)
+        return PARSE_NAP();
+    ASTPushChildNode(ifStmtNode, ifNode.node);
 
     while (true) {
         ParseResult elifNode = IfElifElse(fptr, ELIF);
-        if (!elifNode) {
-            if (PARSE_ERROR == ERRP) 
-                return ERROR_MESSAGE("Invalid Elif in IfStmt", 2, ifNode, ifStmtNode);
-
-            break;
+        if (elifNode.status == ERRP) {
+            ASTFreeNodes(2, ifNode.node, ifStmtNode);
+            return PARSE_ERRP("Invalid Elif in IfStmt");
         }
-        ASTPushChildNode(ifStmtNode, elifNode, ELIF_NODE);
+        else if (elifNode.status == NAP)
+            break;
+
+        ASTPushChildNode(ifStmtNode, elifNode.node);
     }
 
     ParseResult elseNode = IfElifElse(fptr, ELSE);
-    if (elseNode) 
-        ASTPushChildNode(ifStmtNode, elseNode, ELSE_NODE);
-    else if (PARSE_ERROR == ERRP) {
-        return ERROR_MESSAGE("Invalid Else in IfStmt", 2, ifNode, ifStmtNode);
+    if (elseNode.status == VALID) 
+        ASTPushChildNode(ifStmtNode, elseNode.node);
+    else if (elseNode.status == ERRP) {
+        ASTFreeNodes(2, ifNode.node, ifStmtNode);
+        return PARSE_ERRP("Invalid Else in IfStmt");
     }
 
-    return ifStmtNode;
+    return PARSE_VALID(ifStmtNode, IF_STMT_NODE);
 }
 
 
@@ -452,71 +452,83 @@ ParseResult IfElifElse(FILE* fptr, TokenType type)
     printf("Entering IfElifElse\n");
     
     if (PeekNextTokenP(fptr) != type)
-        return PARSE_FAIL(NAP);
+        return PARSE_NAP();
     GetNextTokenP(fptr);
 
-    ParseResult ifElifElseNode = InitASTNode();
+    ASTNode* ifElifElseNode = InitASTNode();
 
     if (type != ELSE) {
-        if (CompareToken(fptr, LPAREN, "Missing LPAREN in IfStmt", ERRP) != VALID) {
+        if (PeekNextTokenP(fptr) != LPAREN) {
             ASTFreeNodes(1, ifElifElseNode);
-            return PARSE_FAIL(ERRP);
+            return PARSE_ERRP("Missing left parenthesis in IfStmt");
         }
+        GetNextTokenP(fptr);
 
         ParseResult exprNode = Expr(fptr);
-        if (!exprNode) {
-            ERROR_MESSAGE("Invalid Expr in IfStmt", 1, ifElifElseNode);
-            return PARSE_FAIL(ERRP);    
+        if (exprNode.status != VALID) {
+            ASTFreeNodes(1, ifElifElseNode);
+            return PARSE_ERRP("Invalid Expr in IfStmt");
         }
 
-        if (CompareToken(fptr, RPAREN, "Missing RPAREN in IfStmt", ERRP) != VALID) {
+        if (PeekNextTokenP(fptr) != RPAREN) {
             ASTFreeNodes(2, exprNode, ifElifElseNode);
-            return PARSE_FAIL(ERRP);
+            return PARSE_ERRP("Mising right parenthesis in IfStmt");
         }
+        GetNextTokenP(fptr);
 
-        ASTPushChildNode(ifElifElseNode, exprNode, EXPR_NODE);
+        ASTPushChildNode(ifElifElseNode, exprNode.node);
     }
 
     ParseResult bodyNode = Body(fptr);
-    if (!bodyNode) {
-        ERROR_MESSAGE("Invalid Body in IfStmt", 1, ifElifElseNode);
-        return PARSE_FAIL(ERRP); 
+    if (bodyNode.status != VALID) {
+        ASTFreeNodes(1, ifElifElseNode);
+        return PARSE_ERRP("Invaldi Body in IfStmt");
+        
     }
-    ASTPushChildNode(ifElifElseNode, bodyNode, BODY_NODE);
+    ASTPushChildNode(ifElifElseNode, bodyNode.node);
 
-    return ifElifElseNode;
+    NodeType nodeType;      /* A bit unorthodox, not sure if incorrect */
+    if (type == IF) nodeType = IF_NODE;
+    else if (type == ELIF) nodeType = ELIF_NODE;
+    else nodeType = ELSE_NODE;
+
+    return PARSE_VALID(ifElifElseNode, nodeType);
 }
 
 ParseResult SwitchStmt(FILE* fptr) 
 {
     printf("Entering SwtichStmt\n");
     
-    ParseResult switchStmtNode = InitASTNode();
-    switchStmtNode->type = SWITCH_STMT_NODE;
+    ASTNode* switchStmtNode = InitASTNode();
 
     if (PeekNextTokenP(fptr) != SWITCH)
-        return PARSE_FAIL(NAP);
+        return PARSE_NAP();
     GetNextTokenP(fptr);
 
-    if(CompareToken(fptr, LPAREN, "No LPAREN in SwitchStmt", ERRP) != VALID)
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != LPAREN) {
+        ASTFreeNodes(1, switchStmtNode);
+        return PARSE_ERRP("No left parenthesis in SwitchStmt");
+    }
+    GetNextTokenP(fptr);
     
     ParseResult exprNode = Expr(fptr);
-    if (!exprNode) {
-        ERROR_MESSAGE("Invalid Expr in SwtichStmt", 0);
-        return PARSE_FAIL(ERRP);
+    if (exprNode.status != VALID) {
+        ASTFreeNodes(1, switchStmtNode);
+        return PARSE_ERRP("Invalid Expr in SwitchStmt");
     }
-    ASTPushChildNode(switchStmtNode, exprNode, EXPR_NODE);
+    ASTPushChildNode(switchStmtNode, exprNode.node);
 
-    if(CompareToken(fptr, RPAREN, "No RPAREN in SwitchStmt", ERRP) != VALID) {
+    if (PeekNextTokenP(fptr) != RPAREN) {
         ASTFreeNodes(2, exprNode, switchStmtNode);
-        return PARSE_FAIL(ERRP);
+        return PARSE_ERRP("No right parenthesis in SwitchStmt");
     }
+    GetNextTokenP(fptr);
 
-    if(CompareToken(fptr, LBRACK, "No LBRACK in SwitchStmt", ERRP) != VALID) {
+    if (PeekNextTokenP(fptr) != LBRACK) {
         ASTFreeNodes(2, exprNode, switchStmtNode);
-        return PARSE_FAIL(ERRP);
+        return PARSE_ERRP("No right parenthesis in SwitchStmt");
     }
+    GetNextTokenP(fptr);
 
     while (true) {
         ParseResult caseNode = Case(fptr);
