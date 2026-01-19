@@ -1026,29 +1026,24 @@ ParseResult ShiftExpr(FILE* fptr)
     printf("Entering ShiftExpr\n");
     
     ParseResult lhs = AddExpr(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid AddExpr in ShiftExpr", 0);
-        printf("Exiting AddExpr\n");        
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP)
+        return PARSE_ERRP("Invalid AddExpr in ShiftExpr");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
-    TokenType tokType;
-    while ((tokType = PeekNextTokenP(fptr)) == LSHIFT || tokType == RSHIFT) {
+    TokenType tokType = PeekNextTokenP(fptr);;
+    while (tokType == LSHIFT || tokType == RSHIFT) {
         Token tok = GetNextTokenP(fptr);
 
         ParseResult rhs = MultExpr(fptr);
-        if (!rhs) {
-            ERROR_MESSAGE("Invalid AddExpr in ShiftExpr", 1, lhs);
-            return PARSE_FAIL(ERRP);
+        if (rhs.status != VALID) {
+            ASTFreeNodes(1, lhs.node);
+            return PARSE_ERRP("Invalid AddExpr in ShfitExpr");
         }
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE;
-        operatorNode->token = tok;
-
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
+        ASTPushChildNode(operatorNode.node, rhs.node);
 
         lhs = operatorNode;
     }
@@ -1061,29 +1056,23 @@ ParseResult AddExpr(FILE* fptr)
     printf("Entering AddExpr\n");
     
     ParseResult lhs = MultExpr(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid MultExpr in AddExpr", 0);
-        printf("Exiting MultExpr\n");        
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP)
+        return PARSE_ERRP("Invalid MultExpr in AddExpr");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
     while (ValidTokType(ADDS, ADDS_COUNT, PeekNextTokenP(fptr)) == VALID) {
         Token tok = GetNextTokenP(fptr);
 
         ParseResult rhs = MultExpr(fptr);
-        if (!rhs) {
-            ERROR_MESSAGE("Invalid AddExpr in ShiftExpr", 1, lhs);
-            return PARSE_FAIL(ERRP);
+        if (rhs.status != VALID) {
+            ASTFreeNodes(1, lhs.node);
+            return PARSE_ERRP("Invalid MultExpr in AddExpr");
         }
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE;
-        operatorNode->token = tok;
-
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
-
+        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
+        ASTPushChildNode(operatorNode.node, rhs.node);
         lhs = operatorNode;
     }
 
@@ -1095,29 +1084,23 @@ ParseResult MultExpr(FILE* fptr)
     printf("Entering MultExpr\n");
     
     ParseResult lhs = PowExpr(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid PowExpr in MultExpr", 0);
-        printf("Exiting PowEpxr\n");        
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP)
+        return PARSE_ERRP("Invalid PowExpr in MultExpr");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
     while (ValidTokType(MULTS, MULTS_COUNT, PeekNextTokenP(fptr)) == VALID) {
         Token tok = GetNextTokenP(fptr);
 
         ParseResult rhs = PowExpr(fptr);
-        if (!rhs) {
-            ERROR_MESSAGE("Invalid PowExpr in MultExpr", 1, lhs);
-            return PARSE_FAIL(ERRP);
+        if (rhs.status != VALID) {
+            ASTFreeNodes(1, lhs.node);
+            return PARSE_ERRP("Invalid PowExpr in MultExpr");
         }
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE;
-        operatorNode->token = tok;
-
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
-
+        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
+        ASTPushChildNode(operatorNode.node, rhs.node);
         lhs = operatorNode;
     }
 
@@ -1129,29 +1112,23 @@ ParseResult PowExpr(FILE* fptr)
     printf("Entering PowExpr\n");
     
     ParseResult lhs = Prefix(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid Prefix in PowExpr", 0);
-        printf("Exiting Prefix\n");        
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP)
+        return PARSE_ERRP("Invalid Prefix in PowExpr");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
     if (PeekNextTokenP(fptr) == POW) {
         Token tok = GetNextTokenP(fptr);
 
         ParseResult rhs = PowExpr(fptr);
-        if (!rhs) {
-            ERROR_MESSAGE("Invalid PowExpr in PowExpr", 1, lhs);
-            return PARSE_FAIL(ERRP);
+        if (rhs.status != VALID) {
+            ASTFreeNodes(1, lhs.node);
+            return PARSE_ERRP("Invalid PowExpr in PowExpr");
         }
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE;
-        operatorNode->token = tok;
-
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
-
+        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
+        ASTPushChildNode(operatorNode.node, rhs.node);
         lhs = operatorNode;
     }
 
@@ -1164,31 +1141,23 @@ ParseResult Prefix(FILE* fptr)
     
     /* TODO: Add Casts */
 
-    TokenType tokType = PeekNextTokenP(fptr);
-    if (ValidTokType(PREFIXS, PREFIXS_COUNT, tokType) == VALID) {
+    if (ValidTokType(PREFIXS, PREFIXS_COUNT, PeekNextTokenP(fptr)) == VALID) {
         Token tok = GetNextTokenP(fptr);
 
         ParseResult operandNode = Prefix(fptr);
-        if (!operandNode) {
-            ERROR_MESSAGE("Invalid Prefix in Prefix", 0);
-            return PARSE_FAIL(ERRP);
-        }
+        if (operandNode.status != VALID) 
+            return PARSE_ERRP("Invalid Prefix in Prefix");
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = OPERATOR_NODE;
-        operatorNode->token = tok;
-
-        ASTPushChildNode(operatorNode, operandNode, OPERAND_NODE);
+        ParseResult operatorNode = ArbitraryNode(tok, UNARY_EXPR_NODE);
+        ASTPushChildNode(operatorNode.node, operandNode.node);
         return operatorNode;
     }
 
     ParseResult postfix = Postfix(fptr);
-    if (!postfix) {
-        if (PARSE_ERROR == ERRP) 
-            return ERROR_MESSAGE("Invalid Postfix in Prefix", 0);
-        printf("Exiting Postfix\n");
-        return PARSE_FAIL(NAP);
-    }
+    if (postfix.status == ERRP)
+        return PARSE_ERRP("Invalid Postfix in Prefix");
+    else if (postfix.status == NAP)
+        return PARSE_NAP();
 
     return postfix;
 }
@@ -1199,21 +1168,16 @@ ParseResult Postfix(FILE* fptr)
     
     /* TODO: Include Array Indexing and Function Calling */
     ParseResult lhs = Primary(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid Primary in Postfix", 0);
-        printf("Exiting Primary\n");
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP)
+        return PARSE_ERRP("Invalid Primary in Postfix");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
     while (ValidTokType(POSTFIXS, POSTFIXS_COUNT, PeekNextTokenP(fptr)) == VALID) {
         Token tok = GetNextTokenP(fptr);
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE;
-        operatorNode->token = tok;
-
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
+        ParseResult operatorNode = ArbitraryNode(tok, UNARY_EXPR_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
         lhs = operatorNode;
     }
 
@@ -1229,11 +1193,10 @@ ParseResult Primary(FILE* fptr)
     if (ValidTokType(PRIMARYS, PRIMARYS_COUNT, PeekNextTokenP(fptr)) == VALID) {
         Token tok = GetNextTokenP(fptr);
 
-        ParseResult operandNode = InitASTNode();
-        operandNode->type = OPERAND_NODE;
-        operandNode->token = tok;
+        ParseResult operandNode = ArbitraryNode(tok, LITERAL_NODE);
         return operandNode;
     }  
+    /* Check Parenthesis Helper Function Needed 
     else if (PeekNextTokenP(fptr) == LPAREN) {
         GetNextTokenP(fptr);
 
@@ -1246,9 +1209,10 @@ ParseResult Primary(FILE* fptr)
             return PARSE_FAIL(ERRP);
         return expr;
     }
+        */
 
     printf("Failed to Parse Primary, Climbing Tree\n");
-    return PARSE_FAIL(NAP);
+    return PARSE_NAP();
 }
 
 /* ---------- Etc ---------- */
@@ -1258,27 +1222,27 @@ ParseResult Type(FILE* fptr)
     printf("Entering Type\n");
     
     if (ValidTokType(TYPES, TYPES_COUNT, PeekNextTokenP(fptr)) != VALID) 
-        return PARSE_FAIL(NAP);
-
+        return PARSE_NAP();
     Token tok = GetNextTokenP(fptr);
-    ParseResult typeNode = InitASTNode();
-    typeNode->token = tok;
+
+    ParseResult typeNode = ArbitraryNode(tok, TYPE_NODE);
     return typeNode;
 }
 
 ParseResult ArgList(FILE* fptr) 
 {
     printf("Entering ArgList\n");
+    if (PeekNextTokenP(fptr) == RPAREN) 
+        return EmptyNode();
     
     ParseResult exprNode = Expr(fptr);
-    if (!exprNode) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid Expr in ArgList", 0);
-        return PARSE_FAIL(NAP);
-    }
-
-    ParseResult argListNode = InitASTNode();
-    ASTPushChildNode(argListNode, exprNode, EXPR_NODE);
+    if (exprNode.status == ERRP) 
+        return PARSE_ERRP("Invalid Expr in ArgList");
+    else if (exprNode.status == NAP)
+        return PARSE_NAP();
+    
+    ASTNode* argListNode = InitASTNode();
+    ASTPushChildNode(argListNode, exprNode.node);
 
     while(true)
     {
@@ -1287,14 +1251,14 @@ ParseResult ArgList(FILE* fptr)
         GetNextTokenP(fptr);
 
         exprNode = Expr(fptr);
-        if (!exprNode) {
-            ERROR_MESSAGE("Invalid Expr in ArgList", 1, argListNode);
-            return PARSE_FAIL(ERRP);
+        if (exprNode.status != VALID) {
+            ASTFreeNodes(1, argListNode);
+            return PARSE_ERRP("Invalid Expr in ArgList");
         }
-        ASTPushChildNode(argListNode, exprNode, EXPR_NODE);
+        ASTPushChildNode(argListNode, exprNode.node);
     }
 
-    return argListNode;
+    return PARSE_VALID(argListNode, ARG_LIST_NODE);
 }
 
 ParseResult VarList(FILE* fptr) 
@@ -1302,14 +1266,13 @@ ParseResult VarList(FILE* fptr)
     printf("Entering VarList\n");
     
     ParseResult varNode = Var(fptr);
-    if (!varNode) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid Var in VarList", 0);
-        return PARSE_FAIL(NAP);
-    }
+    if (varNode.status == ERRP)
+        return PARSE_ERRP("Invalid Var in VarList");
+    else if (varNode.status == NAP)
+        return PARSE_NAP();
 
-    ParseResult varListNode = InitASTNode();
-    ASTPushChildNode(varListNode, varNode, VAR_NODE);
+    ASTNode* varListNode = InitASTNode();
+    ASTPushChildNode(varListNode, varNode.node);
 
     while(true)
     {
@@ -1318,42 +1281,39 @@ ParseResult VarList(FILE* fptr)
         GetNextTokenP(fptr);
 
         varNode = Var(fptr);
-        if (!varNode) {
-            ERROR_MESSAGE("Invalid Var in VarList", 1, varListNode);
-            return PARSE_FAIL(ERRP);
+        if (varNode.status != VALID) {
+            ASTFreeNodes(1, varListNode);
+            return PARSE_ERRP("Invalid Var in VarList");
         }
-        ASTPushChildNode(varListNode, varNode, EXPR_NODE);
+
+        ASTPushChildNode(varListNode, varNode.node);
     }
 
-    return varListNode;
+    return PARSE_VALID(varListNode, VAR_LIST_NODE);
 }
 
 ParseResult Var(FILE* fptr) 
 {
     printf("Entering Var\n");
     
-    ParseResult varNode;
-    if (PeekNextTokenP(fptr) != IDENT) {
-        if (PARSE_ERROR == ERRP) 
-            return ERROR_MESSAGE("Invalid IDENT in Var", 0);
-        return PARSE_FAIL(NAP);
-    }
+    if (PeekNextTokenP(fptr) != IDENT) 
+        return PARSE_NAP();
+    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
 
-    Token tok = GetNextTokenP(fptr);
-    varNode = InitASTNode();
-    varNode->token = tok;
-   
+    ASTNode* varNode = InitASTNode();
+    ASTPushChildNode(varNode, identNode.node);
+
     if (PeekNextTokenP(fptr) == EQ) {
         GetNextTokenP(fptr);
 
         ParseResult exprNode = Expr(fptr);
-        if (!exprNode) {
-            PARSE_FAIL(ERRP);
-            return ERROR_MESSAGE("Invalid Expr in Var", 1, varNode);
+        if (exprNode.status != VALID) {
+            ASTFreeNodes(1, identNode);
+            return PARSE_ERRP("Invalid Expr in Var");
         }
 
-        ASTPushChildNode(varNode, exprNode, EXPR_NODE);
+        ASTPushChildNode(varNode, exprNode.node);
     }
 
-    return varNode;
+    return PARSE_VALID(varNode, VAR_NODE);
 }

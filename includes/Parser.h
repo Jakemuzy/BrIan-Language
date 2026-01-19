@@ -30,8 +30,8 @@ int ValidTokType(const int types[], int arrSize, int type);
 int CompareToken(FILE* fptr, TokenType desired, char* errMessage, ParseStatus errType);
 
 ParseResult IdentNode(Token tok);
-ParseResult ExprNode(Token tok);
 ParseResult EmptyNode();
+ParseResult ArbitraryNode(Token tok, NodeType type);
 
 /* ---------- Recursive Descent ---------- */
 /* Indendented Functions Represent Helpers */
