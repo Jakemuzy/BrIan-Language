@@ -5,74 +5,84 @@
 #include "Dictionary.h"
 #include "AST.h"
 
-/* ---------- Global Error Propogation ----------*/
+/* ---------- Error Propogation ----------*/
 
-typedef enum ParseError {
+typedef enum ParseStatus {
     VALID, 
     NAP,    /* Not applicable */
     ERRP,   /* Errored */
     EOFP    /* EOF */
-} ParseError;
+} ParseStatus;
 
-extern ParseError PARSE_ERROR;     /* Global Error Token */
-ASTNode* PARSE_FAIL(ParseError code);
-ASTNode* ERROR_MESSAGE(char* message, int count, ...);
+typedef struct ParseResult {
+    ParseStatus status;
+    ASTNode* node;
+} ParseResult;
+
+ParseResult PARSE_VALID(ASTNode* node, NodeType type);
+ParseResult PARSE_NAP();
+ParseResult PARSE_ERRP(char* message);
+#define ERROR_MESSAGE(message) printf("ERROR: %s, on line...\n", message);
 
 /* ---------- Helpers ---------- */
 
 int ValidTokType(const int types[], int arrSize, int type);
-int CompareToken(FILE* fptr, TokenType desired, char* errMessage, ParseError errType);
+int CompareToken(FILE* fptr, TokenType desired, char* errMessage, ParseStatus errType);
+
+ParseResult IdentNode(Token tok);
+ParseResult ExprNode(Token tok);
+ParseResult EmptyNode();
 
 /* ---------- Recursive Descent ---------- */
 /* Indendented Functions Represent Helpers */
 
 AST* Program(FILE* fptr);
-ASTNode* Function(FILE* fptr);
-ASTNode* ParamList(FILE* fptr);
-ASTNode* Param(FILE* fptr);
+ParseResult Function(FILE* fptr);
+ParseResult ParamList(FILE* fptr);
+ParseResult Param(FILE* fptr);
 
-ASTNode* Body(FILE* fptr);
-ASTNode* StmtList(FILE* fptr);
-ASTNode* Stmt(FILE* fptr);
+ParseResult Body(FILE* fptr);
+ParseResult StmtList(FILE* fptr);
+ParseResult Stmt(FILE* fptr);
 
-ASTNode* ExprStmt(FILE* fptr);
-ASTNode* DeclStmt(FILE* fptr);
-ASTNode* CtrlStmt(FILE* fptr);
-ASTNode* ReturnStmt(FILE* fptr);
+ParseResult ExprStmt(FILE* fptr);
+ParseResult DeclStmt(FILE* fptr);
+ParseResult CtrlStmt(FILE* fptr);
+ParseResult ReturnStmt(FILE* fptr);
 
-ASTNode* IfStmt(FILE* fptr);
-    ASTNode* IfElifElse(FILE* fptr, TokenType type);
-ASTNode* SwitchStmt(FILE* fptr);
-    ASTNode* Case(FILE* fptr);
-    ASTNode* Default(FILE* fptr);
-ASTNode* WhileStmt(FILE* fptr);
-ASTNode* DoWhileStmt(FILE* fptr);
-ASTNode* ForStmt(FILE* fptr);
+ParseResult IfStmt(FILE* fptr);
+    ParseResult IfElifElse(FILE* fptr, TokenType type);
+ParseResult SwitchStmt(FILE* fptr);
+    ParseResult Case(FILE* fptr);
+    ParseResult Default(FILE* fptr);
+ParseResult WhileStmt(FILE* fptr);
+ParseResult DoWhileStmt(FILE* fptr);
+ParseResult ForStmt(FILE* fptr);
 
-ASTNode* ExprList(FILE* fptr);
-ASTNode* Expr(FILE* fptr);
-ASTNode* AsgnExpr(FILE* fptr);
-ASTNode* OrlExpr(FILE* fptr);
-ASTNode* AndlExpr(FILE* fptr);
-ASTNode* OrExpr(FILE* fptr);
-ASTNode* XorExpr(FILE* fptr);
-ASTNode* AndExpr(FILE* fptr);
-ASTNode* EqqExpr(FILE* fptr);
-ASTNode* RelationExpr(FILE* fptr);
-ASTNode* ShiftExpr(FILE* fptr);
-ASTNode* AddExpr(FILE* fptr);
-ASTNode* MultExpr(FILE* fptr);
-ASTNode* PowExpr(FILE* fptr);
-ASTNode* Prefix(FILE* fptr);
-    ASTNode* Cast(FILE* fptr);
-ASTNode* Postfix(FILE* fptr);
-    ASTNode* Index(FILE* fptr);
-    ASTNode* CallFunc(FILE* fptr);
-ASTNode* Primary(FILE* fptr);
+ParseResult ExprList(FILE* fptr);
+ParseResult Expr(FILE* fptr);
+ParseResult AsgnExpr(FILE* fptr);
+ParseResult OrlExpr(FILE* fptr);
+ParseResult AndlExpr(FILE* fptr);
+ParseResult OrExpr(FILE* fptr);
+ParseResult XorExpr(FILE* fptr);
+ParseResult AndExpr(FILE* fptr);
+ParseResult EqqExpr(FILE* fptr);
+ParseResult RelationExpr(FILE* fptr);
+ParseResult ShiftExpr(FILE* fptr);
+ParseResult AddExpr(FILE* fptr);
+ParseResult MultExpr(FILE* fptr);
+ParseResult PowExpr(FILE* fptr);
+ParseResult Prefix(FILE* fptr);
+    ParseResult Cast(FILE* fptr);
+ParseResult Postfix(FILE* fptr);
+    ParseResult Index(FILE* fptr);
+    ParseResult CallFunc(FILE* fptr);
+ParseResult Primary(FILE* fptr);
 
-ASTNode* Type(FILE* fptr);
-ASTNode* ArgList(FILE* fptr);
-ASTNode* VarList(FILE* fptr);
-ASTNode* Var(FILE* fptr);
+ParseResult Type(FILE* fptr);
+ParseResult ArgList(FILE* fptr);
+ParseResult VarList(FILE* fptr);
+ParseResult Var(FILE* fptr);
 
 #endif

@@ -32,19 +32,12 @@ ASTNode* InitASTNode()
 
     node->children = NULL;
     node->childCount = 0;
-    node->type = TOK_NODE;
+    node->type = EMPTY_NODE;
     return node;
 }
 
 
-int ASTMakeTokNode(ASTNode* node, Token t)
-{
-    node->token = t;
-    node->type = TOK_NODE;
-    return 0;
-}
-
-int ASTPushChildNode(ASTNode* node, ASTNode* child, NodeType type)
+int ASTPushChildNode(ASTNode* node, ASTNode* child)
 {
     int index = node->childCount;
 
@@ -54,8 +47,6 @@ int ASTPushChildNode(ASTNode* node, ASTNode* child, NodeType type)
     node->children = tmp;
     node->children[index] = child;
     node->childCount++;
-    node->type = type;
-
     return 0;
 }
 

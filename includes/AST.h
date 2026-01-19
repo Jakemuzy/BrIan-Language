@@ -26,7 +26,7 @@ typedef enum NodeType {
     */
 
     TYPE_NODE, ARG_LIST_NODE, VAR_LIST_NODE, VAR_NODE,
-    TOK_NODE, EMPTY_NODE, LHS_NODE, RHS_NODE, OPERATOR_NODE, OPERAND_NODE
+    IDENT_NODE, EMPTY_NODE, LHS_NODE, RHS_NODE, OPERATOR_NODE, OPERAND_NODE
 } NodeType;
 
 typedef struct ASTNode
@@ -46,8 +46,7 @@ AST* ASTInit();
 int ASTFree();
 
 ASTNode* InitASTNode();
-int ASTMakeTokNode(ASTNode* node, Token t);
-int ASTPushChildNode(ASTNode* node, ASTNode* child, NodeType type);
+int ASTPushChildNode(ASTNode* node, ASTNode* child);
 int ASTFreeNodes(int count, ...);
 
 #endif 
