@@ -77,7 +77,7 @@ ParseResult Prefix(FILE* fptr);
     ParseResult Cast(FILE* fptr);
 ParseResult Postfix(FILE* fptr);
     ParseResult Index(FILE* fptr);
-    ParseResult CallFunc(FILE* fptr);
+    ParseResult CallFunc(FILE* fptr, ASTNode* callee);
 ParseResult Primary(FILE* fptr);
 
 ParseResult Type(FILE* fptr);
