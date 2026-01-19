@@ -60,7 +60,7 @@ ParseResult EmptyNode()
 {
     ASTNode* emptyNode = InitASTNode();
     emptyNode->type = EMPTY_NODE;
-    return PARSE_VALID(emptyNode, EMPTY_NODE)
+    return PARSE_VALID(emptyNode, EMPTY_NODE);
 }
 
 ParseResult ArbitraryNode(Token tok, NodeType type)
@@ -83,24 +83,30 @@ AST* Program(FILE* fptr)
         if (PeekNextTokenP(fptr) == END)
             return ast;
 
-        ParseResult node = Function(fptr);
-        if (node->node) {
-            if (!node){
-                ERROR_MESSAGE("Invalid Function", 0);
-                return NULL;
-            }
-            ASTPushChildNode(progNode, node, FUNC_NODE);
-        } else {
-            node = DeclStmt(fptr);
-            if (!node) {
-                ERROR_MESSAGE("Invalid DeclStmt in Global", 0);
-                return NULL;
-            }
-            ASTPushChildNode(progNode, node, DECL_STMT_NODE);
+        ParseResult funcNode = Function(fptr);
+        if (funcNode.status == VALID) {
+            ASTPushChildNode(progNode, funcNode.node);
+            continue;
+        } 
+        else if (funcNode.status == ERRP)  {
+            ASTFreeNodes(1, progNode);
+            return NULL;
+        }
+
+        ParseResult declStmtNode = DeclStmt(fptr);
+        if (declStmtNode.status == VALID) {
+            ASTPushChildNode(progNode, declStmtNode.node);
+            continue;
+        }
+        else if (declStmtNode.status == ERRP) {
+            printf("Invalid DeclStmt in Global Scope");
+            ASTFreeNodes(1, progNode);
+            return NULL;
         }
 
         printf("Failed to Parse AST\n");
-        break;
+        ASTFreeNodes(1, progNode);
+        return NULL;
     }
 
 
@@ -241,7 +247,7 @@ ParseResult StmtList(FILE* fptr)
 
     while (true) {
         if (PeekNextTokenP(fptr) == RBRACK) /* Assume all StmtLists are followed by RBRACK */
-            return PARSE_NAP();
+            return EmptyNode();
 
         ParseResult stmtNode = Stmt(fptr);
         if (stmtNode.status == VALID) {
@@ -372,11 +378,12 @@ ParseResult CtrlStmt(FILE* fptr)
         return  PARSE_ERRP("Invalid DoWhileStmt in Stmt");
 
     ParseResult forStmtNode = ForStmt(fptr);
-    if (forStmtNode.node == VALID)
+    if (forStmtNode.status == VALID)
         return PARSE_VALID(forStmtNode.node, FOR_STMT_NODE);
     else if (forStmtNode.status == ERRP)
         return PARSE_ERRP("Invalid ForStmt in Stmt");
- 
+
+    printf("Not a CtrlStmt\n");
     return PARSE_NAP();
 }
 
