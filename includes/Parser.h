@@ -58,6 +58,7 @@ ParseResult SwitchStmt(FILE* fptr);
 ParseResult WhileStmt(FILE* fptr);
 ParseResult DoWhileStmt(FILE* fptr);
 ParseResult ForStmt(FILE* fptr);
+    ParseResult OptionalExpr(FILE* fptr);
 
 ParseResult ExprList(FILE* fptr);
 ParseResult Expr(FILE* fptr);

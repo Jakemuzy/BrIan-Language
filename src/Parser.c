@@ -710,7 +710,7 @@ ParseResult ForStmt(FILE* fptr)
     }
     GetNextTokenP(fptr);
 
-    ParseResult exprNode = Expr(fptr);
+    ParseResult exprNode = OptionalExpr(fptr);
     if (exprNode.status != VALID) {
         ASTFreeNodes(1, exprListNode.node);
         return PARSE_ERRP("Invalid Expr in ForStmt");
@@ -745,6 +745,19 @@ ParseResult ForStmt(FILE* fptr)
     ASTPushChildNode(forStmtNode, exprNode.node);
     ASTPushChildNode(forStmtNode, exprListNode2.node);
     return PARSE_VALID(forStmtNode, FOR_STMT_NODE);
+}
+
+ParseResult OptionalExpr(FILE* fptr) 
+{
+    /* TODO: A helper fucntion here would probably be benficial to determine starts to Expr */
+    if (PeekNextTokenP(fptr) == SEMI)
+        return EmptyNode();
+
+    ParseResult exprNode = Expr(fptr);
+    if (exprNode.status != VALID) 
+        return PARSE_ERRP("Invalid Optional Expr");
+    
+    return exprNode;
 }
 
 /* ----------- Expressions ---------- */
