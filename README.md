@@ -132,8 +132,7 @@ Similar to C, but simpler.
 | 12             | `**`                                                      | Right-to-left  |
 | 13             | Prefix: `++`, `--`, `+`, `-`, `!`, `~`, `*`, `&`, Cast   | Right-to-left  |
 | 14             | Postfix: `++`, `--`, `$`, Index, CallFunc                 | Left-to-right  |
-| 15 (highest)   | Primary: `IDENT`, `DECIMAL`, `INTEGRAL`, `SLITERAL`, `CLITERAL`, `(` `Expr` `)` | N/A            |
-
+| 15 (highest)   | Primary: `IDENT`, `DECIMAL`, `INTEGRAL`, `SLITERAL`, `CLITERAL`, `( Expr )` | N/A            |
 
 
 ### NOTES
