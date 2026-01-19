@@ -6,10 +6,13 @@
 
 /* KNOWN BUGS */
 
-/*
- * TODO: Factorials, line and column tracking 
- *       
+/* TODO: 
+        - Add Factorials, Register Access, Bit Manipulation and other Tokens
+        - Add Support for line and column tracking for better debugging 
+        - Refactor the Dictionary System to use something more elegant
+        - Refactor the Entire Tokenizer to reduce boilerplate and make it more modular
 */
+
 
 KeyVal kv1 = {"if", IF} ;
 KeyVal kv2 = {"elif", ELIF};

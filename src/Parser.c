@@ -5,11 +5,8 @@
           preprocessor only skips directors, for now it is fine.
         - Can easily simplify most of the expressions with a helper function to reduce
           boilerplate code, which is making the file artifically longer than it needs
-        - Instead of having a global error state, have it per function, that way
-          resetting at the entrance of each function isn't mandatory.
-        - Having the child set its own type isn't consistent with the most functions,
-          however it is important for children that can have multiple types to do this. 
-          Need to figure out a way to fix this.
+        - Currently freeing more than I need to since ASTFreeNodes is recursive, ONLY
+          free nodes that aren't parented yet
 */
 
 /* ----------- ERRORS ---------- */
@@ -360,7 +357,7 @@ ParseResult CtrlStmt(FILE* fptr)
         return PARSE_ERRP("Invalid IfStmt in Stmt");
 
     ParseResult switchStmtNode = SwitchStmt(fptr);
-    if (switchStmtNode.status = VALID)
+    if (switchStmtNode.status == VALID)
         return PARSE_VALID(switchStmtNode.node, SWITCH_STMT_NODE);
     else if (switchStmtNode.status == ERRP)
         return PARSE_ERRP("Invalid SwitchStmt in Stmt");
@@ -512,7 +509,7 @@ ParseResult SwitchStmt(FILE* fptr)
 
     if (PeekNextTokenP(fptr) != LPAREN) {
         ASTFreeNodes(1, switchStmtNode);
-        return PARSE_ERRP("No left parenthesis in SwitchStmt");
+        return PARSE_ERRP("No Left Parenthesis in SwitchStmt");
     }
     GetNextTokenP(fptr);
     
@@ -525,20 +522,20 @@ ParseResult SwitchStmt(FILE* fptr)
 
     if (PeekNextTokenP(fptr) != RPAREN) {
         ASTFreeNodes(2, exprNode, switchStmtNode);
-        return PARSE_ERRP("No right parenthesis in SwitchStmt");
+        return PARSE_ERRP("No Right Parenthesis in SwitchStmt");
     }
     GetNextTokenP(fptr);
 
     if (PeekNextTokenP(fptr) != LBRACK) {
         ASTFreeNodes(2, exprNode, switchStmtNode);
-        return PARSE_ERRP("No right parenthesis in SwitchStmt");
+        return PARSE_ERRP("No Left Bracket in SwitchStmt");
     }
     GetNextTokenP(fptr);
 
     while (true) {
         ParseResult caseNode = Case(fptr);
         if (caseNode.status == ERRP) {
-            ASTFreeNodes(2, exprNode.node, switchStmtNode);
+            ASTFreeNodes(1, switchStmtNode);
             return PARSE_ERRP("Invalid Case in SwitchStmt");
         }
         else if (caseNode.status == NAP)
@@ -552,12 +549,12 @@ ParseResult SwitchStmt(FILE* fptr)
         ASTPushChildNode(switchStmtNode, defaultNode.node);
     else if (defaultNode.status == ERRP) {
         ASTFreeNodes(2, exprNode.node, switchStmtNode);
-        return PARSE_ERRP("invalid Default in SwitchStmt");
+        return PARSE_ERRP("Invalid Default in SwitchStmt");
     }
 
     if (PeekNextTokenP(fptr) != RBRACK) {
         ASTFreeNodes(3, exprNode.node, defaultNode.node, switchStmtNode);
-        return PARSE_ERRP("No right bracket in SwitchStmt");
+        return PARSE_ERRP("No Right Bracket in SwitchStmt");
     }
     GetNextTokenP(fptr);
 
@@ -578,7 +575,7 @@ ParseResult Case(FILE* fptr)
 
     ParseResult bodyNode = Body(fptr);
     if (bodyNode.status != VALID) {
-        ASTFreeNodes(1, exprNode);
+        ASTFreeNodes(1, exprNode.node);
         return PARSE_ERRP("Invalid Body in Case");
     }
 
@@ -1180,15 +1177,50 @@ ParseResult Postfix(FILE* fptr)
     else if (lhs.status == NAP)
         return PARSE_NAP();
 
-    while (ValidTokType(POSTFIXS, POSTFIXS_COUNT, PeekNextTokenP(fptr)) == VALID) {
-        Token tok = GetNextTokenP(fptr);
+    while (true) {
+        TokenType tokType = PeekNextTokenP(fptr);
 
-        ParseResult operatorNode = ArbitraryNode(tok, UNARY_EXPR_NODE);
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        lhs = operatorNode;
+        if (tokType == LPAREN) {
+            ParseResult callFuncNode = CallFunc(fptr, lhs.node);
+            if (callFuncNode.status != VALID) {
+                ASTFreeNodes(1, lhs.node);
+                return PARSE_ERRP("Invalid Function Call in Postfix");
+            }
+            lhs = callFuncNode;
+        }
+        else if (ValidTokType(POSTFIXS, POSTFIXS_COUNT, tokType) == VALID ) {
+            Token tok = GetNextTokenP(fptr);
+            ParseResult operatorNode = ArbitraryNode(tok, UNARY_EXPR_NODE);
+            ASTPushChildNode(operatorNode.node, lhs.node);
+            lhs = operatorNode;
+        }
+        else 
+            break;
     }
 
     return lhs;
+}
+
+ParseResult CallFunc(FILE* fptr, ASTNode* callee)
+{
+    if (PeekNextTokenP(fptr) != LPAREN)
+        return PARSE_NAP();
+    GetNextTokenP(fptr);    /* Postfix already checks for LPAREN, I just thought it would be cleaner and more true to the grammar to have it here*/
+
+    ParseResult argListNode = ArgList(fptr);
+    if (argListNode.status != VALID) 
+        return PARSE_ERRP("Invalid Argument List in Function Call");
+
+    if (PeekNextTokenP(fptr) != RPAREN) {
+        ASTFreeNodes(1, argListNode.node);
+        return PARSE_ERRP("No Right Parenthesis in Function Call");
+    }
+    GetNextTokenP(fptr);
+
+    ASTNode* callFuncNode = InitASTNode();
+    ASTPushChildNode(callFuncNode, callee);
+    ASTPushChildNode(callFuncNode, argListNode.node);
+    return PARSE_VALID(callFuncNode, CALL_FUNC_NODE);
 }
 
 ParseResult Primary(FILE* fptr)
@@ -1203,20 +1235,22 @@ ParseResult Primary(FILE* fptr)
         ParseResult operandNode = ArbitraryNode(tok, LITERAL_NODE);
         return operandNode;
     }  
-    /* Check Parenthesis Helper Function Needed 
+    /* Check Parenthesis Helper Function Needed */
     else if (PeekNextTokenP(fptr) == LPAREN) {
         GetNextTokenP(fptr);
 
-        ParseResult expr = Expr(fptr);
-        if (!expr) 
-            return PARSE_FAIL(ERRP);
-        expr->type = EXPR_NODE;
+        ParseResult exprNode = Expr(fptr);
+        if (exprNode.status != VALID) 
+            return PARSE_ERRP("Missing Expr in parenthesized Expr");
+    
+        if (PeekNextTokenP(fptr) != RPAREN) {
+            ASTFreeNodes(1, exprNode);
+            return PARSE_ERRP("Missing right parenthesis in parenthesized Epxr");
+        }
+        GetNextTokenP(fptr);
 
-        if (CompareToken(fptr, RPAREN, "Missing )", ERRP) != VALID)
-            return PARSE_FAIL(ERRP);
-        return expr;
+        return exprNode;
     }
-        */
 
     printf("Failed to Parse Primary, Climbing Tree\n");
     return PARSE_NAP();

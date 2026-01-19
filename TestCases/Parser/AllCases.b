@@ -97,46 +97,59 @@ void SwitchStmts()
     }
 
     switch (x) {
-        case 1:
+        case 1 {
+
+        }
     }
 
     switch(x + y) {
-        case 1:
+        case 1 {
             x = 10;
+        }
     }
 
     switch (5) {
-        case 1:
-            ;
-        case 2:
+        case 1 {
+            ; 
+        }
+        case 2 {
             x = y;
+        }
     }
 
     switch(x) {
-        default:
+        default {
+
+        }
     }
 
     switch(x) {
-        case 1:
+        case 1 {
             x = 1;
-        case 2:
+        }
+        case 2 {
             y = 2;
-        default:
+        }
+        default {
             z = 3;
+        }
     }
 
     switch(x) {
-        case (1 + 2):
+        case (1 + 2) {
             int a = 10;
             a = a + 1;
+        }
     }
 
     switch(x) {
-        case 1:
+        case 1 {
             switch(y) {
-                case 2:
+                case 2 {
                     z = 3;
+                }
             }
+        }
     }
 }
 

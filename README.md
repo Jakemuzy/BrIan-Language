@@ -72,8 +72,8 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
         Elif ::= "elif" '(' Expr ')' Body 
         Else ::= "else" Body 
     SwitchStmt ::= "switch" '(' Expr ')' '{' {CaseStmt} [DefaultStmt] '}'
-        CaseStmt ::= "case" Expr ':' StmtList
-        DefaultStmt ::= "default" ':' StmtList
+        Case ::= "case" Expr Body
+        Default ::= "default" Body
     WhileStmt ::= "while" '(' Expr ')' Body
     DoWhileStmt ::= "do" ( Body ) 
                     "while" '(' Expr ')' ';'  
