@@ -200,8 +200,6 @@ ParseResult Param(FILE* fptr)
         ASTFreeNodes(1, typeNode.node);
         return PARSE_ERRP("Param does not have a name");
     }
-    GetNextTokenP(fptr);
-
     ParseResult identNode = IdentNode(GetNextTokenP(fptr));
 
     ASTNode* paramNode = InitASTNode();
@@ -532,26 +530,31 @@ ParseResult SwitchStmt(FILE* fptr)
 
     while (true) {
         ParseResult caseNode = Case(fptr);
-        if (!caseNode) {
-            if (PARSE_ERROR == ERRP) 
-                return ERROR_MESSAGE("Invalid Case in SwitchStmt", 2, exprNode, switchStmtNode);
-            break;
+        if (caseNode.status == ERRP) {
+            ASTFreeNodes(2, exprNode.node, switchStmtNode);
+            return PARSE_ERRP("Invalid Case in SwitchStmt");
         }
-        ASTPushChildNode(switchStmtNode, caseNode, CASE_NODE);
+        else if (caseNode.status == NAP)
+            break;
+
+        ASTPushChildNode(switchStmtNode, caseNode.node);
     }
 
     ParseResult defaultNode = Default(fptr);
-    if (defaultNode) 
-        ASTPushChildNode(switchStmtNode, defaultNode, DEFAULT_NODE);
-    else if (PARSE_ERROR == ERRP) 
-        return ERROR_MESSAGE("Invalid Default in SwitchStmt", 2, exprNode, switchStmtNode);
-
-    if(CompareToken(fptr, RBRACK, "No RBRACK in SwitchStmt", ERRP) != VALID) {
-        ASTFreeNodes(3, exprNode, defaultNode, switchStmtNode);
-        return PARSE_FAIL(ERRP);
+    if (defaultNode.status == VALID)
+        ASTPushChildNode(switchStmtNode, defaultNode.node);
+    else if (defaultNode.status == ERRP) {
+        ASTFreeNodes(2, exprNode.node, switchStmtNode);
+        return PARSE_ERRP("invalid Default in SwitchStmt");
     }
 
-    return switchStmtNode;
+    if (PeekNextTokenP(fptr) != RBRACK) {
+        ASTFreeNodes(3, exprNode.node, defaultNode.node, switchStmtNode);
+        return PARSE_ERRP("No right bracket in SwitchStmt");
+    }
+    GetNextTokenP(fptr);
+
+    return PARSE_VALID(switchStmtNode, SWITCH_STMT_NODE);
 }
 
 ParseResult Case(FILE* fptr) 
@@ -559,30 +562,23 @@ ParseResult Case(FILE* fptr)
     printf("Entering Case\n");
     
     if (PeekNextTokenP(fptr) != CASE)
-        return PARSE_FAIL(NAP);
+        return PARSE_NAP();
     GetNextTokenP(fptr);
 
     ParseResult exprNode = Expr(fptr);
-    if (!exprNode) {
-        PARSE_FAIL(ERRP);
-        return ERROR_MESSAGE("Invalid Expr in Case", 0);
-    }
+    if (exprNode.status != VALID)
+        return PARSE_ERRP("Invalid Expr in Case");
 
-    if (CompareToken(fptr, COLON, "No colon found in Case", ERRP) != VALID) {
+    ParseResult bodyNode = Body(fptr);
+    if (bodyNode.status != VALID) {
         ASTFreeNodes(1, exprNode);
-        return PARSE_FAIL(ERRP);
+        return PARSE_ERRP("Invalid Body in Case");
     }
 
-    ParseResult stmtListNode = StmtList(fptr);
-    if (!stmtListNode) {
-        PARSE_FAIL(ERRP);
-        return ERROR_MESSAGE("Invalid StmtList in Case", 1, exprNode);
-    }
-
-    ParseResult caseNode = InitASTNode();
-    ASTPushChildNode(caseNode, exprNode, EXPR_NODE);
-    ASTPushChildNode(caseNode, stmtListNode, STMT_LIST_NODE);
-    return caseNode;
+    ASTNode* caseNode = InitASTNode();
+    ASTPushChildNode(caseNode, exprNode.node);
+    ASTPushChildNode(caseNode, bodyNode.node);
+    return PARSE_VALID(caseNode, CASE_NODE);
 }
 
 ParseResult Default(FILE* fptr) 
@@ -590,21 +586,16 @@ ParseResult Default(FILE* fptr)
     printf("Entering Default\n");
     
     if (PeekNextTokenP(fptr) != DEFAULT)
-        return PARSE_FAIL(NAP);
+        return PARSE_NAP();
     GetNextTokenP(fptr);
 
-    if (CompareToken(fptr, COLON, "No colon found in Default", ERRP) != VALID) 
-        return PARSE_FAIL(ERRP);
+    ParseResult bodyNode = Body(fptr);
+    if (bodyNode.status != VALID)
+        return PARSE_ERRP("Invalid Body in Default");
 
-    ParseResult stmtListNode = StmtList(fptr);
-    if (!stmtListNode) {
-        PARSE_FAIL(ERRP);
-        return ERROR_MESSAGE("Invalid StmtList in Case", 0);
-    }
-
-    ParseResult defaultNode = InitASTNode();
-    ASTPushChildNode(defaultNode, stmtListNode, STMT_LIST_NODE);
-    return defaultNode;
+    ASTNode* defaultNode = InitASTNode();
+    ASTPushChildNode(defaultNode, bodyNode.node);
+    return PARSE_VALID(defaultNode, DEFAULT_NODE);
 }
 
 ParseResult WhileStmt(FILE* fptr)
@@ -612,34 +603,33 @@ ParseResult WhileStmt(FILE* fptr)
     printf("Entering WhileStmt\n");
     
     if (PeekNextTokenP(fptr) != WHILE)
-        return PARSE_FAIL(NAP);
+        return PARSE_NAP();
     GetNextTokenP(fptr);
 
-    if (CompareToken(fptr, LPAREN, "No LPAREN found in WhileStmt", ERRP) != VALID)
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != LPAREN)
+        return PARSE_ERRP("No left parenthesis in WhileStmt");
+    GetNextTokenP(fptr);
 
     ParseResult exprNode = Expr(fptr);
-    if (!exprNode) {
-        ERROR_MESSAGE("Invalid Expr in WhileStmt", 0);
-        return PARSE_FAIL(ERRP);
-    }
+    if (exprNode.status != VALID)
+        return PARSE_ERRP("Invalid Expr in WhileStmt");
 
-    if (CompareToken(fptr, RPAREN, "No RPAREN found in WhileStmt", ERRP) != VALID) { 
-        ASTFreeNodes(1, exprNode);
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != RPAREN) {
+        ASTFreeNodes(1, exprNode.node);
+        return PARSE_ERRP("No right parenthesis in WhileStmt");
     }
+    GetNextTokenP(fptr);
     
     ParseResult bodyNode = Body(fptr);
-    if (!bodyNode) {
-        ERROR_MESSAGE("Invalid Body in WhileStmt", 1, exprNode);
-        return PARSE_FAIL(ERRP);
+    if (bodyNode.status != VALID) {
+        ASTFreeNodes(1, exprNode.node);
+        return PARSE_ERRP("Invalid Body in WhileStmt");
     }
 
-    ParseResult whileStmtNode = InitASTNode();
-    whileStmtNode->type = WHILE_STMT_NODE;
-    ASTPushChildNode(whileStmtNode, exprNode, EXPR_NODE);
-    ASTPushChildNode(whileStmtNode, bodyNode, BODY_NODE);
-    return whileStmtNode;
+    ASTNode* whileStmtNode = InitASTNode();
+    ASTPushChildNode(whileStmtNode, exprNode.node);
+    ASTPushChildNode(whileStmtNode, bodyNode.node);
+    return PARSE_VALID(whileStmtNode, WHILE_STMT_NODE);
 }
 
 ParseResult DoWhileStmt(FILE* fptr) 
@@ -647,106 +637,110 @@ ParseResult DoWhileStmt(FILE* fptr)
     printf("Entering DoWhileStmt\n");
     
     if (PeekNextTokenP(fptr) != DO)
-        return PARSE_FAIL(NAP);
+        return PARSE_NAP();
     GetNextTokenP(fptr);
 
     ParseResult bodyNode = Body(fptr);
-    if (!bodyNode) {
-        ERROR_MESSAGE("Invalid Body in DoWhileStmt", 0);
-        return PARSE_FAIL(ERRP);
-    }
+    if (bodyNode.status != VALID) 
+        return PARSE_ERRP("Invalid Body in DoWhileStmt");
 
-    if (CompareToken(fptr, WHILE, "No WHILE found in DoWhileStmt", ERRP) != VALID) {
+    if (PeekNextTokenP(fptr) != WHILE) {
         ASTFreeNodes(1, bodyNode);
-        return PARSE_FAIL(ERRP);
+        return PARSE_ERRP("No While found in DoWhileStmt");
     }
+    GetNextTokenP(fptr);
 
-    if (CompareToken(fptr, LPAREN, "No LPAREN found in DoWhileStmt", ERRP) != VALID) {
+    if (PeekNextTokenP(fptr) != LPAREN){
         ASTFreeNodes(1, bodyNode);
-        return PARSE_FAIL(ERRP);
+        return PARSE_ERRP("No left parenthesis in DoWhileStmt");
     }
+    GetNextTokenP(fptr);
 
     ParseResult exprNode = Expr(fptr);
-    if (!exprNode) {
-        ERROR_MESSAGE("Invalid Expr in WhileStmt", 1, bodyNode);
-        return PARSE_FAIL(ERRP);
+    if (exprNode.status != VALID) {
+        ASTFreeNodes(1, bodyNode);
+        return PARSE_ERRP("Invalid Expr in WhileStmt");
     }
 
-    if (CompareToken(fptr, RPAREN, "No RPAREN found in WhileStmt", ERRP) != VALID) {
-        ASTFreeNodes(2, bodyNode, exprNode);
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != RPAREN) {
+        ASTFreeNodes(2, bodyNode.node, exprNode.node);
+        return PARSE_ERRP("No right parenthesis in DoWhileStmt");
     }
+    GetNextTokenP(fptr);
 
-    if (CompareToken(fptr, SEMI, "No SEMI in DoWhileStmt", ERRP) != VALID) {
-        ASTFreeNodes(2, bodyNode, exprNode);
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != SEMI) {
+        ASTFreeNodes(2, bodyNode.node, exprNode.node);
+        return PARSE_ERRP("No semicolon in DoWhileStmt");
     }
+    GetNextTokenP(fptr);
 
-    ParseResult doWhileStmtNode = InitASTNode();
-    doWhileStmtNode->type = DO_WHILE_STMT_NODE ;
-    ASTPushChildNode(doWhileStmtNode, bodyNode, BODY_NODE);
-    ASTPushChildNode(doWhileStmtNode, exprNode, EXPR_NODE);
-    return doWhileStmtNode;
+    ASTNode* doWhileStmtNode = InitASTNode();
+    ASTPushChildNode(doWhileStmtNode, bodyNode.node);
+    ASTPushChildNode(doWhileStmtNode, exprNode.node);
+    return PARSE_VALID(doWhileStmtNode, DO_WHILE_STMT_NODE);
 }
 
 ParseResult ForStmt(FILE* fptr) 
 {
     printf("Entering ForStmt\n");
     
-    /* TODO: All Expr and ExprList are optional, make them behave like it */
+    /* TODO: Expr does not check for semi colon, therefore empty exprs not allowed rn
+       Need to have a helper function to determine if it is valid.
+    */
 
     if (PeekNextTokenP(fptr) != FOR)
-        return PARSE_FAIL(NAP);
+        return PARSE_NAP();
     GetNextTokenP(fptr);
 
-    if (CompareToken(fptr, LPAREN, "No LPAREN found in ForStmt", ERRP) != VALID)
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != LPAREN) 
+       return PARSE_ERRP("No left parenthesis found in ForStmt"); 
+    GetNextTokenP(fptr);
 
     ParseResult exprListNode = ExprList(fptr);
-    if (!exprListNode) {
-        ERROR_MESSAGE("Invalid ExprList in ForStmt", 0);
-        return PARSE_FAIL(ERRP);
-    }
+    if (exprListNode.status != VALID) 
+        return PARSE_ERRP("Invalid ExprList in ForStmt");
 
-    if (CompareToken(fptr, SEMI, "Missing SEMI in ForStmt", ERRP) != VALID) {
-        ASTFreeNodes(1, exprListNode);
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != SEMI)  {
+        ASTFreeNodes(1, exprListNode.node);
+        return PARSE_ERRP("Missing semicolon in ForStmt"); 
     }
+    GetNextTokenP(fptr);
 
     ParseResult exprNode = Expr(fptr);
-    if (!exprNode) {
-        ERROR_MESSAGE("Invalid Expr in ForStmt", 1, exprListNode);
-        return PARSE_FAIL(ERRP);
+    if (exprNode.status != VALID) {
+        ASTFreeNodes(1, exprListNode.node);
+        return PARSE_ERRP("Invalid Expr in ForStmt");
     }
 
-    if (CompareToken(fptr, SEMI, "Missing SEMI in ForStmt", ERRP) != VALID) {
-        ASTFreeNodes(2, exprListNode, exprNode);
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != SEMI)  {
+        ASTFreeNodes(2, exprListNode.node, exprNode.node);
+        return PARSE_ERRP("Missing semicolon in ForStmt"); 
     }
+    GetNextTokenP(fptr);
 
     ParseResult exprListNode2 = ExprList(fptr);
-    if (!exprListNode2) {
-        ERROR_MESSAGE("Invalid ExprList in ForStmt", 2, exprListNode, exprNode);
-        return PARSE_FAIL(ERRP);
+    if (exprListNode2.status != VALID) {
+        ASTFreeNodes(2, exprListNode.node, exprNode.node);
+        return PARSE_ERRP("Invalid ExprList in ForStmt");
     }
 
-    if (CompareToken(fptr, RPAREN, "No RPAREN found in ForStmt", ERRP) != VALID) { 
-        ASTFreeNodes(3, exprListNode, exprNode, exprListNode2);
-        return PARSE_FAIL(ERRP);
+    if (PeekNextTokenP(fptr) != RPAREN)  {
+        ASTFreeNodes(3, exprListNode.node, exprNode.node, exprListNode2.node);
+        return PARSE_ERRP("No right parenthesis in ForStmt"); 
     }
+    GetNextTokenP(fptr);
     
     ParseResult bodyNode = Body(fptr);
-    if (!bodyNode) {
-        ERROR_MESSAGE("Invalid Body in ForStmt", 3, exprListNode, exprNode, exprListNode2);
-        return PARSE_FAIL(ERRP);
+    if (bodyNode.status != VALID) {
+        ASTFreeNodes(3, exprListNode.node, exprNode.node, exprListNode2.node);
+        return PARSE_ERRP("Invalid Body in ForStmt");
     }
 
-    ParseResult forStmtNode = InitASTNode();
-    forStmtNode->type = FOR_STMT_NODE;
-    ASTPushChildNode(forStmtNode, exprListNode, EXPR_LIST_NODE);
-    ASTPushChildNode(forStmtNode, exprNode, EXPR_NODE);
-    ASTPushChildNode(forStmtNode, exprListNode2, EXPR_LIST_NODE);
-    return forStmtNode;
+    ASTNode* forStmtNode = InitASTNode();
+    ASTPushChildNode(forStmtNode, exprListNode.node);
+    ASTPushChildNode(forStmtNode, exprNode.node);
+    ASTPushChildNode(forStmtNode, exprListNode2.node);
+    return PARSE_VALID(forStmtNode, FOR_STMT_NODE);
 }
 
 /* ----------- Expressions ---------- */
@@ -754,24 +748,19 @@ ParseResult ForStmt(FILE* fptr)
 ParseResult ExprList(FILE* fptr) 
 {
     printf("Entering ExprList\n");
-    
 
-    if (PeekNextTokenP(fptr) == SEMI || PeekNextTokenP(fptr) == RPAREN) {
-        ParseResult emptyNode = InitASTNode();
-        emptyNode->type = EMPTY_NODE;
-        return emptyNode;
-    }
+    if (PeekNextTokenP(fptr) == SEMI || PeekNextTokenP(fptr) == RPAREN)     /* Empty ExprList in ForStmt */
+        return EmptyNode();
 
-    ParseResult exprListNode = InitASTNode();
 
     ParseResult exprNode = Expr(fptr);
-    if (!exprNode) {
-        if (PARSE_ERROR == ERRP) 
-            return ERROR_MESSAGE("Invalid Expr in ExprList", 0);
-        printf("Exiting Expr\n");
-        return PARSE_FAIL(NAP);
-    }
-    ASTPushChildNode(exprListNode, exprNode, EXPR_NODE);
+    if (exprNode.status == ERRP) 
+        return PARSE_ERRP("Invalid Expr in ExprList"); 
+    else if (exprNode.status == NAP) 
+        return PARSE_NAP();
+
+    ASTNode* exprListNode = InitASTNode();
+    ASTPushChildNode(exprListNode, exprNode.node);
 
     while (true) {
         if (PeekNextTokenP(fptr) != COMMA) 
@@ -779,15 +768,15 @@ ParseResult ExprList(FILE* fptr)
         GetNextTokenP(fptr);
 
         exprNode = Expr(fptr);
-        if (!exprNode) {
-            if (PARSE_ERROR == ERRP) 
-                return ERROR_MESSAGE("Invalid Expr in ExprList", 2, exprNode, exprListNode);
-            return PARSE_FAIL(NAP);
+        if (exprNode.status != VALID) {
+            ASTFreeNodes(1, exprListNode);
+            return PARSE_ERRP("Invalid Expr in ExprList");
         }
-        ASTPushChildNode(exprListNode, exprNode, EXPR_NODE);
+
+        ASTPushChildNode(exprListNode, exprNode.node);
     }
 
-    return exprListNode;
+    return PARSE_VALID(exprListNode, EXPR_LIST_NODE);
 }
 
 ParseResult Expr(FILE* fptr) 
@@ -795,14 +784,7 @@ ParseResult Expr(FILE* fptr)
     printf("Entering Expr\n");
     
     /* TODO: Technically an Alias for AsgnEpxr, but allows for easier readability */
-    ParseResult asgnExpr = AsgnExpr(fptr);
-    if (!asgnExpr) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid AsgnExpr in Expr", 0);
-        printf("Exiting AsgnExpr\n");
-        return PARSE_FAIL(NAP);
-    }
-    return asgnExpr;
+    return AsgnExpr(fptr);
 }
 
 ParseResult AsgnExpr(FILE* fptr)
@@ -810,29 +792,25 @@ ParseResult AsgnExpr(FILE* fptr)
     printf("Entering AsgnExpr\n");
     
     ParseResult lhs = OrlExpr(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid OrlExpr in AsgnExpr", 0);
-        printf("Exiting OrlExpr\n");
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP) 
+        return PARSE_ERRP("Invalid OrlExpr in AsgnExpr");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
     if (ValidTokType(ASSIGNS, ASSIGNS_COUNT, PeekNextTokenP(fptr)) == VALID) 
     {
         Token tok = GetNextTokenP(fptr);
 
         ParseResult rhs = AsgnExpr(fptr);
-        if (!rhs) {
-            ERROR_MESSAGE("Invalid AsgnExpr in AsgnExpr", 1, lhs);
-            return PARSE_FAIL(ERRP);
+        if (rhs.status != VALID) {
+            ASTFreeNodes(1, lhs.node);
+            return PARSE_ERRP("Invalid AsgnExpr in AsgnExpr");
         }
         
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE;
-        operatorNode->token = tok;
+        ParseResult operatorNode = ArbitraryNode(tok, ASGN_EXPR_NODE);
 
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
+        ASTPushChildNode(operatorNode.node, rhs.node);
 
         lhs = operatorNode;
     }
@@ -844,28 +822,24 @@ ParseResult OrlExpr(FILE* fptr)
     printf("Entering OrlExpr\n");
     
     ParseResult lhs = AndlExpr(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid AndlExpr in OrlExpr", 0);
-        printf("Exiting AndlExpr\n");
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP)
+        return PARSE_ERRP("Invalid AndlExpr in OrlExpr");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
     while (PeekNextTokenP(fptr) == ORL) {
         Token tok = GetNextTokenP(fptr);
 
         ParseResult rhs = AndlExpr(fptr);
-        if (!rhs) {
-            ERROR_MESSAGE("Invalid AndlExpr in OrlExpr", 1, lhs);
-            return PARSE_FAIL(ERRP);
+        if (rhs.status != VALID) {
+            ASTFreeNodes(1, lhs.node);
+            return PARSE_ERRP("Invalid AndlExpr in OrlExpr");
         }
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE; /* TODO: Not entirely sure it needs to be Expr_Node since the parent makes it LHS or RHS anyways */
-        operatorNode->token = tok;
+        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
 
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
+        ASTPushChildNode(operatorNode.node, rhs.node);
 
         lhs = operatorNode;
     }
@@ -878,28 +852,23 @@ ParseResult AndlExpr(FILE* fptr)
     printf("Entering AndlExpr\n");
     
     ParseResult lhs = OrExpr(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid OrExpr in AndlExpr", 0);
-        printf("Exiting OrExpr\n");
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP) 
+        return PARSE_ERRP("invalid OrExpr in AndlExpr");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
     while (PeekNextTokenP(fptr) == ANDL) {
         Token tok = GetNextTokenP(fptr);
 
         ParseResult rhs = XorExpr(fptr);
-        if (!rhs) {
-            ERROR_MESSAGE("Invalid OrExpr in AndlExpr", 1, lhs);
-            return PARSE_FAIL(ERRP);
+        if (rhs.status != VALID) {
+            ASTFreeNodes(1, lhs.node);
+            return PARSE_ERRP("invalid OrEpxr in AndlExpr");
         }
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE;
-        operatorNode->token = tok;
-
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
+        ASTPushChildNode(operatorNode.node, rhs.node);
 
         lhs = operatorNode;
     }
@@ -912,28 +881,23 @@ ParseResult OrExpr(FILE* fptr)
     printf("Entering OrExpr\n");
     
     ParseResult lhs = XorExpr(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid XorExpr in OrExpr", 0);
-        printf("Exiting XorExpr\n");
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP)
+        return PARSE_ERRP("Invalid XorExpr in OrExpr");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
     while (PeekNextTokenP(fptr) == OR) {
         Token tok = GetNextTokenP(fptr);
 
         ParseResult rhs = XorExpr(fptr);
-        if (!rhs) {
-            ERROR_MESSAGE("Invalid XorExpr in OrExpr", 1, lhs);
-            return PARSE_FAIL(ERRP);
+        if (rhs.status != VALID) {
+            ASTFreeNodes(1, lhs.node);
+            return PARSE_ERRP("Invalid XorExpr in OrExpr");
         }
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE;
-        operatorNode->token = tok;
-
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
+        ASTPushChildNode(operatorNode.node, rhs.node);
 
         lhs = operatorNode;
     }
@@ -946,28 +910,23 @@ ParseResult XorExpr(FILE* fptr)
     printf("Entering XorExpr\n");
     
     ParseResult lhs = AndExpr(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid AndExpr in XorExpr", 0);
-        printf("Exiting AndExpr\n");
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP)
+        return PARSE_ERRP("Invalid AndExpr in XorExpr");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
     while (PeekNextTokenP(fptr) == XOR) {
         Token tok = GetNextTokenP(fptr);
 
         ParseResult rhs = AndExpr(fptr);
-        if (!rhs) {
-            ERROR_MESSAGE("Invalid AndExpr in XorExpr", 1, lhs);
-            return PARSE_FAIL(ERRP);
+        if (rhs.status != VALID) {
+            ASTFreeNodes(1, lhs.node);
+            return PARSE_ERRP("Invalid AndExpr in XorExpr");
         }
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE;
-        operatorNode->token = tok;
-
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
+        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
+        ASTPushChildNode(operatorNode.node, rhs.node);
 
         lhs = operatorNode;
     }
@@ -980,29 +939,23 @@ ParseResult AndExpr(FILE* fptr)
     printf("Entering AndExpr\n");
     
     ParseResult lhs = EqqExpr(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid EqqExpr in AndExpr", 0);
-        printf("Exiting EqqExpr\n");
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP)
+        return PARSE_ERRP("invalid EqqExpr in AndExpr");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
     while (PeekNextTokenP(fptr) == AND) {
         Token tok = GetNextTokenP(fptr);
 
         ParseResult rhs = EqqExpr(fptr);
-        if (!rhs) {
-            ERROR_MESSAGE("Invalid EqqExpr in AndExpr", 1, lhs);
-            return PARSE_FAIL(ERRP);
+        if (rhs.status != VALID) {
+            ASTFreeNodes(1, lhs.node);
+            return PARSE_ERRP("Invalid EqqExpr in AndExpr");
         }
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE;
-        operatorNode->token = tok;
-
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
-
+        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
+        ASTPushChildNode(operatorNode.node, rhs.node);
         lhs = operatorNode;
     }
 
@@ -1014,30 +967,24 @@ ParseResult EqqExpr(FILE* fptr)
     printf("Entering EqqExpr\n");
     
     ParseResult lhs = RelationExpr(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid RelationExpr in EqqExpr", 0);
-        printf("Exiting RelationExpr\n");
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP)
+        return PARSE_ERRP("invalid RelationExpr in EqqExpr");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
     TokenType tokType = PeekNextTokenP(fptr);
     if (tokType == EQQ || tokType == NEQQ) {
         Token tok = GetNextTokenP(fptr);
 
         ParseResult rhs = RelationExpr(fptr);
-        if (!rhs) {
-            ERROR_MESSAGE("Invalid RelationExpr in EqqExpr", 1, lhs);
-            return PARSE_FAIL(ERRP);
+        if (rhs.status != VALID) {
+            ASTFreeNodes(1, lhs.node);
+            return PARSE_ERRP("Invalid RelationExpr in EqqExpr");
         }
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE;
-        operatorNode->token = tok;
-
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
-
+        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
+        ASTPushChildNode(operatorNode.node, rhs.node);
         lhs = operatorNode;
     }
 
@@ -1049,12 +996,10 @@ ParseResult RelationExpr(FILE* fptr)
     printf("Entering RelationExpr\n");
     
     ParseResult lhs = ShiftExpr(fptr);
-    if (!lhs) {
-        if (PARSE_ERROR == ERRP)
-            return ERROR_MESSAGE("Invalid ShiftExpr in RelationExpr", 0);
-        printf("Exiting ShiftExpr\n");        
-        return PARSE_FAIL(NAP);
-    }
+    if (lhs.status == ERRP)
+        return PARSE_ERRP("invalid ShiftExpr in RelationExpr");
+    else if (lhs.status == NAP)
+        return PARSE_NAP();
 
     TokenType tokType = PeekNextTokenP(fptr);
     if (ValidTokType(RELATIONAL, RELATIONAL_COUNT, tokType) == VALID) 
@@ -1062,18 +1007,14 @@ ParseResult RelationExpr(FILE* fptr)
         Token tok = GetNextTokenP(fptr);
 
         ParseResult rhs = ShiftExpr(fptr);
-        if (!rhs) {
-            ERROR_MESSAGE("Invalid ShiftExpr in RelationExpr", 1, lhs);
-            return PARSE_FAIL(ERRP);
+        if (rhs.status != VALID) {
+            ASTFreeNodes(1, lhs.node);
+            return PARSE_ERRP("Invalid ShftExpr in RelationExpr");
         }
 
-        ParseResult operatorNode = InitASTNode();
-        operatorNode->type = EXPR_NODE;
-        operatorNode->token = tok;
-
-        ASTPushChildNode(operatorNode, lhs, LHS_NODE);
-        ASTPushChildNode(operatorNode, rhs, RHS_NODE);
-
+        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
+        ASTPushChildNode(operatorNode.node, lhs.node);
+        ASTPushChildNode(operatorNode.node, rhs.node);
         lhs = operatorNode;
     }
 
