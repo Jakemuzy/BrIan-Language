@@ -150,10 +150,36 @@ Similar to C, but simpler.
         - [ ] Bit manipulation tokens
     - [ ] Proper Preprocessor 
     - [x] Parser and AST
-    - [ ] Semantic Analzyer
+    - [ ] Semanitc Analysis
+        - [ ] Type Checking
+        - [ ] Desugaring
+        - [ ] Concurrency Checking
     - [ ] Conversion to LLVM IR
         - [ ] Assemble to RISC V
 ---
+
+## PIPELINE DESIGN
+
+    1. Raw input file
+    2. Preprocesser  -> 
+            TBD...
+    3. Tokenizer     -> 
+            Tokenizes input file one at a time
+    4. Parser        -> 
+            Calls the tokenizer one token at a time, builds an AST 
+            based off the input file. Returns a syntax error if code is invalid.
+    5. Name Resolver -> 
+            Determines scope and availability of names by generating
+            a symbol table, goal is to ensure names are consistent and available given scope. Also stores type information for later steps.
+    6. Type Checker  -> 
+            Checks the symbol table for any invalid typings
+    7. Desugarizer   ->
+            TBD...
+    7. IR Generation ->
+            Generates LLVM
+    8. RISC Assembly ->
+            TBD...
+
 
 `
 DATA TYPES [WIP]:
