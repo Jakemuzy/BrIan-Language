@@ -16,13 +16,18 @@
     BCLEAR - Bitwise clear &<2>
     BSET - Bitwise set |<3>
 
-    CCONST - Char
-    SCONST - Short
-    ICONST - Int
-    FCONST - Float
-    DCONST - Double
-    LCONST - Long
-    RCONST - String 
+    ENUM - Enum
+    STRUCT - Struct
+
+    I8  - 8  Bit Int 
+    I16 - 16 Bit Int
+    I32 - 32 Bit Int
+    I64 - 64 Bit Int
+    
+    U8  - 8  Bit Unsigned Int
+    U16 - 16 Bit Unsigned Int
+    U32 - 32 Bit Unsigned Int
+    U64 - 64 Bit Unsigned Int
 */
 
 typedef enum {

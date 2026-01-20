@@ -1,0 +1,9 @@
+#ifndef _TYPE_CHECKER_H__
+#define _TYPE_CHECKER_H__
+
+typedef enum {
+    TYPE_INT, TYPE_CHAR, TYPE_DOUBLE, TYPE_FLOAT,
+    TYPE_PTR, TYPE_FUNC, TYPE_STRUCT, TYPE_STRING
+} TypeKind;
+
+#endif 
