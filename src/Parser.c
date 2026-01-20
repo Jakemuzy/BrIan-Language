@@ -7,6 +7,7 @@
           boilerplate code, which is making the file artifically longer than it needs
         - Currently freeing more than I need to since ASTFreeNodes is recursive, ONLY
           free nodes that aren't parented yet
+        - DON'T FORGET TO ADD ARRAY INDEXING
 */
 
 /* ----------- ERRORS ---------- */
@@ -46,6 +47,7 @@ int ValidTokType(const int types[], int arrSize, int type)
     return NAP;
 }
 
+
 ParseResult IdentNode(Token tok)
 {
     ASTNode* identNode = InitASTNode();
@@ -56,8 +58,12 @@ ParseResult IdentNode(Token tok)
 ParseResult EmptyNode()
 {
     ASTNode* emptyNode = InitASTNode();
-    emptyNode->type = EMPTY_NODE;
     return PARSE_VALID(emptyNode, EMPTY_NODE);
+}
+
+ParseResult ProgNode() {
+    ASTNode* progNode = InitASTNode();
+    return PARSE_VALID(progNode, PROG_NODE); 
 }
 
 ParseResult ArbitraryNode(Token tok, NodeType type)
@@ -74,6 +80,7 @@ AST* Program(FILE* fptr)
     /* TODO: errors regarding ast freeing and progNode freeing */
     /* Allow global DeclStmts without abiguity (both start with Type Ident) */
     AST* ast = ASTInit();
+    ast->root = ProgNode().node;
     ASTNode* progNode = ast->root;
     
     while (true) {
@@ -160,8 +167,11 @@ ParseResult Function(FILE* fptr)
 ParseResult ParamList(FILE* fptr)
 {
     DEBUG_MESSAGE("Starting ParamList\n");
-    if (PeekNextTokenP(fptr) == RPAREN) 
-        return EmptyNode();
+    if (PeekNextTokenP(fptr) == RPAREN) {
+        ASTNode* paramListNode = InitASTNode();
+        ASTPushChildNode(paramListNode, EmptyNode().node);
+        return PARSE_VALID(paramListNode, PARAM_LIST_NODE);
+    }
     
     ParseResult paramNode = Param(fptr);
     if (paramNode.status == ERRP)
@@ -241,10 +251,14 @@ ParseResult StmtList(FILE* fptr)
     DEBUG_MESSAGE("Entering StmtList\n");
     
     ASTNode* stmtListNode = InitASTNode();
+    if (PeekNextTokenP(fptr) == RBRACK)  {      /* Assume all StmtLists are followed by RBRACK */
+        ASTPushChildNode(stmtListNode, EmptyNode().node);     
+        return PARSE_VALID(stmtListNode, STMT_LIST_NODE);
+    }
 
     while (true) {
-        if (PeekNextTokenP(fptr) == RBRACK) /* Assume all StmtLists are followed by RBRACK */
-            return EmptyNode();
+        if (PeekNextTokenP(fptr) == RBRACK) 
+            break;
 
         ParseResult stmtNode = Stmt(fptr);
         if (stmtNode.status == VALID) {
@@ -266,7 +280,7 @@ ParseResult Stmt(FILE* fptr)
 
     ParseResult ctrlStmtNode = CtrlStmt(fptr);
     if (ctrlStmtNode.status == VALID)
-        return PARSE_VALID(ctrlStmtNode.node, CTRL_STMT_NODE);
+        return ctrlStmtNode;    /* Child already properly sets type to valid ctrl stmt */
     else if (ctrlStmtNode.status == ERRP)
         return PARSE_ERRP("Invalid CtrlStmt in Stmt");
 
@@ -1201,6 +1215,9 @@ ParseResult Postfix(FILE* fptr)
             }
             lhs = callFuncNode;
         }
+        else if (tokType == LBRACE) {
+            /* Array Index */
+        }
         else if (ValidTokType(POSTFIXS, POSTFIXS_COUNT, tokType) == VALID ) {
             Token tok = GetNextTokenP(fptr);
             ParseResult operatorNode = ArbitraryNode(tok, UNARY_EXPR_NODE);
@@ -1244,10 +1261,14 @@ ParseResult Primary(FILE* fptr)
 
     if (ValidTokType(PRIMARYS, PRIMARYS_COUNT, PeekNextTokenP(fptr)) == VALID) {
         Token tok = GetNextTokenP(fptr);
-
-        ParseResult operandNode = ArbitraryNode(tok, LITERAL_NODE);
+        
+        ParseResult operandNode;
+        if (tok.type == IDENT)
+            operandNode = ArbitraryNode(tok, IDENT_NODE);
+        else 
+            operandNode = ArbitraryNode(tok, LITERAL_NODE);
         return operandNode;
-    }  
+    } 
     /* Check Parenthesis Helper Function Needed */
     else if (PeekNextTokenP(fptr) == LPAREN) {
         GetNextTokenP(fptr);
@@ -1286,8 +1307,11 @@ ParseResult Type(FILE* fptr)
 ParseResult ArgList(FILE* fptr) 
 {
     DEBUG_MESSAGE("Entering ArgList\n");
-    if (PeekNextTokenP(fptr) == RPAREN) 
-        return EmptyNode();
+    if (PeekNextTokenP(fptr) == RPAREN) {
+        ASTNode* argListNode = InitASTNode();
+        ASTPushChildNode(argListNode, EmptyNode().node);
+        return PARSE_VALID(argListNode, ARG_LIST_NODE);
+    }
     
     ParseResult exprNode = Expr(fptr);
     if (exprNode.status == ERRP) 
