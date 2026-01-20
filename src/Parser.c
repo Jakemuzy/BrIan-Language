@@ -278,27 +278,28 @@ ParseResult Stmt(FILE* fptr)
 {
     DEBUG_MESSAGE("Entering Stmt\n");
 
+    /* Children already set their node types, Stmt only needs to return the child result if VALID */
     ParseResult ctrlStmtNode = CtrlStmt(fptr);
     if (ctrlStmtNode.status == VALID)
-        return ctrlStmtNode;    /* Child already properly sets type to valid ctrl stmt */
+        return ctrlStmtNode;    
     else if (ctrlStmtNode.status == ERRP)
         return PARSE_ERRP("Invalid CtrlStmt in Stmt");
 
     ParseResult declStmtNode = DeclStmt(fptr);
     if (declStmtNode.status == VALID)
-        return PARSE_VALID(declStmtNode.node, DECL_STMT_NODE);
+        return declStmtNode;
     else if (declStmtNode.status == ERRP)
         return PARSE_ERRP("Invalid DeclStmt in Stmt");
 
     ParseResult exprStmtNode = ExprStmt(fptr);
     if (exprStmtNode.status == VALID)
-        return PARSE_VALID(exprStmtNode.node, EXPR_STMT_NODE);
+        return exprStmtNode;    
     else if (exprStmtNode.status == ERRP)
         return PARSE_ERRP("Invalid ExprStmt in Stmt");
 
     ParseResult returnStmtNode = ReturnStmt(fptr);
     if (returnStmtNode.status == VALID)
-        return PARSE_VALID(returnStmtNode.node, RETURN_STMT_NODE);
+        return returnStmtNode;
     else if (returnStmtNode.status == ERRP)
         return PARSE_ERRP("Invalid ReturnStmt in Stmt");
  
@@ -326,10 +327,10 @@ ParseResult ExprStmt(FILE* fptr)
     }
     GetNextTokenP(fptr);
 
-    ASTNode* stmt = InitASTNode();
-    ASTPushChildNode(stmt, exprNode.node);
+    ASTNode* exprStmt = InitASTNode();
+    ASTPushChildNode(exprStmt, exprNode.node);
 
-    return PARSE_VALID(exprNode.node, EXPR_STMT_NODE);
+    return PARSE_VALID(exprStmt, EXPR_STMT_NODE);
 }
 
 ParseResult DeclStmt(FILE* fptr)

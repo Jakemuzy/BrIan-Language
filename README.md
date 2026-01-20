@@ -144,11 +144,15 @@ Similar to C, but simpler.
 
     - [x] Tokenizer
     - [ ] All Tokens implemented
+        - [x] C-Like tokens 
+        - [ ] Register tokens 
+        - [ ] Safe memory tokens
+        - [ ] Bit manipulation tokens
     - [ ] Proper Preprocessor 
     - [x] Parser and AST
-    - [ ] Conversion to RISC V 
-    - [ ] [OPTIONAL] Conversion to LLVM IR
-
+    - [ ] Semantic Analzyer
+    - [ ] Conversion to LLVM IR
+        - [ ] Assemble to RISC V
 ---
 
 `
