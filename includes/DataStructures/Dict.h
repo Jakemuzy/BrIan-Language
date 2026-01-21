@@ -3,7 +3,7 @@
 
 /* Better Dictionary */
 
-int HashS(char* key);
+int HashStr(char* key);
 int Hash(int key);
 
 
