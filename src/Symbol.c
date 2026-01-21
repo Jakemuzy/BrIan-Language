@@ -1,4 +1,5 @@
 #include "Symbol.h"
+
 /* ---------- Symbols ---------- */
 
 Symbol* InitSymbol(ASTNode* decl, Symbol* next) 
@@ -14,12 +15,12 @@ Symbol* InitSymbol(ASTNode* decl, Symbol* next)
 /* ---------- Symbol Table ---------- */
 
 
-
 Symbol* STLookup(ASTNode* decl)
 {
+    /*
     char* name = decl->token.lex.word;
 
-    int index = hash(name) % SIZE;
+    int index = HashStr(name) % SIZE;
     Symbol* sym, *syms = SymbolTable[index];
     for (sym=syms; sym; sym=sym->next)
         if (0 == strcmp(sym->name, name)) return sym;
@@ -27,4 +28,5 @@ Symbol* STLookup(ASTNode* decl)
     sym = InitSymbol(decl, syms);
     SymbolTable[index] = sym;
     return sym;
+    */
 }

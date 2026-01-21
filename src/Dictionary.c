@@ -24,7 +24,7 @@ Entry* DictLookup(Dict d, char* key)
     return NULL;
 }
 
-Entry* DictInstall(Dict* d, char* key, int val)
+Entry* DictAdd(Dict* d, char* key, int val)
 {
     Entry* np;
     unsigned int hashval;
@@ -62,7 +62,7 @@ Dict* DictMake(int count, ...)
     for(i = 0; i < count; i++)
     {
         KeyVal* kv = va_arg(args, KeyVal*);
-        DictInstall(d, kv->key, kv->val);
+        DictAdd(d, kv->key, kv->val);
     }
 
     va_end(args);

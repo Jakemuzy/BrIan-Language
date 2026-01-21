@@ -1,6 +1,7 @@
 #ifndef _SYMBOL_H__
 #define _SYMBOL_H__
 
+/* #include "Dict.h" */
 #include "Parser.h"
 
 /* ---------- Symbols ---------- */

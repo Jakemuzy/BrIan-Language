@@ -2,6 +2,8 @@
 
 #include "Parser.h"
 
+/* AI slop debug functions */
+
 const char* NodeTypeToString(NodeType type) {
     switch(type) {
         case PROG_NODE: return "PROG_NODE";
