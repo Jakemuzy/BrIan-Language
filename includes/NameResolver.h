@@ -2,48 +2,15 @@
 #define _NAME_RESOLVER_H__
 
 #include "Token.h"
-#include "Parser.h"
+#include "Symbol.h"
 
 /* ---------- Helper ---------- */
 
 bool  IsValidDecl(ASTNode* decl);
 char* FindIdent(ASTNode* decl);
 
-/* ---------- Symbols ---------- */
 
-/* 
-    Need a helper function for resolving symbol type.
-    This will aid when I want to add different symbol types dynamically.
-*/
-
-typedef enum SymbolType {   
-    S_VAR, S_FUNC
-} SymbolType;
-
-typedef struct Symbol {
-    SymbolType stype;
-    char* name; 
-    ASTNode* decl;
-
-} Symbol;
-
-Symbol* InitSymbol(ASTNode* decl);
-bool    SymbolHasOwnScope(Symbol* sym);
-
-/* Each symbol table is its own "scope" represented by the tree structure */
-typedef struct SymbolTable {
-    Symbol* symbols;
-   
-    struct SymbolTable* parent;
-    struct SymbolTable* chlidren;
-} SymbolTable;
-
-SymbolTable* InitST();
-void STPushChild (SymbolTable* st, SymbolTable* st2);
-void STPushSymbol(SymbolTable* st, Symbol* sym);
-
-SymbolTable* GenerateSymbolTable(AST* ast);
-Symbol*      ResolveBinding(SymbolTable* st, Symbol* sym);
+/* Symbol*      ResolveBinding(SymbolTable* st, Symbol* sym); */
 
 /* Static Name Resolution */
 /* Symbol Table */
