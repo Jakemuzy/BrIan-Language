@@ -13,35 +13,31 @@
         - Refactor the Entire Tokenizer to reduce boilerplate and make it more modular
 */
 
+/* ---------- Helpers ---------- */
 
-KeyVal kv1 = {"if", IF} ;
-KeyVal kv2 = {"elif", ELIF};
-KeyVal kv3 = {"else", ELSE};
-KeyVal kv4 = {"do", DO};
-KeyVal kv5 = {"while", WHILE};
-KeyVal kv6 = {"for", FOR};
-KeyVal kv7 = {"switch", SWITCH};
-KeyVal kv8 = {"case", CASE};
-KeyVal kv9 = {"default", DEFAULT};
-KeyVal kv10 = {"return", RET};
-KeyVal kv11 = {"char", CHAR};
-KeyVal kv12 = {"short", SHORT};
-KeyVal kv13 = {"int", INT};
-KeyVal kv14 = {"float", FLOAT};
-KeyVal kv15 = {"double", DOUBLE};
-KeyVal kv16 = {"long", LONG};
-KeyVal kv17 = {"void", VOID};
-KeyVal kv18 = {"string", STRING};
+KeyVal kv1 = {"if", IF} ;           KeyVal kv2 = {"elif", ELIF};
+KeyVal kv3 = {"else", ELSE};        KeyVal kv4 = {"do", DO};
+KeyVal kv5 = {"while", WHILE};      KeyVal kv6 = {"break", BREAK};
+KeyVal kv7 = {"for", FOR};          KeyVal kv8 = {"switch", SWITCH};
+KeyVal kv9 = {"case", CASE};        KeyVal kv10 = {"default", DEFAULT};
+KeyVal kv11 = {"return", RET};      KeyVal kv12 = {"char", CHAR};
+KeyVal kv13 = {"short", SHORT};     KeyVal kv14 = {"int", INT};
+KeyVal kv15 = {"float", FLOAT};     KeyVal kv16 = {"double", DOUBLE};
+KeyVal kv17 = {"long", LONG};       KeyVal kv18 = {"void", VOID};
+KeyVal kv19 = {"string", STRING};   KeyVal kv20 = {"enum", ENUM};
+KeyVal kv21 = {"struct", STRUCT};   KeyVal kv22 = {"const", CONST};
+KeyVal kv23 = {"signed", SIGNED};   KeyVal kv24 = {"unsigned", UNSIGNED};
+KeyVal kv25 = {"static", STATIC};   KeyVal kv26 = {"typedef", TYPEDEF}; 
+KeyVal kv27 = {"U8", U8};           KeyVal kv28 = {"U16", U16};         
+KeyVal kv29 = {"U32", U32};         KeyVal kv30 = {"U64", U64};         
+KeyVal kv31 = {"I8", I8};           KeyVal kv32 = {"I16", I16};
+KeyVal kv33 = {"I32", I32};         KeyVal kv34 = {"I64", I64};
+KeyVal kv35 = {"bool", BOOL};
 
 Token GetNextToken(FILE* fptr)
 {
-    /* Check Buffer Before Grabbing New */
     Token next;
-    if(BufferFull)
-    {
-        BufferFull = false;
-        return Buffer;
-    }
+    CHECK_BUFFER();
 
     /* Fetch new Token From File */
     next.lex.size = 0;
@@ -50,45 +46,38 @@ Token GetNextToken(FILE* fptr)
     next.lex.word[0] = '\0';
     
     int c;
-    do {
-        c = fgetc(fptr);
-    } while(isspace(c));
+    GET_CHAR(fptr, c);
 
-    if(IsEnd(fptr, &next, c) != NAT)
+    if (IsEnd(fptr, &next, c) != NAT)
         ;
-    else if(IsNumber(fptr, &next, c) != NAT)
+    else if (IsNumber(fptr, &next, c) != NAT)
         ;
-    else if(IsLiteral(fptr, &next, c) != NAT)
+    else if (IsLiteral(fptr, &next, c) != NAT)
         ;
-    else if(IsOperator(fptr, &next, c) != NAT)
+    else if (IsOperator(fptr, &next, c) != NAT)
         ;
-    else if(IsComp(fptr, &next, c) != NAT)
+    else if (IsComp(fptr, &next, c) != NAT)
         ;
-    else if(IsBracket(fptr, &next, c) != NAT)
+    else if (IsBracket(fptr, &next, c) != NAT)
         ;
-    else if(IsBitwise(fptr, &next, c) != NAT)
+    else if (IsBitwise(fptr, &next, c) != NAT)
         ;
-    else if(IsUnary(fptr, &next, c) != NAT)
+    else if (IsOther(fptr, &next, c) != NAT)
         ;
-    else if(isalpha(c) || c == '_')
+    else if (isalpha(c) || c == '_')
         IdentOrKeyword(fptr, &next, c);
-    else {
+    else 
         printf("ERROR: Uknown char: %c\n", c);
-        exit(1);
-    }
 
     return next;
 }
 
 int PutTokenBack(Token* t)
 {
-    if(BufferFull)
-    {
+    if(BufferFull) {
         printf("ERROR: Attemping to write to a full buffer \n");
-        exit(-1);
+        return -1;
     }
-
-    /*printf("%s PUTBACK\n", t->lex.word);*/
 
     Buffer = *t;
     BufferFull = true;
@@ -112,7 +101,6 @@ void UpdateLexeme(Token* t, int c)
 
 int IsOperator(FILE* fptr, Token* t, int c)
 {
-    /* TODO: Make this a switch stmt */
 
     if(IsDiv(fptr, t, c) != NAT)
         return VALID;
@@ -135,17 +123,34 @@ int IsNumber(FILE* fptr, Token* t, int c)
 {
     bool decimalSeen = false;
 
-    if(isdigit(c))
+    if(isdigit(c)) {
+        UpdateLexeme(t, c);
         t->type = INTEGRAL;
+    }
     else if(c == '.')
     {
-        t->type = DECIMAL;
-        decimalSeen = true;
+        UpdateLexeme(t, c);
+
+        int next = fgetc(fptr);
+        if(next == '?') {
+            t->type = SMEM;
+            UpdateLexeme(t, next);
+            return VALID;
+        }
+        else if (next == isdigit(next)) {
+            t->type = DECIMAL;
+            decimalSeen = true;
+        } 
+        else {
+            ungetc(next, fptr);
+            t->type = MEM;
+            return VALID;
+        }
+
     }
     else 
         return NAT;
 
-    UpdateLexeme(t, c);
     while(t->type == INTEGRAL || t->type == DECIMAL)
     {
         int next = fgetc(fptr);
@@ -284,9 +289,8 @@ int IsBitwise(FILE* fptr, Token* t, int c)
             UpdateLexeme(t, next);
             return VALID;
         }
-        else
-            ungetc(next, fptr);
-
+            
+        ungetc(next, fptr);
         t->type = NEG;
         return VALID;
     }
@@ -299,9 +303,8 @@ int IsBitwise(FILE* fptr, Token* t, int c)
             UpdateLexeme(t, next);
             return VALID;
         }
-        else
-            ungetc(next, fptr);
 
+        ungetc(next, fptr);
         t->type = XOR;
         return VALID;
     }
@@ -310,7 +313,7 @@ int IsBitwise(FILE* fptr, Token* t, int c)
     return NAT;
 }
 
-int IsUnary(FILE* fptr, Token* t, int c)
+int IsOther(FILE* fptr, Token* t, int c)
 {
     
     if(c == ';') {
@@ -333,6 +336,16 @@ int IsUnary(FILE* fptr, Token* t, int c)
         UpdateLexeme(t, c);
         return VALID;
     }
+    if(c == '@'){
+        t->type = REGISTER;
+        UpdateLexeme(t, c);
+        return VALID;
+    }
+    if(c == '?') {
+        t->type = QUESTION;
+        UpdateLexeme(t, c);
+        return VALID;
+    }  
 
     t->type = NA;
     return NAT;
@@ -351,15 +364,6 @@ int IsEnd(FILE* fptr, Token* t, int c)
     t->type = NA;
     return NAT;
 }
-/* Just eats EOL for now */
-/*
-TokenType IsEOL(FILE* fptr, int c)
-{
-    if(c != '\n')
-        ;
-    return NA;
-}
-*/
 
 /* ---------- OPERATORS ---------- */
 
@@ -431,7 +435,20 @@ int IsMinus(FILE* fptr, Token* t, int c)
             UpdateLexeme(t, next);
             return VALID;
         }
+        else if(next == '>') {      /* Accessing Pointers */
+            UpdateLexeme(t, next);
 
+            next = fgetc(fptr);
+            if (next == '?') {
+                t->type = SREF;
+                UpdateLexeme(t, next);
+                return VALID;
+            }
+
+            ungetc(next, fptr);
+            t->type = REF;
+            return VALID;
+        }
         ungetc(next, fptr);
         t->type = MINUS;
         return MINUS;
@@ -741,7 +758,10 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
     /* TODO: Make these maps more like I have in the parser section
 */
     if(!KWmap)
-        KWmap = DictMake(18, &kv1, &kv2, &kv3, &kv4, &kv5, &kv6, &kv7, &kv8, &kv9, &kv10, &kv11, &kv12, &kv13, &kv14, &kv15, &kv16, &kv17, &kv18);
+        KWmap = DictMake(35, &kv1,  &kv2,  &kv3,  &kv4,  &kv5,  &kv6,  &kv7,  &kv8,  &kv9, 
+                             &kv10, &kv11, &kv12, &kv13, &kv14, &kv15, &kv16, &kv17, &kv18, 
+                             &kv19, &kv20, &kv21, &kv22, &kv23, &kv24, &kv25, &kv26, &kv27, 
+                             &kv28, &kv29, &kv30, &kv31, &kv32, &kv33, &kv34, &kv35  );
 
     int next = c;
     while(next != '\n' && next != EOF)

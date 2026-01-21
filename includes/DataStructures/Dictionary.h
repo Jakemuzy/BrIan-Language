@@ -29,7 +29,7 @@ unsigned int Hash(char* key);
 typedef Entry* Dict[DICT_CAP];
 
 Entry* DictLookup(Dict d, char* key);
-Entry* DictInstall(Dict* d, char* key, int val);
+Entry* DictAdd(Dict* d, char* key, int val);
 
 Dict* DictMake(int count, ...);
 void DictPrint(Dict d);  

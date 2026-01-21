@@ -23,67 +23,10 @@ char* FindIdent(ASTNode* decl)
 
 /* ----------- Symbols  ---------- */
 
-Symbol* InitSymbol(ASTNode* decl)
-{
-    /* TODO: Clean this up */
-
-    Symbol* sym = malloc(sizeof(Symbol)); 
-    sym->decl = decl;
-    sym->name = FindIdent(decl);
-    if (!sym->name) {
-        printf("ERROR: No ident associated with ast node\n");
-    }
-    if (decl->type == DECL_STMT_NODE)
-        sym->stype = S_VAR;
-    else 
-        sym->stype = S_FUNC;
-
-    return sym;
-}
-
-bool SymbolHasOwnScope(Symbol* sym)
-{
-    if (sym->stype == S_FUNC)   /* Again a helper function/macro would be nice */
-        return true;
-    return false;
-}
 
 /* ----------- Symbol Table ---------- */
 
-SymbolTable* InitST() 
-{
-
-}
-
-void STPushChild (SymbolTable* st, SymbolTable* st2)
-{
-
-}
-
-void STPushSymbol(SymbolTable* st, Symbol* sym)
-{
-
-}
-
-SymbolTable* GenerateSymbolTable(ASTNode* node) 
-{
-    SymbolTable* st = InitST();
-
-    int i;
-    for (i = 0; i < node->childCount; i++)
-    {
-        if (IsValidSymbol(node->children[i])) {
-            Symbol* sym = InitSymbol(node->children[i]); 
-            if (SymbolHasOwnScope(sym))
-                STPushChild(st, GenerateSymbolTable(sym->decl));
-            else
-                STPushSymbol(st, sym); 
-        }
-
-    }
-
-}
-
+/*
 Symbol* ResolveBinding(SymbolTable* st, Symbol* sym)
 {
     /*
@@ -91,17 +34,23 @@ Symbol* ResolveBinding(SymbolTable* st, Symbol* sym)
         If duplicated names in same scope -> Name Resolution error
         If no decl stmt or function for Name -> Name Resolution error
 
-    */
+    
 }
+*/
 
 /*
-    int scopeExample = 3;
-    func () {
-        // Not an error
-        int scopeExmple = 5;  
+    Have two structures: 
+        One map, where the key is the actual ident (as a Symbol instead of a string).
+        The symbol is used as the hash function and the value is that particular ident
+        at that point in time.
+            - For Example: int x in global scope would be the first member of that key
+              Upon seeing a local X in a function (shadowing) the stack for that key is
+              pushed to. The ne wvalue now contains the first latest declaration.
+        
+        The second being an "auxiliary stack" which shows in what order the symbols
+        were "pushed" into the symbol table (map), this helps with scpoe. Pushing special
+        markers onto the stack for begin scope and end scope 
 
-        while(scopeExmaple)
-    }
-
-
+    What is a binding (What should the table be filled with)?
+        
 */

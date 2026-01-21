@@ -9,15 +9,18 @@
 
     SMEM - Safe member access ?.
     SREF - Safe member access by ref ?->
+    REGISTER - Regsiter access @
+
     SPLICE - Array splicing and Ternary op :
-
-    REG - Regsiter access @
-
-    BCLEAR - Bitwise clear &<2>
-    BSET - Bitwise set |<3>
 
     ENUM - Enum
     STRUCT - Struct
+    BREAK
+
+    CONST
+    SIGNED
+    STATIC
+    TYPEDEF
 
     I8  - 8  Bit Int 
     I16 - 16 Bit Int
@@ -32,13 +35,19 @@
 
 typedef enum {
     /* Ctrl Stmt Key Words */
-    IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH, CASE, DEFAULT, RET,
+    IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH, CASE, DEFAULT, BREAK, RET,
 
     /* Data Type Key Words */
-    IDENT, CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID, STRING,
+    CHAR, BOOL, SHORT, INT, FLOAT, DOUBLE, LONG, VOID, STRING,
+    I8, I16, I32, I64, U8, U16, U32, U64, 
+    ENUM, STRUCT, 
+
+    /* Qualifier and Modifier Key Words */
+    CONST, SIGNED, UNSIGNED, STATIC, TYPEDEF,
 
     /* Assignment Operators */
     EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, ANDEQ, OREQ, ANDLEQ, ORLEQ, NEGEQ, XOREQ, RIGHTEQ, LEFTEQ, PP, SS, 
+
     /* Equation Operators */
     PLUS, MINUS, DIV, MULT, POW, MOD, 
 
@@ -51,14 +60,14 @@ typedef enum {
     /* Brackets */
     LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK, /* Langle and Rangle are < and > so less and great */
 
-    /* Data Types REPLACE WITH CONST */
-    INTEGRAL, DECIMAL,
+    /* Data Types */
+    IDENT, INTEGRAL, DECIMAL, CLITERAL, SLITERAL,
 
     /* Memory */
-    TERN, COND_ACCESS, CONDP_ACCESS, REG, /* TODO: ?. ?-> tern operator and register access */
+    REGISTER, SREF, SMEM, QUESTION, REF, MEM,
 
     /* Other */
-    SEMI, COLON, COMMA, HASH, COMMENT, CLITERAL, SLITERAL, END, ERR,
+    SEMI, COLON, COMMA, HASH, COMMENT, END, ERR,
 
     /* Currently Not Determinable */
     NA
@@ -98,10 +107,10 @@ static const size_t ADDS_COUNT = sizeof(ADDS) / sizeof(ADDS[0]);
 static const int MULTS[] = { MULT, DIV, MOD };
 static const size_t MULTS_COUNT = sizeof(MULTS) / sizeof(MULTS[0]);
 
-static const int PREFIXS[] = { PP, SS, NOT, NEG, MINUS, /* Cast */ MULT, AND };
+static const int PREFIXS[] = { PP, SS, NOT, NEG, MINUS, MULT, AND };
 static const size_t PREFIXS_COUNT = sizeof(PREFIXS) / sizeof(PREFIXS[0]);
 
-static const int POSTFIXS[] = { PP, SS, REG };
+static const int POSTFIXS[] = { PP, SS, REGISTER, SMEM, SREF, MEM };
 static const size_t POSTFIXS_COUNT = sizeof(POSTFIXS) / sizeof(POSTFIXS[0]);
 
 static const int PRIMARYS[] = { IDENT, DECIMAL, INTEGRAL, SLITERAL, CLITERAL };

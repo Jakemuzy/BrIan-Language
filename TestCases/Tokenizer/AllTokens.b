@@ -7,9 +7,10 @@ for
 switch
 case
 default
+break
 return
-identifer
 char
+bool
 short
 int
 float
@@ -17,6 +18,21 @@ double
 long
 void
 string
+I8
+I16
+I32
+I64
+U8
+U16
+U32
+U64
+enum
+struct
+const
+signed
+unsigned
+static
+typedef
 =
 +=
 -=
@@ -60,14 +76,21 @@ string
 ]
 {
 }
+identifer
 1234
 12.34
 .1234
+'c'
+"String literal"
+@
+->?
+.?
+?
+->
+.
 ;
 :
 ,
 #
 // Comment One
 /* Coment Two */
-'c'
-"String literal"
