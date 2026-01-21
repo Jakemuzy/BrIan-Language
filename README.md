@@ -145,12 +145,13 @@ Similar to C, but simpler.
     - [x] Tokenizer
     - [ ] All Tokens implemented
         - [x] C-Like tokens 
-        - [ ] Register tokens 
-        - [ ] Safe memory tokens
+        - [x] Register tokens 
+        - [x] Safe memory tokens
         - [ ] Bit manipulation tokens
     - [ ] Proper Preprocessor 
     - [x] Parser and AST
     - [ ] Semanitc Analysis
+        - [ ] Name Resolution
         - [ ] Type Checking
         - [ ] Desugaring
         - [ ] Concurrency Checking

@@ -137,8 +137,9 @@ int IsNumber(FILE* fptr, Token* t, int c)
             UpdateLexeme(t, next);
             return VALID;
         }
-        else if (next == isdigit(next)) {
+        else if (isdigit(next)) {
             t->type = DECIMAL;
+            UpdateLexeme(t, next);
             decimalSeen = true;
         } 
         else {
