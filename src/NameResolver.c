@@ -1,5 +1,7 @@
 #include "NameResolver.h"
 
+
+
 /* ----------- Helper ----------- */
 
 bool IsValidDecl(ASTNode* decl)

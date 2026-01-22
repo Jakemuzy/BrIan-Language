@@ -4,6 +4,8 @@
 /* #include "Dict.h" */
 #include "Parser.h"
 
+#define SIZE 109
+
 /* ---------- Symbols ---------- */
 
 typedef enum SymbolType {   
@@ -21,13 +23,6 @@ typedef struct Symbol {
 Symbol* InitSymbol(ASTNode* decl, Symbol* next);
 bool    SymbolHasOwnScope(Symbol* sym);
 
-/* ---------- Scope Logic ---------- */
-
-#define SIZE 109
-
-#define SYM_MARK "<mark>"
-static Symbol Scope[SIZE];
-
 /* ---------- Symbol Table ---------- */
 
 /* 
@@ -42,6 +37,17 @@ Symbol* STPop(char* name);
 void    STPush(ASTNode* key);
 Symbol* STLookup(ASTNode* key);
 
+/* ---------- Scope Logic ---------- */
+
+typedef struct Scope {
+    Symbol* symbols;
+    size_t symCount;
+} Scope;
+
+static Scope SCOPE = { NULL, 0 };
+
 void STBeginScope(Symbol* ST[]);
 void STEndScope(Symbol* ST[]);
+
+
 #endif

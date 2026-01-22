@@ -6,6 +6,7 @@
 
 /* ---------- Helper ---------- */
 
+
 bool  IsValidDecl(ASTNode* decl);
 char* FindIdent(ASTNode* decl);
 
