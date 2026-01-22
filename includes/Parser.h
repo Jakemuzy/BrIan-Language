@@ -24,7 +24,7 @@ typedef struct ParseResult {
 ParseResult PARSE_VALID(ASTNode* node, NodeType type);
 ParseResult PARSE_NAP();
 ParseResult PARSE_ERRP(char* message);
-#define ERROR_MESSAGE(message) printf("SYNTAX ERROR: %s, on line...\n", message);
+#define ERROR_MESSAGE(message) printf("SYNTAX ERROR: %s, on line %d\n", message, GetLineNum());
 #define DEBUG_MESSAGE(message) do { \
         if (DEBUG == true)  { printf("%s", message); } \
     } while(0);
@@ -83,7 +83,7 @@ ParseResult PowExpr(FILE* fptr);
 ParseResult Prefix(FILE* fptr);
     ParseResult Cast(FILE* fptr);
 ParseResult Postfix(FILE* fptr);
-    ParseResult Index(FILE* fptr);
+    ParseResult Index(FILE* fptr, ASTNode* callee);
     ParseResult CallFunc(FILE* fptr, ASTNode* callee);
 ParseResult Primary(FILE* fptr);
 

@@ -175,7 +175,7 @@ Similar to C, but simpler.
     6. Type Checker  -> 
             Checks the symbol table for any invalid typings
     7. Desugarizer   ->
-            TBD...
+            Removes syntactic "sugar" converting the ast to a form that is easily translated to BrIRan (BrIan Intermediate Language)
     7. IR Generation ->
             Generates LLVM
     8. RISC Assembly ->

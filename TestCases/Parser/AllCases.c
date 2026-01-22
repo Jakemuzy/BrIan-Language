@@ -40,7 +40,8 @@ const char* NodeTypeToString(NodeType type) {
         case BINARY_EXPR_NODE: return "BINARY_EXPR_NODE";
         case UNARY_EXPR_NODE: return "UNARY_EXPR_NODE";
         case CALL_FUNC_NODE: return "CALL_FUNC_NODE";
-        case INDEX_EXPR_NODE: return "INDEX_EXPR_NODE";
+        case ARR_INDEX_NODE: return "ARR_INDEX_NODE";
+        case ARR_INIT_NODE: return "ARR_INIT_NODE";
         default: return "UNKNOWN_NODE";
     }
 }
