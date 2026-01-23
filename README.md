@@ -152,6 +152,9 @@ Similar to C, but simpler.
     - [x] Parser and AST
     - [ ] Semanitc Analysis
         - [ ] Name Resolution
+            - [ ] Name Spaces
+            - [ ] Variable Shadowing
+            - [ ] Overloading
         - [ ] Type Checking
         - [ ] Desugaring
         - [ ] Concurrency Checking

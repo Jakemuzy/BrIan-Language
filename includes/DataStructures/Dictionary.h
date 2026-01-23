@@ -24,6 +24,7 @@ typedef struct KeyVal
 } KeyVal;
 
 unsigned int Hash(char* key);
+unsigned int HashStr(char* key);
 
 /* Dicitonary */
 typedef Entry* Dict[DICT_CAP];

@@ -7,7 +7,8 @@
           boilerplate code, which is making the file artifically longer than it needs
         - Currently freeing more than I need to since ASTFreeNodes is recursive, ONLY
           free nodes that aren't parented yet
-        - DON'T FORGET TO ADD ARRAY INDEXING
+        - Fix Array Indexing
+        - Fix Global Decl Stmts
 */
 
 /* ----------- ERRORS ---------- */

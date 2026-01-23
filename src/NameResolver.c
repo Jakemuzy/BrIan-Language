@@ -23,8 +23,42 @@ char* FindIdent(ASTNode* decl)
     return NULL;
 }
 
-/* ----------- Symbols  ---------- */
+/* ----------- Name Resolution ---------- */
 
+void ResolveNames(AST* ast) 
+{
+    printf("Resolving Names in Prog\n");
+    ASTNode* root = ast->root;
+    BeginScope();   /* Global Scope */
+    ResolveNamesInNode(root);
+}
+
+void ResolveNamesInNode(ASTNode* current) {
+    /* TODO: Have separate namespaces (ie typedef, etc) */
+    if (current->token.lex.word)
+        printf("Resolving names in %s\n", current->token.lex.word);
+
+    int i;
+    for (i = 0; i < current->childCount; i++) {
+        ASTNode* child = (current->children)[i];
+        NodeType type = child->type;
+        if (child->token.lex.word)
+            printf("\t %s\n", child->token.lex.word);
+
+        if (type == DECL_STMT_NODE) 
+            STPush(child);
+        else if (type == FUNC_NODE) {
+            /* Get Body Node from Here */
+            STPush(child);
+            BeginScope();
+        }
+
+        ResolveNamesInNode(child);
+        if (current->type == FUNC_NODE)
+            ExitScope();
+    }
+    
+}
 
 /* ----------- Symbol Table ---------- */
 
