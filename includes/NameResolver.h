@@ -6,11 +6,15 @@
 
 /* ---------- Helper ---------- */
 
+
 bool  IsValidDecl(ASTNode* decl);
 char* FindIdent(ASTNode* decl);
 
 
 /* Symbol*      ResolveBinding(SymbolTable* st, Symbol* sym); */
+
+void ResolveNames(AST* ast);
+void ResolveNamesInNode(ASTNode* node);
 
 /* Static Name Resolution */
 /* Symbol Table */

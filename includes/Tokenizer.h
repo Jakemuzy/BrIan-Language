@@ -9,6 +9,8 @@
 #include "Token.h"
 #include "Dictionary.h"
 
+static unsigned int LINE_NUM = 0;
+
 #define CHECK_BUFFER()  \
     if(BufferFull) { \
         BufferFull = false; \
@@ -17,6 +19,7 @@
 
 #define GET_CHAR(fptr, c) do { \
         c = fgetc(fptr); \
+        if (c == '\n') LINE_NUM++; \
     } while(isspace(c));
 
 /* ---------- Helpers ---------- */
@@ -27,6 +30,7 @@ static Dict* KWmap = NULL;
 static Token Buffer;
 static bool BufferFull = false;
 
+int   GetLineNum();
 Token GetNextToken(FILE* fptr); 
 Token PeekNextToken(FILE* fptr);
 int   PutTokenBack(Token* t);

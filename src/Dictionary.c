@@ -12,6 +12,15 @@ unsigned int Hash(char* key)
     return hash % DICT_CAP;
 }
 
+unsigned int HashStr(char* key)
+{
+    char* str;
+    unsigned int hash = 0;
+    for (str = key; str; str++)
+        hash = hash * 65599 + *str;
+    return hash;
+}
+
 Entry* DictLookup(Dict d, char* key)
 {
     Entry* np;

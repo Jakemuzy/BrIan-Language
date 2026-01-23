@@ -34,6 +34,8 @@ KeyVal kv31 = {"I8", I8};           KeyVal kv32 = {"I16", I16};
 KeyVal kv33 = {"I32", I32};         KeyVal kv34 = {"I64", I64};
 KeyVal kv35 = {"bool", BOOL};
 
+int GetLineNum() { return LINE_NUM; }
+
 Token GetNextToken(FILE* fptr)
 {
     Token next;
@@ -95,6 +97,7 @@ void UpdateLexeme(Token* t, int c)
     t->lex.word[t->lex.size] = c;
     t->lex.size++;
     t->lex.word[t->lex.size] = '\0'; 
+    t->line = LINE_NUM;
 }
 
 /* ---------- CATEGORIES ---------- */
@@ -137,8 +140,9 @@ int IsNumber(FILE* fptr, Token* t, int c)
             UpdateLexeme(t, next);
             return VALID;
         }
-        else if (next == isdigit(next)) {
+        else if (isdigit(next)) {
             t->type = DECIMAL;
+            UpdateLexeme(t, next);
             decimalSeen = true;
         } 
         else {

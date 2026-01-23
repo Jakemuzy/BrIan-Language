@@ -145,12 +145,16 @@ Similar to C, but simpler.
     - [x] Tokenizer
     - [ ] All Tokens implemented
         - [x] C-Like tokens 
-        - [ ] Register tokens 
-        - [ ] Safe memory tokens
+        - [x] Register tokens 
+        - [x] Safe memory tokens
         - [ ] Bit manipulation tokens
     - [ ] Proper Preprocessor 
     - [x] Parser and AST
     - [ ] Semanitc Analysis
+        - [ ] Name Resolution
+            - [ ] Name Spaces
+            - [ ] Variable Shadowing
+            - [ ] Overloading
         - [ ] Type Checking
         - [ ] Desugaring
         - [ ] Concurrency Checking
@@ -174,7 +178,7 @@ Similar to C, but simpler.
     6. Type Checker  -> 
             Checks the symbol table for any invalid typings
     7. Desugarizer   ->
-            TBD...
+            Removes syntactic "sugar" converting the ast to a form that is easily translated to BrIRan (BrIan Intermediate Language)
     7. IR Generation ->
             Generates LLVM
     8. RISC Assembly ->

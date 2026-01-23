@@ -3,6 +3,11 @@
 
 /* #include "Dict.h" */
 #include "Parser.h"
+#include "Dictionary.h"
+
+#define SIZE 109
+
+/* One symbol table per namespace */
 
 /* ---------- Symbols ---------- */
 
@@ -15,18 +20,11 @@ typedef struct Symbol {
     char* name; 
     ASTNode* decl;
 
-    struct Symbol* next;
+    struct Symbol* prev;    /* TODO: Implement a Stack Separately */
 } Symbol;
 
-Symbol* InitSymbol(ASTNode* decl, Symbol* next);
-bool    SymbolHasOwnScope(Symbol* sym);
-
-/* ---------- Scope Logic ---------- */
-
-#define SIZE 109
-
-#define SYM_MARK "<mark>"
-static Symbol Scope[SIZE];
+Symbol* InitSymbol(ASTNode* decl, Symbol* prev);
+void    FreeSymbol(Symbol* sym);
 
 /* ---------- Symbol Table ---------- */
 
@@ -34,14 +32,35 @@ static Symbol Scope[SIZE];
     Essentially a mapping, wherein each bucket is a linked list ( stack ). 
     Resolve an IDENT to a bucket via a hash function and depending on the scope 
     either push to the stack or error
+
+    Typedef ST
+    Var Decl ST
+        -> Each unique IDENT 
+            -> Temporal history of ident
+            -> Linked List acting like a stack
+        -> Global Scope
+            -> Stores all viewable vars in current scopeS
 */
 
 static Symbol* SymbolTable[SIZE];
 
 Symbol* STPop(char* name);
+Symbol* STLookup(char* key);
 void    STPush(ASTNode* key);
-Symbol* STLookup(ASTNode* key);
 
-void STBeginScope(Symbol* ST[]);
-void STEndScope(Symbol* ST[]);
+/* ---------- Scope Logic ---------- */
+
+typedef struct Scope {
+    Symbol** symbols;  
+    size_t symCount;  
+    struct Scope* prev; 
+} Scope;
+
+static Scope* CurrentScope;
+
+void BeginScope();
+void ExitScope();
+void PushScope(Symbol* sym);
+
+
 #endif

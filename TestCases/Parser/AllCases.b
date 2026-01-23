@@ -48,11 +48,12 @@ int main() {
     string t5 = "line 
                 ";
 
-    IfStmts();
-    SwitchStmts();
+    IfStmts(1.23, a);
+    SwitchStmts('a', "badha");
     WhileStmts();
     DoWhileStmts();
     ForStmts();
+    ArrIndexing(1, 3);
 
     return 0;
 }

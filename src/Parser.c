@@ -7,7 +7,8 @@
           boilerplate code, which is making the file artifically longer than it needs
         - Currently freeing more than I need to since ASTFreeNodes is recursive, ONLY
           free nodes that aren't parented yet
-        - DON'T FORGET TO ADD ARRAY INDEXING
+        - Fix Array Indexing
+        - Fix Global Decl Stmts
 */
 
 /* ----------- ERRORS ---------- */
@@ -31,7 +32,6 @@ ParseResult PARSE_ERRP(char* message)
     ERROR_MESSAGE(message);
     return result;
 }
-
 
 
 /* ----------- HELPER ---------- */
@@ -1218,6 +1218,11 @@ ParseResult Postfix(FILE* fptr)
         }
         else if (tokType == LBRACE) {
             /* Array Index */
+            ParseResult indexNode = Index(fptr, lhs.node);
+            if (indexNode.status != VALID) {
+                ASTFreeNodes(1, lhs.node);
+                return PARSE_ERRP("Invalid Array in Postfix");
+            }
         }
         else if (ValidTokType(POSTFIXS, POSTFIXS_COUNT, tokType) == VALID ) {
             Token tok = GetNextTokenP(fptr);
@@ -1230,6 +1235,40 @@ ParseResult Postfix(FILE* fptr)
     }
 
     return lhs;
+}
+
+ParseResult Index(FILE* fptr, ASTNode* callee) 
+{
+    if (PeekNextTokenP(fptr) != LBRACK)
+        return PARSE_NAP();
+    GetNextTokenP(fptr);
+ 
+    ASTNode* arrNode = InitASTNode();
+
+    TokenType tokType = PeekNextTokenP(fptr);
+    if (tokType != RBRACK) {
+ 
+        ParseResult indexNode = Expr(fptr);
+        if (indexNode.status != VALID) {
+            ASTFreeNodes(1, arrNode);
+            return PARSE_ERRP("Invalid Expr for Indexing Array");
+        }
+
+        if (PeekNextTokenP(fptr) != RBRACK) {
+            ASTFreeNodes(2, arrNode, indexNode.node);
+            return PARSE_ERRP("No closing Bracket detected for Array Index");
+        }
+        GetNextTokenP(fptr);
+
+        ASTPushChildNode(arrNode, callee);
+        ASTPushChildNode(arrNode, indexNode.node);
+        return PARSE_VALID(arrNode, ARR_INDEX_NODE);
+
+    }
+  
+    GetNextTokenP(fptr);
+    ASTPushChildNode(arrNode, callee);
+    return PARSE_VALID(arrNode, ARR_INIT_NODE);
 }
 
 ParseResult CallFunc(FILE* fptr, ASTNode* callee)
