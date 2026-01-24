@@ -7,6 +7,9 @@
 
 #define SIZE 109
 
+#define ERRN
+#define NERROR(message) do { printf("ERROR: identifier already declared in scope: %s", message); return ERRN; } while (0);
+
 /* One symbol table per namespace */
 
 /* ---------- Symbols ---------- */
@@ -61,6 +64,7 @@ static Scope* CurrentScope;
 void BeginScope();
 void ExitScope();
 void PushScope(Symbol* sym);
+bool LookupCurrentScope(char* name);
 
 
 #endif

@@ -84,3 +84,13 @@ void PushScope(Symbol* sym)
     printf("\t %s\n", sym->name);
     scope->symCount++;
 }
+
+bool LookupCurrentScope(char* name) {
+    
+    int i = 0;
+    for (i = 0; i < CurrentScope->symCount; i++) {
+        Symbol* sym = CurrentScope->symbols[i];
+        if(0 == strcmp(name, sym->name)) 
+            return true;
+    }
+}
