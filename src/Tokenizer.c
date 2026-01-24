@@ -238,7 +238,7 @@ int IsBracket(FILE* fptr, Token* t, int c)
     switch (c)
     {
         case '[':
-            t->type = LBRACE;
+            t->type = LBRACE;       /* I accidentally switched up braces and brackets OOPS */
             break;
         case ']':
             t->type = RBRACE;

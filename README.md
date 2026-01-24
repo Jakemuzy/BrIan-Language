@@ -51,7 +51,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
 ## TODO
     -   Allow preprocessor directives anywhere
-    -   
+    -   Accidentally mixed up braces and brackets, fix later 
 
 ## GRAMMAR
 
@@ -101,14 +101,16 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     Postfix ::= Primary { '++' | '--' | '$' | Index | CallFunc }
         Index ::= '[' Expr' ']'
         CallFunc ::= IDENT '(' [ ArgList ] ')'
-    Primary ::= IDENT | DECIMAL | INTEGRAL | SLITERAL | CLITERAL | '(' Expr ')'
+    Primary ::= Literal | '(' Expr ')'
 
     Type = ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" )
     ArgList = Expr { ',' Expr }
 
 	VarList ::= Var { ',' Var }
-    Var = IDENT [ '=' Expr ]
-
+    Var ::= IDENT [ '=' Expr ] |
+            IDENT '[' [ Expr ] ']' [ '=' ArrInitList ]
+    ArrInitlist ::= '{' Literal { ',' Literal } '}' 
+    Literal ::= IDENT | DECIMAL | INTEGRAL | SLITERAL | CLITERAL 
 	...	
 ```
 
