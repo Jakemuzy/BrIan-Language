@@ -4,23 +4,11 @@
 
 /* ----------- Helper ----------- */
 
-bool IsValidDecl(ASTNode* decl)
+bool IdentIsDecl(ASTNode* ident, ASTNode* parent)
 {
-    NodeType type = decl->type;
-    if (type == DECL_STMT_NODE || type == FUNC_NODE)
-        return true;
-    return false;
-}
+    if (!parent) return false;
 
-char* FindIdent(ASTNode* decl)
-{
-    int i;
-    for (i = 0; i < decl->childCount; i++) {
-        ASTNode* child = decl->children[i];
-        if (child->type == IDENT)
-            return child->token.lex.word;
-    }
-    return NULL;
+    return parent->type == FUNC_NODE || parent->type == DECL_STMT_NODE || parent->type == PARAM_NODE;
 }
 
 /* ----------- Name Resolution ---------- */
@@ -29,35 +17,31 @@ void ResolveNames(AST* ast)
 {
     printf("Resolving Names in Prog\n");
     ASTNode* root = ast->root;
-    BeginScope();   /* Global Scope */
-    ResolveNamesInNode(root);
+    ResolveNamesInNode(root, NULL);
 }
 
-void ResolveNamesInNode(ASTNode* current) {
+void ResolveNamesInNode(ASTNode* current, ASTNode* parent) {
     /* TODO: Have separate namespaces (ie typedef, etc) */
-    if (current->token.lex.word)
-        printf("Resolving names in %s\n", current->token.lex.word);
+
+    if (current->type == PROG_NODE || current->type == BODY_NODE)
+        BeginScope();
+
+    if (current->type == IDENT_NODE && IdentIsDecl(current, parent)) {
+        char* name = current->token.lex.word;
+        if (LookupCurrentScope(name))       /* TODO: make decl_stmt and func have a token of their ident instead of having ident as a child */
+            NERROR(name);
+
+        printf("IDENT %s\n", name);
+        STPush(current);
+    }
 
     int i;
-    for (i = 0; i < current->childCount; i++) {
-        ASTNode* child = (current->children)[i];
-        NodeType type = child->type;
-        if (child->token.lex.word)
-            printf("\t %s\n", child->token.lex.word);
-
-        if (type == DECL_STMT_NODE) 
-            STPush(child);
-        else if (type == FUNC_NODE) {
-            /* Get Body Node from Here */
-            STPush(child);
-            BeginScope();
-        }
-
-        ResolveNamesInNode(child);
-        if (current->type == FUNC_NODE)
-            ExitScope();
-    }
+    for (i = 0; i < current->childCount; i++) 
+        ResolveNamesInNode(current->children[i], current);
     
+    if (current->type == PROG_NODE || current->type == BODY_NODE)
+        ExitScope();
+        
 }
 
 /* ----------- Symbol Table ---------- */
