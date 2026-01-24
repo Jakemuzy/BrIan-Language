@@ -8,6 +8,7 @@
 /* ---------- Error Propogation ----------*/
 
 static bool DEBUG = false;
+static bool GLOBAL_ERRP = false;
 
 typedef enum ParseStatus {
     VALID, 
@@ -21,13 +22,14 @@ typedef struct ParseResult {
     ASTNode* node;
 } ParseResult;
 
-ParseResult PARSE_VALID(ASTNode* node, NodeType type);
-ParseResult PARSE_NAP();
-ParseResult PARSE_ERRP(char* message);
-#define ERROR_MESSAGE(message) printf("SYNTAX ERROR: %s, on line %d\n", message, GetLineNum());
+
+#define ERROR_MESSAGE(message, linenum) printf("SYNTAX ERROR: %s, on line %d\n", message, linenum);
 #define DEBUG_MESSAGE(message) do { \
         if (DEBUG == true)  { printf("%s", message); } \
     } while(0);
+ParseResult PARSE_VALID(ASTNode* node, NodeType type);
+ParseResult PARSE_NAP();
+ParseResult PARSE_ERRP(char* message, Token tok);
 
 /* ---------- Helpers ---------- */
 

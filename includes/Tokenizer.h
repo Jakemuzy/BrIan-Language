@@ -9,7 +9,7 @@
 #include "Token.h"
 #include "Dictionary.h"
 
-static unsigned int LINE_NUM = 0;
+static unsigned int LINE_NUM = 1;
 
 #define CHECK_BUFFER()  \
     if(BufferFull) { \

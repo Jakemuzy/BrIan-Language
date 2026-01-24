@@ -69,7 +69,7 @@ Token GetNextToken(FILE* fptr)
     else if (isalpha(c) || c == '_')
         IdentOrKeyword(fptr, &next, c);
     else 
-        printf("ERROR: Uknown char: %c\n", c);
+        printf("ERROR: Unknown char: %c\n", c);
 
     return next;
 }
@@ -731,6 +731,8 @@ int IsComm(FILE* fptr, Token* t, int c)
                 t->type = ERR;
                 return ERRT;
             }
+            else if (next == '\n')
+                LINE_NUM++;
 
             prev = next;
             UpdateLexeme(t, next);
@@ -749,6 +751,7 @@ int IsComm(FILE* fptr, Token* t, int c)
             if(next == EOF)
                 break;
         }
+        LINE_NUM++;
         t->type = COMMENT;
         return VALID;
     }
