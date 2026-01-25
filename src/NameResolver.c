@@ -1,7 +1,5 @@
 #include "NameResolver.h"
 
-
-
 /* ----------- Helper ----------- */
 
 bool IdentIsDecl(ASTNode* ident, ASTNode* parent)
@@ -13,6 +11,30 @@ bool IdentIsDecl(ASTNode* ident, ASTNode* parent)
 
 /* ----------- Name Resolution ---------- */
 
+void PrintScope(void)
+{
+    Scope* scope = CurrentScope;
+    int depth = 0;
+
+    printf("=== Scope Stack ===\n");
+
+    while (scope) {
+        printf("Scope %d%s:\n", depth,
+               depth == 0 ? " (current)" : "");
+
+        size_t i;
+        for (i = 0; i < scope->symCount; i++) {
+            Symbol* sym = scope->symbols[i];
+            printf("  %s\n", sym->name);
+        }
+
+        scope = scope->prev;
+        depth++;
+    }
+
+    printf("===================\n");
+}
+
 void ResolveNames(AST* ast) 
 {
     printf("Resolving Names in Prog\n");
@@ -23,7 +45,7 @@ void ResolveNames(AST* ast)
 void ResolveNamesInNode(ASTNode* current, ASTNode* parent) {
     /* TODO: Have separate namespaces (ie typedef, etc) */
 
-    if (current->type == PROG_NODE || current->type == BODY_NODE)
+    if (current->type == PROG_NODE || current->type == FUNC_NODE || current->type == BODY_NODE) 
         BeginScope();
 
     if (current->type == IDENT_NODE && IdentIsDecl(current, parent)) {
@@ -31,46 +53,16 @@ void ResolveNamesInNode(ASTNode* current, ASTNode* parent) {
         if (LookupCurrentScope(name))       /* TODO: make decl_stmt and func have a token of their ident instead of having ident as a child */
             NERROR(name);
 
-        printf("IDENT %s\n", name);
         STPush(current);
+        PrintScope();
     }
 
     int i;
-    for (i = 0; i < current->childCount; i++) 
+    for (i = 0; i < current->childCount; i++) {
         ResolveNamesInNode(current->children[i], current);
+    }
     
-    if (current->type == PROG_NODE || current->type == BODY_NODE)
+    if (current->type == PROG_NODE || current->type == BODY_NODE) 
         ExitScope();
-        
-}
-
-/* ----------- Symbol Table ---------- */
-
-/*
-Symbol* ResolveBinding(SymbolTable* st, Symbol* sym)
-{
-    /*
-        Starts with innermost table, expanding search outwards.
-        If duplicated names in same scope -> Name Resolution error
-        If no decl stmt or function for Name -> Name Resolution error
-
     
 }
-*/
-
-/*
-    Have two structures: 
-        One map, where the key is the actual ident (as a Symbol instead of a string).
-        The symbol is used as the hash function and the value is that particular ident
-        at that point in time.
-            - For Example: int x in global scope would be the first member of that key
-              Upon seeing a local X in a function (shadowing) the stack for that key is
-              pushed to. The ne wvalue now contains the first latest declaration.
-        
-        The second being an "auxiliary stack" which shows in what order the symbols
-        were "pushed" into the symbol table (map), this helps with scpoe. Pushing special
-        markers onto the stack for begin scope and end scope 
-
-    What is a binding (What should the table be filled with)?
-        
-*/

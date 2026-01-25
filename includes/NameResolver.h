@@ -15,7 +15,7 @@
 
 bool IdentIsDecl(ASTNode* decl, ASTNode* parent);
 
-/* Symbol*      ResolveBinding(SymbolTable* st, Symbol* sym); */
+/* ---------- Resolving ---------- */
 
 void ResolveNames(AST* ast);
 void ResolveNamesInNode(ASTNode* node, ASTNode* parent);

@@ -93,4 +93,5 @@ bool LookupCurrentScope(char* name) {
         if(0 == strcmp(name, sym->name)) 
             return true;
     }
+    return false;
 }

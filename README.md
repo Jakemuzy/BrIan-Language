@@ -51,6 +51,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
 ## TODO
     -   Allow preprocessor directives anywhere
+    -   Global decl statements shouldn't cause ast to error
     -   Accidentally mixed up braces and brackets, fix later 
 
 ## GRAMMAR

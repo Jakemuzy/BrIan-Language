@@ -8,7 +8,7 @@
 #define SIZE 109
 
 #define ERRN
-#define NERROR(message) do { printf("ERROR: identifier already declared in scope: %s", message); return ERRN; } while (0);
+#define NERROR(message) do { printf("ERROR: identifier already declared in scope: %s\n", message); return ERRN; } while (0);
 
 /* One symbol table per namespace */
 
