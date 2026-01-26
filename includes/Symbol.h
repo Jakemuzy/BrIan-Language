@@ -8,7 +8,7 @@
 #define SIZE 109
 
 #define ERRN
-#define NERROR(message) do { printf("ERROR: identifier already declared in scope: %s\n", message); return ERRN; } while (0);
+#define NERROR(message) do { printf("ERROR:  %s\n", message); return ERRN; } while (0);
 
 /* One symbol table per namespace */
 
@@ -49,7 +49,7 @@ static Symbol* SymbolTable[SIZE];
 
 Symbol* STPop(char* name);
 Symbol* STLookup(char* key);
-void    STPush(ASTNode* key);
+Symbol* STPush(ASTNode* key);
 
 /* ---------- Scope Logic ---------- */
 
@@ -59,12 +59,10 @@ typedef struct Scope {
     struct Scope* prev; 
 } Scope;
 
-static Scope* CurrentScope;
-
-void BeginScope();
-void ExitScope();
-void PushScope(Symbol* sym);
-bool LookupCurrentScope(char* name);
+void BeginScope(Scope** currentScope);
+void ExitScope(Scope** currentScope);
+void PushScope(Scope** currentScope, Symbol* sym);
+bool LookupCurrentScope(Scope** currentScope, char* name);
 
 
 #endif

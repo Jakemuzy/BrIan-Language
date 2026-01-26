@@ -156,7 +156,7 @@ Similar to C, but simpler.
     - [ ] Semanitc Analysis
         - [ ] Name Resolution
             - [x] Variable Shadowing
-            - [ ] Symbol Table
+            - [X] Symbol Table
             - [ ] Name Spaces
             - [ ] Overloading
         - [ ] Type Checking
