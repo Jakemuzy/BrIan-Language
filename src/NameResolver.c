@@ -8,8 +8,10 @@ bool IdentIsDecl(ASTNode* ident, ASTNode* parent)
 {
     if (!parent) return false;
 
+
     NodeType type = parent->type;
-    return type == DECL_STMT_NODE || type == PARAM_NODE;
+    printf("DECL %d\n", type);
+    return type == VAR_NODE || type == PARAM_NODE;
 }
 
 ASTNode* FuncIdent(ASTNode* funcNode) {
