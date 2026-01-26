@@ -3,13 +3,12 @@
 /* TODO: 
         - GetNextTokenP after PeekNextTokenP might be dangerous, but since the 
           preprocessor only skips directors, for now it is fine.
-        - Can easily simplify most of the expressions with a helper function to reduce
+        - Can easily simplify most of the binary expressions with a helper function to reduce
           boilerplate code, which is making the file artifically longer than it needs
         - Currently freeing more than I need to since ASTFreeNodes is recursive, ONLY
-          free nodes that aren't parented yet
-        - Fix Array Indexing
-            - No Actual array creation declared in grammar, only indexing     
-        - Fix Global Decl Stmts
+          free nodes that aren't parented yet 
+        - Global Decl Stmts aren't LL(1) need to add a helper function to determine whether
+          a program is looking at a function or a DeclStmt
 */
 
 /* ----------- ERRORS ---------- */

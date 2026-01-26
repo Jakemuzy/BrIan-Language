@@ -25,8 +25,9 @@ Symbol* STLookup(char* name)
     return sym;
 }
 
-void STPush(ASTNode* key)
+Symbol* STPush(ASTNode* key)
 {
+    printf("Pushing ST\n");
     char* name = key->token.lex.word;
     int index = HashStr(name) % SIZE;
 
@@ -34,33 +35,37 @@ void STPush(ASTNode* key)
     sym = InitSymbol(key, syms);
 
     SymbolTable[index] = sym;
-    PushScope(sym);
+    return sym;
 }
 
 Symbol* STPop(char* name)
 {
     int index = HashStr(name) % SIZE;
     Symbol* top = SymbolTable[index];
-    if (top)
-        SymbolTable[index] = top->prev;
+    if (!top)
+        return NULL;
+    
+    SymbolTable[index] = top->prev;
+    return top;
 }
 
 /* ---------- Scope ---------- */
 
-void BeginScope()
+void BeginScope(Scope** currentScope)
 {
     printf("Entering Scope \n");
     Scope* newScope = malloc(sizeof(Scope));
-    newScope->prev = CurrentScope;
+    newScope->prev = *currentScope;
     newScope->symCount = 0; 
     newScope->symbols = NULL;
 
-    CurrentScope = newScope;
+    *currentScope = newScope;
 }
 
-void ExitScope()
+void ExitScope(Scope** currentScope)
 {
-    Scope* scope = CurrentScope;
+    printf("Exiting Scope\n");
+    Scope* scope = *currentScope;
 
     size_t i;
     for (i = 0; i < scope->symCount; i++) {
@@ -68,29 +73,31 @@ void ExitScope()
         STPop(sym->name);
     } 
 
-    CurrentScope = CurrentScope->prev;
-    free(scope->symbols);       /* TODO: Actual symbols not freed yet */
-    free(scope);
+    *currentScope = scope->prev;
 }
 
-void PushScope(Symbol* sym) 
+void PushScope(Scope** currentScope, Symbol* sym) 
 {
-    Scope* scope = CurrentScope;
+    Scope* scope = *currentScope;
     size_t symCount = scope->symCount;
+    printf("SCOPE\n");
 
     scope->symbols = realloc(scope->symbols, (symCount + 1) * sizeof(Symbol*));     /* Incrementing by one is inefficient, we can fix this later by making a vector DS */
     scope->symbols[symCount] = sym;
 
-    printf("\t %s\n", sym->name);
+    printf("Pushing Scope:\t %s\n", sym->name);
     scope->symCount++;
 }
 
-bool LookupCurrentScope(char* name) {
-    
+bool LookupCurrentScope(Scope** currentScope, char* name)
+{
+    Scope* scope = *currentScope;
+
     int i = 0;
-    for (i = 0; i < CurrentScope->symCount; i++) {
-        Symbol* sym = CurrentScope->symbols[i];
+    for (i = 0; i < scope->symCount; i++) {
+        Symbol* sym = scope->symbols[i];
         if(0 == strcmp(name, sym->name)) 
             return true;
     }
+    return false;
 }
