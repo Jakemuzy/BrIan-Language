@@ -765,6 +765,7 @@ ParseResult ForStmt(FILE* fptr)
     ASTPushChildNode(forStmtNode, exprListNode.node);
     ASTPushChildNode(forStmtNode, exprNode.node);
     ASTPushChildNode(forStmtNode, exprListNode2.node);
+    ASTPushChildNode(forStmtNode, bodyNode.node);
     return PARSE_VALID(forStmtNode, FOR_STMT_NODE);
 }
 

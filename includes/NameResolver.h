@@ -33,6 +33,7 @@ TYPE* TY_NAME(Symbol* sym, TYPE* type);
 /* ---------- Helper ---------- */
 
 bool IdentIsDecl(ASTNode* decl, ASTNode* parent);
+bool CanEnterOrExitScope(ASTNode* node) ;
 
 /* ---------- Resolving ---------- */
 

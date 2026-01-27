@@ -27,7 +27,6 @@ Symbol* STLookup(char* name)
 
 Symbol* STPush(ASTNode* key)
 {
-    printf("Pushing ST\n");
     char* name = key->token.lex.word;
     int index = HashStr(name) % SIZE;
 
@@ -53,7 +52,6 @@ Symbol* STPop(char* name)
 
 void BeginScope(Scope** currentScope)
 {
-    printf("Entering Scope \n");
     Scope* newScope = malloc(sizeof(Scope));
     newScope->prev = *currentScope;
     newScope->symCount = 0; 
@@ -64,7 +62,6 @@ void BeginScope(Scope** currentScope)
 
 void ExitScope(Scope** currentScope)
 {
-    printf("Exiting Scope\n");
     Scope* scope = *currentScope;
 
     size_t i;
@@ -80,12 +77,10 @@ void PushScope(Scope** currentScope, Symbol* sym)
 {
     Scope* scope = *currentScope;
     size_t symCount = scope->symCount;
-    printf("SCOPE\n");
 
     scope->symbols = realloc(scope->symbols, (symCount + 1) * sizeof(Symbol*));     /* Incrementing by one is inefficient, we can fix this later by making a vector DS */
     scope->symbols[symCount] = sym;
 
-    printf("Pushing Scope:\t %s\n", sym->name);
     scope->symCount++;
 }
 

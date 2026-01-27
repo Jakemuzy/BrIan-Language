@@ -3,16 +3,9 @@
 int main() {
     int x;
     int y;
-}
 
-void func1() {
-
-}
-
-void func2() {
-    
-}
- 
-int func3() {
-    
+    for (x = 0; x < 10; x++) {
+        int z = 0;
+        x = 15;
+    }
 }
