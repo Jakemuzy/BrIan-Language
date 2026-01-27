@@ -6,11 +6,13 @@ Scope* CurrentScope = NULL;
 
 bool IdentIsDecl(ASTNode* ident, ASTNode* parent)
 {
+
+        printf("IdentIsDecl: IDENT=%s, parent=%d\n",
+        ident->token.lex.word,
+        parent ? parent->type : -1);
     if (!parent) return false;
 
-
     NodeType type = parent->type;
-    printf("DECL %d\n", type);
     return type == VAR_NODE || type == PARAM_NODE;
 }
 
@@ -19,8 +21,6 @@ ASTNode* FuncIdent(ASTNode* funcNode) {
     for (i = 0; i < funcNode->childCount; i++) {
         if ((funcNode->children[i])->type == IDENT_NODE) 
             return funcNode->children[i];
-
-        printf("%s type: %d\n", funcNode->children[i]->token.lex.word, funcNode->children[i]->type);
     }
     return NULL;
 }
@@ -34,7 +34,7 @@ bool CanEnterOrExitScope(ASTNode* node)
         type == CASE_NODE || type == DEFAULT_NODE || type == WHILE_STMT_NODE ||
         type == DO_WHILE_STMT_NODE || type == FOR_STMT_NODE) {
             return true;
-    }
+        }
 
     return false;
 }
@@ -85,6 +85,9 @@ void ResolveNamesInNode(ASTNode* current, ASTNode* parent)
         PushScope(&CurrentScope, sym);
     }
 
+    if (CanEnterOrExitScope(current))
+        BeginScope(&CurrentScope);
+
     if (current->type == IDENT_NODE && IdentIsDecl(current, parent)) {
         char* name = current->token.lex.word;
         if (LookupCurrentScope(&CurrentScope, name)) {
@@ -93,20 +96,17 @@ void ResolveNamesInNode(ASTNode* current, ASTNode* parent)
             NERROR(buff);
         }
 
-        printf("Ident is DECL: %s\n", name);
         Symbol* sym = STPush(current);
         PushScope(&CurrentScope, sym);
         PrintScope();
     }
+    /* Also need to check any type of expr if Ident actually exists */
 
-    if (CanEnterOrExitScope(current))
-        BeginScope(&CurrentScope);
 
     /* Recursively check children */
     int i;
-    for (i = 0; i < current->childCount; i++) {
+    for (i = 0; i < current->childCount; i++) 
         ResolveNamesInNode(current->children[i], current);
-    }
 
     if (CanEnterOrExitScope(current))
         ExitScope(&CurrentScope);
