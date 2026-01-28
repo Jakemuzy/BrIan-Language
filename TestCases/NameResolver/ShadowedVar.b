@@ -7,9 +7,10 @@ int main() {
     for (x = 0; x < 10; x++) {
         int z = 0;
         x = 15;
-        int y = 12;
+        int k = 12;
+        
         if ( 9 + 10 ) {
-            int y = 111;
+            int zk = 111;
 
             y += 15;
             y--;
@@ -18,4 +19,9 @@ int main() {
             x = x + x;
         }
     }
+}
+
+int character() {
+   int k = 1; 
+   z = 12;
 }

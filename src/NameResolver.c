@@ -2,7 +2,9 @@
 
 Scope* CurrentScope = NULL;
 
+
 /* ----------- Error Handling ---------- */
+
 
 bool NERROR_NO_IDENT(ASTNode* curr)
 {
@@ -18,12 +20,13 @@ bool NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first)
 
 bool NERROR_DOESNT_EXIST(char* name, ASTNode* curr) 
 {
-    printf("NAME ERROR: Identifier '%s' on line %d, hasn't been previously defined\n", name, curr->token.line);
+    printf("NAME ERROR: Identifier '%s' on line %d is undefined\n", name, curr->token.line);
     return ERRN;
 }
 
 
 /* ----------- Helper ----------- */
+
 
 ASTNode* FindIdentChild(ASTNode* node) {
     size_t i;
@@ -40,23 +43,33 @@ bool IdentIsDecl(ASTNode* ident, ASTNode* parent)
     return type == VAR_NODE || type == PARAM_NODE;
 }
 
-
-bool CanEnterOrExitScope(ASTNode* node) 
+bool IsCtrlStmt(NodeType type) 
 {
-    /* TODO: Have these as a static array to iterate through */
-    /* TODO: Avoid Variable shadowing in these types of nodes */
-    NodeType type = node->type;
-    if (type == FUNC_NODE || type == IF_NODE ||
-        type == ELIF_NODE || type == ELSE_NODE  || type == SWITCH_STMT_NODE ||
-        type == CASE_NODE || type == DEFAULT_NODE || type == WHILE_STMT_NODE ||
-        type == DO_WHILE_STMT_NODE || type == FOR_STMT_NODE) {
+    int i;
+    for (i = 0; i < CTRL_STMTS_SIZE; i++) {
+        if (type == CTRL_STMTS[i] )
             return true;
-        }
+    }
 
     return false;
 }
 
+
+NodeType GetScopeType(ASTNode* node) 
+{
+    /* TODO: Have these as a static array to iterate through */
+    /* TODO: Avoid Variable shadowing in these types of nodes */
+    if (node->type == FUNC_NODE)
+        return FUNC_SCOPE;
+    else if (IsCtrlStmt(node->type))
+        return CTRL_SCOPE;
+
+    return INVALID_SCOPE;
+}
+
+
 /* ----------- Name Resolution ---------- */
+
 
 void PrintScope(void)
 {
@@ -84,13 +97,12 @@ void PrintScope(void)
 
 Symbol** ResolveNames(AST* ast) 
 {
-    printf("Resolving Names in Prog\n");
-    ASTNode* root = ast->root;
-    BeginScope(&CurrentScope);
-    if(!ResolveNamesInNode(root, NULL))
-        return NULL;
-    ExitScope(&CurrentScope);
+    BeginScope(&CurrentScope, PROG_SCOPE);
 
+    if(!ResolveNamesInNode(ast->root, NULL))
+        return NULL;
+
+    ExitScope(&CurrentScope);
     return SymbolTable;
 }
 
@@ -105,23 +117,29 @@ bool ResolveNamesInNode(ASTNode* current, ASTNode* parent)
         PushScope(&CurrentScope, sym);
     }
 
-    if (CanEnterOrExitScope(current))
-        BeginScope(&CurrentScope);
+    ScopeType type;
+    if ((type = GetScopeType(current)) != INVALID_SCOPE)
+        BeginScope(&CurrentScope, type);
 
     if (current->type == IDENT_NODE && IdentIsDecl(current, parent)) {
         char* name = current->token.lex.word;
+
         if (LookupCurrentScope(&CurrentScope, name)) 
             return NERROR_ALREADY_DEFINED(name, current, STLookup(name)->decl);
-
+        else if (CurrentScope->stype == CTRL_SCOPE && STLookup(name))
+            return NERROR_ALREADY_DEFINED(name, current, STLookup(name)->decl);
+    
         Symbol* sym = STPush(current);
         PushScope(&CurrentScope, sym);
-        PrintScope();
     }
     else if (current->type == BINARY_EXPR_NODE || current->type == UNARY_EXPR_NODE || current->type == ASGN_EXPR_NODE) {
-        char* name = FindIdentChild(current)->token.lex.word;
-        if (!STLookup(name)) 
-            return NERROR_DOESNT_EXIST(name, current);
-        /* No pushing, just checking */    
+        ASTNode* node = FindIdentChild(current);
+        if (node) {                 /* Exprs don't need to use idents, continue if they don't */
+            char* name = node->token.lex.word;
+            if (!STLookup(name)) 
+                return NERROR_DOESNT_EXIST(name, current);
+            /* No pushing, just checking */    
+        }
     }
 
 
@@ -132,7 +150,7 @@ bool ResolveNamesInNode(ASTNode* current, ASTNode* parent)
             return ERRN;
     }
 
-    if (CanEnterOrExitScope(current))
+    if (GetScopeType(current) != INVALID_SCOPE)
         ExitScope(&CurrentScope);
 
     return VALDN;
@@ -151,6 +169,10 @@ CASES:
         2.) Get ident from child, 
         3.) Enter scope
         4.) Resolve Children
+    Ctrl Nodes
+        1.) Although they get their own scope, they can't shadow variables
+        2.) Set ScopeType to appropriate scope, checking variables against
+            other scopes
     Function Node
         1.) Push function symbol (get ident)
         2.) Enter Scope

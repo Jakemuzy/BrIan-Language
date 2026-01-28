@@ -134,7 +134,7 @@ ParseResult Function(FILE* fptr)
 
     if (PeekNextTokenP(fptr) != IDENT) {
         ASTFreeNodes(1, typeNode.node);
-        return PARSE_ERRP("Function does not have a name", GetNextToken(fptr));
+        return PARSE_ERRP("Function does not have a valid name", GetNextToken(fptr));
     }
     ParseResult identNode = IdentNode(GetNextTokenP(fptr));
 

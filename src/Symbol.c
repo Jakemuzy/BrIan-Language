@@ -50,12 +50,13 @@ Symbol* STPop(char* name)
 
 /* ---------- Scope ---------- */
 
-void BeginScope(Scope** currentScope)
+void BeginScope(Scope** currentScope, ScopeType type)
 {
     Scope* newScope = malloc(sizeof(Scope));
     newScope->prev = *currentScope;
     newScope->symCount = 0; 
     newScope->symbols = NULL;
+    newScope->stype = type;
 
     *currentScope = newScope;
 }
