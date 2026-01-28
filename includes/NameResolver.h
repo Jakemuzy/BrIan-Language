@@ -11,34 +11,25 @@
 
 */
 
-typedef struct TYPE {
-    enum {
-        TYPE_NULL, TYPE_INT, TYPE_STRING, TYPE_ARR,
-        TYPE_VOID, TYPE_DOUBLE, TYPE_FLOAT
-    } kind;
-    union {
-        struct TYPE* array;
-        struct {Symbol* sym; struct TYPE* type;} name;
-    } u;
-} TYPE;
+/* ---------- Error Handling ---------- */
 
-TYPE* TY_NULL(void);
-TYPE* TY_INT(void);
-TYPE* TY_STRING(void);
-TYPE* TY_VOID(void);
+#define ERRN false
+#define VALDN true
 
-TYPE* TY_ARR(TYPE* type);
-TYPE* TY_NAME(Symbol* sym, TYPE* type);
+bool NERROR_NO_IDENT(ASTNode* curr);
+bool NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first);
+bool NERROR_DOESNT_EXIST(char* name, ASTNode* curr);
 
 /* ---------- Helper ---------- */
 
+ASTNode* FindIdentChild(ASTNode* node);
 bool IdentIsDecl(ASTNode* decl, ASTNode* parent);
 bool CanEnterOrExitScope(ASTNode* node) ;
 
 /* ---------- Resolving ---------- */
 
-void ResolveNames(AST* ast);
-void ResolveNamesInNode(ASTNode* node, ASTNode* parent);
+Symbol** ResolveNames(AST* ast);
+bool ResolveNamesInNode(ASTNode* node, ASTNode* parent);
 
 /* Alpha Renaming? */
 /* Name Spaces */

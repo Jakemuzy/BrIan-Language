@@ -2,34 +2,51 @@
 
 Scope* CurrentScope = NULL;
 
-/* ----------- Helper ----------- */
+/* ----------- Error Handling ---------- */
 
-bool IdentIsDecl(ASTNode* ident, ASTNode* parent)
+bool NERROR_NO_IDENT(ASTNode* curr)
 {
-
-        printf("IdentIsDecl: IDENT=%s, parent=%d\n",
-        ident->token.lex.word,
-        parent ? parent->type : -1);
-    if (!parent) return false;
-
-    NodeType type = parent->type;
-    return type == VAR_NODE || type == PARAM_NODE;
+    printf("NAME ERROR: No Identifier found on line '%d'\n", curr->token.line); 
+    return ERRN;
 }
 
-ASTNode* FuncIdent(ASTNode* funcNode) {
+bool NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first)
+{
+    printf("NAME ERROR: Identifier '%s' on line %d already defined, first definition on line %d\n", name, curr->token.line, first->token.line); \
+    return ERRN; 
+}
+
+bool NERROR_DOESNT_EXIST(char* name, ASTNode* curr) 
+{
+    printf("NAME ERROR: Identifier '%s' on line %d, hasn't been previously defined\n", name, curr->token.line);
+    return ERRN;
+}
+
+
+/* ----------- Helper ----------- */
+
+ASTNode* FindIdentChild(ASTNode* node) {
     size_t i;
-    for (i = 0; i < funcNode->childCount; i++) {
-        if ((funcNode->children[i])->type == IDENT_NODE) 
-            return funcNode->children[i];
+    for (i = 0; i < node->childCount; i++) {
+        if ((node->children[i])->type == IDENT_NODE) 
+            return node->children[i];
     }
     return NULL;
 }
 
+bool IdentIsDecl(ASTNode* ident, ASTNode* parent)
+{
+    NodeType type = parent->type;
+    return type == VAR_NODE || type == PARAM_NODE;
+}
+
+
 bool CanEnterOrExitScope(ASTNode* node) 
 {
     /* TODO: Have these as a static array to iterate through */
+    /* TODO: Avoid Variable shadowing in these types of nodes */
     NodeType type = node->type;
-    if (type == FUNC_NODE || type == IF_STMT_NODE || type == IF_NODE ||
+    if (type == FUNC_NODE || type == IF_NODE ||
         type == ELIF_NODE || type == ELSE_NODE  || type == SWITCH_STMT_NODE ||
         type == CASE_NODE || type == DEFAULT_NODE || type == WHILE_STMT_NODE ||
         type == DO_WHILE_STMT_NODE || type == FOR_STMT_NODE) {
@@ -65,21 +82,24 @@ void PrintScope(void)
     printf("===================\n");
 }
 
-void ResolveNames(AST* ast) 
+Symbol** ResolveNames(AST* ast) 
 {
     printf("Resolving Names in Prog\n");
     ASTNode* root = ast->root;
     BeginScope(&CurrentScope);
-    ResolveNamesInNode(root, NULL);
+    if(!ResolveNamesInNode(root, NULL))
+        return NULL;
     ExitScope(&CurrentScope);
+
+    return SymbolTable;
 }
 
-void ResolveNamesInNode(ASTNode* current, ASTNode* parent) 
+bool ResolveNamesInNode(ASTNode* current, ASTNode* parent) 
 {
     if (current->type == FUNC_NODE) {
-        ASTNode* funcIdent = FuncIdent(current);
+        ASTNode* funcIdent = FindIdentChild(current);
         if (!funcIdent)
-            NERROR("Function has no Identifier");
+            return NERROR_NO_IDENT(funcIdent);
 
         Symbol* sym = STPush(funcIdent);
         PushScope(&CurrentScope, sym);
@@ -90,26 +110,32 @@ void ResolveNamesInNode(ASTNode* current, ASTNode* parent)
 
     if (current->type == IDENT_NODE && IdentIsDecl(current, parent)) {
         char* name = current->token.lex.word;
-        if (LookupCurrentScope(&CurrentScope, name)) {
-            char buff[256];
-            snprintf(buff, sizeof(buff), "Identifier already declared in scope: %s", name);
-            NERROR(buff);
-        }
+        if (LookupCurrentScope(&CurrentScope, name)) 
+            return NERROR_ALREADY_DEFINED(name, current, STLookup(name)->decl);
 
         Symbol* sym = STPush(current);
         PushScope(&CurrentScope, sym);
         PrintScope();
     }
-    /* Also need to check any type of expr if Ident actually exists */
+    else if (current->type == BINARY_EXPR_NODE || current->type == UNARY_EXPR_NODE || current->type == ASGN_EXPR_NODE) {
+        char* name = FindIdentChild(current)->token.lex.word;
+        if (!STLookup(name)) 
+            return NERROR_DOESNT_EXIST(name, current);
+        /* No pushing, just checking */    
+    }
 
 
     /* Recursively check children */
     int i;
-    for (i = 0; i < current->childCount; i++) 
-        ResolveNamesInNode(current->children[i], current);
+    for (i = 0; i < current->childCount; i++) {
+        if(ResolveNamesInNode(current->children[i], current) == ERRN)
+            return ERRN;
+    }
 
     if (CanEnterOrExitScope(current))
         ExitScope(&CurrentScope);
+
+    return VALDN;
 }
 
 

@@ -7,9 +7,6 @@
 
 #define SIZE 109
 
-#define ERRN
-#define NERROR(message) do { printf("ERROR:  %s\n", message); return ERRN; } while (0);
-
 /* One symbol table per namespace */
 
 /* ---------- Symbols ---------- */
