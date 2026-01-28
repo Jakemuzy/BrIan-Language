@@ -20,7 +20,11 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    ResolveNames(ast);
+    Symbol** ST = ResolveNames(ast);
+    if (!ST) {
+        printf("ERROR: ST failed to build\n");
+        exit(1);
+    }
 
 
 	return 0;

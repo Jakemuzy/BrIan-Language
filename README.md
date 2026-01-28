@@ -144,9 +144,11 @@ Similar to C, but simpler.
     BrIan allows for easy bit manipulation
 
 ## PROGRESS
+'/': Functional, incomplete  
+'x': Functional, complete  
 
     - [x] Tokenizer
-    - [ ] All Tokens implemented
+    - [/] All Tokens implemented
         - [x] C-Like tokens 
         - [x] Register tokens 
         - [x] Safe memory tokens
@@ -154,7 +156,7 @@ Similar to C, but simpler.
     - [ ] Proper Preprocessor 
     - [x] Parser and AST
     - [ ] Semanitc Analysis
-        - [ ] Name Resolution
+        - [/] Name Resolution
             - [x] Variable Shadowing
             - [X] Symbol Table
             - [ ] Name Spaces

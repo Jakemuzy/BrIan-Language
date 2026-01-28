@@ -134,13 +134,13 @@ ParseResult Function(FILE* fptr)
 
     if (PeekNextTokenP(fptr) != IDENT) {
         ASTFreeNodes(1, typeNode.node);
-        return PARSE_ERRP("Function does not have a name", GetNextToken(fptr));
+        return PARSE_ERRP("Function does not have a valid name", GetNextToken(fptr));
     }
     ParseResult identNode = IdentNode(GetNextTokenP(fptr));
 
     if (PeekNextTokenP(fptr) != LPAREN) {
         ASTFreeNodes(2, typeNode.node, identNode.node);
-        return PARSE_ERRP("Missing left parenthesis in function", GetNextToken(fptr));
+        return PARSE_ERRP("Expected left parenthesis in function", GetNextToken(fptr));
     }
     GetNextTokenP(fptr);
 
@@ -152,7 +152,7 @@ ParseResult Function(FILE* fptr)
 
     if (PeekNextTokenP(fptr) != RPAREN) {
         ASTFreeNodes(3, typeNode.node, paramListNode.node, identNode.node);
-        return PARSE_ERRP("Missing right parenthesis in function", GetNextToken(fptr));
+        return PARSE_ERRP("Expected right parenthesis in function", GetNextToken(fptr));
     }
     GetNextTokenP(fptr);
 
@@ -243,7 +243,7 @@ ParseResult Body(FILE* fptr)
 
     if (PeekNextTokenP(fptr) != RBRACK) {
         ASTFreeNodes(1, stmtListNode.node);
-        return PARSE_ERRP("Missing Right Bracket in Body", GetNextToken(fptr));
+        return PARSE_ERRP("Expected Right Bracket in Body", GetNextToken(fptr));
     }
     GetNextTokenP(fptr);
 
@@ -483,7 +483,7 @@ ParseResult IfElifElse(FILE* fptr, TokenType type)
     if (type != ELSE) {
         if (PeekNextTokenP(fptr) != LPAREN) {
             ASTFreeNodes(1, ifElifElseNode);
-            return PARSE_ERRP("Missing left parenthesis in IfStmt", GetNextToken(fptr));
+            return PARSE_ERRP("Expected left parenthesis in IfStmt", GetNextToken(fptr));
         }
         GetNextTokenP(fptr);
 
@@ -727,7 +727,7 @@ ParseResult ForStmt(FILE* fptr)
 
     if (PeekNextTokenP(fptr) != SEMI)  {
         ASTFreeNodes(1, exprListNode.node);
-        return PARSE_ERRP("Missing semicolon in ForStmt", GetNextToken(fptr)); 
+        return PARSE_ERRP("Expected semicolon in ForStmt", GetNextToken(fptr)); 
     }
     GetNextTokenP(fptr);
 
@@ -739,7 +739,7 @@ ParseResult ForStmt(FILE* fptr)
 
     if (PeekNextTokenP(fptr) != SEMI)  {
         ASTFreeNodes(2, exprListNode.node, exprNode.node);
-        return PARSE_ERRP("Missing semicolon in ForStmt", GetNextToken(fptr)); 
+        return PARSE_ERRP("Expected semicolon in ForStmt", GetNextToken(fptr)); 
     }
     GetNextTokenP(fptr);
 
@@ -1312,11 +1312,11 @@ ParseResult Primary(FILE* fptr)
 
         ParseResult exprNode = Expr(fptr);
         if (exprNode.status != VALID) 
-            return PARSE_ERRP("Missing Expr in parenthesized Expr", GetNextToken(fptr));
+            return PARSE_ERRP("Expected Expr in parenthesized Expr", GetNextToken(fptr));
     
         if (PeekNextTokenP(fptr) != RPAREN) {
             ASTFreeNodes(1, exprNode.node);
-            return PARSE_ERRP("Missing right parenthesis in parenthesized Epxr", GetNextToken(fptr));
+            return PARSE_ERRP("Expected right parenthesis in parenthesized Epxr", GetNextToken(fptr));
         }
         GetNextTokenP(fptr);
 
@@ -1489,7 +1489,7 @@ ParseResult ArrInitList(FILE* fptr)
 
     if (PeekNextTokenP(fptr) != RBRACK) {
         ASTFreeNodes(1, arrInitListNode);
-        return PARSE_ERRP("Missing right bracket in Array Initalizer List", GetNextToken(fptr));
+        return PARSE_ERRP("Expected right bracket in Array Initalizer List", GetNextToken(fptr));
     }
     GetNextTokenP(fptr);
 

@@ -7,9 +7,6 @@
 
 #define SIZE 109
 
-#define ERRN
-#define NERROR(message) do { printf("ERROR:  %s\n", message); return ERRN; } while (0);
-
 /* One symbol table per namespace */
 
 /* ---------- Symbols ---------- */
@@ -53,13 +50,16 @@ Symbol* STPush(ASTNode* key);
 
 /* ---------- Scope Logic ---------- */
 
+typedef enum ScopeType { PROG_SCOPE, FUNC_SCOPE, CTRL_SCOPE, INVALID_SCOPE } ScopeType;
 typedef struct Scope {
     Symbol** symbols;  
     size_t symCount;  
-    struct Scope* prev; 
+    struct Scope* prev; /* Maybe have ScopeType? For control statements that shouldn't be allowed to have shadowed variables */
+
+    ScopeType stype;
 } Scope;
 
-void BeginScope(Scope** currentScope);
+void BeginScope(Scope** currentScope, ScopeType type);
 void ExitScope(Scope** currentScope);
 void PushScope(Scope** currentScope, Symbol* sym);
 bool LookupCurrentScope(Scope** currentScope, char* name);
