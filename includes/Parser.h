@@ -35,6 +35,7 @@ ParseResult PARSE_ERRP(char* message, Token tok);
 
 int ValidTokType(const int types[], int arrSize, int type);
 int CompareToken(FILE* fptr, TokenType desired, char* errMessage, ParseStatus errType);
+int FuncPossible(FILE* fptr);   /* Since Decl and Function are NOT LL1, need a special "Peek" function */
 
 ParseResult IdentNode(Token tok);
 ParseResult EmptyNode();
