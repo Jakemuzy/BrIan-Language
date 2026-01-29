@@ -233,7 +233,7 @@ ParseResult Body(FILE* fptr)
 {
     DEBUG_MESSAGE("Entering Body\n");
     
-    if (PeekNextTokenP(fptr) != LBRACK)
+    if (PeekNextTokenP(fptr) != LBRACE)
         return PARSE_NAP();
     GetNextTokenP(fptr);
 
@@ -241,9 +241,9 @@ ParseResult Body(FILE* fptr)
     if (stmtListNode.status != VALID)
         return PARSE_ERRP("Invalid StmtList in Body", GetNextToken(fptr));
 
-    if (PeekNextTokenP(fptr) != RBRACK) {
+    if (PeekNextTokenP(fptr) != RBRACE) {
         ASTFreeNodes(1, stmtListNode.node);
-        return PARSE_ERRP("Expected Right Bracket in Body", GetNextToken(fptr));
+        return PARSE_ERRP("Expected closing brace in Body", GetNextToken(fptr));
     }
     GetNextTokenP(fptr);
 
@@ -257,13 +257,13 @@ ParseResult StmtList(FILE* fptr)
     DEBUG_MESSAGE("Entering StmtList\n");
     
     ASTNode* stmtListNode = InitASTNode();
-    if (PeekNextTokenP(fptr) == RBRACK)  {      /* Assume all StmtLists are followed by RBRACK */
+    if (PeekNextTokenP(fptr) == RBRACE)  {      /* Assume all StmtLists are followed by RBRACE */
         ASTPushChildNode(stmtListNode, EmptyNode().node);     
         return PARSE_VALID(stmtListNode, STMT_LIST_NODE);
     }
 
     while (true) {
-        if (PeekNextTokenP(fptr) == RBRACK) 
+        if (PeekNextTokenP(fptr) == RBRACE) 
             break;
 
         ParseResult stmtNode = Stmt(fptr);
@@ -547,9 +547,9 @@ ParseResult SwitchStmt(FILE* fptr)
     }
     GetNextTokenP(fptr);
 
-    if (PeekNextTokenP(fptr) != LBRACK) {
+    if (PeekNextTokenP(fptr) != LBRACE) {
         ASTFreeNodes(2, exprNode, switchStmtNode);
-        return PARSE_ERRP("No Left Bracket in SwitchStmt", GetNextToken(fptr));
+        return PARSE_ERRP("Expected opening brace in SwitchStmt", GetNextToken(fptr));
     }
     GetNextTokenP(fptr);
 
@@ -573,9 +573,9 @@ ParseResult SwitchStmt(FILE* fptr)
         return PARSE_ERRP("Invalid Default in SwitchStmt", GetNextToken(fptr));
     }
 
-    if (PeekNextTokenP(fptr) != RBRACK) {
+    if (PeekNextTokenP(fptr) != RBRACE) {
         ASTFreeNodes(3, exprNode.node, defaultNode.node, switchStmtNode);
-        return PARSE_ERRP("No Right Bracket in SwitchStmt", GetNextToken(fptr));
+        return PARSE_ERRP("Expected closing brace in SwitchStmt", GetNextToken(fptr));
     }
     GetNextTokenP(fptr);
 
@@ -1224,7 +1224,7 @@ ParseResult Postfix(FILE* fptr)
             }
             lhs = callFuncNode;
         }
-        else if (tokType == LBRACE) {
+        else if (tokType == LBRACK) {
             /* Array Index */
             ParseResult indexNode = Index(fptr, lhs.node);
             if (indexNode.status != VALID) {
@@ -1248,7 +1248,7 @@ ParseResult Postfix(FILE* fptr)
 
 ParseResult Index(FILE* fptr, ASTNode* callee) 
 {
-    if (PeekNextTokenP(fptr) != LBRACE)
+    if (PeekNextTokenP(fptr) != LBRACK)
         return PARSE_NAP();
     GetNextTokenP(fptr);
  
@@ -1256,7 +1256,7 @@ ParseResult Index(FILE* fptr, ASTNode* callee)
     if (indexNode.status != VALID) 
         return PARSE_ERRP("Invalid Expr for Indexing Array", GetNextToken(fptr));
 
-    if (PeekNextTokenP(fptr) != RBRACE) {
+    if (PeekNextTokenP(fptr) != RBRACK) {
         ASTFreeNodes(1, indexNode.node);
         return PARSE_ERRP("No closing bracket detected for Array Index", GetNextToken(fptr));
     }
@@ -1430,7 +1430,7 @@ ParseResult Var(FILE* fptr)
 
         ASTPushChildNode(varNode, exprNode.node);
     } 
-    else if (tokType == LBRACE) {   /* Array Init */
+    else if (tokType == LBRACK) {   /* Array Init */
         GetNextTokenP(fptr);
 
         ParseResult exprNode = Expr(fptr);
@@ -1439,9 +1439,9 @@ ParseResult Var(FILE* fptr)
             return PARSE_ERRP("Invalid Expr for Array Size in Array Initaliztion", GetNextToken(fptr));
         }
 
-        if (PeekNextTokenP(fptr) != RBRACE) {
+        if (PeekNextTokenP(fptr) != RBRACK) {
             ASTFreeNodes(2, varNode, exprNode.node);
-            return PARSE_ERRP("No right bracket found in Array Initaliztion", GetNextToken(fptr));
+            return PARSE_ERRP("Expected right bracket in Array Initaliztion", GetNextToken(fptr));
         }
         GetNextTokenP(fptr);
 
@@ -1463,13 +1463,11 @@ ParseResult Var(FILE* fptr)
 
 ParseResult ArrInitList(FILE* fptr) 
 {
-    if (PeekNextTokenP(fptr) != LBRACK) {
-        printf("NO LBRACE %d\n", PeekNextTokenP(fptr));
+    if (PeekNextTokenP(fptr) != LBRACE) 
         return PARSE_NAP();
-    }
     GetNextTokenP(fptr);
 
-    if (PeekNextTokenP(fptr) == RBRACK) {   /* Empty */
+    if (PeekNextTokenP(fptr) == RBRACE) {   /* Empty */
         GetNextTokenP(fptr);
         return PARSE_VALID(InitASTNode(), ARR_INIT_NODE);
     }
@@ -1487,9 +1485,9 @@ ParseResult ArrInitList(FILE* fptr)
             break;
     }
 
-    if (PeekNextTokenP(fptr) != RBRACK) {
+    if (PeekNextTokenP(fptr) != RBRACE) {
         ASTFreeNodes(1, arrInitListNode);
-        return PARSE_ERRP("Expected right bracket in Array Initalizer List", GetNextToken(fptr));
+        return PARSE_ERRP("Expected closing brace in Array Initalizer List", GetNextToken(fptr));
     }
     GetNextTokenP(fptr);
 
