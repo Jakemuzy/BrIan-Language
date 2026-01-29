@@ -11,6 +11,8 @@
         - Add Support for line and column tracking for better debugging 
         - Refactor the Dictionary System to use something more elegant
         - Refactor the Entire Tokenizer to reduce boilerplate and make it more modular
+        - Instead of checking for '\n' in each case, just put the token back and let the 
+          main GetNextToken function handle the logic regarding line numbers
 */
 
 /* ---------- Helpers ---------- */
@@ -752,8 +754,7 @@ int IsComm(FILE* fptr, Token* t, int c)
                 t->type = ERR;
                 return ERRT;
             }
-            else if (next == '\n')
-                LINE_NUM++;
+            else if (next == '\n') LINE_NUM++;
 
             prev = next;
             UpdateLexeme(t, next);
@@ -802,7 +803,7 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
         UpdateLexeme(t, next);
         next = fgetc(fptr);
     }
-    LINE_NUM++;
+    ungetc(next, fptr);
 
     /* KW or IDENT */
     UpdateLexeme(t, '\0');  /* Null Terminator */

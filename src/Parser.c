@@ -34,7 +34,7 @@ ParseResult PARSE_ERRP(char* message, Token tok)
     if (GLOBAL_ERRP)    
         return result;
 
-    ERROR_MESSAGE(message, tok.line);
+    ERROR_MESSAGE(message, tok.line, tok.lex.word);
     GLOBAL_ERRP = true;
     return result;
 }

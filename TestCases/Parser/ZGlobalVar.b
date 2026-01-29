@@ -1,5 +1,6 @@
-int z = 3;
-
+int main {
+    
+}
 int main() {
     z = 4;
 }
