@@ -1,4 +1,9 @@
 
+int character() {
+    int k = 1; 
+    character();        // Recursion test
+
+}
 
 int main() {
     int x;
@@ -19,9 +24,12 @@ int main() {
             x = x + x;
         }
     }
+
+    character(1, 2, 3, 9 + 10, x++);
+
+    int arr[] = { 3, 2, 1 };
+    arr[15];
+
 }
 
-int character() {
-   int k = 1; 
-   z = 12;
-}
+

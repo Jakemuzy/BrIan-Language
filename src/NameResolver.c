@@ -70,31 +70,6 @@ NodeType GetScopeType(ASTNode* node)
 
 /* ----------- Name Resolution ---------- */
 
-
-void PrintScope(void)
-{
-    Scope* scope = CurrentScope;
-    int depth = 0;
-
-    printf("=== Scope Stack ===\n");
-
-    while (scope) {
-        printf("Scope %d%s:\n", depth,
-               depth == 0 ? " (current)" : "");
-
-        size_t i;
-        for (i = 0; i < scope->symCount; i++) {
-            Symbol* sym = scope->symbols[i];
-            printf("  %s\n", sym->name);
-        }
-
-        scope = scope->prev;
-        depth++;
-    }
-
-    printf("===================\n");
-}
-
 Symbol** ResolveNames(AST* ast) 
 {
     BeginScope(&CurrentScope, PROG_SCOPE);
@@ -108,7 +83,8 @@ Symbol** ResolveNames(AST* ast)
 
 bool ResolveNamesInNode(ASTNode* current, ASTNode* parent) 
 {
-    if (current->type == FUNC_NODE) {
+    NodeType type = current->type;
+    if (type == FUNC_NODE) {
         ASTNode* funcIdent = FindIdentChild(current);
         if (!funcIdent)
             return NERROR_NO_IDENT(funcIdent);
@@ -117,11 +93,13 @@ bool ResolveNamesInNode(ASTNode* current, ASTNode* parent)
         PushScope(&CurrentScope, sym);
     }
 
-    ScopeType type;
-    if ((type = GetScopeType(current)) != INVALID_SCOPE)
-        BeginScope(&CurrentScope, type);
+    ScopeType stype;
+    if ((stype = GetScopeType(current)) != INVALID_SCOPE)
+        BeginScope(&CurrentScope, stype);
 
-    if (current->type == IDENT_NODE && IdentIsDecl(current, parent)) {
+
+
+    if (type == IDENT_NODE && IdentIsDecl(current, parent)) {
         char* name = current->token.lex.word;
 
         if (LookupCurrentScope(&CurrentScope, name)) 
@@ -132,14 +110,21 @@ bool ResolveNamesInNode(ASTNode* current, ASTNode* parent)
         Symbol* sym = STPush(current);
         PushScope(&CurrentScope, sym);
     }
-    else if (current->type == BINARY_EXPR_NODE || current->type == UNARY_EXPR_NODE || current->type == ASGN_EXPR_NODE) {
+    else if (type == BINARY_EXPR_NODE || type == UNARY_EXPR_NODE || type == ASGN_EXPR_NODE) {
         ASTNode* node = FindIdentChild(current);
         if (node) {                 /* Exprs don't need to use idents, continue if they don't */
             char* name = node->token.lex.word;
             if (!STLookup(name)) 
                 return NERROR_DOESNT_EXIST(name, current);
-            /* No pushing, just checking */    
         }
+    }
+    else if (type == CALL_FUNC_NODE || type == ARR_INDEX_NODE) {
+        /* Paramaters, func name, arr name, and arr params *//* Allow Function Overloading here */
+        ASTNode* node = FindIdentChild(current);
+        char* name = node->token.lex.word;
+
+        if (!STLookup(name))    
+            return NERROR_DOESNT_EXIST(name, node);
     }
 
 
@@ -150,32 +135,9 @@ bool ResolveNamesInNode(ASTNode* current, ASTNode* parent)
             return ERRN;
     }
 
+
     if (GetScopeType(current) != INVALID_SCOPE)
         ExitScope(&CurrentScope);
-
     return VALDN;
 }
 
-
-/*
-CASES:
-    Decl Node 
-        1.) Resolve Children
-        2.) For each child, if Ident, check if parent is Decl,
-            if so, push to push symbol
-    Body Nodes
-        1.) Any body, IfStmt, ElifStmt, Else, Switch, Case, Default, 
-            Whilestmt, DoWhileStmt, ForStmt, all have own scope
-        2.) Get ident from child, 
-        3.) Enter scope
-        4.) Resolve Children
-    Ctrl Nodes
-        1.) Although they get their own scope, they can't shadow variables
-        2.) Set ScopeType to appropriate scope, checking variables against
-            other scopes
-    Function Node
-        1.) Push function symbol (get ident)
-        2.) Enter Scope
-        3.) Resolve Children
-
-*/
