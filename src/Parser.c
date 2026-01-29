@@ -53,6 +53,32 @@ int ValidTokType(const int types[], int arrSize, int type)
     return NAP;
 }
 
+int FuncNodePossible(FILE* fptr)
+{
+    Token type = GetNextTokenP(fptr);
+    if (ValidTokType(TYPES, TYPES_COUNT, type.type) != VALID)  {
+        PutTokenBack(&type);
+        return NAP;
+    }
+
+    Token ident = GetNextTokenP(fptr);
+    if (ident.type != IDENT) {
+        PutTokenBack(&ident);
+        PutTokenBack(&type);
+        return NAP;
+    }
+
+    if (PeekNextTokenP(fptr) != LPAREN) {
+        PutTokenBack(&ident);
+        PutTokenBack(&type);
+        return NAP;
+    }
+
+    PutTokenBack(&ident);
+    PutTokenBack(&type);
+    return VALID;
+}
+
 
 ParseResult IdentNode(Token tok)
 {

@@ -58,7 +58,7 @@ typedef enum {
     NEG, XOR, OR, AND, LSHIFT, RSHIFT, 
 
     /* Brackets */
-    LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK, /* Langle and Rangle are < and > so less and great */
+    LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE, /* Langle and Rangle are < and > so less and great */
 
     /* Data Types */
     IDENT, INTEGRAL, DECIMAL, CLITERAL, SLITERAL,

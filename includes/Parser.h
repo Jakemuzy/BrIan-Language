@@ -7,7 +7,7 @@
 
 /* ---------- Error Propogation ----------*/
 
-static bool DEBUG = false;
+static bool DEBUG = true;
 static bool GLOBAL_ERRP = false;
 
 typedef enum ParseStatus {
@@ -34,7 +34,7 @@ ParseResult PARSE_ERRP(char* message, Token tok);
 /* ---------- Helpers ---------- */
 
 int ValidTokType(const int types[], int arrSize, int type);
-int CompareToken(FILE* fptr, TokenType desired, char* errMessage, ParseStatus errType);
+int FuncNodePossible(FILE* fptr);
 
 ParseResult IdentNode(Token tok);
 ParseResult EmptyNode();
