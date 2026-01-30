@@ -43,15 +43,6 @@ int CheckBuffer(Token* out)
         return NAT;
     *out = Buff.toks[--Buff.tokCount];
 
-    if (Buff.tokCount == 0) {
-        free(Buff.toks);
-        Buff.toks = NULL;
-    } else {
-        Token* tmp = realloc(Buff.toks, sizeof(Token) * Buff.tokCount);
-        if (tmp)
-            Buff.toks = tmp;
-    }
-
     return VALID;
 }
 
@@ -760,6 +751,7 @@ int IsComm(FILE* fptr, Token* t, int c)
             UpdateLexeme(t, next);
         }
 
+        UpdateLexeme(t, next);
         t->type = COMMENT;
         return VALID;
     } 
@@ -803,7 +795,7 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
         UpdateLexeme(t, next);
         next = fgetc(fptr);
     }
-    ungetc(next, fptr);
+    if (next == '\n') ungetc(next, fptr);
 
     /* KW or IDENT */
     UpdateLexeme(t, '\0');  /* Null Terminator */

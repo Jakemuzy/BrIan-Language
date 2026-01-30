@@ -23,7 +23,6 @@ Token GetNextTokenP(FILE* fptr)
     } while (t.type == COMMENT || t.type == HASH);
 
     /* printf("%s\n", t.lex.word); */
-
     return t;
 }
 

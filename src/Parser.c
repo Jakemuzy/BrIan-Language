@@ -68,12 +68,16 @@ int FuncNodePossible(FILE* fptr)
         return NAP;
     }
 
-    if (PeekNextTokenP(fptr) != LPAREN) {
+    Token lparen = GetNextTokenP(fptr);
+    if (lparen.type != LPAREN) {
+        PutTokenBack(&lparen);
         PutTokenBack(&ident);
         PutTokenBack(&type);
         return NAP;
     }
 
+    printf("VALID\n\n");
+    PutTokenBack(&lparen);
     PutTokenBack(&ident);
     PutTokenBack(&type);
     return VALID;
@@ -119,14 +123,16 @@ AST* Program(FILE* fptr)
         if (PeekNextTokenP(fptr) == END)
             return ast;
 
-        ParseResult funcNode = Function(fptr);
-        if (funcNode.status == VALID) {
-            ASTPushChildNode(progNode, funcNode.node);
-            continue;
-        } 
-        else if (funcNode.status == ERRP)  {
-            ASTFreeNodes(1, progNode);
-            return NULL;
+        if (FuncNodePossible(fptr) != NAP) {
+            ParseResult funcNode = Function(fptr);
+            if (funcNode.status == VALID) {
+                ASTPushChildNode(progNode, funcNode.node);
+                continue;
+            } 
+            else if (funcNode.status == ERRP)  {
+                ASTFreeNodes(1, progNode);
+                return NULL;
+            }
         }
 
         ParseResult declStmtNode = DeclStmt(fptr);
@@ -135,7 +141,7 @@ AST* Program(FILE* fptr)
             continue;
         }
         else if (declStmtNode.status == ERRP) {
-            DEBUG_MESSAGE("Invalid DeclStmt in Global Scope");
+            DEBUG_MESSAGE("Invalid DeclStmt in Global Scope\n");
             ASTFreeNodes(1, progNode);
             return NULL;
         }
