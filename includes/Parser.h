@@ -23,7 +23,7 @@ typedef struct ParseResult {
 } ParseResult;
 
 
-#define ERROR_MESSAGE(message, linenum) printf("SYNTAX ERROR: %s, on line %d\n", message, linenum);
+#define ERROR_MESSAGE(message, linenum, word) printf("SYNTAX ERROR: %s, on line %d. Actually encountered: %s\n", message, linenum, word);
 #define DEBUG_MESSAGE(message) do { \
         if (DEBUG == true)  { printf("%s", message); } \
     } while(0);
@@ -34,7 +34,7 @@ ParseResult PARSE_ERRP(char* message, Token tok);
 /* ---------- Helpers ---------- */
 
 int ValidTokType(const int types[], int arrSize, int type);
-int CompareToken(FILE* fptr, TokenType desired, char* errMessage, ParseStatus errType);
+int FuncNodePossible(FILE* fptr);
 
 ParseResult IdentNode(Token tok);
 ParseResult EmptyNode();

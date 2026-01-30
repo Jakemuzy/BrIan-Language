@@ -11,6 +11,8 @@
         - Add Support for line and column tracking for better debugging 
         - Refactor the Dictionary System to use something more elegant
         - Refactor the Entire Tokenizer to reduce boilerplate and make it more modular
+        - Instead of checking for '\n' in each case, just put the token back and let the 
+          main GetNextToken function handle the logic regarding line numbers
 */
 
 /* ---------- Helpers ---------- */
@@ -35,11 +37,20 @@ KeyVal kv33 = {"I32", I32};         KeyVal kv34 = {"I64", I64};
 KeyVal kv35 = {"bool", BOOL};
 
 int GetLineNum() { return LINE_NUM; }
+int CheckBuffer(Token* out)
+{
+    if (Buff.tokCount == 0)
+        return NAT;
+    *out = Buff.toks[--Buff.tokCount];
+
+    return VALID;
+}
 
 Token GetNextToken(FILE* fptr)
 {
     Token next;
-    CHECK_BUFFER();
+    if (CheckBuffer(&next) != NAT)
+        return next;
 
     /* Fetch new Token From File */
     next.lex.size = 0;
@@ -74,21 +85,22 @@ Token GetNextToken(FILE* fptr)
     return next;
 }
 
-int PutTokenBack(Token* t)
+int PutTokenBack(const Token* t)
 {
-    if(BufferFull) {
-        printf("ERROR: Attemping to write to a full buffer \n");
-        return -1;
-    }
+    Token* tmp = realloc(Buff.toks, sizeof(Token) * (Buff.tokCount + 1));
+    if (!tmp)
+        return NAT;
 
-    Buffer = *t;
-    BufferFull = true;
-    return 0;
+    Buff.toks = tmp;
+    Buff.toks[Buff.tokCount] = *t; 
+    Buff.tokCount++;
+
+    return VALID;
 }
 
 void UpdateLexeme(Token* t, int c)
 {
-    if (t->lex.size + 1 >= t->lex.max) /* +1 for null terminator */
+    if (t->lex.size + 1 >= t->lex.max)      /* +1 for null terminator */
     {
         t->lex.max *= 2;
         t->lex.word = realloc(t->lex.word, t->lex.max * sizeof(char));
@@ -167,8 +179,10 @@ int IsNumber(FILE* fptr, Token* t, int c)
         }
         else if (next == '.')
             return ERRT;     /* Don't even finish */
-        else if (isspace(next))
+        else if (isspace(next)) {
+            if (next == '\n') LINE_NUM++;
             break;
+        }
         else if (isalpha(next))
         {
             /* TODO: Need to send to an IsIdent function if ANY function returns Ident to check next chars */
@@ -731,13 +745,13 @@ int IsComm(FILE* fptr, Token* t, int c)
                 t->type = ERR;
                 return ERRT;
             }
-            else if (next == '\n')
-                LINE_NUM++;
+            else if (next == '\n') LINE_NUM++;
 
             prev = next;
             UpdateLexeme(t, next);
         }
 
+        UpdateLexeme(t, next);
         t->type = COMMENT;
         return VALID;
     } 
@@ -781,6 +795,7 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
         UpdateLexeme(t, next);
         next = fgetc(fptr);
     }
+    if (next == '\n') ungetc(next, fptr);
 
     /* KW or IDENT */
     UpdateLexeme(t, '\0');  /* Null Terminator */

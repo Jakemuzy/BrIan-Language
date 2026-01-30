@@ -11,12 +11,6 @@
 
 static unsigned int LINE_NUM = 1;
 
-#define CHECK_BUFFER()  \
-    if(BufferFull) { \
-        BufferFull = false; \
-        return Buffer; \
-    }
-
 #define GET_CHAR(fptr, c) do { \
         c = fgetc(fptr); \
         if (c == '\n') LINE_NUM++; \
@@ -27,13 +21,14 @@ static unsigned int LINE_NUM = 1;
 static Dict* KWmap = NULL;
 
 /* Token Logic */
-static Token Buffer;
-static bool BufferFull = false;
+typedef struct Buffer { Token* toks; size_t tokCount; } Buffer;
+static Buffer Buff = { NULL, 0};
 
 int   GetLineNum();
+int   CheckBuffer(Token* out);
 Token GetNextToken(FILE* fptr); 
 Token PeekNextToken(FILE* fptr);
-int   PutTokenBack(Token* t);
+int   PutTokenBack(const Token* t);
 void  UpdateLexeme(Token* t, int c);
 
 /* ----------- Regex ---------- */
