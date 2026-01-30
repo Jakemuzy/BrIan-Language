@@ -52,6 +52,9 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 ## TODO
     -   Allow preprocessor directives anywhere
     -   Global decl statements shouldn't cause ast to error
+    -   Add true/false keywords, that asgn expressions can use **
+    -   Make casts work
+    -   Allow DeclStmts in ForStmt first paramater
 
 ## GRAMMAR
 

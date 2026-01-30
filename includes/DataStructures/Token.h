@@ -31,6 +31,9 @@
     U16 - 16 Bit Unsigned Int
     U32 - 32 Bit Unsigned Int
     U64 - 64 Bit Unsigned Int
+
+
+    ADD true/false keywords
 */
 
 typedef enum {
@@ -58,7 +61,7 @@ typedef enum {
     NEG, XOR, OR, AND, LSHIFT, RSHIFT, 
 
     /* Brackets */
-    LPAREN, RPAREN, LBRACE, RBRACE, LBRACK, RBRACK, /* Langle and Rangle are < and > so less and great */
+    LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE, /* Langle and Rangle are < and > so less and great */
 
     /* Data Types */
     IDENT, INTEGRAL, DECIMAL, CLITERAL, SLITERAL,
@@ -116,7 +119,7 @@ static const size_t POSTFIXS_COUNT = sizeof(POSTFIXS) / sizeof(POSTFIXS[0]);
 static const int PRIMARYS[] = { IDENT, DECIMAL, INTEGRAL, SLITERAL, CLITERAL };
 static const PRIMARYS_COUNT = sizeof(PRIMARYS) / sizeof(PRIMARYS[0]);
 
-static const TYPES[] = { CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, VOID, STRING };
+static const TYPES[] = { CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, BOOL, VOID, STRING };
 static const size_t TYPES_COUNT = sizeof(TYPES) / sizeof(TYPES[0]);
 
 #endif

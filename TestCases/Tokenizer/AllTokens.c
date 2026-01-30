@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
     while(next.type != ERR && next.type != END)
     {
         next = GetNextToken(fptr);
-        printf("Token: %d\tValue: %d\tWord: %s\n", tokenCount, next.type, next.lex.word); 
+        printf("Token: %d\tValue: %d\tLine: %d \tWord: %s\n", tokenCount, next.type, next.line, next.lex.word); 
 
         tokenCount++;
     }
