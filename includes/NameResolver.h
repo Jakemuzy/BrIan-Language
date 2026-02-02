@@ -8,6 +8,7 @@
     Make this system more robust
     Allow for function overloading
     Allow for custom type decl / other name spaces
+    Account for break / continue statements
 
 */
 
@@ -34,7 +35,9 @@ NodeType GetScopeType(ASTNode* node) ;
 
 /* ---------- Resolving ---------- */
 
-Symbol** ResolveNames(AST* ast);
+typedef Symbol** SymbolTable; 
+
+SymbolTable ResolveNames(AST* ast);
 bool ResolveNamesInNode(ASTNode* node, ASTNode* parent);
 
 /* Alpha Renaming? */

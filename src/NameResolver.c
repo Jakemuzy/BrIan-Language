@@ -70,7 +70,7 @@ NodeType GetScopeType(ASTNode* node)
 
 /* ----------- Name Resolution ---------- */
 
-Symbol** ResolveNames(AST* ast) 
+SymbolTable ResolveNames(AST* ast) 
 {
     BeginScope(&CurrentScope, PROG_SCOPE);
 
@@ -78,7 +78,7 @@ Symbol** ResolveNames(AST* ast)
         return NULL;
 
     ExitScope(&CurrentScope);
-    return SymbolTable;
+    return ST;
 }
 
 bool ResolveNamesInNode(ASTNode* current, ASTNode* parent) 
