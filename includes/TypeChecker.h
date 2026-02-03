@@ -33,6 +33,7 @@ TYPE* TY_NULL(void);
 TYPE* TY_INT(void);
 TYPE* TY_STRING(void);
 TYPE* TY_VOID(void);
+TYPE* TY_ERROR(void);
 
 TYPE* TY_ARR(TYPE* type);
 TYPE* TY_NAME(Symbol* sym, TYPE* type);
@@ -61,5 +62,10 @@ TYPE*  TypeCheckVar(SymbolTable venv, SymbolTable tenv, ASTNode* var);
 TYPE* TypeCheckExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr);
 TYPE* TypeCheckDecl(SymbolTable venv, SymbolTable tenv, ASTNode* decl);
 TYPE* TypeCheckType(                  SymbolTable tenv, ASTNode* expr);
+
+TYPE* TypeCheckBinaryExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr);   /* Helpers */
+
+/* ----------- Valid Types ---------- */
+static int 
 
 #endif 

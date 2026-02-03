@@ -38,3 +38,21 @@ SymbolTable ENV_BaseTenv()
 }
 
 
+TYPE* TypeCheckExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr)
+{
+    Token operator = expr->token;
+    switch (expr->type)
+    {
+        case BINARY_EXPR_NODE:
+            TYPE* left = TypeCheckExpr(venv, tenv, expr->children[0]);
+            TYPE* right = TypeCheckExpr(venv, tenv, expr->children[1]);
+            if (operator.type == PLUS) {
+                if (left->kind != PLUS TYPES)
+                if (left->kind == TY_INT )
+            }
+            break;
+        
+        default:
+            break;
+    }
+}
