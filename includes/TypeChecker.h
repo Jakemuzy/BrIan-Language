@@ -1,7 +1,15 @@
 #ifndef _TYPE_CHECKER_H__
 #define _TYPE_CHECKER_H__
 
+#include <stdbool.h>
+
 #include "NameResolver.h"
+
+/* 
+    TODO: 
+        Disallow divide by 0
+        Cap Integers to max and min
+*/
 
 /* ---------- Error Handling ----------- */
 
@@ -10,15 +18,18 @@ void TERROR_INCOMPATIBLE(Symbol* sym);
 /* ---------- Type Structures  ----------- */
 
 typedef enum {
-    TYPE_INT, TYPE_CHAR, TYPE_DOUBLE, TYPE_FLOAT,
+    TYPE_INT, TYPE_BOOL, TYPE_DOUBLE, TYPE_FLOAT,
     TYPE_PTR, TYPE_FUNC, TYPE_STRUCT, TYPE_STRING,
-    TYPE_ARR, TYPE_VOID
+    TYPE_ARR, TYPE_VOID,
+
+    TYPE_I8, TYPE_I16, TYPE_I32, TYPE_I64,
+    TYPE_U8, TYPE_U16, TYPE_U32, TYPE_U64
 } TypeKind;
 
 
 typedef struct TYPE {
     TypeKind kind;
-    union {     /* Array vs Variable */
+    union {     /* kind == TYPE_ARR -> u.array | kind == OTHER -> u.name */
         struct TYPE* array;     
         struct {Symbol* sym; struct TYPE* type;} name;  
     } u;
@@ -26,14 +37,28 @@ typedef struct TYPE {
 
 typedef struct TYPE_LIST {  /* Especially useful for function paramater lists */
     TYPE* head;
-    TYPE* tail;
+    struct TYPE_LIST* tail;
 } TYPE_LIST;
 
-TYPE* TY_NULL(void);
-TYPE* TY_INT(void);
-TYPE* TY_STRING(void);
-TYPE* TY_VOID(void);
-TYPE* TY_ERROR(void);
+TYPE* TY_NULL();
+TYPE* TY_INT();
+TYPE* TY_FLOAT();
+TYPE* TY_DOUBLE();
+TYPE* TY_BOOL();
+TYPE* TY_STRING();
+
+TYPE* TY_I8();
+TYPE* TY_I16();
+TYPE* TY_I32();
+TYPE* TY_I64();
+
+TYPE* TY_U8();
+TYPE* TY_U16();
+TYPE* TY_U32();
+TYPE* TY_U64();
+
+TYPE* TY_VOID();
+TYPE* TY_ERROR();
 
 TYPE* TY_ARR(TYPE* type);
 TYPE* TY_NAME(Symbol* sym, TYPE* type);
@@ -66,6 +91,32 @@ TYPE* TypeCheckType(                  SymbolTable tenv, ASTNode* expr);
 TYPE* TypeCheckBinaryExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr);   /* Helpers */
 
 /* ----------- Valid Types ---------- */
-static int 
+
+typedef enum TypeCategory { C_NUMERIC, C_INTEGRAL, C_DECIMAL, C_COMPARABLE, C_EQUALITY } TypeCategory; 
+bool TypeHasCategory(TypeKind kind, TypeCategory cat);
+
+/* ---------- Table Driven Type Checking ---------- */
+
+TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs);  /* Automatic type conversions based on "largest" */
+TYPE* BoolType(TYPE* lhs, TYPE* rhs);
+
+typedef TYPE* (*TypeResult)(TYPE* lhs, TYPE* rhs);
+typedef struct BinaryRule {
+    TokenType op;
+    TypeCategory left, right;
+    TypeResult result;
+
+    bool orderMatters;
+} BinaryRule;
+
+typedef struct UnaryRule {
+
+} UnaryRule;
+
+static BinaryRule BINARY_RULES[] = {
+    { PLUS, C_NUMERIC, C_NUMERIC, NumericPromotion },     /* Function pointers for determining what output type should be */
+    { MINUS, C_NUMERIC, C_NUMERIC, NumericPromotion }, 
+    { EQQ, C_EQUALITY, C_EQUALITY, BoolType },
+} 
 
 #endif 

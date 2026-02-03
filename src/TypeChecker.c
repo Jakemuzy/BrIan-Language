@@ -56,3 +56,59 @@ TYPE* TypeCheckExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr)
             break;
     }
 }
+
+/* ---------- Helpers ---------- */
+
+TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs)
+{
+    /* TODO: Warn on implicit converions */
+    /* Always promotes to signed of the largest size */
+    if (lhs->kind == TYPE_DOUBLE || rhs->kind == TYPE_DOUBLE)
+        return TY_DOUBLE();
+    if (lhs->kind == TYPE_FLOAT || rhs->kind == TYPE_FLOAT)
+        return TY_FLOAT();
+
+    if (lhs->kind == TYPE_I64 || rhs->kind == TYPE_I64)
+        return TY_I64();
+    if (lhs->kind == TYPE_I32 || rhs->kind == TYPE_I32)
+        return TY_I32();
+    if (lhs->kind == TYPE_I16 || rhs->kind == TYPE_I16)
+        return TY_I16();
+    if (lhs->kind == TYPE_I8 || rhs->kind == TYPE_I8)
+        return TY_I8();
+    if (lhs->kind == TYPE_U64 || rhs->kind == TYPE_U64)
+        return TY_U64();
+    if (lhs->kind == TYPE_U32 || rhs->kind == TYPE_U32)
+        return TY_U32();
+    if (lhs->kind == TYPE_U16 || rhs->kind == TYPE_U16)
+        return TY_U16();
+
+    return TY_INT();
+}
+
+
+
+TYPE* BoolType(TYPE* lhs, TYPE* rhs)
+{
+    if (lhs->kind == rhs->kind)
+        return TY_BOOL();
+
+    return TY_ERROR();
+}
+
+bool TypeHasCategory(TypeKind kind, TypeCategory cat)
+{
+    switch (cat) {
+        case C_NUMERIC:
+            return kind == TYPE_INT || kind == TYPE_FLOAT || kind == TYPE_DOUBLE;
+        case C_INTEGRAL:
+            return kind == TYPE_INT;
+        case C_DECIMAL:
+            return kind == TYPE_DOUBLE || kind == TYPE_FLOAT;
+        case C_EQUALITY:
+            return 1;
+        default:
+            return 0;
+        
+    }
+}

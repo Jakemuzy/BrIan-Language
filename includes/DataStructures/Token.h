@@ -34,6 +34,7 @@
 
 
     ADD true/false keywords
+    ADD Hex type (same sizes as U and I) 
 */
 
 typedef enum {
