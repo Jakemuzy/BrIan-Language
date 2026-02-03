@@ -30,6 +30,23 @@ Cases:
 */
 
 
+/* ---------- Error Handling ----------- */
+
+void TERROR_INCOMPATIBLE(OperatorRule rule) 
+{
+    if (rule.rtype == BINARY_RULE)
+        printf("TYPE ERROR: No rule found for operator %s\n", rule.rule.b.op);  /* TODO: Translate this to  a string instead of enum */
+    else if (rule.rtype == UNARY_RULE)
+        printf("TYPE ERROR: No rule found for operator %s\n", rule.rule.u.op);
+}
+void TERROR_NO_RULE(OperatorRule rule)
+{
+    if (rule.rtype == BINARY_RULE)
+        printf("TYPE ERROR: Invalid type %s for operator %s\n", rule.rule.b.op);  
+}
+
+
+/* ----------- Environments ---------- */
 
 /* Generates the Symbol Table for Types (ie, ResolveNames should be this, and it should return a SymbolTable)*/
 SymbolTable ENV_BaseTenv()
@@ -46,10 +63,23 @@ TYPE* TypeCheckExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr)
         case BINARY_EXPR_NODE:
             TYPE* left = TypeCheckExpr(venv, tenv, expr->children[0]);
             TYPE* right = TypeCheckExpr(venv, tenv, expr->children[1]);
-            if (operator.type == PLUS) {
-                if (left->kind != PLUS TYPES)
-                if (left->kind == TY_INT )
+
+            OperatorRule ty = FindRule(operator.type, BINARY_RULE);
+            if (ty.rtype == ERROR_RULE) {
+                TERROR_NO_RULE(ty);
+                return TY_ERROR();  
             }
+
+            /* Compare rule to current expr */
+            if (!TypeHasCategory(left->kind, ty.rule.b.left)) {
+                TERROR_INCOMPATIBLE("TYPE ERROR: operand type %s is incompatible with operator %s\n",);
+                return TY_ERROR();  
+            }
+            TypeHasCategory(right->kind, ty.rule.b.right);
+            /* TODO: If either fail return error*/
+
+            TYPE* result = ty.rule.b.result(left, right);
+            return result;
             break;
         
         default:
@@ -57,44 +87,7 @@ TYPE* TypeCheckExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr)
     }
 }
 
-/* ---------- Helpers ---------- */
-
-TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs)
-{
-    /* TODO: Warn on implicit converions */
-    /* Always promotes to signed of the largest size */
-    if (lhs->kind == TYPE_DOUBLE || rhs->kind == TYPE_DOUBLE)
-        return TY_DOUBLE();
-    if (lhs->kind == TYPE_FLOAT || rhs->kind == TYPE_FLOAT)
-        return TY_FLOAT();
-
-    if (lhs->kind == TYPE_I64 || rhs->kind == TYPE_I64)
-        return TY_I64();
-    if (lhs->kind == TYPE_I32 || rhs->kind == TYPE_I32)
-        return TY_I32();
-    if (lhs->kind == TYPE_I16 || rhs->kind == TYPE_I16)
-        return TY_I16();
-    if (lhs->kind == TYPE_I8 || rhs->kind == TYPE_I8)
-        return TY_I8();
-    if (lhs->kind == TYPE_U64 || rhs->kind == TYPE_U64)
-        return TY_U64();
-    if (lhs->kind == TYPE_U32 || rhs->kind == TYPE_U32)
-        return TY_U32();
-    if (lhs->kind == TYPE_U16 || rhs->kind == TYPE_U16)
-        return TY_U16();
-
-    return TY_INT();
-}
-
-
-
-TYPE* BoolType(TYPE* lhs, TYPE* rhs)
-{
-    if (lhs->kind == rhs->kind)
-        return TY_BOOL();
-
-    return TY_ERROR();
-}
+/* ----------- Valid Types ---------- */
 
 bool TypeHasCategory(TypeKind kind, TypeCategory cat)
 {
@@ -109,6 +102,70 @@ bool TypeHasCategory(TypeKind kind, TypeCategory cat)
             return 1;
         default:
             return 0;
-        
     }
+}
+
+/* ---------- Table Driven Type Checking ---------- */
+
+TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs)
+{
+    /* TODO: Warn on implicit converions */
+    /* Always promotes to signed of the largest size */
+    if (lhs->kind == TYPE_DOUBLE || rhs->kind == TYPE_DOUBLE)
+        return TY_DOUBLE();
+    if (lhs->kind == TYPE_FLOAT || rhs->kind == TYPE_FLOAT)
+        return TY_FLOAT();
+
+    if (lhs->kind == TYPE_I64 || rhs->kind == TYPE_I64)
+        return TY_I64();
+    if (lhs->kind == TYPE_INT || rhs->kind == TYPE_INT)
+        return TY_INT();
+    if (lhs->kind == TYPE_I32 || rhs->kind == TYPE_I32)
+        return TY_I32();
+    if (lhs->kind == TYPE_I16 || rhs->kind == TYPE_I16)
+        return TY_I16();
+    if (lhs->kind == TYPE_I8 || rhs->kind == TYPE_I8)
+        return TY_I8();
+    if (lhs->kind == TYPE_U64 || rhs->kind == TYPE_U64)
+        return TY_U64();
+    if (lhs->kind == TYPE_U32 || rhs->kind == TYPE_U32)
+        return TY_U32();
+    if (lhs->kind == TYPE_U16 || rhs->kind == TYPE_U16)
+        return TY_U16();
+    if (lhs->kind == TYPE_U8 || rhs->kind == TYPE_U8)
+        return TY_U8();
+
+    return TY_ERROR();
+}
+
+TYPE* BoolType(TYPE* lhs, TYPE* rhs)
+{
+    if (lhs->kind == rhs->kind)
+        return TY_BOOL();
+
+    return TY_ERROR();
+}
+
+OperatorRule FindRule(TokenType ttype, RuleType rtype)
+{  
+    int i;
+    OperatorRule rule;
+    if (rtype == BINARY_RULE) {
+        for (i = 0; i < BINARY_RULES_SIZE; i++) {
+            if (BINARY_RULES[i].op == ttype) {
+                rule = {rtype, BINARY_RULES[i] };
+                return rule;
+            }
+        }
+    }
+    else if (rtype == UNARY_RULE) {
+        for (i = 0; i < UNARY_RULES_SIZE; i++) {
+            if (UNARY_RULES[i].op == ttype) {
+                rule = {rtype, UNARY_RULES[i] };
+                return rule;
+            }
+        }
+    }
+    OperatorRule ERR; ERR.rtype == ERROR_RULE;
+    return ERR; 
 }

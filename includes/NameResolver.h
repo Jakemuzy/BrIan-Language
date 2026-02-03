@@ -9,7 +9,7 @@
     Allow for function overloading
     Allow for custom type decl / other name spaces
     Account for break / continue statements
-
+    Account for return statements
 */
 
 /* ---------- Error Handling ---------- */
@@ -21,7 +21,7 @@ bool NERROR_NO_IDENT(ASTNode* curr);
 bool NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first);
 bool NERROR_DOESNT_EXIST(char* name, ASTNode* curr);
 
-/* ---------- Helper ---------- */
+/* ---------- Helpers ---------- */
 
 static NodeType CTRL_STMTS[] = { IF_NODE, ELIF_NODE, ELSE_NODE, SWITCH_STMT_NODE,
                                  CASE_NODE, DEFAULT_NODE, WHILE_STMT_NODE, 
