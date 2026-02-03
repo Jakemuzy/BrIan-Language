@@ -9,11 +9,14 @@
     TODO: 
         Disallow divide by 0
         Cap Integers to max and min
+        Environment will need to track more if safety is guaranteed (ownership, lifetime, mutability, etc)
+        Implement closures (For lambda functions)
 */
 
 /* ---------- Error Handling ----------- */
 
-void TERROR_INCOMPATIBLE(Symbol* sym);
+void TERROR_INCOMPATIBLE(OperatorRule rule);
+void TERROR_NO_RULE(OperatorRule rule);
 
 /* ---------- Type Structures  ----------- */
 
@@ -100,6 +103,8 @@ bool TypeHasCategory(TypeKind kind, TypeCategory cat);
 TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs);  /* Automatic type conversions based on "largest" */
 TYPE* BoolType(TYPE* lhs, TYPE* rhs);
 
+typedef enum RuleType { BINARY_RULE, UNARY_RULE, ERROR_RULE } RuleType;
+
 typedef TYPE* (*TypeResult)(TYPE* lhs, TYPE* rhs);
 typedef struct BinaryRule {
     TokenType op;
@@ -110,13 +115,28 @@ typedef struct BinaryRule {
 } BinaryRule;
 
 typedef struct UnaryRule {
-
+    TokenType op;
+    TypeCategory cat;
+    TypeResult result;
 } UnaryRule;
 
-static BinaryRule BINARY_RULES[] = {
+typedef struct OperatorRule { 
+    RuleType rtype;
+    union { BinaryRule b; UnaryRule u; } rule; 
+} OperatorRule;
+
+OperatorRule FindRule(TokenType ttype, RuleType rtype);
+static BinaryRule BINARY_RULES[] = {    /* Maybe make this a map */
     { PLUS, C_NUMERIC, C_NUMERIC, NumericPromotion },     /* Function pointers for determining what output type should be */
     { MINUS, C_NUMERIC, C_NUMERIC, NumericPromotion }, 
     { EQQ, C_EQUALITY, C_EQUALITY, BoolType },
-} 
+    { }
+};
+static const BINARY_RULES_SIZE = sizeof(BINARY_RULES) / sizeof(BINARY_RULES[0]);
+
+static UnaryRule UNARY_RULES[] = {
+
+};
+static const UNARY_RULES_SIZE = sizeof(UNARY_RULES) / sizeof(UNARY_RULES[0]);
 
 #endif 

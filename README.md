@@ -59,6 +59,10 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     -   Implement struct functions 
     -   Allow Function Overloadign in NameResolution
     -   Allow Structs to be defined via a paramater list
+    -   Preprocess directive that allows switching to allow safe concurrency
+        similar to Rusts system built into the compiler. Otherwise user can use 
+        the standard libraries for faster compile times.
+    -   Lambdas require closures for support
 
 ## GRAMMAR
 
@@ -168,7 +172,10 @@ Similar to C, but simpler.
             - [ ] Name Spaces
             - [ ] Overloading
         - [ ] Type Checking
-        - [ ] Desugaring
+            - [x] Implicit Casting
+            - [ ] Semantic Rules
+            - [ ] Environment
+        - [ ] Desugaring (BrIRan)
         - [ ] Concurrency Checking
     - [ ] Conversion to LLVM IR
         - [ ] Assemble to RISC V
