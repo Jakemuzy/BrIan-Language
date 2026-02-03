@@ -18,13 +18,13 @@ typedef enum {
 
 typedef struct TYPE {
     TypeKind kind;
-    union {
-        struct TYPE* array;
-        struct {Symbol* sym; struct TYPE* type;} name;
+    union {     /* Array vs Variable */
+        struct TYPE* array;     
+        struct {Symbol* sym; struct TYPE* type;} name;  
     } u;
 } TYPE;
 
-typedef struct TYPE_LIST {
+typedef struct TYPE_LIST {  /* Especially useful for function paramater lists */
     TYPE* head;
     TYPE* tail;
 } TYPE_LIST;
@@ -39,14 +39,7 @@ TYPE* TY_NAME(Symbol* sym, TYPE* type);
 
 TYPE_LIST TY_LIST(TYPE* head, TYPE_LIST* tail);
 
-/* ---------- Symbol Table With Types ------------ */
-
-/* For each ident
-    If Variable -> what is its type
-    If Fucntion -> What are its param and result types
-*/
-
-/* ----------- Type Environment ---------- */
+/* ----------- Environments ---------- */
 
 typedef struct EnvironmentEntry {
     enum { ENV_VAR_ENTRY, ENV_FUNC_ENTRY } kind;
@@ -60,26 +53,13 @@ EnvironmentEntry ENV_VarEntry(TYPE* ty);
 EnvironmentEntry ENV_FuncEntry(TYPE_LIST* formals, TYPE* result);
 
 SymbolTable ENV_BaseTenv(); /* Base Type Environment (ie int -> TY_INT ... )*/
-SymbolTable Env_BaseVenv(); /* Base Variable Environment */
+SymbolTable Env_BaseVenv(); /* Base Variable Environment (TODO: will contain predefined functions)*/
 
-/* ---------- Type Logic ----------- */
+/* ---------- Type Semantic Analysis ----------- */
 
-TYPE* TypeCheckExpr(ASTNode* node);
-void  TypeCheckStmt(ASTNode* node, TYPE* expected);
-
-void CheckTypes(Symbol** st);
-void CheckSymbol(Symbol* sym);
-
-/* 
-    For declarations -  check that the value being assigned is compatible with the declaration type
-    
-    For Functions Calls
-        -   Ensure the paramaters types are compatible with the argument types
-
-    For Exprs - 
-        Ensure the expression type is valid for the variable type
-
-    For Arrays 
-*/
+TYPE*  TypeCheckVar(SymbolTable venv, SymbolTable tenv, ASTNode* var);
+TYPE* TypeCheckExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr);
+TYPE* TypeCheckDecl(SymbolTable venv, SymbolTable tenv, ASTNode* decl);
+TYPE* TypeCheckType(                  SymbolTable tenv, ASTNode* expr);
 
 #endif 

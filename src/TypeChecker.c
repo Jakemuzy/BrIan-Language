@@ -29,44 +29,12 @@ Cases:
             OR idents that represnt strings   
 */
 
-void CheckTypes(Symbol** st)
-{
-    Symbol* sym;
-    while (sym = *st++) {
-
-        /* Iterate through linked list */
-        CheckSymType(sym);
-    }
-}
 
 
-void CheckSymbol(Symbol* sym)
-{
-    if (!sym)
-        return;
-
-    TokenType stype = sym->decl->type;
-
-    if(stype == DECL_STMT_NODE)
-        ;
-    else if (stype == )
-
-
-    CheckSymbol(sym->prev);
-}
-
-
-void CheckExpr(Symbol* sym)
+/* Generates the Symbol Table for Types (ie, ResolveNames should be this, and it should return a SymbolTable)*/
+SymbolTable ENV_BaseTenv()
 {
 
 }
 
-void CheckBinaryExprValidity(NodeType type, NodeType type2, Token tok)
-{
 
-}
-
-void CheckUnaryExprValidity(NodeType type, Token tok) 
-{
-
-}

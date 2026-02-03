@@ -58,6 +58,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     -   Custom types
     -   Implement struct functions 
     -   Allow Function Overloadign in NameResolution
+    -   Allow Structs to be defined via a paramater list
 
 ## GRAMMAR
 
