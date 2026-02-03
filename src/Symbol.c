@@ -7,7 +7,7 @@ Symbol* InitSymbol(ASTNode* decl, Symbol* prev)
     Symbol* sym = malloc(sizeof(Symbol));
     sym->decl = decl;
     sym->name = decl->token.lex.word;
-    sym->stype = (decl->type == DECL_STMT_NODE) ? S_VAR : S_FUNC;
+    sym->stype = (decl->type == DECL_STMT_NODE) ? S_VAR : S_FUNC;   /* Determine Type Here */
     sym->prev = prev;
 
     return sym;
@@ -18,7 +18,7 @@ Symbol* InitSymbol(ASTNode* decl, Symbol* prev)
 Symbol* STLookup(char* name)
 {
     int index = HashStr(name) % SIZE;
-    Symbol* sym, *syms = SymbolTable[index];
+    Symbol* sym, *syms = ST[index];
     for (sym=syms; sym; sym=sym->prev)
         if (0 == strcmp(sym->name, name)) return sym;
 
@@ -30,21 +30,21 @@ Symbol* STPush(ASTNode* key)
     char* name = key->token.lex.word;
     int index = HashStr(name) % SIZE;
 
-    Symbol* sym, *syms = SymbolTable[index];
+    Symbol* sym, *syms = ST[index];
     sym = InitSymbol(key, syms);
 
-    SymbolTable[index] = sym;
+    ST[index] = sym;
     return sym;
 }
 
 Symbol* STPop(char* name)
 {
     int index = HashStr(name) % SIZE;
-    Symbol* top = SymbolTable[index];
+    Symbol* top = ST[index];
     if (!top)
         return NULL;
     
-    SymbolTable[index] = top->prev;
+    ST[index] = top->prev;
     return top;
 }
 

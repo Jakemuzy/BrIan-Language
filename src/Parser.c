@@ -76,7 +76,6 @@ int FuncNodePossible(FILE* fptr)
         return NAP;
     }
 
-    printf("VALID\n\n");
     PutTokenBack(&lparen);
     PutTokenBack(&ident);
     PutTokenBack(&type);
