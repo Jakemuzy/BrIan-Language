@@ -29,20 +29,48 @@ Cases:
             OR idents that represnt strings   
 */
 
+/* ---------- Types ---------- */
+
+TYPE* TY_NULL() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_NULL; return type; }
+TYPE* TY_INT() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_INT; return type; }
+TYPE* TY_FLOAT() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_FLOAT; return type; }
+TYPE* TY_DOUBLE() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_DOUBLE; return type; }
+TYPE* TY_BOOL() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_BOOL; return type; }
+TYPE* TY_STRING() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_STRING; return type; }
+
+TYPE* TY_I8() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_I8; return type; }
+TYPE* TY_I16() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_I16; return type; }
+TYPE* TY_I32() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_I32; return type; }
+TYPE* TY_I64() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_I64; return type; }
+
+TYPE* TY_U8() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_U8; return type; }
+TYPE* TY_U16() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_U16; return type; }
+TYPE* TY_U32() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_U32; return type; }
+TYPE* TY_U64() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_U64; return type; }
+
+TYPE* TY_VOID() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_VOID; return type; }
+TYPE* TY_ERROR() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_ERROR; return type; }
+
+TYPE* TY_ARR(TYPE* type) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_ARR; typ->u.array = type; typ; }
+TYPE* TY_NAME(Symbol* sym, TYPE* type) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_NAME; typ->u.name.sym = sym; typ->u.name.type = type; return typ; }
+
+TYPE_LIST TY_LIST(TYPE* head, TYPE_LIST* tail);
+
 
 /* ---------- Error Handling ----------- */
 
 void TERROR_INCOMPATIBLE(OperatorRule rule) 
 {
     if (rule.rtype == BINARY_RULE)
-        printf("TYPE ERROR: No rule found for operator %s\n", rule.rule.b.op);  /* TODO: Translate this to  a string instead of enum */
+        printf("TYPE ERROR: No rule found for operator %c\n", rule.rule.b.op);  /* TODO: Translate this to  a string instead of enum */
     else if (rule.rtype == UNARY_RULE)
-        printf("TYPE ERROR: No rule found for operator %s\n", rule.rule.u.op);
+        printf("TYPE ERROR: No rule found for operator %c\n", rule.rule.u.op);
 }
 void TERROR_NO_RULE(OperatorRule rule)
 {
+    /* TODO: Have this print what type it actually is */
     if (rule.rtype == BINARY_RULE)
-        printf("TYPE ERROR: Invalid type %s for operator %s\n", rule.rule.b.op);  
+        printf("TYPE ERROR: Invalid type %d for operator %c\n", rule.rtype, rule.rule.b.op);
 }
 
 
@@ -61,8 +89,12 @@ TYPE* TypeCheckExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr)
     switch (expr->type)
     {
         case BINARY_EXPR_NODE:
+            /* First child is ident or another epxr */
             TYPE* left = TypeCheckExpr(venv, tenv, expr->children[0]);
+            if (left->kind == TYPE_ERROR) return left;
+
             TYPE* right = TypeCheckExpr(venv, tenv, expr->children[1]);
+            if (right->kind == TYPE_ERROR) return right;
 
             OperatorRule ty = FindRule(operator.type, BINARY_RULE);
             if (ty.rtype == ERROR_RULE) {
@@ -71,16 +103,27 @@ TYPE* TypeCheckExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr)
             }
 
             /* Compare rule to current expr */
+            TypeKind kind = left->kind == TYPE_NAME ? left->kind : left->u.name.type->kind;
             if (!TypeHasCategory(left->kind, ty.rule.b.left)) {
-                TERROR_INCOMPATIBLE("TYPE ERROR: operand type %s is incompatible with operator %s\n",);
+                TERROR_INCOMPATIBLE(ty);
                 return TY_ERROR();  
             }
-            TypeHasCategory(right->kind, ty.rule.b.right);
-            /* TODO: If either fail return error*/
+            if (!TypeHasCategory(right->kind, ty.rule.b.right)) {
+                TERROR_INCOMPATIBLE(ty);
+                return TY_ERROR();  
+            }
 
             TYPE* result = ty.rule.b.result(left, right);
             return result;
+
+        case UNARY_EXPR_NODE:
             break;
+
+        case IDENT_NODE:
+            /* Lookup Name */
+            Symbol* sym = STLookup(expr->token.lex.word);
+
+            return TY_NAME(sym, NULL/* Get type from stype associtaed with ident */);
         
         default:
             break;
@@ -150,10 +193,11 @@ OperatorRule FindRule(TokenType ttype, RuleType rtype)
 {  
     int i;
     OperatorRule rule;
+    rule.rtype = rtype;
     if (rtype == BINARY_RULE) {
         for (i = 0; i < BINARY_RULES_SIZE; i++) {
             if (BINARY_RULES[i].op == ttype) {
-                rule = {rtype, BINARY_RULES[i] };
+                rule.rule.b = BINARY_RULES[i];
                 return rule;
             }
         }
@@ -161,7 +205,7 @@ OperatorRule FindRule(TokenType ttype, RuleType rtype)
     else if (rtype == UNARY_RULE) {
         for (i = 0; i < UNARY_RULES_SIZE; i++) {
             if (UNARY_RULES[i].op == ttype) {
-                rule = {rtype, UNARY_RULES[i] };
+                rule.rule.u = UNARY_RULES[i];
                 return rule;
             }
         }

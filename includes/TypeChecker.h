@@ -13,17 +13,13 @@
         Implement closures (For lambda functions)
 */
 
-/* ---------- Error Handling ----------- */
-
-void TERROR_INCOMPATIBLE(OperatorRule rule);
-void TERROR_NO_RULE(OperatorRule rule);
-
 /* ---------- Type Structures  ----------- */
 
 typedef enum {
     TYPE_INT, TYPE_BOOL, TYPE_DOUBLE, TYPE_FLOAT,
     TYPE_PTR, TYPE_FUNC, TYPE_STRUCT, TYPE_STRING,
-    TYPE_ARR, TYPE_VOID,
+    TYPE_ARR, TYPE_VOID, TYPE_ERROR, TYPE_NULL,
+    TYPE_NAME,
 
     TYPE_I8, TYPE_I16, TYPE_I32, TYPE_I64,
     TYPE_U8, TYPE_U16, TYPE_U32, TYPE_U64
@@ -138,5 +134,10 @@ static UnaryRule UNARY_RULES[] = {
 
 };
 static const UNARY_RULES_SIZE = sizeof(UNARY_RULES) / sizeof(UNARY_RULES[0]);
+
+/* ---------- Error Handling ----------- */
+
+void TERROR_INCOMPATIBLE(OperatorRule rule);
+void TERROR_NO_RULE(OperatorRule rule);
 
 #endif 

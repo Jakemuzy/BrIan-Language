@@ -10,7 +10,8 @@
 /* 
     TODO:
         - One symbol table per namespace (create name spaces)
-        - Have SymbolType matter
+        - Have SymbolType assign a type to each identifier, that way
+          type checker can easily decipher the type
 */
 
 /* ---------- Symbols ---------- */
