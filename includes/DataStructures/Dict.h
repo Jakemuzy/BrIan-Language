@@ -7,21 +7,34 @@
 
 #define SIZE 109
 
-/*
-unsigned int Hash(char* key);
+typedef enum HASH_TYPE {
+    HASH_INT, HASH_CHAR, 
+    HASH_STR, HASH_PTR,
+    HASH_UINT
+} HASH_TYPE;
+
+unsigned int Hash(void* key, HASH_TYPE keyType, size_t size);
 
 typedef struct Bucket {
-    char* key;
-    void* binding;
-    struct Bucket* next;
+    union {
+        int i; char c; unsigned int ui;
+        char* s; void* p;
+    } key;
+
+    void* val;
 } Bucket;
 
-Bucket* InitBucket(char* key, void* binding, Bucket* next);
-void  BucketPush(char* key, void* binding);
-void  BucketPop(char* key);
-void* BucketLookup(char* key);
+typedef struct Dict {
+    Bucket** buckets;
+    size_t size;
 
-Bucket* Dicts[SIZE];
-*/
+    HASH_TYPE keyType;
+} Dict;
+
+Dict  DictInit(HASH_TYPE keyType, size_t size);
+void* DictPush(Dict* dict, void* key, void* val);
+void* DictPop(Dict* dict, void* key);
+void* DictLookup(Dict* dict, void* key);
+void* DictResize(Dict* dict, size_t newSize);   /* Auto, dont call */
 
 #endif 

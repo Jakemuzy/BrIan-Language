@@ -79,7 +79,12 @@ void TERROR_NO_RULE(OperatorRule rule)
 /* Generates the Symbol Table for Types (ie, ResolveNames should be this, and it should return a SymbolTable)*/
 SymbolTable ENV_BaseTenv()
 {
+    /* Maps Symbol to TYPE* */
+    /* Map Tenv */
 
+    /* Tenv[int] = TYPE_INT */
+    /* Tenv[float] = TYPE_INT ...*/
+    
 }
 
 

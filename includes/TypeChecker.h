@@ -16,7 +16,7 @@
 /* ---------- Type Structures  ----------- */
 
 typedef enum {
-    TYPE_INT, TYPE_BOOL, TYPE_DOUBLE, TYPE_FLOAT,
+    TYPE_INT, TYPE_BOOL, TYPE_DOUBLE, TYPE_FLOAT,   /* TODO: could probably make int just implicity I32 */
     TYPE_PTR, TYPE_FUNC, TYPE_STRUCT, TYPE_STRING,
     TYPE_ARR, TYPE_VOID, TYPE_ERROR, TYPE_NULL,
     TYPE_NAME,
@@ -38,6 +38,16 @@ typedef struct TYPE_LIST {  /* Especially useful for function paramater lists */
     TYPE* head;
     struct TYPE_LIST* tail;
 } TYPE_LIST;
+
+typedef struct TYPE_FIELD { /* Struct Fields */
+    Symbol* sym;
+    TYPE* type;
+} TYPE_FIELD;
+
+typedef struct TYPE_FIELD_LIST {
+    TYPE_FIELD* head;
+    struct TYPE_FIELD_LIST* tail;
+} TYPE_FIELD_LIST;
 
 TYPE* TY_NULL();
 TYPE* TY_INT();
@@ -63,6 +73,10 @@ TYPE* TY_ARR(TYPE* type);
 TYPE* TY_NAME(Symbol* sym, TYPE* type);
 
 TYPE_LIST TY_LIST(TYPE* head, TYPE_LIST* tail);
+TYPE_FIELD* TY_FIELD(Symbol* sym, TYPE* type);
+TYPE_FIELD_LIST* TY_FIELD_LIST(TYPE_FIELD* head, TYPE_FIELD_LIST* tail);
+
+/* TODO: Implement structs as fields */
 
 /* ----------- Environments ---------- */
 
@@ -77,6 +91,7 @@ typedef struct EnvironmentEntry {
 EnvironmentEntry ENV_VarEntry(TYPE* ty);
 EnvironmentEntry ENV_FuncEntry(TYPE_LIST* formals, TYPE* result);
 
+/* TODO: Need to use my own map of linked lists that store void* */
 SymbolTable ENV_BaseTenv(); /* Base Type Environment (ie int -> TY_INT ... )*/
 SymbolTable Env_BaseVenv(); /* Base Variable Environment (TODO: will contain predefined functions)*/
 
