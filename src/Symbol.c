@@ -17,7 +17,7 @@ Symbol* InitSymbol(ASTNode* decl, Symbol* prev)
 
 Symbol* STLookup(char* name)
 {
-    int index = HashStr(name) % SIZE;
+    int index = Hash(name, HASH_STR, SIZE);
     Symbol* sym, *syms = ST[index];
     for (sym=syms; sym; sym=sym->prev)
         if (0 == strcmp(sym->name, name)) return sym;
@@ -28,7 +28,7 @@ Symbol* STLookup(char* name)
 Symbol* STPush(ASTNode* key)
 {
     char* name = key->token.lex.word;
-    int index = HashStr(name) % SIZE;
+    int index = Hash(name, HASH_STR, SIZE);
 
     Symbol* sym, *syms = ST[index];
     sym = InitSymbol(key, syms);
@@ -39,7 +39,7 @@ Symbol* STPush(ASTNode* key)
 
 Symbol* STPop(char* name)
 {
-    int index = HashStr(name) % SIZE;
+    int index = Hash(name, HASH_STR, SIZE);
     Symbol* top = ST[index];
     if (!top)
         return NULL;

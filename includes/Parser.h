@@ -33,7 +33,7 @@ ParseResult PARSE_ERRP(char* message, Token tok);
 
 /* ---------- Helpers ---------- */
 
-int ValidTokType(const int types[], int arrSize, int type);
+int ValidTokType(const TokenType types[], int arrSize, TokenType type);
 int FuncNodePossible(FILE* fptr);
 
 ParseResult IdentNode(Token tok);

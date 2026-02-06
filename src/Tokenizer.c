@@ -17,24 +17,31 @@
 
 /* ---------- Helpers ---------- */
 
-KeyVal kv1 = {"if", IF} ;           KeyVal kv2 = {"elif", ELIF};
-KeyVal kv3 = {"else", ELSE};        KeyVal kv4 = {"do", DO};
-KeyVal kv5 = {"while", WHILE};      KeyVal kv6 = {"break", BREAK};
-KeyVal kv7 = {"for", FOR};          KeyVal kv8 = {"switch", SWITCH};
-KeyVal kv9 = {"case", CASE};        KeyVal kv10 = {"default", DEFAULT};
-KeyVal kv11 = {"return", RET};      KeyVal kv12 = {"char", CHAR};
-KeyVal kv13 = {"short", SHORT};     KeyVal kv14 = {"int", INT};
-KeyVal kv15 = {"float", FLOAT};     KeyVal kv16 = {"double", DOUBLE};
-KeyVal kv17 = {"long", LONG};       KeyVal kv18 = {"void", VOID};
-KeyVal kv19 = {"string", STRING};   KeyVal kv20 = {"enum", ENUM};
-KeyVal kv21 = {"struct", STRUCT};   KeyVal kv22 = {"const", CONST};
-KeyVal kv23 = {"signed", SIGNED};   KeyVal kv24 = {"unsigned", UNSIGNED};
-KeyVal kv25 = {"static", STATIC};   KeyVal kv26 = {"typedef", TYPEDEF}; 
-KeyVal kv27 = {"U8", U8};           KeyVal kv28 = {"U16", U16};         
-KeyVal kv29 = {"U32", U32};         KeyVal kv30 = {"U64", U64};         
-KeyVal kv31 = {"I8", I8};           KeyVal kv32 = {"I16", I16};
-KeyVal kv33 = {"I32", I32};         KeyVal kv34 = {"I64", I64};
-KeyVal kv35 = {"bool", BOOL};
+void KWMapInit()
+{
+    KWmap = malloc(sizeof(Dict));
+    *KWmap = DictInit(HASH_STR, 109);
+
+    DictPush(KWmap, (void*) "if", (void*)(uintptr_t) IF);      DictPush(KWmap, (void*) "elif", (void*)(uintptr_t) ELIF);  
+    DictPush(KWmap, (void*) "else", (void*)(uintptr_t) ELSE);    DictPush(KWmap, (void*) "do", (void*)(uintptr_t) DO);      
+    DictPush(KWmap, (void*) "while", (void*)(uintptr_t) WHILE);  DictPush(KWmap, (void*) "break", (void*)(uintptr_t) BREAK);  
+    DictPush(KWmap, (void*) "for", (void*)(uintptr_t) FOR);      DictPush(KWmap, (void*) "switch", (void*)(uintptr_t) SWITCH);
+    DictPush(KWmap, (void*) "case", (void*)(uintptr_t) CASE);    DictPush(KWmap, (void*) "default", (void*)(uintptr_t) DEFAULT); 
+    DictPush(KWmap, (void*) "return", (void*)(uintptr_t) RET);   DictPush(KWmap, (void*) "char", (void*)(uintptr_t) CHAR);     
+    DictPush(KWmap, (void*) "short", (void*)(uintptr_t) SHORT);   DictPush(KWmap, (void*) "int", (void*)(uintptr_t) INT);      
+    DictPush(KWmap, (void*) "float", (void*)(uintptr_t) FLOAT);   DictPush(KWmap, (void*) "double", (void*)(uintptr_t) DOUBLE); 
+    DictPush(KWmap, (void*) "long", (void*)(uintptr_t) LONG);     DictPush(KWmap, (void*) "void", (void*)(uintptr_t) VOID);    
+    DictPush(KWmap, (void*) "string", (void*)(uintptr_t) STRING); DictPush(KWmap, (void*) "enum", (void*)(uintptr_t) ENUM);    
+    DictPush(KWmap, (void*) "struct", (void*)(uintptr_t) STRUCT); DictPush(KWmap, (void*) "const", (void*)(uintptr_t) CONST); 
+    DictPush(KWmap, (void*) "signed", (void*)(uintptr_t) SIGNED);DictPush(KWmap, (void*) "unsigned", (void*)(uintptr_t) UNSIGNED);
+    DictPush(KWmap, (void*) "static", (void*)(uintptr_t) STATIC);DictPush(KWmap, (void*) "typedef", (void*)(uintptr_t) TYPEDEF); 
+    DictPush(KWmap, (void*) "U8", (void*)(uintptr_t) U8);        DictPush(KWmap, (void*) "U16", (void*)(uintptr_t) U16);     
+    DictPush(KWmap, (void*) "U32", (void*)(uintptr_t) U32);      DictPush(KWmap, (void*) "U64", (void*)(uintptr_t) U64);     
+    DictPush(KWmap, (void*) "I8", (void*)(uintptr_t) I8);        DictPush(KWmap, (void*) "I16", (void*)(uintptr_t) I16);     
+    DictPush(KWmap, (void*) "I32", (void*)(uintptr_t) I32);      DictPush(KWmap, (void*) "I64", (void*)(uintptr_t) I64);     
+    DictPush(KWmap, (void*) "bool", (void*)(uintptr_t) BOOL);
+
+}
 
 int GetLineNum() { return LINE_NUM; }
 int CheckBuffer(Token* out)
@@ -776,13 +783,7 @@ int IsComm(FILE* fptr, Token* t, int c)
 
 int IdentOrKeyword(FILE* fptr, Token* t, int c)
 {
-    /* TODO: Make these maps more like I have in the parser section
-*/
-    if(!KWmap)
-        KWmap = DictMake(35, &kv1,  &kv2,  &kv3,  &kv4,  &kv5,  &kv6,  &kv7,  &kv8,  &kv9, 
-                             &kv10, &kv11, &kv12, &kv13, &kv14, &kv15, &kv16, &kv17, &kv18, 
-                             &kv19, &kv20, &kv21, &kv22, &kv23, &kv24, &kv25, &kv26, &kv27, 
-                             &kv28, &kv29, &kv30, &kv31, &kv32, &kv33, &kv34, &kv35  );
+    if (!KWmap) KWMapInit();
 
     int next = c;
     while(next != '\n' && next != EOF)
@@ -799,9 +800,9 @@ int IdentOrKeyword(FILE* fptr, Token* t, int c)
 
     /* KW or IDENT */
     UpdateLexeme(t, '\0');  /* Null Terminator */
-    Entry* kw;
-    if(kw = DictLookup(*KWmap, t->lex.word))
-        t->type = kw->val;
+    void* val = DictLookup(KWmap, t->lex.word);
+    if(val)
+        t->type = (TokenType)(uintptr_t)val;
     else
         t->type = IDENT;
 

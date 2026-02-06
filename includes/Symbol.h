@@ -1,9 +1,8 @@
 #ifndef _SYMBOL_H__
 #define _SYMBOL_H__
 
-/* #include "Dict.h" */
+#include "Dict.h" 
 #include "Parser.h"
-#include "Dictionary.h"
 
 #define SIZE 109
 

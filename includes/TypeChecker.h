@@ -143,12 +143,12 @@ static BinaryRule BINARY_RULES[] = {    /* Maybe make this a map */
     { EQQ, C_EQUALITY, C_EQUALITY, BoolType },
     { }
 };
-static const BINARY_RULES_SIZE = sizeof(BINARY_RULES) / sizeof(BINARY_RULES[0]);
+static const size_t BINARY_RULES_SIZE = sizeof(BINARY_RULES) / sizeof(BINARY_RULES[0]);
 
 static UnaryRule UNARY_RULES[] = {
 
 };
-static const UNARY_RULES_SIZE = sizeof(UNARY_RULES) / sizeof(UNARY_RULES[0]);
+static const size_t UNARY_RULES_SIZE = sizeof(UNARY_RULES) / sizeof(UNARY_RULES[0]);
 
 /* ---------- Error Handling ----------- */
 
