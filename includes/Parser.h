@@ -2,7 +2,6 @@
 #define _PARSER_H__
 
 #include "Preprocessor.h"
-#include "Dictionary.h"
 #include "AST.h"
 
 /* ---------- Error Propogation ----------*/
