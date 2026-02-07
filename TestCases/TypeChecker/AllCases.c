@@ -1,6 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "NameResolver.h"
+#include "TypeChecker.h"
 
 int main(int argc, char* argv[])
 {
@@ -20,11 +21,13 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    SymbolTable* ST = ResolveNames(ast);
+    Symbol** ST = ResolveNames(ast);
     if (!ST) {
         printf("ERROR: ST failed to build\n");
         exit(1);
     }
+
+
 
 
 	return 0;

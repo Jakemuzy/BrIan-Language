@@ -56,21 +56,27 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     -   Allow DeclStmts in ForStmt first paramater
     -   Generics
     -   Custom types
+    -   Implement structs
     -   Implement struct functions 
     -   Allow Function Overloadign in NameResolution
     -   Allow Structs to be defined via a paramater list
+    -   Allow Structs to define default values
     -   Preprocess directive that allows switching to allow safe concurrency
         similar to Rusts system built into the compiler. Otherwise user can use 
         the standard libraries for faster compile times.
     -   Lambdas require closures for support
+    -   Compound literals
 
 ## GRAMMAR
 
 ```
-	Program ::=  { Function | DeclStmt }
+	Program ::=  { Function | Struct | DeclStmt }
+
     Function ::= Type IDENT '(' [ ParamList ] ')' Body
     ParamList ::= Param { ',' Param }
     Param ::= Type IDENT
+
+    Struct ::= IDENT '{' {DeclStmt} '}'
 
 	Body ::= '{' StmtList '}'
 	StmtList ::= { Stmt }  

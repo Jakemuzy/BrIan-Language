@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+#include "Dict.h"
 #include "NameResolver.h"
 
 /* 
@@ -15,7 +16,7 @@
 
 /* ---------- Type Structures  ----------- */
 
-typedef enum {
+typedef enum TypeKind {
     TYPE_INT, TYPE_BOOL, TYPE_DOUBLE, TYPE_FLOAT,   /* TODO: could probably make int just implicity I32 */
     TYPE_PTR, TYPE_FUNC, TYPE_STRUCT, TYPE_STRING,
     TYPE_ARR, TYPE_VOID, TYPE_ERROR, TYPE_NULL,
@@ -92,17 +93,17 @@ EnvironmentEntry ENV_VarEntry(TYPE* ty);
 EnvironmentEntry ENV_FuncEntry(TYPE_LIST* formals, TYPE* result);
 
 /* TODO: Need to use my own map of linked lists that store void* */
-SymbolTable ENV_BaseTenv(); /* Base Type Environment (ie int -> TY_INT ... )*/
-SymbolTable Env_BaseVenv(); /* Base Variable Environment (TODO: will contain predefined functions)*/
+Dict ENV_BaseTenv(); /* Base Type Environment (ie int -> TY_INT ... )*/
+Dict Env_BaseVenv(); /* Base Variable Environment (TODO: will contain predefined functions)*/
 
 /* ---------- Type Semantic Analysis ----------- */
 
-TYPE*  TypeCheckVar(SymbolTable venv, SymbolTable tenv, ASTNode* var);
-TYPE* TypeCheckExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr);
-TYPE* TypeCheckDecl(SymbolTable venv, SymbolTable tenv, ASTNode* decl);
-TYPE* TypeCheckType(                  SymbolTable tenv, ASTNode* expr);
+TYPE*  TypeCheckVar(SymbolTable* venv, Dict* tenv, ASTNode* var);
+TYPE* TypeCheckExpr(SymbolTable* venv, Dict* tenv, ASTNode* expr);
+TYPE* TypeCheckDecl(SymbolTable* venv, Dict* tenv, ASTNode* decl);
+TYPE* TypeCheckType(                   Dict* tenv, ASTNode* expr);
 
-TYPE* TypeCheckBinaryExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr);   /* Helpers */
+TYPE* TypeCheckBinaryExpr(SymbolTable* venv, Dict* tenv, ASTNode* expr);   /* Helpers */
 
 /* ----------- Valid Types ---------- */
 
