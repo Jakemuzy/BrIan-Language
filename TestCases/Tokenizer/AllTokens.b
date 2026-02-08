@@ -28,11 +28,11 @@ U32
 U64
 enum
 struct
+typedef
 const
 signed
 unsigned
 static
-typedef
 =
 +=
 -=

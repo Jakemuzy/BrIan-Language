@@ -2,7 +2,6 @@
 #define _PARSER_H__
 
 #include "Preprocessor.h"
-#include "Dictionary.h"
 #include "AST.h"
 
 /* ---------- Error Propogation ----------*/
@@ -33,7 +32,7 @@ ParseResult PARSE_ERRP(char* message, Token tok);
 
 /* ---------- Helpers ---------- */
 
-int ValidTokType(const int types[], int arrSize, int type);
+int ValidTokType(const TokenType types[], int arrSize, TokenType type);
 int FuncNodePossible(FILE* fptr);
 
 ParseResult IdentNode(Token tok);
@@ -48,6 +47,10 @@ AST* Program(FILE* fptr);
 ParseResult Function(FILE* fptr);
 ParseResult ParamList(FILE* fptr);
 ParseResult Param(FILE* fptr);
+
+ParseResult Struct(FILE* fptr);
+    ParseResult StructBody(FILE* fptr);
+ParseResult Typedef(FILE* fptr);
 
 ParseResult Body(FILE* fptr);
 ParseResult StmtList(FILE* fptr);
@@ -87,9 +90,10 @@ ParseResult Prefix(FILE* fptr);
 ParseResult Postfix(FILE* fptr);
     ParseResult Index(FILE* fptr, ASTNode* callee);
     ParseResult CallFunc(FILE* fptr, ASTNode* callee);
+    ParseResult Member(FILE* fptr, ASTNode* callee);
 ParseResult Primary(FILE* fptr);
 
-ParseResult Type(FILE* fptr);
+ParseResult StdType(FILE* fptr);
 ParseResult ArgList(FILE* fptr);
 ParseResult VarList(FILE* fptr);
 ParseResult Var(FILE* fptr);

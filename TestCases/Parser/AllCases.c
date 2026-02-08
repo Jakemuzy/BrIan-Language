@@ -42,6 +42,8 @@ const char* NodeTypeToString(NodeType type) {
         case CALL_FUNC_NODE: return "CALL_FUNC_NODE";
         case ARR_INDEX_NODE: return "ARR_INDEX_NODE";
         case ARR_INIT_NODE: return "ARR_INIT_NODE";
+        case STRUCT_NODE: return "STRUCT_NODE";
+        case STRUCT_BODY_NODE: return "STRUCT_BODY_NODE";
         default: return "UNKNOWN_NODE";
     }
 }

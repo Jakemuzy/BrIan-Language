@@ -7,8 +7,7 @@
           boilerplate code, which is making the file artifically longer than it needs
         - Currently freeing more than I need to since ASTFreeNodes is recursive, ONLY
           free nodes that aren't parented yet 
-        - Global Decl Stmts aren't LL(1) need to add a helper function to determine whether
-          a program is looking at a function or a DeclStmt
+        - Add Qualifiers checking to DeclStmt
 */
 
 /* ----------- ERRORS ---------- */
@@ -42,7 +41,7 @@ ParseResult PARSE_ERRP(char* message, Token tok)
 
 /* ----------- HELPER ---------- */
 
-int ValidTokType(const int types[], int arrSize, int type)
+int ValidTokType(const TokenType types[], int arrSize, TokenType type)
 {
     int i;
     for(i = 0; i < arrSize; i++)
@@ -134,6 +133,17 @@ AST* Program(FILE* fptr)
             }
         }
 
+        ParseResult structNode = Struct(fptr);
+        if (structNode.status == VALID) {
+            ASTPushChildNode(progNode, structNode.node);
+            continue;
+        } 
+        else if (structNode.status == ERRP) {
+            DEBUG_MESSAGE("Invalid Struct in Global Scope\n");
+            ASTFreeNodes(1, progNode);
+            return NULL;
+        }
+
         ParseResult declStmtNode = DeclStmt(fptr);
         if (declStmtNode.status == VALID) {
             ASTPushChildNode(progNode, declStmtNode.node);
@@ -157,7 +167,7 @@ AST* Program(FILE* fptr)
 ParseResult Function(FILE* fptr)
 {
     DEBUG_MESSAGE("Starting Function\n");
-    ParseResult typeNode = Type(fptr);
+    ParseResult typeNode = StdType(fptr);
     if (typeNode.status == ERRP)
         return PARSE_ERRP("Invalid Type in Function", GetNextToken(fptr));
     else if (typeNode.status == NAP)
@@ -240,7 +250,7 @@ ParseResult Param(FILE* fptr)
 {
     DEBUG_MESSAGE("Starting Param\n");
 
-    ParseResult typeNode = Type(fptr);
+    ParseResult typeNode = StdType(fptr);
     if (typeNode.status == ERRP)
         return PARSE_ERRP("Invalid Param", GetNextToken(fptr));
     else if (typeNode.status == NAP)
@@ -256,6 +266,71 @@ ParseResult Param(FILE* fptr)
     ASTPushChildNode(paramNode, typeNode.node);
     ASTPushChildNode(paramNode, identNode.node);
     return PARSE_VALID(paramNode, PARAM_NODE);;
+}
+
+ParseResult Struct(FILE* fptr) 
+{
+    if (PeekNextTokenP(fptr) != STRUCT)
+        return PARSE_NAP();
+    GetNextTokenP(fptr);
+
+    if (PeekNextTokenP(fptr) != IDENT) 
+        return PARSE_ERRP("Struct doesn't have a name", GetNextToken(fptr));
+    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
+
+    ASTNode* structNode = InitASTNode();
+
+    if (PeekNextTokenP(fptr) != LBRACE) {
+        ASTFreeNodes(1, structNode);
+        return PARSE_ERRP("Expected opening brace in SwitchStmt", GetNextToken(fptr));
+    }
+    GetNextTokenP(fptr);
+
+    ParseResult structBodyNode = StructBody(fptr);
+    if (structBodyNode.status != VALID) {
+        ASTFreeNodes(2, structNode, structBodyNode);
+        return PARSE_ERRP("Expected opening brace in SwitchStmt", GetNextToken(fptr));
+    }
+    ASTPushChildNode(structNode, structBodyNode.node);
+
+    if (PeekNextTokenP(fptr) != RBRACE) {
+        ASTFreeNodes(1, structBodyNode);
+        return PARSE_ERRP("Expected closing brace in Struct", GetNextToken(fptr));
+    }
+    GetNextTokenP(fptr);
+
+    return PARSE_VALID(structNode, STRUCT_NODE);
+}
+
+ParseResult StructBody(FILE* fptr)
+{
+    ASTNode* structBodyNode = InitASTNode();
+    while (true) {
+        if (PeekNextTokenP(fptr) == RBRACE) 
+            break;
+
+        ParseResult declStmtNode = DeclStmt(fptr);
+        if (declStmtNode.status == VALID) {
+            ASTPushChildNode(structBodyNode, declStmtNode.node);
+            continue;
+        } else if (declStmtNode.status == ERRP) {
+            ASTFreeNodes(1, structBodyNode);
+            return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
+        }
+
+        ParseResult structNode = Struct(fptr);
+        if (structNode.status == VALID) {
+            ASTPushChildNode(structBodyNode, structNode.node);
+            continue;
+        }
+        else if (structNode.status == NAP)
+            break;
+
+        ASTFreeNodes(2, structBodyNode, declStmtNode);
+        return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
+    }
+
+    return PARSE_VALID(structBodyNode, STRUCT_BODY_NODE);
 }
 
 /* ---------- Statements ----------- */
@@ -301,10 +376,21 @@ ParseResult StmtList(FILE* fptr)
         if (stmtNode.status == VALID) {
             ASTPushChildNode(stmtListNode, stmtNode.node);
             continue;
-        } else if (stmtNode.status == NAP)
+        } else if (stmtNode.status == ERRP) {
+            ASTFreeNodes(2, stmtNode.node, stmtListNode);
+            return PARSE_ERRP("Invalid Stmt in StmtList", GetNextToken(fptr));
+        }
+        ASTFreeNodes(1, stmtNode.node);
+
+        ParseResult structNode = Struct(fptr);
+        if (structNode.status == VALID) {
+            ASTPushChildNode(stmtListNode, structNode.node);
+            continue;
+        }
+        else if (structNode.status == NAP)
             break;
 
-        ASTFreeNodes(2, stmtNode.node, stmtListNode);
+        ASTFreeNodes(2, structNode.node, stmtListNode);
         return PARSE_ERRP("Invalid Stmt in StmtList", GetNextToken(fptr));
     }
 
@@ -374,7 +460,7 @@ ParseResult DeclStmt(FILE* fptr)
 {
     DEBUG_MESSAGE("Enter DeclStmt\n");
     
-    ParseResult typeNode = Type(fptr);
+    ParseResult typeNode = StdType(fptr);
     if (typeNode.status == ERRP)
         return PARSE_ERRP("Invalid Type in DeclStmt", GetNextToken(fptr));
     else if (typeNode.status == NAP)
@@ -1360,7 +1446,7 @@ ParseResult Primary(FILE* fptr)
 
 /* ---------- Etc ---------- */
 
-ParseResult Type(FILE* fptr) 
+ParseResult StdType(FILE* fptr) 
 {
     DEBUG_MESSAGE("Entering Type\n");
     

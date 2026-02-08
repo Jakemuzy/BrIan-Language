@@ -77,7 +77,7 @@ void TERROR_NO_RULE(OperatorRule rule)
 /* ----------- Environments ---------- */
 
 /* Generates the Symbol Table for Types (ie, ResolveNames should be this, and it should return a SymbolTable)*/
-SymbolTable ENV_BaseTenv()
+Dict ENV_BaseTenv()
 {
     /* Maps Symbol to TYPE* */
     /* Map Tenv */
@@ -88,7 +88,7 @@ SymbolTable ENV_BaseTenv()
 }
 
 
-TYPE* TypeCheckExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr)
+TYPE* TypeCheckExpr(SymbolTable* venv, Dict* tenv, ASTNode* expr)
 {
     Token operator = expr->token;
     switch (expr->type)
@@ -101,36 +101,43 @@ TYPE* TypeCheckExpr(SymbolTable venv, SymbolTable tenv, ASTNode* expr)
             TYPE* right = TypeCheckExpr(venv, tenv, expr->children[1]);
             if (right->kind == TYPE_ERROR) return right;
 
-            OperatorRule ty = FindRule(operator.type, BINARY_RULE);
-            if (ty.rtype == ERROR_RULE) {
-                TERROR_NO_RULE(ty);
+            OperatorRule rule = FindRule(operator.type, BINARY_RULE);
+            if (rule.rtype == ERROR_RULE) {
+                TERROR_NO_RULE(rule);
                 return TY_ERROR();  
             }
 
             /* Compare rule to current expr */
             TypeKind kind = left->kind == TYPE_NAME ? left->kind : left->u.name.type->kind;
-            if (!TypeHasCategory(left->kind, ty.rule.b.left)) {
-                TERROR_INCOMPATIBLE(ty);
-                return TY_ERROR();  
-            }
-            if (!TypeHasCategory(right->kind, ty.rule.b.right)) {
-                TERROR_INCOMPATIBLE(ty);
+            if (!TypeHasCategory(left->kind, rule.rule.b.left) || !TypeHasCategory(right->kind, rule.rule.b.right)) {
+                TERROR_INCOMPATIBLE(rule);
                 return TY_ERROR();  
             }
 
-            TYPE* result = ty.rule.b.result(left, right);
+            /* Resulting Expr Type based on operator rule */
+            TYPE* result = rule.rule.b.result(left, right);
             return result;
 
         case UNARY_EXPR_NODE:
+            TYPE* var = TypeCheckExpr(venv, tenv, expr->children[0]);
             break;
 
         case IDENT_NODE:
             /* Lookup Name */
-            Symbol* sym = STLookup(expr->token.lex.word);
+            TypeCheckVar(venv, tenv, expr);
 
-            return TY_NAME(sym, NULL/* Get type from stype associtaed with ident */);
+            //return TY_NAME(sym, NULL/* Get type from stype associtaed with ident */);
         
         default:
+            break;
+    }
+}
+
+TYPE* TypeCheckVar(SymbolTable* venv, Dict* tenv, ASTNode* var) 
+{
+    //EnvironmentEntry entry = STLookup(venv, var->token.lex.word);
+    switch(var->type) {
+        default: 
             break;
     }
 }
