@@ -81,6 +81,32 @@ int FuncNodePossible(FILE* fptr)
     return VALID;
 }
 
+int DeclStmtPossible(FILE* fptr)
+{
+    Token first = GetNextTokenP(fptr);
+
+    if (ValidTokType(TYPES, TYPES_COUNT, first.type) == VALID) {
+        PutTokenBack(&first);
+        return VALID; 
+    }
+
+    if (first.type == IDENT) {
+        Token second = GetNextTokenP(fptr);
+
+        if (second.type == IDENT) {
+            PutTokenBack(&second);
+            PutTokenBack(&first);
+            return VALID;
+        }
+
+        PutTokenBack(&second);
+        PutTokenBack(&first);
+        return NAP;
+    }
+
+    PutTokenBack(&first);
+    return NAP;
+}
 
 ParseResult IdentNode(Token tok)
 {
@@ -465,17 +491,24 @@ ParseResult ExprStmt(FILE* fptr)
 ParseResult DeclStmt(FILE* fptr)
 {
     DEBUG_MESSAGE("Enter DeclStmt\n");
+
+    if (DeclStmtPossible(fptr) != VALID) 
+        return PARSE_NAP();
     
     ParseResult typeNode = StdType(fptr);
     if (typeNode.status == ERRP)
         return PARSE_ERRP("Invalid Type in DeclStmt", GetNextToken(fptr));
-    else if (typeNode.status == NAP)
-        return PARSE_NAP();
+    else if (typeNode.status == NAP) {
+        if (PeekNextTokenP(fptr) == IDENT)
+            typeNode = IdentNode(GetNextTokenP(fptr));
+        else
+            return PARSE_NAP();
+    }
 
     ParseResult varListNode = VarList(fptr);
     if (varListNode.status != VALID) {
         ASTFreeNodes(1, typeNode.node);
-        return PARSE_ERRP("invalid VarList in DeclStmt", GetNextToken(fptr));
+        return PARSE_ERRP("Invalid VarList in DeclStmt", GetNextToken(fptr));
     }
 
     if (PeekNextTokenP(fptr) != SEMI) {

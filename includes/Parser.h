@@ -34,6 +34,7 @@ ParseResult PARSE_ERRP(char* message, Token tok);
 
 int ValidTokType(const TokenType types[], int arrSize, TokenType type);
 int FuncNodePossible(FILE* fptr);
+int DeclStmtPossible(FILE* fptr);
 
 ParseResult IdentNode(Token tok);
 ParseResult EmptyNode();
