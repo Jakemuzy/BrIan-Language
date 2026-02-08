@@ -4,34 +4,11 @@
 #include <stddef.h>
 
 /* TODO: Add
-    BOOL - bool keyword 
-    QUES - (?) 
-
     SMEM - Safe member access ?.
     SREF - Safe member access by ref ?->
     REGISTER - Regsiter access @
 
     SPLICE - Array splicing and Ternary op :
-
-    ENUM - Enum
-    STRUCT - Struct
-    BREAK
-
-    CONST
-    SIGNED
-    STATIC
-    TYPEDEF
-
-    I8  - 8  Bit Int 
-    I16 - 16 Bit Int
-    I32 - 32 Bit Int
-    I64 - 64 Bit Int
-    
-    U8  - 8  Bit Unsigned Int
-    U16 - 16 Bit Unsigned Int
-    U32 - 32 Bit Unsigned Int
-    U64 - 64 Bit Unsigned Int
-
 
     ADD true/false keywords
     ADD Hex type (same sizes as U and I) 

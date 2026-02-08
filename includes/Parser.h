@@ -33,7 +33,7 @@ ParseResult PARSE_ERRP(char* message, Token tok);
 /* ---------- Helpers ---------- */
 
 int ValidTokType(const TokenType types[], int arrSize, TokenType type);
-int FuncNodePossible(FILE* fptr);
+int FuncNodePossible(FILE* fptr);   /* Ambiguity helpers */
 int DeclStmtPossible(FILE* fptr);
 
 ParseResult IdentNode(Token tok);
@@ -51,6 +51,8 @@ ParseResult Param(FILE* fptr);
 
 ParseResult Struct(FILE* fptr);
     ParseResult StructBody(FILE* fptr);
+ParseResult Enum(FILE* fptr);
+    ParseResult EnumBody(FILE* fptr);
 ParseResult Typedef(FILE* fptr);
 
 ParseResult Body(FILE* fptr);

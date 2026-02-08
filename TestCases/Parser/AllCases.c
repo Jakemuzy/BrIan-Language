@@ -45,6 +45,8 @@ const char* NodeTypeToString(NodeType type) {
         case ARR_DECL_NODE: return "ARR_DECL_NODE";
         case STRUCT_NODE: return "STRUCT_NODE";
         case STRUCT_BODY_NODE: return "STRUCT_BODY_NODE";
+        case ENUM_NODE: return "ENUM_NODE";
+        case ENUM_BODY_NODE: return "ENUM_BODY_NODE";
         case TYPEDEF_NODE: return "TYPEDEF_NODE";
         case MEMBER_ACCESS_NODE: return "MEMBER_ACCESS_NODE";
         case SAFE_MEMBER_ACCESS_NODE: return "SAFE_MEMBER_ACCESS_NODE";

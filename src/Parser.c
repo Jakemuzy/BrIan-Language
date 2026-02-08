@@ -138,7 +138,6 @@ ParseResult ArbitraryNode(Token tok, NodeType type)
 AST* Program(FILE* fptr)
 {
     /* TODO: errors regarding ast freeing and progNode freeing */
-    /* Allow global DeclStmts without abiguity (both start with Type Ident) */
     AST* ast = ASTInit();
     ast->root = ProgNode().node;
     ASTNode* progNode = ast->root;
@@ -166,6 +165,17 @@ AST* Program(FILE* fptr)
         } 
         else if (structNode.status == ERRP) {
             DEBUG_MESSAGE("Invalid Struct in Global Scope\n");
+            ASTFreeNodes(1, progNode);
+            return NULL;
+        }
+
+        ParseResult enumNode = Enum(fptr);
+        if (enumNode.status == VALID) {
+            ASTPushChildNode(progNode, enumNode.node);
+            continue;
+        } 
+        else if (enumNode.status == ERRP) {
+            DEBUG_MESSAGE("Invalid Enum in Global Scope\n");
             ASTFreeNodes(1, progNode);
             return NULL;
         }
@@ -350,6 +360,16 @@ ParseResult StructBody(FILE* fptr)
             return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
         }
 
+        ParseResult enumNode = Enum(fptr);
+        if (enumNode.status == VALID) {
+            ASTPushChildNode(structBodyNode, enumNode.node);
+            continue;
+        }
+        else if (enumNode.status == ERRP) {
+            ASTFreeNodes(2, structBodyNode, enumNode);
+            return PARSE_ERRP("Invalid Enum in Struct", GetNextToken(fptr));
+        }
+
         ParseResult structNode = Struct(fptr);
         if (structNode.status == VALID) {
             ASTPushChildNode(structBodyNode, structNode.node);
@@ -358,12 +378,93 @@ ParseResult StructBody(FILE* fptr)
         else if (structNode.status == NAP)
             break;
 
-        ASTFreeNodes(2, structBodyNode, declStmtNode);
+        ASTFreeNodes(3, structBodyNode, declStmtNode);
         return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
     }
 
     return PARSE_VALID(structBodyNode, STRUCT_BODY_NODE);
 }
+
+ParseResult Enum(FILE* fptr)
+{
+    if (PeekNextTokenP(fptr) != ENUM)
+        return PARSE_NAP();
+    GetNextTokenP(fptr);
+
+    ASTNode* enumNode = InitASTNode();
+    if (PeekNextTokenP(fptr) != IDENT) {
+        ASTFreeNodes(1, enumNode);
+        return PARSE_ERRP("Enum name Identifier expected", GetNextToken(fptr));
+    }
+    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
+
+    ASTPushChildNode(enumNode, identNode.node);
+
+    ParseResult enumBodyNode = EnumBody(fptr);
+    if (enumBodyNode.status != VALID) {
+        ASTFreeNodes(1, enumNode);
+        return PARSE_ERRP("Invalid Enum Body in Enum", GetNextToken(fptr));
+    }
+    ASTPushChildNode(enumNode, enumBodyNode.node);
+
+    if (PeekNextTokenP(fptr) != SEMI) {
+        ASTFreeNodes(1, enumNode);
+        return PARSE_ERRP("Expected Semicolon after Enum Body", GetNextToken(fptr));
+    }
+    GetNextTokenP(fptr);
+
+    return PARSE_VALID(enumNode, ENUM_NODE);
+}
+
+ParseResult EnumBody(FILE* fptr)
+{
+    if (PeekNextTokenP(fptr) != LBRACE) 
+        return PARSE_NAP();
+    GetNextTokenP(fptr);
+
+    ASTNode* enumBodyNode = InitASTNode();
+
+    while (true) {
+        if (PeekNextTokenP(fptr) != IDENT)
+            break;
+
+        ParseResult memberNode = IdentNode(GetNextTokenP(fptr));
+
+        if (PeekNextTokenP(fptr) == EQ) {
+            GetNextTokenP(fptr);
+            if (PeekNextTokenP(fptr) != INTEGRAL) {
+                ASTFreeNodes(1, memberNode.node);
+                return PARSE_ERRP("Expected integral value for enum member", GetNextToken(fptr));
+            }
+            Token valueTok = GetNextTokenP(fptr);
+            ParseResult valueNode = ArbitraryNode(valueTok, LITERAL_NODE);
+            ASTPushChildNode(memberNode.node, valueNode.node);
+        }
+
+        ASTPushChildNode(enumBodyNode, memberNode.node);
+
+        if (PeekNextTokenP(fptr) == COMMA) {
+            GetNextTokenP(fptr);
+            continue;
+        } else {
+            break;
+        }
+    }
+
+    if (PeekNextTokenP(fptr) != RBRACE) {
+        ASTFreeNodes(1, enumBodyNode);
+        return PARSE_ERRP("Expected '}' to close enum body", GetNextTokenP(fptr));
+    }
+    GetNextTokenP(fptr);
+
+    return PARSE_VALID(enumBodyNode, ENUM_BODY_NODE);
+}
+
+ParseResult Typedef(FILE* fptr)
+{
+
+}
+
 
 /* ---------- Statements ----------- */
 
@@ -419,10 +520,20 @@ ParseResult StmtList(FILE* fptr)
             ASTPushChildNode(stmtListNode, structNode.node);
             continue;
         }
-        else if (structNode.status == NAP)
+        else if (structNode.status == ERRP) {
+            ASTFreeNodes(3, stmtNode.node, stmtListNode, structNode);
+            return PARSE_ERRP("invalid Struct in StmtList", GetNextToken(fptr));
+        }
+
+        ParseResult enumNode = Enum(fptr);
+        if (enumNode.status == VALID) {
+            ASTPushChildNode(stmtListNode, enumNode.node);
+            continue;
+        } 
+        else if (enumNode.status == NAP)
             break;
 
-        ASTFreeNodes(2, structNode.node, stmtListNode);
+        ASTFreeNodes(3, stmtNode.node, stmtListNode, structNode);
         return PARSE_ERRP("Invalid Stmt in StmtList", GetNextToken(fptr));
     }
 

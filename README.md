@@ -70,18 +70,20 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 ## GRAMMAR
 
 ```
-	Program ::=  { Function | Struct | DeclStmt }
+	Program ::=  { Function | StructDecl | EnumDecl | DeclStmt | Typedef }
 
     Function ::= Type IDENT '(' [ ParamList ] ')' Body
     ParamList ::= Param { ',' Param }
     Param ::= Type IDENT
 
     StructDecl ::= IDENT '{' StructBody '}' ';'
-        StructBody ::= [ DeclStmt | Struct ]
+        StructBody ::= [ DeclStmt | StructDecl | EnumDecl ]
+    EnumDecl ::= "enum" IDENT EnumBody ';'
+        EnumBody ::= '{' IDENT [ = INTEGRAL ] { ',' IDENT [ = INTEGRAL ] } '}'
     Typedef ::= "Type" IDENT IDENT
 
 	Body ::= '{' StmtList '}'
-	StmtList ::= { Stmt | Struct }  
+	StmtList ::= { Stmt | StructDecl | EnumDecl }  
 	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt 
 
     ExprStmt ::= ';' | Expr ';'  
