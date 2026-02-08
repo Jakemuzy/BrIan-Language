@@ -44,10 +44,10 @@ typedef enum {
     /* Data Type Key Words */
     CHAR, BOOL, SHORT, INT, FLOAT, DOUBLE, LONG, VOID, STRING,
     I8, I16, I32, I64, U8, U16, U32, U64, 
-    ENUM, STRUCT, 
+    ENUM, STRUCT, TYPEDEF,
 
     /* Qualifier and Modifier Key Words */
-    CONST, SIGNED, UNSIGNED, STATIC, TYPEDEF,
+    CONST, SIGNED, UNSIGNED, STATIC,
 
     /* Assignment Operators */
     EQ, PEQ, SEQ, MEQ, DEQ, MODEQ, ANDEQ, OREQ, ANDLEQ, ORLEQ, NEGEQ, XOREQ, RIGHTEQ, LEFTEQ, PP, SS, 

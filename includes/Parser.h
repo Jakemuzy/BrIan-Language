@@ -48,6 +48,10 @@ ParseResult Function(FILE* fptr);
 ParseResult ParamList(FILE* fptr);
 ParseResult Param(FILE* fptr);
 
+ParseResult Struct(FILE* fptr);
+    ParseResult StructBody(FILE* fptr);
+ParseResult Typedef(FILE* fptr);
+
 ParseResult Body(FILE* fptr);
 ParseResult StmtList(FILE* fptr);
 ParseResult Stmt(FILE* fptr);
@@ -86,9 +90,10 @@ ParseResult Prefix(FILE* fptr);
 ParseResult Postfix(FILE* fptr);
     ParseResult Index(FILE* fptr, ASTNode* callee);
     ParseResult CallFunc(FILE* fptr, ASTNode* callee);
+    ParseResult Member(FILE* fptr, ASTNode* callee);
 ParseResult Primary(FILE* fptr);
 
-ParseResult Type(FILE* fptr);
+ParseResult StdType(FILE* fptr);
 ParseResult ArgList(FILE* fptr);
 ParseResult VarList(FILE* fptr);
 ParseResult Var(FILE* fptr);
