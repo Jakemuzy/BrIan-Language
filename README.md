@@ -76,7 +76,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     ParamList ::= Param { ',' Param }
     Param ::= Type IDENT
 
-    Struct ::= IDENT '{' StructBody '}'
+    StructDecl ::= IDENT '{' StructBody '}' ';'
         StructBody ::= [ DeclStmt | Struct ]
     Typedef ::= "Type" IDENT IDENT
 
@@ -85,7 +85,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt 
 
     ExprStmt ::= ';' | Expr ';'  
-	DeclStmt ::= Type Varlist ';'  
+	DeclStmt ::= ( Type | IDENT ) Varlist ';'  
 	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
     ReturnStmt ::= "return" [Expr] ';'  
 
@@ -116,20 +116,21 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }  
     PowExpr ::= Prefix [ '**' PowExpr ]
     Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '*' | '&' | Cast ) Prefix | Postfix 
-        Cast ::= '(' StdType | IDENT ')'
+        Cast ::= '(' Type | IDENT ')'
     Postfix ::= Primary { '++' | '--' | '$' | Index | CallFunc | Member }
         Index ::= '[' Expr' ']'
         CallFunc ::= IDENT '(' [ ArgList ] ')'
         Member ::= '.' IDENT
     Primary ::= Literal | '(' Expr ')'
 
-    StdType = ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" )
+    Type = ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" )
     ArgList = Expr { ',' Expr }
 
 	VarList ::= Var { ',' Var }
-    Var ::= IDENT [ '=' Expr ] |
-            IDENT '[' [ Expr ] ']' [ '=' ArrInitList ]
-    ArrInitlist ::= '{' Literal { ',' Literal } '}' 
+    Var ::=  IDENT { ArrDecl } [ '=' ( Expr | ArrInitList ) ]
+    
+    ArrDecl ::= '[' [ Expr ] ']'
+    ArrInitList ::= '{' ( Literal | ArrInitList ) { ',' Literal | ArrInitList } '}' 
     Literal ::= IDENT | DECIMAL | INTEGRAL | SLITERAL | CLITERAL 
 	...	
 ```

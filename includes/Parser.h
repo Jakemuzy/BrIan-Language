@@ -34,6 +34,7 @@ ParseResult PARSE_ERRP(char* message, Token tok);
 
 int ValidTokType(const TokenType types[], int arrSize, TokenType type);
 int FuncNodePossible(FILE* fptr);
+int DeclStmtPossible(FILE* fptr);
 
 ParseResult IdentNode(Token tok);
 ParseResult EmptyNode();
@@ -95,8 +96,10 @@ ParseResult Primary(FILE* fptr);
 
 ParseResult StdType(FILE* fptr);
 ParseResult ArgList(FILE* fptr);
+
 ParseResult VarList(FILE* fptr);
 ParseResult Var(FILE* fptr);
+ParseResult ArrDecl(FILE* fptr);
 ParseResult ArrInitList(FILE* fptr);
 
 #endif
