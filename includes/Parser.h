@@ -95,8 +95,10 @@ ParseResult Primary(FILE* fptr);
 
 ParseResult StdType(FILE* fptr);
 ParseResult ArgList(FILE* fptr);
+
 ParseResult VarList(FILE* fptr);
 ParseResult Var(FILE* fptr);
+ParseResult ArrDecl(FILE* fptr);
 ParseResult ArrInitList(FILE* fptr);
 
 #endif

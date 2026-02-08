@@ -44,6 +44,7 @@ const char* NodeTypeToString(NodeType type) {
         case ARR_INIT_NODE: return "ARR_INIT_NODE";
         case STRUCT_NODE: return "STRUCT_NODE";
         case STRUCT_BODY_NODE: return "STRUCT_BODY_NODE";
+        case TYPEDEF_NODE: return "TYPEDEF_NODE";
         default: return "UNKNOWN_NODE";
     }
 }

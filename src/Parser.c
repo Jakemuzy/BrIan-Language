@@ -282,20 +282,26 @@ ParseResult Struct(FILE* fptr)
 
     if (PeekNextTokenP(fptr) != LBRACE) {
         ASTFreeNodes(1, structNode);
-        return PARSE_ERRP("Expected opening brace in SwitchStmt", GetNextToken(fptr));
+        return PARSE_ERRP("Expected opening brace in Struct", GetNextToken(fptr));
     }
     GetNextTokenP(fptr);
 
     ParseResult structBodyNode = StructBody(fptr);
     if (structBodyNode.status != VALID) {
         ASTFreeNodes(2, structNode, structBodyNode);
-        return PARSE_ERRP("Expected opening brace in SwitchStmt", GetNextToken(fptr));
+        return PARSE_ERRP("Invalid Struct Body in Struct", GetNextToken(fptr));
     }
     ASTPushChildNode(structNode, structBodyNode.node);
 
     if (PeekNextTokenP(fptr) != RBRACE) {
-        ASTFreeNodes(1, structBodyNode);
+        ASTFreeNodes(1, structNode);
         return PARSE_ERRP("Expected closing brace in Struct", GetNextToken(fptr));
+    }
+    GetNextTokenP(fptr);
+
+    if (PeekNextTokenP(fptr) != SEMI) {
+        ASTFreeNodes(1, structNode);
+        return PARSE_ERRP("Expected Semicolon in Struct Creation", GetNextToken(fptr));
     }
     GetNextTokenP(fptr);
 
@@ -1350,6 +1356,15 @@ ParseResult Postfix(FILE* fptr)
             }
             lhs = indexNode;
         }
+        else if (tokType == MEM || tokType == SMEM) {
+            /* Member Access */
+            ParseResult memberNode = Member(fptr, lhs.node);
+            if (memberNode.status != VALID) {
+                ASTFreeNodes(1, lhs.node);
+                return PARSE_ERRP("Invalid Struct Member access", GetNextToken(fptr));
+            }
+            lhs = memberNode;
+        }
         else if (ValidTokType(POSTFIXS, POSTFIXS_COUNT, tokType) == VALID ) {
             Token tok = GetNextTokenP(fptr);
             ParseResult operatorNode = ArbitraryNode(tok, UNARY_EXPR_NODE);
@@ -1406,6 +1421,26 @@ ParseResult CallFunc(FILE* fptr, ASTNode* callee)
     ASTPushChildNode(callFuncNode, callee);
     ASTPushChildNode(callFuncNode, argListNode.node);
     return PARSE_VALID(callFuncNode, CALL_FUNC_NODE);
+}
+
+ParseResult Member(FILE* fptr, ASTNode* callee) 
+{
+    TokenType type = PeekNextTokenP(fptr);
+    if (type != MEM && type != SMEM)
+        return PARSE_NAP();
+    GetNextTokenP(fptr);   
+   
+    ASTNode* memberNode = InitASTNode();
+    ASTPushChildNode(memberNode, callee);
+
+    if (PeekNextTokenP(fptr) != IDENT)  {
+        ASTFreeNodes(1, memberNode);
+        return PARSE_ERRP("Struct Member access is invalid", GetNextToken(fptr));
+    }
+    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
+
+    ASTPushChildNode(memberNode, identNode.node);
+    return PARSE_VALID(memberNode, MEMBER_ACCESS_NODE);
 }
 
 ParseResult Primary(FILE* fptr)
@@ -1535,47 +1570,61 @@ ParseResult Var(FILE* fptr)
     ASTNode* varNode = InitASTNode();
     ASTPushChildNode(varNode, identNode.node);
 
-    TokenType tokType = PeekNextTokenP(fptr);
-    if (tokType == EQ) {
-        GetNextTokenP(fptr);
-
-        ParseResult exprNode = Expr(fptr);
-        if (exprNode.status != VALID) {
+    while (PeekNextTokenP(fptr) == LBRACK) {
+        ParseResult arrDeclNode = ArrDecl(fptr);
+        if (arrDeclNode.status != VALID) {
             ASTFreeNodes(1, varNode);
-            return PARSE_ERRP("Invalid Expr in Var", GetNextToken(fptr));
+            return PARSE_ERRP("Invalid Array Declaration in Var", GetNextToken(fptr));
         }
-
-        ASTPushChildNode(varNode, exprNode.node);
-    } 
-    else if (tokType == LBRACK) {   /* Array Init */
-        GetNextTokenP(fptr);
-
-        ParseResult exprNode = Expr(fptr);
-        if (exprNode.status == ERRP) {  /* Optional so ERRP only */
-            ASTFreeNodes(1, varNode);
-            return PARSE_ERRP("Invalid Expr for Array Size in Array Initaliztion", GetNextToken(fptr));
-        }
-
-        if (PeekNextTokenP(fptr) != RBRACK) {
-            ASTFreeNodes(2, varNode, exprNode.node);
-            return PARSE_ERRP("Expected right bracket in Array Initaliztion", GetNextToken(fptr));
-        }
-        GetNextTokenP(fptr);
-
-        TokenType tokType = PeekNextTokenP(fptr);
-        if (tokType == EQ) {
-            GetNextTokenP(fptr);
-
-            ParseResult arrInitListNode = ArrInitList(fptr);
-            if (arrInitListNode.status != VALID) {
-                ASTFreeNodes(2, varNode, exprNode.node);
-                return PARSE_ERRP("Invalid Initalizer List for Array", GetNextToken(fptr));
-            }
-            ASTPushChildNode(varNode, arrInitListNode.node);
-        }
+        ASTPushChildNode(varNode, arrDeclNode.node);
     }
+    
+    if (PeekNextTokenP(fptr) == EQ) {
+        GetNextTokenP(fptr);
+
+        ParseResult initNode;
+        if (PeekNextTokenP(fptr) == LBRACE) {
+            initNode = ArrInitList(fptr);
+            if (initNode.status != VALID) {
+                ASTFreeNodes(1, varNode);
+                return PARSE_ERRP("Invalid Array Initalizer List in Var", GetNextToken(fptr));
+            }
+        } else {
+            initNode = Expr(fptr);
+            if (initNode.status != VALID) {
+                ASTFreeNodes(1, varNode);
+                return PARSE_ERRP("Invalid Expr in Var", GetNextToken(fptr));
+            }
+        }
+
+        ASTPushChildNode(varNode, initNode.node);
+    } 
 
     return PARSE_VALID(varNode, VAR_NODE);
+}
+
+ParseResult ArrDecl(FILE* fptr) 
+{
+    if (PeekNextTokenP(fptr) != LBRACK)
+        return PARSE_NAP();
+    GetNextTokenP(fptr);
+
+    ASTNode* arrDeclNode = InitASTNode();
+
+    ParseResult exprNode = Expr(fptr);
+    if (exprNode.status == ERRP) {  /* Optional so ERRP only */
+        ASTFreeNodes(1, arrDeclNode);
+        return PARSE_ERRP("Invalid Expr for Array Size in Array Declaration", GetNextToken(fptr));
+    }
+    ASTPushChildNode(arrDeclNode, exprNode.node);
+
+    if (PeekNextTokenP(fptr) != RBRACK) {
+        ASTFreeNodes(1, arrDeclNode);
+        return PARSE_ERRP("Expected right bracket in Array Declaration", GetNextToken(fptr));
+    }
+    GetNextTokenP(fptr);
+
+    return PARSE_VALID(arrDeclNode, ARR_DECL_NODE);
 }
 
 ParseResult ArrInitList(FILE* fptr) 
@@ -1584,22 +1633,38 @@ ParseResult ArrInitList(FILE* fptr)
         return PARSE_NAP();
     GetNextTokenP(fptr);
 
+    ASTNode* arrInitListNode = InitASTNode();
+
     if (PeekNextTokenP(fptr) == RBRACE) {   /* Empty */
         GetNextTokenP(fptr);
-        return PARSE_VALID(InitASTNode(), ARR_INIT_NODE);
+        return PARSE_VALID(arrInitListNode, ARR_INIT_NODE);
     }
 
-    ASTNode* arrInitListNode = InitASTNode();
-    while (ValidTokType(PRIMARYS, PRIMARYS_COUNT, PeekNextTokenP(fptr)) == VALID) { /* Should really rename */
-        Token tok = GetNextTokenP(fptr);
-        ParseResult literalNode = ArbitraryNode(tok, LITERAL_NODE);
+    while (true) { 
+        ParseResult child;
 
-        ASTPushChildNode(arrInitListNode, literalNode.node);
+        if (PeekNextTokenP(fptr) == LBRACE) {   /* Nesting */
+            child = ArrInitList(fptr);
+            if (child.status != VALID) {
+                ASTFreeNodes(1, arrInitListNode);
+                return PARSE_ERRP("Invalid nested array initializer", GetNextToken(fptr));
+            }
+        } else if (ValidTokType(PRIMARYS, PRIMARYS_COUNT, PeekNextTokenP(fptr)) == VALID) {
+            Token tok = GetNextTokenP(fptr);
+            child = ArbitraryNode(tok, LITERAL_NODE);
+        } else {
+            ASTFreeNodes(1, arrInitListNode);
+            return PARSE_ERRP("Expected literal or nested array initializer", GetNextToken(fptr));
+        }
 
-        if (PeekNextTokenP(fptr) == COMMA)
+        ASTPushChildNode(arrInitListNode, child.node);
+
+        if (PeekNextTokenP(fptr) == COMMA) {
             GetNextTokenP(fptr); 
-        else
+            continue;
+        } else {
             break;
+        }
     }
 
     if (PeekNextTokenP(fptr) != RBRACE) {
