@@ -7,7 +7,7 @@ Symbol* InitSymbol(ASTNode* decl, Symbol* prev)
     Symbol* sym = malloc(sizeof(Symbol));
     sym->decl = decl;
     sym->name = decl->token.lex.word;
-    sym->stype = (decl->type == DECL_STMT_NODE) ? S_VAR : S_FUNC;   /* Determine Type Here */
+    sym->stype = (decl->type == VAR_DECL_NODE) ? S_VAR : S_FUNC;   /* Determine Type Here */
     sym->prev = prev;
 
     return sym;

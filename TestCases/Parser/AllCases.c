@@ -14,7 +14,14 @@ const char* NodeTypeToString(NodeType type) {
         case STMT_LIST_NODE: return "STMT_LIST_NODE";
         case STMT_NODE: return "STMT_NODE";
         case EXPR_STMT_NODE: return "EXPR_STMT_NODE";
-        case DECL_STMT_NODE: return "DECL_STMT_NODE";
+        case VAR_DECL_NODE: return "VAR_DECL_NODE";
+        case STRUCT_DECL_NODE: return "STRUCT_DECL_NODE";
+        case ENUM_DECL_NODE: return "ENUM_DECL_NODE";
+        case TYPEDEF_DECL_NODE: return "TYPEDEF_DECL_NODE";
+        case STRUCT_BODY_NODE: return "STRUCT_BODY_NODE";
+        case ENUM_BODY_NODE: return "ENUM_BODY_NODE";
+        case TYPEDEF_POSTFIX_ARR: return "TYPEDEF_POSTFIX_ARR";
+        case TYPEDEF_POSTFIX_PTR: return "TYPEDEF_POSTFIX_PTR";
         case CTRL_STMT_NODE: return "CTRL_STMT_NODE";
         case RETURN_STMT_NODE: return "RETURN_STMT_NODE";
         case IF_STMT_NODE: return "IF_STMT_NODE";
@@ -43,11 +50,6 @@ const char* NodeTypeToString(NodeType type) {
         case ARR_INDEX_NODE: return "ARR_INDEX_NODE";
         case ARR_INIT_NODE: return "ARR_INIT_NODE";
         case ARR_DECL_NODE: return "ARR_DECL_NODE";
-        case STRUCT_NODE: return "STRUCT_NODE";
-        case STRUCT_BODY_NODE: return "STRUCT_BODY_NODE";
-        case ENUM_NODE: return "ENUM_NODE";
-        case ENUM_BODY_NODE: return "ENUM_BODY_NODE";
-        case TYPEDEF_NODE: return "TYPEDEF_NODE";
         case MEMBER_ACCESS_NODE: return "MEMBER_ACCESS_NODE";
         case SAFE_MEMBER_ACCESS_NODE: return "SAFE_MEMBER_ACCESS_NODE";
         default: return "UNKNOWN_NODE";

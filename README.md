@@ -53,14 +53,15 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     -   Allow preprocessor directives anywhere
     -   Add true/false keywords, that asgn expressions can use **
     -   Make casts work
+    -   Grammar should allow pointer declarations
     -   Allow DeclStmts in ForStmt first paramater
     -   Generics
     -   Custom types
-    -   Implement structs
     -   Implement struct functions 
     -   Allow Function Overloadign in NameResolution
     -   Allow Structs to be defined via a paramater list
     -   Allow Structs to define default values
+    -   Convert StructDecl and EnumDecl to a type of DeclStmt
     -   Preprocess directive that allows switching to allow safe concurrency
         similar to Rusts system built into the compiler. Otherwise user can use 
         the standard libraries for faster compile times.
@@ -70,24 +71,27 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 ## GRAMMAR
 
 ```
-	Program ::=  { Function | StructDecl | EnumDecl | DeclStmt | Typedef }
+	Program ::=  { Function | DeclStmt }
 
     Function ::= Type IDENT '(' [ ParamList ] ')' Body
     ParamList ::= Param { ',' Param }
     Param ::= Type IDENT
 
-    StructDecl ::= IDENT '{' StructBody '}' ';'
-        StructBody ::= [ DeclStmt | StructDecl | EnumDecl ]
-    EnumDecl ::= "enum" IDENT EnumBody ';'
-        EnumBody ::= '{' IDENT [ = INTEGRAL ] { ',' IDENT [ = INTEGRAL ] } '}'
-    Typedef ::= "Type" IDENT IDENT
 
 	Body ::= '{' StmtList '}'
-	StmtList ::= { Stmt | StructDecl | EnumDecl }  
+	StmtList ::= { Stmt }  
 	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt 
 
     ExprStmt ::= ';' | Expr ';'  
-	DeclStmt ::= ( Type | IDENT ) Varlist ';'  
+	DeclStmt ::= ( VarDecl | StructDecl | EnumDecl | TypedefDecl ) ';'
+        VarDecl ::= ( Type | IDENT ) Varlist 
+        StructDecl ::= "struct" IDENT '{' StructBody '}' 
+            StructBody ::= { DeclStmt | Function }
+        EnumDecl ::= "enum" IDENT EnumBody 
+            EnumBody ::= '{' IDENT [ = INTEGRAL ] { ',' IDENT [ = INTEGRAL ] } '}'
+        TypedefDecl ::= "typedef" TypeSpec IDENT
+            TypeSpec ::= ( Type | IDENT ) { TypedefPostfix }
+            TypedefPostfix ::= ( '*' | '[' [ INTEGRAL ] ']' )
 	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
     ReturnStmt ::= "return" [Expr] ';'  
 
