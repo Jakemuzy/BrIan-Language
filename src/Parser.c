@@ -158,28 +158,6 @@ AST* Program(FILE* fptr)
             }
         }
 
-        ParseResult structNode = Struct(fptr);
-        if (structNode.status == VALID) {
-            ASTPushChildNode(progNode, structNode.node);
-            continue;
-        } 
-        else if (structNode.status == ERRP) {
-            DEBUG_MESSAGE("Invalid Struct in Global Scope\n");
-            ASTFreeNodes(1, progNode);
-            return NULL;
-        }
-
-        ParseResult enumNode = Enum(fptr);
-        if (enumNode.status == VALID) {
-            ASTPushChildNode(progNode, enumNode.node);
-            continue;
-        } 
-        else if (enumNode.status == ERRP) {
-            DEBUG_MESSAGE("Invalid Enum in Global Scope\n");
-            ASTFreeNodes(1, progNode);
-            return NULL;
-        }
-
         ParseResult declStmtNode = DeclStmt(fptr);
         if (declStmtNode.status == VALID) {
             ASTPushChildNode(progNode, declStmtNode.node);
@@ -191,7 +169,7 @@ AST* Program(FILE* fptr)
             return NULL;
         }
 
-        DEBUG_MESSAGE("Failed to Parse AST\n");
+        DEBUG_MESSAGE("ERROR: failed to Parse AST\n");
         ASTFreeNodes(1, progNode);
         return NULL;
     }
@@ -304,167 +282,6 @@ ParseResult Param(FILE* fptr)
     return PARSE_VALID(paramNode, PARAM_NODE);;
 }
 
-ParseResult Struct(FILE* fptr) 
-{
-    if (PeekNextTokenP(fptr) != STRUCT)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
-
-    if (PeekNextTokenP(fptr) != IDENT) 
-        return PARSE_ERRP("Struct doesn't have a name", GetNextToken(fptr));
-    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
-
-    ASTNode* structNode = InitASTNode();
-
-    if (PeekNextTokenP(fptr) != LBRACE) {
-        ASTFreeNodes(1, structNode);
-        return PARSE_ERRP("Expected opening brace in Struct", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    ParseResult structBodyNode = StructBody(fptr);
-    if (structBodyNode.status != VALID) {
-        ASTFreeNodes(2, structNode, structBodyNode);
-        return PARSE_ERRP("Invalid Struct Body in Struct", GetNextToken(fptr));
-    }
-    ASTPushChildNode(structNode, structBodyNode.node);
-
-    if (PeekNextTokenP(fptr) != RBRACE) {
-        ASTFreeNodes(1, structNode);
-        return PARSE_ERRP("Expected closing brace in Struct", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    if (PeekNextTokenP(fptr) != SEMI) {
-        ASTFreeNodes(1, structNode);
-        return PARSE_ERRP("Expected Semicolon in Struct Creation", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    return PARSE_VALID(structNode, STRUCT_NODE);
-}
-
-ParseResult StructBody(FILE* fptr)
-{
-    ASTNode* structBodyNode = InitASTNode();
-    while (true) {
-        if (PeekNextTokenP(fptr) == RBRACE) 
-            break;
-
-        ParseResult declStmtNode = DeclStmt(fptr);
-        if (declStmtNode.status == VALID) {
-            ASTPushChildNode(structBodyNode, declStmtNode.node);
-            continue;
-        } else if (declStmtNode.status == ERRP) {
-            ASTFreeNodes(1, structBodyNode);
-            return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
-        }
-
-        ParseResult enumNode = Enum(fptr);
-        if (enumNode.status == VALID) {
-            ASTPushChildNode(structBodyNode, enumNode.node);
-            continue;
-        }
-        else if (enumNode.status == ERRP) {
-            ASTFreeNodes(2, structBodyNode, enumNode);
-            return PARSE_ERRP("Invalid Enum in Struct", GetNextToken(fptr));
-        }
-
-        ParseResult structNode = Struct(fptr);
-        if (structNode.status == VALID) {
-            ASTPushChildNode(structBodyNode, structNode.node);
-            continue;
-        }
-        else if (structNode.status == NAP)
-            break;
-
-        ASTFreeNodes(3, structBodyNode, declStmtNode);
-        return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
-    }
-
-    return PARSE_VALID(structBodyNode, STRUCT_BODY_NODE);
-}
-
-ParseResult Enum(FILE* fptr)
-{
-    if (PeekNextTokenP(fptr) != ENUM)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
-
-    ASTNode* enumNode = InitASTNode();
-    if (PeekNextTokenP(fptr) != IDENT) {
-        ASTFreeNodes(1, enumNode);
-        return PARSE_ERRP("Enum name Identifier expected", GetNextToken(fptr));
-    }
-    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
-
-    ASTPushChildNode(enumNode, identNode.node);
-
-    ParseResult enumBodyNode = EnumBody(fptr);
-    if (enumBodyNode.status != VALID) {
-        ASTFreeNodes(1, enumNode);
-        return PARSE_ERRP("Invalid Enum Body in Enum", GetNextToken(fptr));
-    }
-    ASTPushChildNode(enumNode, enumBodyNode.node);
-
-    if (PeekNextTokenP(fptr) != SEMI) {
-        ASTFreeNodes(1, enumNode);
-        return PARSE_ERRP("Expected Semicolon after Enum Body", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    return PARSE_VALID(enumNode, ENUM_NODE);
-}
-
-ParseResult EnumBody(FILE* fptr)
-{
-    if (PeekNextTokenP(fptr) != LBRACE) 
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
-
-    ASTNode* enumBodyNode = InitASTNode();
-
-    while (true) {
-        if (PeekNextTokenP(fptr) != IDENT)
-            break;
-
-        ParseResult memberNode = IdentNode(GetNextTokenP(fptr));
-
-        if (PeekNextTokenP(fptr) == EQ) {
-            GetNextTokenP(fptr);
-            if (PeekNextTokenP(fptr) != INTEGRAL) {
-                ASTFreeNodes(1, memberNode.node);
-                return PARSE_ERRP("Expected integral value for enum member", GetNextToken(fptr));
-            }
-            Token valueTok = GetNextTokenP(fptr);
-            ParseResult valueNode = ArbitraryNode(valueTok, LITERAL_NODE);
-            ASTPushChildNode(memberNode.node, valueNode.node);
-        }
-
-        ASTPushChildNode(enumBodyNode, memberNode.node);
-
-        if (PeekNextTokenP(fptr) == COMMA) {
-            GetNextTokenP(fptr);
-            continue;
-        } else {
-            break;
-        }
-    }
-
-    if (PeekNextTokenP(fptr) != RBRACE) {
-        ASTFreeNodes(1, enumBodyNode);
-        return PARSE_ERRP("Expected '}' to close enum body", GetNextTokenP(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    return PARSE_VALID(enumBodyNode, ENUM_BODY_NODE);
-}
-
-ParseResult Typedef(FILE* fptr)
-{
-
-}
-
 
 /* ---------- Statements ----------- */
 
@@ -513,27 +330,8 @@ ParseResult StmtList(FILE* fptr)
             ASTFreeNodes(2, stmtNode.node, stmtListNode);
             return PARSE_ERRP("Invalid Stmt in StmtList", GetNextToken(fptr));
         }
-        ASTFreeNodes(1, stmtNode.node);
 
-        ParseResult structNode = Struct(fptr);
-        if (structNode.status == VALID) {
-            ASTPushChildNode(stmtListNode, structNode.node);
-            continue;
-        }
-        else if (structNode.status == ERRP) {
-            ASTFreeNodes(3, stmtNode.node, stmtListNode, structNode);
-            return PARSE_ERRP("invalid Struct in StmtList", GetNextToken(fptr));
-        }
-
-        ParseResult enumNode = Enum(fptr);
-        if (enumNode.status == VALID) {
-            ASTPushChildNode(stmtListNode, enumNode.node);
-            continue;
-        } 
-        else if (enumNode.status == NAP)
-            break;
-
-        ASTFreeNodes(3, stmtNode.node, stmtListNode, structNode);
+        ASTFreeNodes(2, stmtNode.node, stmtListNode);
         return PARSE_ERRP("Invalid Stmt in StmtList", GetNextToken(fptr));
     }
 
@@ -603,6 +401,47 @@ ParseResult DeclStmt(FILE* fptr)
 {
     DEBUG_MESSAGE("Enter DeclStmt\n");
 
+    ParseResult declStmtNode;
+
+    do {
+        declStmtNode = VarDecl(fptr);
+        if (declStmtNode.status == VALID) 
+            break;
+        else if (declStmtNode.status == ERRP)
+            return PARSE_ERRP("Invalid Var Decl Stmt", GetNextToken(fptr));
+
+        declStmtNode = StructDecl(fptr);
+        if (declStmtNode.status == VALID) 
+            break;
+        else if (declStmtNode.status == ERRP)
+            return PARSE_ERRP("Invalid Struct Decl Stmt", GetNextToken(fptr));
+
+        declStmtNode = EnumDecl(fptr);
+        if (declStmtNode.status == VALID) 
+            break;
+        else if (declStmtNode.status == ERRP)
+            return PARSE_ERRP("Invalid Enum Decl Stmt", GetNextToken(fptr));
+
+        declStmtNode = TypedefDecl(fptr);
+        if (declStmtNode.status == VALID) 
+            break;
+        else if (declStmtNode.status == ERRP)
+            return PARSE_ERRP("Invalid Enum Decl Stmt", GetNextToken(fptr));
+
+        return PARSE_NAP();
+    } while (0);
+
+    if (PeekNextTokenP(fptr) != SEMI) {
+        ASTFreeNodes(1, declStmtNode);
+        return PARSE_ERRP("Semicolon missing in DeclStmt", GetNextToken(fptr));
+    }
+    GetNextTokenP(fptr);
+
+    return declStmtNode;
+}
+
+ParseResult VarDecl(FILE* fptr) 
+{
     if (DeclStmtPossible(fptr) != VALID) 
         return PARSE_NAP();
     
@@ -622,17 +461,228 @@ ParseResult DeclStmt(FILE* fptr)
         return PARSE_ERRP("Invalid VarList in DeclStmt", GetNextToken(fptr));
     }
 
-    if (PeekNextTokenP(fptr) != SEMI) {
-        ASTFreeNodes(2, typeNode, varListNode);
-        return PARSE_ERRP("Semicolon missing in DeclStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
     ASTNode* declStmtNode = InitASTNode();
     ASTPushChildNode(declStmtNode, typeNode.node);
     ASTPushChildNode(declStmtNode, varListNode.node);
-    return PARSE_VALID(declStmtNode, DECL_STMT_NODE);
+    return PARSE_VALID(declStmtNode, VAR_DECL_NODE);
 }
+
+ParseResult StructDecl(FILE* fptr) 
+{
+    if (PeekNextTokenP(fptr) != STRUCT)
+        return PARSE_NAP();
+    GetNextTokenP(fptr);
+
+    if (PeekNextTokenP(fptr) != IDENT) 
+        return PARSE_ERRP("Struct doesn't have a name", GetNextToken(fptr));
+    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
+
+    ASTNode* structNode = InitASTNode();
+
+    if (PeekNextTokenP(fptr) != LBRACE) {
+        ASTFreeNodes(1, structNode);
+        return PARSE_ERRP("Expected opening brace in Struct", GetNextToken(fptr));
+    }
+    GetNextTokenP(fptr);
+
+    ParseResult structBodyNode = StructBody(fptr);
+    if (structBodyNode.status != VALID) {
+        ASTFreeNodes(2, structNode, structBodyNode);
+        return PARSE_ERRP("Invalid Struct Body in Struct", GetNextToken(fptr));
+    }
+    ASTPushChildNode(structNode, structBodyNode.node);
+
+    if (PeekNextTokenP(fptr) != RBRACE) {
+        ASTFreeNodes(1, structNode);
+        return PARSE_ERRP("Expected closing brace in Struct", GetNextToken(fptr));
+    }
+    GetNextTokenP(fptr);
+
+    return PARSE_VALID(structNode, STRUCT_DECL_NODE);
+}
+
+ParseResult StructBody(FILE* fptr)
+{
+    ASTNode* structBodyNode = InitASTNode();
+    while (true) {
+        if (PeekNextTokenP(fptr) == RBRACE) 
+            break;
+
+        ParseResult declStmtNode = DeclStmt(fptr);
+        if (declStmtNode.status == VALID) {
+            ASTPushChildNode(structBodyNode, declStmtNode.node);
+            continue;
+        } else if (declStmtNode.status == ERRP) {
+            ASTFreeNodes(1, structBodyNode);
+            return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
+        }
+
+        ParseResult enumNode = EnumDecl(fptr);
+        if (enumNode.status == VALID) {
+            ASTPushChildNode(structBodyNode, enumNode.node);
+            continue;
+        }
+        else if (enumNode.status == ERRP) {
+            ASTFreeNodes(2, structBodyNode, enumNode);
+            return PARSE_ERRP("Invalid Enum in Struct", GetNextToken(fptr));
+        }
+
+        ParseResult structNode = StructDecl(fptr);
+        if (structNode.status == VALID) {
+            ASTPushChildNode(structBodyNode, structNode.node);
+            continue;
+        }
+        else if (structNode.status == NAP)
+            break;
+
+        ASTFreeNodes(3, structBodyNode, declStmtNode);
+        return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
+    }
+
+    return PARSE_VALID(structBodyNode, STRUCT_BODY_NODE);
+}
+
+ParseResult EnumDecl(FILE* fptr)
+{
+    if (PeekNextTokenP(fptr) != ENUM)
+        return PARSE_NAP();
+    GetNextTokenP(fptr);
+
+    ASTNode* enumNode = InitASTNode();
+    if (PeekNextTokenP(fptr) != IDENT) {
+        ASTFreeNodes(1, enumNode);
+        return PARSE_ERRP("Enum name Identifier expected", GetNextToken(fptr));
+    }
+    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
+
+    ASTPushChildNode(enumNode, identNode.node);
+
+    ParseResult enumBodyNode = EnumBody(fptr);
+    if (enumBodyNode.status != VALID) {
+        ASTFreeNodes(1, enumNode);
+        return PARSE_ERRP("Invalid Enum Body in Enum", GetNextToken(fptr));
+    }
+    ASTPushChildNode(enumNode, enumBodyNode.node);
+
+    return PARSE_VALID(enumNode, ENUM_DECL_NODE);
+}
+
+ParseResult EnumBody(FILE* fptr)
+{
+    if (PeekNextTokenP(fptr) != LBRACE) 
+        return PARSE_NAP();
+    GetNextTokenP(fptr);
+
+    ASTNode* enumBodyNode = InitASTNode();
+
+    while (true) {
+        if (PeekNextTokenP(fptr) != IDENT)
+            break;
+
+        ParseResult memberNode = IdentNode(GetNextTokenP(fptr));
+
+        if (PeekNextTokenP(fptr) == EQ) {
+            GetNextTokenP(fptr);
+            if (PeekNextTokenP(fptr) != INTEGRAL) {
+                ASTFreeNodes(1, memberNode.node);
+                return PARSE_ERRP("Expected integral value for enum member", GetNextToken(fptr));
+            }
+            Token valueTok = GetNextTokenP(fptr);
+            ParseResult valueNode = ArbitraryNode(valueTok, LITERAL_NODE);
+            ASTPushChildNode(memberNode.node, valueNode.node);
+        }
+
+        ASTPushChildNode(enumBodyNode, memberNode.node);
+
+        if (PeekNextTokenP(fptr) == COMMA) {
+            GetNextTokenP(fptr);
+            continue;
+        } else {
+            break;
+        }
+    }
+
+    if (PeekNextTokenP(fptr) != RBRACE) {
+        ASTFreeNodes(1, enumBodyNode);
+        return PARSE_ERRP("Expected '}' to close enum body", GetNextTokenP(fptr));
+    }
+    GetNextTokenP(fptr);
+
+    return PARSE_VALID(enumBodyNode, ENUM_BODY_NODE);
+}
+
+ParseResult TypedefDecl(FILE* fptr)
+{
+    if (PeekNextTokenP(fptr) != TYPEDEF) 
+        return PARSE_NAP();
+    GetNextTokenP(fptr);
+
+    ParseResult typedefDecl;
+
+    TokenType tokType = PeekNextTokenP(fptr);
+    if (ValidTokType(TYPES, TYPES_COUNT, tokType) == VALID) 
+        typedefDecl = ArbitraryNode(GetNextTokenP(fptr), TYPE_NODE);
+    else if (tokType == IDENT) 
+        typedefDecl = ArbitraryNode(GetNextTokenP(fptr), IDENT_NODE);
+    else 
+        return PARSE_ERRP("Invalid TypeSpec for reassignment in typedef", GetNextToken(fptr));
+
+    ASTNode* typedefNode = InitASTNode();
+    ASTPushChildNode(typedefNode, typedefDecl.node);
+
+    ParseResult typedefPostfix = TypedefPostfix(fptr);
+    while (typedefPostfix.status == VALID) {
+        ASTPushChildNode(typedefNode, typedefPostfix.node);
+        typedefPostfix = TypedefPostfix(fptr);
+    }
+    if (typedefPostfix.status == ERRP) {
+        ASTFreeNodes(1, typedefNode);
+        return PARSE_ERRP("Invalid Postfix for TypeSpec in Typedef", GetNextToken(fptr));
+    }
+
+    if (PeekNextTokenP(fptr) != IDENT){
+        ASTFreeNodes(1, typedefNode);
+        return PARSE_ERRP("Invalid declarator for reassignment in typedef", GetNextToken(fptr));
+    }
+    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
+
+    ASTPushChildNode(typedefNode, identNode.node);
+    return PARSE_VALID(typedefNode, TYPEDEF_DECL_NODE);
+}
+
+ParseResult TypedefPostfix(FILE* fptr)
+{
+    TokenType tok = PeekNextTokenP(fptr);
+
+    if (tok == MULT) {
+        GetNextTokenP(fptr);
+
+        ASTNode* node = InitASTNode();
+        return PARSE_VALID(node, TYPEDEF_POSTFIX_PTR);
+    }
+    else if (tok == LBRACK) {
+        GetNextTokenP(fptr);  
+
+        ASTNode* node = InitASTNode();
+        node->type = TYPEDEF_POSTFIX_ARR;
+
+        if (PeekNextTokenP(fptr) == INTEGRAL) {
+            ParseResult size = ArbitraryNode(GetNextTokenP(fptr), LITERAL_NODE);
+            ASTPushChildNode(node, size.node);
+        }
+
+        if (PeekNextTokenP(fptr) != RBRACK) {
+            ASTFreeNodes(1, node);
+            return PARSE_ERRP("Expected RBRACE in typedef array postfix", GetNextToken(fptr));
+        }
+
+        GetNextTokenP(fptr);  
+        return PARSE_VALID(node, TYPEDEF_POSTFIX_ARR);
+    }
+
+    return PARSE_NAP();
+}
+
 
 ParseResult CtrlStmt(FILE* fptr) 
 {

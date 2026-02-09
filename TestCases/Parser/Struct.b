@@ -14,6 +14,17 @@ struct cheese {
     };
 };
 
+struct bleez {
+    int x;
+    struct keez {
+        char f;
+        string ze;
+    };
+    enum boop {
+        BOP, BING, BAM
+    };
+};
+
 struct point {
     int x;
     int y;

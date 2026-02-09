@@ -49,18 +49,19 @@ ParseResult Function(FILE* fptr);
 ParseResult ParamList(FILE* fptr);
 ParseResult Param(FILE* fptr);
 
-ParseResult Struct(FILE* fptr);
-    ParseResult StructBody(FILE* fptr);
-ParseResult Enum(FILE* fptr);
-    ParseResult EnumBody(FILE* fptr);
-ParseResult Typedef(FILE* fptr);
-
 ParseResult Body(FILE* fptr);
 ParseResult StmtList(FILE* fptr);
 ParseResult Stmt(FILE* fptr);
 
 ParseResult ExprStmt(FILE* fptr);
 ParseResult DeclStmt(FILE* fptr);
+    ParseResult VarDecl(FILE* fptr);
+    ParseResult StructDecl(FILE* fptr);
+        ParseResult StructBody(FILE* fptr);
+    ParseResult EnumDecl(FILE* fptr);
+        ParseResult EnumBody(FILE* fptr);
+    ParseResult TypedefDecl(FILE* fptr);
+        ParseResult TypedefPostfix(FILE* fptr);
 ParseResult CtrlStmt(FILE* fptr);
 ParseResult ReturnStmt(FILE* fptr);
 
