@@ -36,7 +36,7 @@ NodeType GetScopeType(ASTNode* node) ;
 /* ---------- Resolving ---------- */
 
 SymbolTable* ResolveNames(AST* ast);
-bool ResolveNamesInNode(SymbolTable* ST, ASTNode* node, ASTNode* parent);
+bool ResolveNamesInNode(SymbolTable* venv, ASTNode* node, ASTNode* parent);
 
 /* Alpha Renaming? */
 /* Name Spaces */
