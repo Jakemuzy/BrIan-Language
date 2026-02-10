@@ -37,7 +37,7 @@ ASTNode* FindIdentChild(ASTNode* node) {
 bool IdentIsDecl(ASTNode* ident, ASTNode* parent)
 {
     NodeType type = parent->type;
-    return type == VAR_NODE || type == PARAM_NODE;
+    return type == VAR_NODE || type == PARAM_NODE || type == STRUCT_DECL_NODE || type == ENUM_DECL_NODE;
 }
 
 bool IsCtrlStmt(NodeType type) 
@@ -55,7 +55,8 @@ bool IsCtrlStmt(NodeType type)
 NodeType GetScopeType(ASTNode* node) 
 {
     /* TODO: Have these as a static array to iterate through */
-    /* TODO: Avoid Variable shadowing in these types of nodes */
+    /* TODO: Avoid Variable shadowing in :w
+    these types of nodes */
     if (node->type == FUNC_NODE)
         return FUNC_SCOPE;
     else if (IsCtrlStmt(node->type))
@@ -72,7 +73,7 @@ SymbolTable* ResolveNames(AST* ast)
     SymbolTable* ST = STInit();;
     BeginScope(ST, PROG_SCOPE);
 
-    if(!ResolveNamesInNode(ST, ast->root, NULL))
+    if(ResolveNamesInNode(ST, ast->root, NULL) == ERRN)
         return NULL;
 
     ExitScope(ST);
@@ -81,6 +82,8 @@ SymbolTable* ResolveNames(AST* ast)
 
 bool ResolveNamesInNode(SymbolTable* ST, ASTNode* current, ASTNode* parent) 
 {
+    if (!current) return VALDN;
+
     NodeType type = current->type;
     if (type == FUNC_NODE) {
         ASTNode* funcIdent = FindIdentChild(current);
@@ -94,7 +97,6 @@ bool ResolveNamesInNode(SymbolTable* ST, ASTNode* current, ASTNode* parent)
     ScopeType stype;
     if ((stype = GetScopeType(current)) != INVALID_SCOPE)
         BeginScope(ST, stype);
-
 
 
     if (type == IDENT_NODE && IdentIsDecl(current, parent)) {
@@ -119,10 +121,12 @@ bool ResolveNamesInNode(SymbolTable* ST, ASTNode* current, ASTNode* parent)
     else if (type == CALL_FUNC_NODE || type == ARR_INDEX_NODE) {
         /* Paramaters, func name, arr name, and arr params *//* Allow Function Overloading here */
         ASTNode* node = FindIdentChild(current);
-        char* name = node->token.lex.word;
+        if (node) {
+            char* name = node->token.lex.word;
 
-        if (!STLookup(ST, name))    
-            return NERROR_DOESNT_EXIST(name, node);
+            if (!STLookup(ST, name))    
+                return NERROR_DOESNT_EXIST(name, node);
+        }
     }
 
 

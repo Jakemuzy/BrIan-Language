@@ -478,6 +478,7 @@ ParseResult StructDecl(FILE* fptr)
     ParseResult identNode = IdentNode(GetNextTokenP(fptr));
 
     ASTNode* structNode = InitASTNode();
+    ASTPushChildNode(structNode, identNode.node);
 
     if (PeekNextTokenP(fptr) != LBRACE) {
         ASTFreeNodes(1, structNode);
@@ -1602,8 +1603,10 @@ ParseResult CallFunc(FILE* fptr, ASTNode* callee)
     GetNextTokenP(fptr);    /* Postfix already checks for LPAREN, I just thought it would be cleaner and more true to the grammar to have it here*/
 
     ParseResult argListNode = ArgList(fptr);
-    if (argListNode.status != VALID) 
+    if (argListNode.status != VALID) {
+        ASTFreeNodes(1, argListNode.node);
         return PARSE_ERRP("Invalid Argument List in Function Call", GetNextToken(fptr));
+    }
 
     if (PeekNextTokenP(fptr) != RPAREN) {
         ASTFreeNodes(1, argListNode.node);
