@@ -8,7 +8,7 @@
 
 /* 
     TODO:
-        - One symbol table per namespace (create name spaces)
+        - One symbol table per namespace (create name spaces / environment )
         - Have SymbolType assign a type to each identifier, that way
           type checker can easily decipher the type
         - Make SymbolTable ues Dictionary for dynamic sizing
@@ -17,7 +17,7 @@
 /* ---------- Symbols ---------- */
 
 typedef enum SymbolType {   
-    S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD
+    S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD, S_TYPEDEF, S_STRUCT, S_ENUM
 } SymbolType;
 
 typedef struct Symbol {
@@ -36,9 +36,12 @@ void    FreeSymbol(Symbol* sym);
 typedef enum ScopeType { PROG_SCOPE, FUNC_SCOPE, CTRL_SCOPE, INVALID_SCOPE } ScopeType;
 typedef struct Scope {
     Symbol** symbols;  
-    size_t symCount;  
-    struct Scope* prev; 
+    Symbol** typedefs;
 
+    size_t symCount;  
+    size_t typCount;
+
+    struct Scope* prev; 
     ScopeType stype;
 } Scope;
 
@@ -54,15 +57,39 @@ typedef struct SymbolTable {
 } SymbolTable;
 
 SymbolTable* STInit();
-Symbol* STPop(SymbolTable* ST, char* name);
-Symbol* STLookup(SymbolTable* ST, char* key);
-Symbol* STPush(SymbolTable* ST, ASTNode* key);
-void STResize(SymbolTable* ST, unsigned int newSize);
+Symbol* STPop(SymbolTable* env, char* name);
+Symbol* STLookup(SymbolTable* env, char* key);
+Symbol* STPush(SymbolTable* env, ASTNode* key);
+void STResize(SymbolTable* env, unsigned int newSize);
+
+/* ---------- Scope Functions ---------- */
 
 /* Scope functions depend on ST */
-void BeginScope(SymbolTable* ST, ScopeType type);
-void ExitScope(SymbolTable* ST);
-void PushScope(SymbolTable* ST, Symbol* sym);
-bool LookupCurrentScope(SymbolTable* ST, char* name);
+void BeginScope(SymbolTable* env, ScopeType type);
+void ExitScope(SymbolTable* env);
+void PushScope(SymbolTable* env, Symbol* sym);
+bool LookupCurrentScope(SymbolTable* env, char* name);
+
+/* ---------- Environments ---------- */
+
+/* TODO: For later if I want to have many environments */
+/*
+typedef enum NamespaceKind {
+    E_VAR, E_TYPE, E_NAMESPACE, E_MACRO
+} NamespaceKind;
+
+typedef struct Namespace {   
+    SymbolTable** env;
+    size_t count;
+} Namespace;
+
+typedef struct Scope {
+    Namespace** namespaces;  
+    size_t namespaceCount;  
+
+    struct Scope* prev; 
+    ScopeType stype;
+} Scope;
+ */
 
 #endif
