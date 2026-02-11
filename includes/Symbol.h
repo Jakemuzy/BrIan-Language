@@ -4,8 +4,6 @@
 #include "Dict.h" 
 #include "Parser.h"
 
-#define INIT_SIZE 109
-
 /* 
     TODO:
         - One symbol table per namespace (create name spaces / environment )
@@ -17,7 +15,7 @@
 /* ---------- Symbols ---------- */
 
 typedef enum SymbolType {   
-    S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD, S_TYPEDEF, S_STRUCT, S_ENUM
+    S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD, S_TYPEDEF, S_STRUCT, S_ENUM, S_ERROR
 } SymbolType;
 
 typedef struct Symbol {
@@ -31,21 +29,9 @@ typedef struct Symbol {
 Symbol* InitSymbol(ASTNode* decl, Symbol* prev);
 void    FreeSymbol(Symbol* sym);
 
-/* ---------- Scope Logic ---------- */
-
-typedef enum ScopeType { PROG_SCOPE, FUNC_SCOPE, CTRL_SCOPE, INVALID_SCOPE } ScopeType;
-typedef struct Scope {
-    Symbol** symbols;  
-    Symbol** typedefs;
-
-    size_t symCount;  
-    size_t typCount;
-
-    struct Scope* prev; 
-    ScopeType stype;
-} Scope;
-
 /* ---------- Symbol Table ---------- */
+
+#define BUCKET_COUNT_INIT 109
 
 typedef struct SymbolTable {
     Symbol** buckets;
@@ -53,7 +39,7 @@ typedef struct SymbolTable {
     size_t maxSize;
     size_t currSize;
 
-    Scope* currentScope;
+    //Scope* currentScope;    /* Circular Dependency. Mayhaps namespace holds it */
 } SymbolTable;
 
 SymbolTable* STInit();
@@ -62,34 +48,64 @@ Symbol* STLookup(SymbolTable* env, char* key);
 Symbol* STPush(SymbolTable* env, ASTNode* key);
 void STResize(SymbolTable* env, unsigned int newSize);
 
-/* ---------- Scope Functions ---------- */
+/* ---------- Namespaces ---------- */
 
-/* Scope functions depend on ST */
-void BeginScope(SymbolTable* env, ScopeType type);
-void ExitScope(SymbolTable* env);
-void PushScope(SymbolTable* env, Symbol* sym);
-bool LookupCurrentScope(SymbolTable* env, char* name);
+#define NAMESPACE_COUNT 2
 
-/* ---------- Environments ---------- */
+typedef struct Scope Scope;  // Forward Declaration to prevent circular dependency
 
-/* TODO: For later if I want to have many environments */
-/*
 typedef enum NamespaceKind {
-    E_VAR, E_TYPE, E_NAMESPACE, E_MACRO
+    N_VAR, N_TYPE, N_NAMESPACE, N_MACRO, N_LIFETIME, N_LABEL    // Based on Rust
 } NamespaceKind;
 
+typedef struct NamespaceScope {
+    Symbol** symbols;
+    size_t symCount;
+
+    struct NamespaceScope* prev;
+} NamespaceScope;
+
 typedef struct Namespace {   
-    SymbolTable** env;
-    size_t count;
+    SymbolTable* env;
+    NamespaceKind kind;
+
+    /* Each namespace hav their SymbolTable, Kind and their current scope env */
+    /* Current Scope Symbols */
+    NamespaceScope* scope;
 } Namespace;
 
+typedef struct Namespaces {
+    Namespace** namespaces;
+    size_t count;
+};
+
+Namespace* NamspaceInit(SymbolTable* env, NamespaceKind kind);
+Namespace* FindNamespace(Namespace**, size_t count, NamespaceKind kind);
+void BeginNamespaceScope(Namespace* namespace);
+void ExitNamespaceScope(Namespace* namespace);
+void PushNamespaceScope(Namespace* namespace, Symbol* sym);
+bool LookupNamespaceCurrentScope(Namespace* namespace, char* name);
+
+/* ---------- Scope Logic ---------- */
+
+typedef enum ScopeType { PROG_SCOPE, FUNC_SCOPE, CTRL_SCOPE, INVALID_SCOPE } ScopeType;
 typedef struct Scope {
-    Namespace** namespaces;  
-    size_t namespaceCount;  
+    Namespace** namespaces;  /* Set size array, can't imagine more than maybe 6 */
+    size_t namespaceCount;  /* TODO: replace with Namespaces* */
 
     struct Scope* prev; 
     ScopeType stype;
 } Scope;
- */
+
+/* Adding Namespaces to Scope */
+Scope* ScopeInit(size_t count, ...);
+void AddNamespaceToScope(Scope* scope, Namespace* namespace);
+
+/* Make this Namespace Instead */
+Scope* BeginScope(Scope* scope, ScopeType type);
+void ExitScope(Scope* scope);
+void PushScope(Scope* scope, Symbol* sym, NamespaceKind nsKind);
+bool LookupCurrentScope(Scope* scope, char* name, NamespaceKind nsKind);
+
 
 #endif

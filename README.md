@@ -36,6 +36,8 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
         * BrIan will have safe pointers and safe dereferencing
     - Header files 
     - Macros
+    - Circular Dependencies
+    - Make the compiler itself multithreaded
 
 
 ## BUILDING [WIP]:
