@@ -145,3 +145,87 @@ bool ResolveNamesInNode(Scope* scope, ASTNode* current, ASTNode* parent)
     return VALDN;
 }
 
+/* ---------- BETTER FUNCTIONS ---------- */
+
+bool ResolveNames(Scope* scope, ASTNode* current, ASTNode* parent)
+{
+    if (!current) return VALDN;
+
+    ScopeType stype;
+    if ((stype = GetScopeType(current)) != INVALID_SCOPE)
+        scope = BeginScope(scope, stype);
+
+    if (CanBeVar(current->type)) {
+        if (ResolveVars(scope, current, parent) == ERRN) return ERRN;
+        
+    }
+    else if (CanBeType(current->type))
+        ResolveTypes(scope, current, parent);
+
+    /* Recursively check children */
+    for (size_t i = 0; i < current->childCount; i++) {
+        if (ResolveNamesInNode(scope, current->children[i], current) == ERRN) return ERRN;
+    }
+
+    if (GetScopeType(current) != INVALID_SCOPE)
+        scope = ExitScope(scope);
+
+    return VALDN;
+}
+
+bool ResolveVars(Scope* scope, ASTNode* current, ASTNode* parent)
+{
+    NodeType type = current->type;
+    switch (type) {
+        case(FUNC_NODE):
+            /* TODO: Allow function overloading */
+            ASTNode* funcIdent = FindIdentChild(current);
+            if (!funcIdent) return NERROR_NO_IDENT(funcIdent);
+
+            Symbol* sym = STPushNamespace(scope, funcIdent, N_VAR);
+            PushScope(scope, sym, N_VAR);
+            break;
+        case(IDENT_NODE):
+            if (!IdentIsDecl(current, parent)) return VALDN;    /* Definately not a var */
+            char* name = current->token.lex.word;
+            Symbol* sym = STLookupNamespace(scope, name, N_VAR);
+
+            if (LookupCurrentScope(scope, name, N_VAR))
+                return NERROR_ALREADY_DEFINED(name, current, sym->decl);
+            else if (scope->stype == CTRL_SCOPE && sym)     /* Ctrl scopes don't allow shadowing */
+                return NERROR_ALREADY_DEFINED(name, current, sym->decl);
+            
+            sym = STPushNamespace(scope, current, N_VAR);
+            PushScope(scope, sym, N_VAR);
+            break;
+        case(BINARY_EXPR_NODE):
+        case(UNARY_EXPR_NODE):  /* Purposeful fall through, all do the same */
+        case(ASGN_EXPR_NODE):
+            ASTNode* exprIdent = FindIdentChild(current);
+
+            /* Exprs don't need to use idents, continue if they don't */
+            if (exprIdent) {
+                char* name = exprIdent->token.lex.word;
+                if (!STLookupNamespace(scope, name, N_VAR))
+                    return NERROR_DOESNT_EXIST(name, current);
+            }
+            break;
+        case(CALL_FUNC_NODE):
+        case(ARR_INDEX_NODE):
+            /* TODO: Check for function overloading here */
+            ASTNode* identChild = FindIdentChild(current);
+            if (identChild) {
+                char* name = identChild->token.lex.word;
+                if (!STLookupNameSpace(name, current))
+                    return NERROR_DOESNT_EXIST(name, identChild);
+            }
+            break;
+    } 
+
+    return VALDN;
+}
+
+bool ResolveTypes(Scope* scope, ASTNode* current, ASTNode* parent)
+{
+
+}
