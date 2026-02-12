@@ -1,6 +1,8 @@
 #ifndef _SYMBOL_H__
 #define _SYMBOL_H__
 
+#include <stdarg.h>
+
 #include "Dict.h" 
 #include "Parser.h"
 
@@ -15,7 +17,7 @@
 /* ---------- Symbols ---------- */
 
 typedef enum SymbolType {   
-    S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD, S_TYPEDEF, S_STRUCT, S_ENUM, S_ERROR
+    S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD, S_TYPEDEF, S_STRUCT, S_ENUM, S_CTRL, S_ERROR
 } SymbolType;
 
 typedef struct Symbol {
@@ -69,18 +71,18 @@ typedef struct Namespace {
     SymbolTable* env;
     NamespaceKind kind;
 
-    /* Each namespace hav their SymbolTable, Kind and their current scope env */
-    /* Current Scope Symbols */
-    NamespaceScope* scope;
+    /* Also a Linked List */
+    NamespaceScope* nsScope;
 } Namespace;
 
 typedef struct Namespaces {
-    Namespace** namespaces;
-    size_t count;
-};
+    Namespace** nss;
+    size_t count;   /* Set size array, can't imagine more than maybe 6 */
+} Namespaces;
 
-Namespace* NamspaceInit(SymbolTable* env, NamespaceKind kind);
-Namespace* FindNamespace(Namespace**, size_t count, NamespaceKind kind);
+Namespace* NamspaceInit(NamespaceKind kind);
+SymbolTable* NamespaceGetST(Namespace* ns);
+
 void BeginNamespaceScope(Namespace* namespace);
 void ExitNamespaceScope(Namespace* namespace);
 void PushNamespaceScope(Namespace* namespace, Symbol* sym);
@@ -90,22 +92,21 @@ bool LookupNamespaceCurrentScope(Namespace* namespace, char* name);
 
 typedef enum ScopeType { PROG_SCOPE, FUNC_SCOPE, CTRL_SCOPE, INVALID_SCOPE } ScopeType;
 typedef struct Scope {
-    Namespace** namespaces;  /* Set size array, can't imagine more than maybe 6 */
-    size_t namespaceCount;  /* TODO: replace with Namespaces* */
+    Namespaces* namespaces;
 
     struct Scope* prev; 
     ScopeType stype;
 } Scope;
 
 /* Adding Namespaces to Scope */
-Scope* ScopeInit(size_t count, ...);
-void AddNamespaceToScope(Scope* scope, Namespace* namespace);
+Scope* ScopeInit(size_t count, ...);    /* NamespaceKind */
 
 /* Make this Namespace Instead */
 Scope* BeginScope(Scope* scope, ScopeType type);
-void ExitScope(Scope* scope);
+Scope* ExitScope(Scope* scope);
 void PushScope(Scope* scope, Symbol* sym, NamespaceKind nsKind);
 bool LookupCurrentScope(Scope* scope, char* name, NamespaceKind nsKind);
 
+SymbolTable* GetSTfromNS(Scope* scope, NamespaceKind kind);
 
 #endif

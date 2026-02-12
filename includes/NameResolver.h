@@ -10,6 +10,9 @@
     Allow for custom type decl / other name spaces
     Account for break / continue statements
     Account for return statements
+
+    These files need a lot of cleanup, lets start 
+    once we have everything fully functional
 */
 
 /* ---------- Error Handling ---------- */
@@ -35,8 +38,10 @@ static int CTRL_STMTS_SIZE = sizeof(CTRL_STMTS) / sizeof(CTRL_STMTS[0]);
 
 /* ---------- Resolving ---------- */
 
-SymbolTable* ResolveNames(AST* ast);
-bool ResolveNamesInNode(SymbolTable* venv, ASTNode* node, ASTNode* parent);
+Namespaces* ResolveNames(AST* ast);
+bool ResolveNamesInNode(Scope* scope, ASTNode* node, ASTNode* parent);
+bool ResolveVars(Scope* scope, ASTNode* node, ASTNode* parent);
+bool ResolveTypes(Scope* scope, ASTNode* node, ASTNode* parent);
 
 /* Alpha Renaming? */
 /* Name Spaces */

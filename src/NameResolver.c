@@ -54,13 +54,10 @@ bool IsCtrlStmt(NodeType type)
 
 NodeType GetScopeType(ASTNode* node) 
 {
-    /* TODO: Have these as a static array to iterate through */
-    /* TODO: Avoid Variable shadowing in :w
-    these types of nodes */
-    if (node->type == FUNC_NODE)
-        return FUNC_SCOPE;
-    else if (IsCtrlStmt(node->type))
+    if (IsCtrlStmt(node->type))
         return CTRL_SCOPE;
+    else if (node->type == FUNC_NODE)
+        return FUNC_SCOPE;
 
     return INVALID_SCOPE;
 }
@@ -68,21 +65,19 @@ NodeType GetScopeType(ASTNode* node)
 
 /* ----------- Name Resolution ---------- */
 
-SymbolTable* ResolveNames(AST* ast) 
+Namespaces* ResolveNames(AST* ast) 
 {
-    SymbolTable* venv = STInit();
-    SymbolTable* tenv = STInit();
+    Scope* scope = ScopeInit(2, N_VAR, N_TYPE);
+    scope = BeginScope(scope, PROG_SCOPE);
 
-    BeginScope(venv, PROG_SCOPE);
-
-    if(ResolveNamesInNode(venv, ast->root, NULL) == ERRN)
+    if (ResolveNamesInNode(scope, ast->root, NULL) == ERRN)
         return NULL;
 
-    ExitScope(venv);
-    return venv;
+    scope = ExitScope(scope);
+    return scope->namespaces;
 }
 
-bool ResolveNamesInNode(SymbolTable* venv, ASTNode* current, ASTNode* parent) 
+bool ResolveNamesInNode(Scope* scope, ASTNode* current, ASTNode* parent) 
 {
     if (!current) return VALDN;
 
@@ -92,28 +87,32 @@ bool ResolveNamesInNode(SymbolTable* venv, ASTNode* current, ASTNode* parent)
         if (!funcIdent)
             return NERROR_NO_IDENT(funcIdent);
 
+        SymbolTable* venv = GetSTfromNS(scope, N_VAR);
         Symbol* sym = STPush(venv, funcIdent);
-        PushScope(venv, sym);
+        PushScope(scope, sym, N_VAR);
     }
 
     ScopeType stype;
     if ((stype = GetScopeType(current)) != INVALID_SCOPE)
-        BeginScope(venv, stype);
+        scope = BeginScope(scope, stype);
 
 
     if (type == IDENT_NODE && IdentIsDecl(current, parent)) {
         char* name = current->token.lex.word;
+        SymbolTable* venv = GetSTfromNS(scope, N_VAR);
 
-        if (LookupCurrentScope(venv, name)) 
+        if (LookupCurrentScope(scope, name, N_VAR)) 
             return NERROR_ALREADY_DEFINED(name, current, STLookup(venv, name)->decl);
-        else if (venv->currentScope->stype == CTRL_SCOPE && STLookup(venv, name))
+        else if (scope->stype == CTRL_SCOPE && STLookup(venv, name))
             return NERROR_ALREADY_DEFINED(name, current, STLookup(venv, name)->decl);
     
         Symbol* sym = STPush(venv, current);
-        PushScope(venv, sym);
+        PushScope(scope, sym, N_VAR);
     }
     else if (type == BINARY_EXPR_NODE || type == UNARY_EXPR_NODE || type == ASGN_EXPR_NODE) {
         ASTNode* node = FindIdentChild(current);
+        SymbolTable* venv = GetSTfromNS(scope, N_VAR);
+
         if (node) {                 /* Exprs don't need to use idents, continue if they don't */
             char* name = node->token.lex.word;
             if (!STLookup(venv, name)) 
@@ -125,6 +124,7 @@ bool ResolveNamesInNode(SymbolTable* venv, ASTNode* current, ASTNode* parent)
         ASTNode* node = FindIdentChild(current);
         if (node) {
             char* name = node->token.lex.word;
+            SymbolTable* venv = GetSTfromNS(scope, N_VAR);
 
             if (!STLookup(venv, name))    
                 return NERROR_DOESNT_EXIST(name, node);
@@ -135,13 +135,13 @@ bool ResolveNamesInNode(SymbolTable* venv, ASTNode* current, ASTNode* parent)
     /* Recursively check children */
     int i;
     for (i = 0; i < current->childCount; i++) {
-        if(ResolveNamesInNode(venv, current->children[i], current) == ERRN)
+        if(ResolveNamesInNode(scope, current->children[i], current) == ERRN)
             return ERRN;
     }
 
 
     if (GetScopeType(current) != INVALID_SCOPE)
-        ExitScope(venv);
+        scope = ExitScope(scope);
     return VALDN;
 }
 
