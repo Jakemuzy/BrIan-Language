@@ -19,10 +19,18 @@
 
 #define ERRN false
 #define VALDN true
+#define NAN -1  /* Not Applicable */
 
 bool NERROR_NO_IDENT(ASTNode* curr);
 bool NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first);
 bool NERROR_DOESNT_EXIST(char* name, ASTNode* curr);
+
+/* ---------- Resolving ---------- */
+
+Namespaces* ResolveNames(AST* ast);
+bool ResolveNamesInNode(Scope* scope, ASTNode* node, ASTNode* parent);
+bool ResolveVars(Scope* scope, ASTNode* node, ASTNode* parent);
+bool ResolveTypes(Scope* scope, ASTNode* node, ASTNode* parent);
 
 /* ---------- Helpers ---------- */
 
@@ -35,13 +43,6 @@ static NodeType CTRL_STMTS[] = { IF_NODE, ELIF_NODE, ELSE_NODE, SWITCH_STMT_NODE
                                  CASE_NODE, DEFAULT_NODE, WHILE_STMT_NODE, 
                                  DO_WHILE_STMT_NODE, FOR_STMT_NODE };
 static int CTRL_STMTS_SIZE = sizeof(CTRL_STMTS) / sizeof(CTRL_STMTS[0]);
-
-/* ---------- Resolving ---------- */
-
-Namespaces* ResolveNames(AST* ast);
-bool ResolveNamesInNode(Scope* scope, ASTNode* node, ASTNode* parent);
-bool ResolveVars(Scope* scope, ASTNode* node, ASTNode* parent);
-bool ResolveTypes(Scope* scope, ASTNode* node, ASTNode* parent);
 
 /* Alpha Renaming? */
 /* Name Spaces */
