@@ -10,6 +10,9 @@
     Allow for custom type decl / other name spaces
     Account for break / continue statements
     Account for return statements
+
+    These files need a lot of cleanup, lets start 
+    once we have everything fully functional
 */
 
 /* ---------- Error Handling ---------- */
@@ -23,20 +26,22 @@ bool NERROR_DOESNT_EXIST(char* name, ASTNode* curr);
 
 /* ---------- Helpers ---------- */
 
-static NodeType CTRL_STMTS[] = { IF_NODE, ELIF_NODE, ELSE_NODE, SWITCH_STMT_NODE,
-                                 CASE_NODE, DEFAULT_NODE, WHILE_STMT_NODE, 
-                                 DO_WHILE_STMT_NODE, FOR_STMT_NODE };
-static int CTRL_STMTS_SIZE = sizeof(CTRL_STMTS) / sizeof(CTRL_STMTS[0]);
-
 ASTNode* FindIdentChild(ASTNode* node);
 bool IdentIsDecl(ASTNode* decl, ASTNode* parent);
 bool IsCtrlStmt(NodeType type);
 NodeType GetScopeType(ASTNode* node) ;
 
+static NodeType CTRL_STMTS[] = { IF_NODE, ELIF_NODE, ELSE_NODE, SWITCH_STMT_NODE,
+                                 CASE_NODE, DEFAULT_NODE, WHILE_STMT_NODE, 
+                                 DO_WHILE_STMT_NODE, FOR_STMT_NODE };
+static int CTRL_STMTS_SIZE = sizeof(CTRL_STMTS) / sizeof(CTRL_STMTS[0]);
+
 /* ---------- Resolving ---------- */
 
-SymbolTable* ResolveNames(AST* ast);
-bool ResolveNamesInNode(SymbolTable* venv, ASTNode* node, ASTNode* parent);
+Namespaces* ResolveNames(AST* ast);
+bool ResolveNamesInNode(Scope* scope, ASTNode* node, ASTNode* parent);
+bool ResolveVars(Scope* scope, ASTNode* node, ASTNode* parent);
+bool ResolveTypes(Scope* scope, ASTNode* node, ASTNode* parent);
 
 /* Alpha Renaming? */
 /* Name Spaces */

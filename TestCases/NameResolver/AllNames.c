@@ -20,9 +20,9 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    SymbolTable* ST = ResolveNames(ast);
-    if (!ST) {
-        printf("ERROR: ST failed to build\n");
+    Namespaces* nss = ResolveNames(ast);
+    if (!nss) {
+        printf("ERROR: Namespaces failed to build\n");
         exit(1);
     }
 

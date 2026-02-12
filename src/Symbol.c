@@ -7,8 +7,19 @@ Symbol* InitSymbol(ASTNode* decl, Symbol* prev)
     Symbol* sym = malloc(sizeof(Symbol));
     sym->decl = decl;
     sym->name = decl->token.lex.word;
-    sym->stype = (decl->type == VAR_DECL_NODE) ? S_VAR : S_FUNC;   /* Determine Type Here */
     sym->prev = prev;
+    sym->stype = (decl->type == VAR_DECL_NODE) ? S_VAR : S_FUNC;   /* Determine Type Here */
+    switch(decl->type) {
+        case(VAR_DECL_NODE): sym->stype = S_VAR; break;
+        case(FUNC_NODE) : sym->stype = S_FUNC; break;
+        case(ARR_INDEX_NODE) : sym->stype = S_INDEX; break;
+        case(CALL_FUNC_NODE) : sym->stype = S_CALL; break;
+        case(TYPEDEF_DECL_NODE) : sym->stype = S_TYPEDEF; break;
+        case(STRUCT_DECL_NODE) : sym->stype = S_STRUCT; break;
+        case(ENUM_DECL_NODE) : sym->stype = S_ENUM; break;
+        case(CTRL_SCOPE) : sym->stype = S_CTRL; break;
+        default: sym->stype = S_ERROR; break;
+    }
 
     return sym;
 }
@@ -18,9 +29,8 @@ Symbol* InitSymbol(ASTNode* decl, Symbol* prev)
 SymbolTable* STInit() 
 {
     SymbolTable* env = malloc(sizeof(SymbolTable));
-    env->buckets = malloc(sizeof(Symbol*) * INIT_SIZE);
+    env->buckets = calloc(INIT_SIZE, sizeof(Symbol*));
     env->maxSize = INIT_SIZE; env->currSize = INIT_SIZE;
-    env->currentScope = NULL;
 
     return env;
 }
@@ -58,52 +68,144 @@ Symbol* STPop(SymbolTable* env, char* name)
     return top;
 }
 
-/* ---------- Scope ---------- */
+/* ---------- Namespace Scope ---------- */
 
-void BeginScope(SymbolTable* env, ScopeType type)
+Namespace* NamespaceInit(NamespaceKind kind)
 {
-    Scope* newScope = malloc(sizeof(Scope));
-    newScope->prev = env->currentScope;
-    newScope->symCount = 0; 
-    newScope->symbols = NULL;
-    newScope->stype = type;
+    Namespace* ns = malloc(sizeof(Namespace));
+    ns->env = STInit();
+    ns->kind = kind;
+    BeginNamespaceScope(ns);
 
-    env->currentScope = newScope;
+    return ns;
 }
 
-void ExitScope(SymbolTable* env)
+void BeginNamespaceScope(Namespace* namespace) 
 {
-    Scope* scope = env->currentScope;
-
-    size_t i;
-    for (i = 0; i < scope->symCount; i++) {
-        Symbol* sym = scope->symbols[i];
-        STPop(env, sym->name);
-    } 
-
-    env->currentScope = scope->prev;
+    NamespaceScope* ns = malloc(sizeof(NamespaceScope));
+    ns->symbols = NULL;
+    ns->symCount = 0;
+    ns->prev = namespace->nsScope;
+    namespace->nsScope = ns;
 }
 
-void PushScope(SymbolTable* env, Symbol* sym) 
+void ExitNamespaceScope(Namespace* namespace) 
 {
-    Scope* scope = env->currentScope;
-    size_t symCount = scope->symCount;
+    NamespaceScope* nsScope = namespace->nsScope;
+    if (!nsScope) return;
 
-    scope->symbols = realloc(scope->symbols, (symCount + 1) * sizeof(Symbol*));     /* Incrementing by one is inefficient, we can fix this later by making a vector DS */
-    scope->symbols[symCount] = sym;
+    for (size_t j = 0; j < nsScope->symCount; j++) {
+        Symbol* sym = nsScope->symbols[j];
+        STPop(namespace->env, sym->name);
+    }
 
-    scope->symCount++;
+    free(nsScope->symbols);
+    namespace->nsScope = nsScope->prev;
+    free(nsScope);
 }
 
-bool LookupCurrentScope(SymbolTable* env, char* name)
+void PushNamespaceScope(Namespace* namespace, Symbol* sym)
 {
-    Scope* scope = env->currentScope;
+    size_t symCount = namespace->nsScope->symCount;
 
-    int i = 0;
-    for (i = 0; i < scope->symCount; i++) {
-        Symbol* sym = scope->symbols[i];
-        if(0 == strcmp(name, sym->name)) 
+    namespace->nsScope->symbols = realloc(namespace->nsScope->symbols, (symCount + 1) * sizeof(Symbol*));      /* TODO: More elegant resizing */
+    namespace->nsScope->symbols[symCount] = sym;
+
+    namespace->nsScope->symCount++;
+}
+
+bool LookupNamespaceCurrentScope(Namespace* namespace, char* name)
+{
+    NamespaceScope* nsScope = namespace->nsScope;
+    size_t symCount = nsScope->symCount;
+
+    for (size_t j = 0; j < symCount; j++) {
+        Symbol* sym = nsScope->symbols[j];
+        if (0 == strcmp(name, sym->name))
             return true;
     }
     return false;
+}
+
+/* ---------- Scope ---------- */
+
+Scope* ScopeInit(size_t count, ...)
+{
+    Scope* scope = malloc(sizeof(Scope));
+    scope->namespaces = malloc(sizeof(Namespaces));
+    scope->namespaces->count = count;
+    scope->namespaces->nss = calloc(count, sizeof(Namespace*));
+    scope->prev = NULL;
+    scope->stype = PROG_SCOPE;
+
+    va_list args;
+    va_start(args, count);
+
+    for (size_t i = 0; i < count; i++) {
+        NamespaceKind kind = va_arg(args, NamespaceKind);
+        Namespace* ns = NamespaceInit(kind);
+        scope->namespaces->nss[i] = ns;
+    }
+
+    va_end(args);
+    return scope;
+}
+
+Scope* BeginScope(Scope* scope, ScopeType type)
+{
+    Scope* newScope = malloc(sizeof(Scope));
+    newScope->prev = scope;
+    newScope->namespaces = scope->namespaces;
+    newScope->stype = type;
+
+    for (size_t i = 0; i < newScope->namespaces->count; i++) {
+        BeginNamespaceScope(newScope->namespaces->nss[i]);
+    }
+    return newScope;
+}
+
+Scope* ExitScope(Scope* scope)
+{
+    Scope* prev = scope->prev;
+    for (size_t i = 0; i < scope->namespaces->count; i++) {
+        Namespace* ns = scope->namespaces->nss[i];
+        ExitNamespaceScope(ns);
+    }
+    free(scope);
+    return prev;
+}
+
+void PushScope(Scope* scope, Symbol* sym, NamespaceKind nsKind) 
+{
+
+    /* TODO: Use find namespace */
+    for (size_t i = 0; i < scope->namespaces->count; i++) {
+        if (scope->namespaces->nss[i]->kind != nsKind) continue;
+
+        Namespace* ns = scope->namespaces->nss[i];
+        PushNamespaceScope(ns, sym);
+    }
+}
+
+bool LookupCurrentScope(Scope* scope, char* name, NamespaceKind nsKind)
+{
+    for (size_t i = 0; i < scope->namespaces->count; i++) {
+        if (scope->namespaces->nss[i]->kind != nsKind) continue;
+
+        Namespace* ns = scope->namespaces->nss[i];
+        return LookupNamespaceCurrentScope(ns, name);
+    }
+
+    return false;
+}
+
+SymbolTable* GetSTfromNS(Scope* scope, NamespaceKind kind)
+{
+    for (size_t i = 0; i < scope->namespaces->count; i++) {
+        if (scope->namespaces->nss[i]->kind != kind) continue;
+
+        return scope->namespaces->nss[i]->env;
+    }
+
+    return NULL;
 }
