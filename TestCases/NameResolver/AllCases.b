@@ -31,5 +31,4 @@ int main() {
     arr[15];
 
 }
-
-
+// PASS
