@@ -28,11 +28,12 @@ int NERROR_DOESNT_EXIST(char* name, ASTNode* curr);
 /* ---------- Resolving ---------- */
 
 Namespaces* ResolveNames(AST* ast);
-int ResolveNamesInNode(Scope* scope, ASTNode* node, ASTNode* parent);
 
 int ResolveEverything(Scope* scope, ASTNode* current, ASTNode* parent);
 int ResolveVars(Scope* scope, ASTNode* current, ASTNode* parent);
 int ResolveTypes(Scope* scope, ASTNode* current, ASTNode* parent);
+
+int EnterScopeIfNeeded(Scope** scope, ASTNode* current, ASTNode* parent);
 
 /* ---------- Helpers ---------- */
 

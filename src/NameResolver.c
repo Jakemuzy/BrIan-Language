@@ -85,9 +85,8 @@ int ResolveEverything(Scope* scope, ASTNode* current, ASTNode* parent)
 {
     if (!current) return VALDN;
 
-    ScopeType stype;
-    if ((stype = GetScopeType(current)) != INVALID_SCOPE)
-        scope = BeginScope(scope, stype);
+    if (EnterScopeIfNeeded(&scope, current, parent) == ERRN)
+        return ERRN;
 
     do {
         if (CanBeVar(current->type)) {
@@ -117,6 +116,26 @@ int ResolveEverything(Scope* scope, ASTNode* current, ASTNode* parent)
     return VALDN;
 }
 
+int EnterScopeIfNeeded(Scope** scope, ASTNode* current, ASTNode* parent)
+{
+    /* Enters new scope and pushes visible names to outer scope */
+    ScopeType stype;
+    if ((stype = GetScopeType(current)) != INVALID_SCOPE) {
+        /* TODO: make this a switch, */
+        if (stype == FUNC_SCOPE) {
+            /* TODO: Allow function overloading */
+            ASTNode* funcIdent = FindIdentChild(current);
+            if (!funcIdent) return NERROR_NO_IDENT(funcIdent);
+
+            Symbol* sym = STPushNamespace(*scope, funcIdent, N_VAR);
+            PushScope(*scope, sym, N_VAR);
+        }
+
+        *scope = BeginScope(*scope, stype);
+    }
+    return VALDN;
+}
+
 int ResolveVars(Scope* scope, ASTNode* current, ASTNode* parent)
 {
     /* Since C considers the whole switch the same scope, can't redclare inside */
@@ -125,21 +144,6 @@ int ResolveVars(Scope* scope, ASTNode* current, ASTNode* parent)
     NodeType type = current->type;
 
     switch (type) {
-        case(FUNC_NODE):
-            /* TODO: Allow function overloading */
-
-            /* TODO: URGENT child should check if parent is Function Node instead of parent
-            checking if the child is a function node. This is because in ResolveEverything
-            it begins a new scope if valid (which function is). Resolve vars then pushes to
-            the current scope (which is now itself). Esssentially function declaration is 
-            pushed into its own scope. 
-            */
-            ASTNode* funcIdent = FindIdentChild(current);
-            if (!funcIdent) return NERROR_NO_IDENT(funcIdent);
-
-            sym = STPushNamespace(scope, funcIdent, N_VAR);
-            PushScope(scope, sym, N_VAR);
-            return VALDN;
         case(IDENT_NODE):   /* TODO: Maybe have this decl, and check children instead */
             if (!IdentIsDecl(current, parent)) return VALDN;    /* Definately not a var */
             name = current->token.lex.word;
