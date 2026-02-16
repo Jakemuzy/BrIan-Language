@@ -96,12 +96,12 @@ void ExitNamespaceScope(Namespace* namespace)
 
     for (size_t j = 0; j < nsScope->symCount; j++) {
         Symbol* sym = nsScope->symbols[j];
+        if (!sym) continue;
         STPop(namespace->env, sym->name);
     }
 
     free(nsScope->symbols);
     namespace->nsScope = nsScope->prev;
-    free(nsScope);
 }
 
 void PushNamespaceScope(Namespace* namespace, Symbol* sym)
@@ -114,17 +114,18 @@ void PushNamespaceScope(Namespace* namespace, Symbol* sym)
     namespace->nsScope->symCount++;
 }
 
-bool LookupNamespaceCurrentScope(Namespace* namespace, char* name)
+Symbol* LookupNamespaceCurrentScope(Namespace* namespace, char* name)
 {
     NamespaceScope* nsScope = namespace->nsScope;
     size_t symCount = nsScope->symCount;
 
     for (size_t j = 0; j < symCount; j++) {
         Symbol* sym = nsScope->symbols[j];
+        if (!sym) continue;
         if (0 == strcmp(name, sym->name))
-            return true;
+            return sym;
     }
-    return false;
+    return NULL;
 }
 
 /* ---------- Scope ---------- */
@@ -177,7 +178,6 @@ Scope* ExitScope(Scope* scope)
 
 void PushScope(Scope* scope, Symbol* sym, NamespaceKind nsKind) 
 {
-
     /* TODO: Use find namespace */
     for (size_t i = 0; i < scope->namespaces->count; i++) {
         if (scope->namespaces->nss[i]->kind != nsKind) continue;
@@ -187,7 +187,7 @@ void PushScope(Scope* scope, Symbol* sym, NamespaceKind nsKind)
     }
 }
 
-bool LookupCurrentScope(Scope* scope, char* name, NamespaceKind nsKind)
+Symbol* LookupCurrentScope(Scope* scope, char* name, NamespaceKind nsKind)
 {
     for (size_t i = 0; i < scope->namespaces->count; i++) {
         if (scope->namespaces->nss[i]->kind != nsKind) continue;
@@ -196,15 +196,39 @@ bool LookupCurrentScope(Scope* scope, char* name, NamespaceKind nsKind)
         return LookupNamespaceCurrentScope(ns, name);
     }
 
-    return false;
+    return NULL;
 }
 
-SymbolTable* GetSTfromNS(Scope* scope, NamespaceKind kind)
+Symbol* LookupAllScopes(Scope* scope, char* name, NamespaceKind kind)
 {
     for (size_t i = 0; i < scope->namespaces->count; i++) {
         if (scope->namespaces->nss[i]->kind != kind) continue;
 
-        return scope->namespaces->nss[i]->env;
+        Namespace* ns = scope->namespaces->nss[i];
+        NamespaceScope* nsScope = ns->nsScope;
+        while (nsScope) {
+            for (size_t j = 0; j < nsScope->symCount; j++) {
+                Symbol* sym = nsScope->symbols[j];
+                if (!sym) continue;
+
+                if (0 == strcmp(sym->name, name))
+                    return sym;
+            }
+
+            nsScope = nsScope->prev;
+        }
+    }
+
+    return NULL;
+}
+
+Symbol* STPushNamespace(Scope* scope, ASTNode* key, NamespaceKind kind)
+{
+    for (size_t i = 0; i < scope->namespaces->count; i++) {
+        if (scope->namespaces->nss[i]->kind != kind) continue;
+
+        Namespace* ns = scope->namespaces->nss[i];
+        return STPush(ns->env, key);
     }
 
     return NULL;

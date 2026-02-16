@@ -62,7 +62,7 @@ typedef enum NamespaceKind {
 
 typedef struct NamespaceScope {
     Symbol** symbols;
-    size_t symCount;
+    size_t symCount;    /* TODO: This can benefit from being a map as well */
 
     struct NamespaceScope* prev;
 } NamespaceScope;
@@ -86,7 +86,7 @@ SymbolTable* NamespaceGetST(Namespace* ns);
 void BeginNamespaceScope(Namespace* namespace);
 void ExitNamespaceScope(Namespace* namespace);
 void PushNamespaceScope(Namespace* namespace, Symbol* sym);
-bool LookupNamespaceCurrentScope(Namespace* namespace, char* name);
+Symbol* LookupNamespaceCurrentScope(Namespace* namespace, char* name);
 
 /* ---------- Scope Logic ---------- */
 
@@ -101,12 +101,14 @@ typedef struct Scope {
 /* Adding Namespaces to Scope */
 Scope* ScopeInit(size_t count, ...);    /* NamespaceKind */
 
-/* Make this Namespace Instead */
+/* Scope logic for global Scope struct */
 Scope* BeginScope(Scope* scope, ScopeType type);
 Scope* ExitScope(Scope* scope);
 void PushScope(Scope* scope, Symbol* sym, NamespaceKind nsKind);
-bool LookupCurrentScope(Scope* scope, char* name, NamespaceKind nsKind);
 
-SymbolTable* GetSTfromNS(Scope* scope, NamespaceKind kind);
+/* Namespace operations for namespace scope */
+Symbol* LookupCurrentScope(Scope* scope, char* name, NamespaceKind nsKind);
+Symbol* LookupAllScopes(Scope* scope, char* name, NamespaceKind kind);
+Symbol* STPushNamespace(Scope* scope, ASTNode* key, NamespaceKind kind);
 
 #endif
