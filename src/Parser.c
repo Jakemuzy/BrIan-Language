@@ -8,6 +8,7 @@
         - Currently freeing more than I need to since ASTFreeNodes is recursive, ONLY
           free nodes that aren't parented yet 
         - Add Qualifiers checking to DeclStmt
+        - Turn all type nodes into Ident Nodes and check in the type resolver step
 */
 
 /* ----------- ERRORS ---------- */

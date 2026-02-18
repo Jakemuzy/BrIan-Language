@@ -14,6 +14,24 @@
         - Make SymbolTable ues Dictionary for dynamic sizing
 */
 
+/* ---------- Forward Declaration Type Info ---------- */
+typedef struct TYPE TYPE;
+typedef struct TYPE_LIST TYPE_LIST;
+typedef struct TYPE_FIELD TYPE_FIELD;
+typedef struct TYPE_FIELD_LIST TYPE_FIELD_LIST;
+
+/* Constructors */
+TYPE* TY_ERROR(void);
+TYPE* TY_VOID(void);
+TYPE* TY_INT(void);
+TYPE* TY_FLOAT(void);
+TYPE* TY_DOUBLE(void);
+TYPE* TY_BOOL(void);
+TYPE* TY_STRING(void);
+
+TYPE* TY_ARR(TYPE* element, int size);
+TYPE* TY_NAME(Symbol* sym, TYPE* type);
+
 /* ---------- Symbols ---------- */
 
 typedef enum SymbolType {   
@@ -21,14 +39,16 @@ typedef enum SymbolType {
 } SymbolType;
 
 typedef struct Symbol {
-    SymbolType stype;
     char* name; 
     ASTNode* decl;
+    struct Symbol* prev;    
 
-    struct Symbol* prev;    /* TODO: Implement a Stack Separately */
+    /* Data Type and actual Symbol Type */
+    TYPE* type;
+    SymbolType stype;
 } Symbol;
 
-Symbol* InitSymbol(ASTNode* decl, Symbol* prev);
+Symbol* InitSymbol(ASTNode* decl, Symbol* prev, TYPE* type);
 void    FreeSymbol(Symbol* sym);
 
 /* ---------- Symbol Table ---------- */
@@ -40,14 +60,12 @@ typedef struct SymbolTable {
 
     size_t maxSize;
     size_t currSize;
-
-    //Scope* currentScope;    /* Circular Dependency. Mayhaps namespace holds it */
 } SymbolTable;
 
 SymbolTable* STInit();
 Symbol* STPop(SymbolTable* env, char* name);
 Symbol* STLookup(SymbolTable* env, char* key);
-Symbol* STPush(SymbolTable* env, ASTNode* key);
+Symbol* STPush(SymbolTable* env, ASTNode* key, TYPE* type);
 void STResize(SymbolTable* env, unsigned int newSize);
 
 /* ---------- Namespaces ---------- */
@@ -109,6 +127,8 @@ void PushScope(Scope* scope, Symbol* sym, NamespaceKind nsKind);
 /* Namespace operations for namespace scope */
 Symbol* LookupCurrentScope(Scope* scope, char* name, NamespaceKind nsKind);
 Symbol* LookupAllScopes(Scope* scope, char* name, NamespaceKind kind);
-Symbol* STPushNamespace(Scope* scope, ASTNode* key, NamespaceKind kind);
+Symbol* STPushNamespace(Scope* scope, ASTNode* key, NamespaceKind kind, TYPE* type);
 
+/* For type checker */
+Symbol* STLookupNamespace(Namespaces* nss, char* name, NamespaceKind kind);
 #endif

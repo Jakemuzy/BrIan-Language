@@ -26,11 +26,10 @@ typedef enum TypeKind {
     TYPE_U8, TYPE_U16, TYPE_U32, TYPE_U64
 } TypeKind;
 
-
 typedef struct TYPE {
     TypeKind kind;
     union {     /* kind == TYPE_ARR -> u.array | kind == OTHER -> u.name */
-        struct TYPE* array;     
+        struct { TYPE* element; size_t size; } array;     
         struct {Symbol* sym; struct TYPE* type;} name;  
     } u;
 } TYPE;
@@ -50,6 +49,9 @@ typedef struct TYPE_FIELD_LIST {
     struct TYPE_FIELD_LIST* tail;
 } TYPE_FIELD_LIST;
 
+TYPE* TY_ERROR();
+TYPE* TY_VOID();
+
 TYPE* TY_NULL();
 TYPE* TY_INT();
 TYPE* TY_FLOAT();
@@ -66,9 +68,6 @@ TYPE* TY_U8();
 TYPE* TY_U16();
 TYPE* TY_U32();
 TYPE* TY_U64();
-
-TYPE* TY_VOID();
-TYPE* TY_ERROR();
 
 TYPE* TY_ARR(TYPE* type);
 TYPE* TY_NAME(Symbol* sym, TYPE* type);
@@ -98,12 +97,18 @@ Dict Env_BaseVenv(); /* Base Variable Environment (TODO: will contain predefined
 
 /* ---------- Type Semantic Analysis ----------- */
 
-TYPE*  TypeCheckVar(SymbolTable* venv, Dict* tenv, ASTNode* var);
-TYPE* TypeCheckExpr(SymbolTable* venv, Dict* tenv, ASTNode* expr);
-TYPE* TypeCheckDecl(SymbolTable* venv, Dict* tenv, ASTNode* decl);
-TYPE* TypeCheckType(                   Dict* tenv, ASTNode* expr);
+TYPE* TypeCheck(Namespaces* nss, ASTNode* expr);
 
-TYPE* TypeCheckBinaryExpr(SymbolTable* venv, Dict* tenv, ASTNode* expr);   /* Helpers */
+TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr);  
+TYPE* TypeCheckUnaExpr(Namespaces* nss, ASTNode* expr);  
+TYPE* TypeCheckAsgn(Namespaces* nss, ASTNode* expr);
+TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var);
+TYPE* TypeCheckArrDecl(Namespaces* nss, ASTNode* expr);
+TYPE* TypeCheckArrInit(Namespaces* nss, ASTNode* decl);
+TYPE* TypeCheckArrIndex(Namespaces* nss, ASTNode* decl);
+TYPE* TypeCheckCallFunc(Namespaces* nss, ASTNode* expr);
+TYPE* TypeCheckTypedef(Namespaces* nss, ASTNode* expr);
+TYPE* TypeCheckEnumBody(Namespaces* nss, ASTNode* expr);
 
 /* ----------- Valid Types ---------- */
 
@@ -114,6 +119,9 @@ bool TypeHasCategory(TypeKind kind, TypeCategory cat);
 
 TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs);  /* Automatic type conversions based on "largest" */
 TYPE* BoolType(TYPE* lhs, TYPE* rhs);
+
+/* Placeholders since TypeResult takes two arguments */
+TYPE* BlankRule(TYPE* epxr, TYPE* placeholder); /* Just returns type */
 
 typedef enum RuleType { BINARY_RULE, UNARY_RULE, ERROR_RULE } RuleType;
 
@@ -142,18 +150,19 @@ static BinaryRule BINARY_RULES[] = {    /* Maybe make this a map */
     { PLUS, C_NUMERIC, C_NUMERIC, NumericPromotion },     /* Function pointers for determining what output type should be */
     { MINUS, C_NUMERIC, C_NUMERIC, NumericPromotion }, 
     { EQQ, C_EQUALITY, C_EQUALITY, BoolType },
-    { }
+    // ... 
+    { PEQ, C_EQUALITY, C_EQUALITY, NumericPromotion }
 };
 static const size_t BINARY_RULES_SIZE = sizeof(BINARY_RULES) / sizeof(BINARY_RULES[0]);
 
 static UnaryRule UNARY_RULES[] = {
-
+    { PP, C_NUMERIC, BlankRule }
 };
 static const size_t UNARY_RULES_SIZE = sizeof(UNARY_RULES) / sizeof(UNARY_RULES[0]);
 
 /* ---------- Error Handling ----------- */
 
-void TERROR_INCOMPATIBLE(OperatorRule rule);
-void TERROR_NO_RULE(OperatorRule rule);
+TYPE* TERROR_INCOMPATIBLE(OperatorRule rule, ASTNode* node);
+TYPE* TERROR_NO_RULE(OperatorRule rule, ASTNode* node);
 
 #endif 
