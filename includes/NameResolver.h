@@ -28,28 +28,30 @@ int NERROR_DOESNT_EXIST(char* name, ASTNode* curr);
 /* ---------- Resolving ---------- */
 
 Namespaces* ResolveNames(AST* ast);
-
 int ResolveEverything(Scope* scope, ASTNode* current);
-int Resolve(Scope* scope, ASTNode* current);
-int ResolveTypes(Scope* scope, ASTNode* current);
+
+
+int ResolveTypedefs(Scope* scope, ASTNode* current);
 
 int ResolveVars(Scope* scope, ASTNode* current);
 int ResolveVar(Scope* scope, ASTNode* current, TYPE* type);
-int ResolveFuncs(Scope* scope, ASTNode* current);
+
+int ResolveFuncs(Scope** scope, ASTNode* current);
+int ResolveParams(Scope* scope, ASTNode* current);
+int ResolveParam(Scope* scope, ASTNode* current);
+
 int ResolveExprs(Scope* scope, ASTNode* current);
 int ResolveExpr(Scope* scope, ASTNode* current);
-int ResolveStmts(Scope* scope, ASTNode* current);
+int ResolveStmts(Scope** scope, ASTNode* current);
+int ResolveStmt(Scope* scope, ASTNode* current);
 
 int ResolveFuncCall(Scope* scope, ASTNode* current);
+int ResolveArrIndex(Scope* scope, ASTNode* current);
 int ResolveArgList();
 
 int EnterScopeIfNeeded(Scope** scope, ASTNode* current);
 
 /* ---------- Helpers ---------- */
-
-ASTNode* FindIdentChild(ASTNode* node);
-bool IsCtrlStmt(NodeType type);
-NodeType GetScopeType(ASTNode* node) ;
 
 static NodeType CTRL_STMTS[] = { IF_NODE, ELIF_NODE, ELSE_NODE, SWITCH_STMT_NODE,
                                  CASE_NODE, DEFAULT_NODE, WHILE_STMT_NODE, 

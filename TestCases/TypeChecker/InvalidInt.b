@@ -21,3 +21,5 @@ int main() {
 
     functionTime(12, 'b');
 }
+
+int func(int kbr, string blaire) { }

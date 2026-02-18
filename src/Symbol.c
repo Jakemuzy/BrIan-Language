@@ -211,7 +211,7 @@ Symbol* LookupAllScopes(Scope* scope, char* name, NamespaceKind kind)
             for (size_t j = 0; j < nsScope->symCount; j++) {
                 Symbol* sym = nsScope->symbols[j];
                 if (!sym) continue;
-
+                /* Just use NSLookup here */
                 if (0 == strcmp(sym->name, name))
                     return sym;
             }
@@ -229,7 +229,7 @@ Symbol* STPushNamespace(Scope* scope, ASTNode* key, NamespaceKind kind, TYPE* ty
         if (scope->namespaces->nss[i]->kind != kind) continue;
 
         Namespace* ns = scope->namespaces->nss[i];
-        return STPush(ns->env, key);
+        return STPush(ns->env, key, type);
     }
 
     return NULL;
