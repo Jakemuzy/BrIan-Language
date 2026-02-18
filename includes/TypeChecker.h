@@ -49,29 +49,8 @@ typedef struct TYPE_FIELD_LIST {
     struct TYPE_FIELD_LIST* tail;
 } TYPE_FIELD_LIST;
 
-TYPE* TY_ERROR();
-TYPE* TY_VOID();
 
-TYPE* TY_NULL();
-TYPE* TY_INT();
-TYPE* TY_FLOAT();
-TYPE* TY_DOUBLE();
-TYPE* TY_BOOL();
-TYPE* TY_STRING();
-
-TYPE* TY_I8();
-TYPE* TY_I16();
-TYPE* TY_I32();
-TYPE* TY_I64();
-
-TYPE* TY_U8();
-TYPE* TY_U16();
-TYPE* TY_U32();
-TYPE* TY_U64();
-
-TYPE* TY_ARR(TYPE* type);
-TYPE* TY_NAME(Symbol* sym, TYPE* type);
-
+/* Other types already declared in Symbol.h */
 TYPE_LIST TY_LIST(TYPE* head, TYPE_LIST* tail);
 TYPE_FIELD* TY_FIELD(Symbol* sym, TYPE* type);
 TYPE_FIELD_LIST* TY_FIELD_LIST(TYPE_FIELD* head, TYPE_FIELD_LIST* tail);

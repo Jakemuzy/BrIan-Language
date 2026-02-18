@@ -63,7 +63,6 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     -   Allow Function Overloadign in NameResolution
     -   Allow Structs to be defined via a paramater list
     -   Allow Structs to define default values
-    -   Convert StructDecl and EnumDecl to a type of DeclStmt
     -   Preprocess directive that allows switching to allow safe concurrency
         similar to Rusts system built into the compiler. Otherwise user can use 
         the standard libraries for faster compile times.

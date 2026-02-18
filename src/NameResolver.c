@@ -2,7 +2,6 @@
 
 /* ----------- Error Handling ---------- */
 
-
 int NERROR_NO_IDENT(ASTNode* curr)
 {
     printf("NAME ERROR: No Identifier found on line '%d'\n", curr->token.line); 
@@ -23,37 +22,6 @@ int NERROR_DOESNT_EXIST(char* name, ASTNode* curr)
 
 
 /* ----------- Helper ----------- */
-
-ASTNode* FindIdentChild(ASTNode* node) {
-    size_t i;
-    for (i = 0; i < node->childCount; i++) {
-        if ((node->children[i])->type == IDENT_NODE) 
-            return node->children[i];
-    }
-    return NULL;
-}
-
-bool IsCtrlStmt(NodeType type) 
-{
-    for (size_t i = 0; i < CTRL_STMTS_SIZE; i++) {
-        if (type == CTRL_STMTS[i] )
-            return true;
-    }
-
-    return false;
-}
-
-
-NodeType GetScopeType(ASTNode* node) 
-{
-    if (IsCtrlStmt(node->type))
-        return CTRL_SCOPE;
-    else if (node->type == FUNC_NODE)
-        return FUNC_SCOPE;
-
-    return INVALID_SCOPE;
-}
-
 
 TYPE* StringToType(const char* name)
 {
@@ -76,95 +44,76 @@ TYPE* StringToType(const char* name)
     if (strcmp(name, "U32") == 0)  return TY_U32();
     if (strcmp(name, "U64") == 0)  return TY_U64();
 
-    if (strcmp(name, "struct") == 0)  return TY_STRUCT();
+    //if (strcmp(name, "struct") == 0)  return TY_STRUCT();
     if (strcmp(name, "null") == 0)    return TY_NULL();
 
     // If it wasn’t a builtin, treat as named type
-    return NULL;
+    return TY_ERROR();
 }
 
 /* ----------- Name Resolution ---------- */
 
 Namespaces* ResolveNames(AST* ast) 
 {
-    Scope* scope = ScopeInit(2, N_VAR, N_TYPE);
-    scope = BeginScope(scope, PROG_SCOPE);
+    ScopeContext* scope = ScopeInit(2, N_VAR, N_TYPE);
+    BeginScope(scope, PROG_SCOPE);
 
-    if (ResolveEverything(scope, ast->root, NULL) != VALDN)
+    if (ResolveEverything(scope, ast->root) != VALDN)
         return NULL;
 
-    scope = ExitScope(scope);
+    ExitScope(scope);
     return scope->namespaces;
 }
 
-int ResolveEverything(Scope* scope, ASTNode* current)
+int ResolveEverything(ScopeContext* scope, ASTNode* current)
 {
     if (!current) return VALDN;
 
-    if (EnterScopeIfNeeded(&scope, current) == ERRN)
-        return ERRN;
-
-    int status;
-    do { 
-        if ((status = ResolveVars(scope, current)) == VALDN) break;
-        else if (status == ERRN) return status;
-
-        if ((status = ResolveTypes(scope, current)) == VALDN) break;
-        else if (status == ERRN) return status;
-
-        if ((status = ResolveFuncs(scope, current)) == VALDN) break;
-        else if (status == ERRN) return status;
-
-        if ((status = ResolveStmts(scope, current)) == VALDN) break;
-        else if (status == ERRN) return status;
-
-        if ((status = ResolveExprs(scope, current)) == VALDN) break;
-        else if (status == ERRN) return status;
-
-        /* Recursively check children if none apply */
-        for (size_t i = 0; i < current->childCount; i++) {
-            if (ResolveEverything(scope, current->children[i]) == ERRN) return ERRN;
-        }
-    } while (0);
-
-
-    if (GetScopeType(current) != INVALID_SCOPE)
-        scope = ExitScope(scope);
-
-    return VALDN;
-}
-
-int EnterScopeIfNeeded(Scope** scope, ASTNode* current)
-{
-    /* Enters new scope and pushes visible names to outer scope */
-    ScopeType stype;
-    if ((stype = GetScopeType(current)) != INVALID_SCOPE) {
-        /* TODO: make this a switch, */
-        if (stype == FUNC_SCOPE) {
-            /* TODO: Allow function overloading */
-            ASTNode* funcIdent = FindIdentChild(current);
-            if (!funcIdent) return NERROR_NO_IDENT(funcIdent);
-
-            TYPE* type = StringToType(current->children[1]->token.lex.word); /* Type Node */
-            Symbol* sym = STPushNamespace(*scope, funcIdent, N_VAR, type);
-            PushScope(*scope, sym, N_VAR);
-        }
-
-        *scope = BeginScope(*scope, stype);
+    int status = NANN;
+    switch (current->type) {
+        case(VAR_DECL_NODE):
+            status = ResolveVars(scope, current);
+            break;
+        case (TYPEDEF_DECL_NODE):
+            status = ResolveTypedefs(scope, current);
+            break;
+        case (FUNC_NODE):
+            return ResolveFuncs(scope, current);   /* Return since ResolveFuncs already traverses Children */
+        case (IF_STMT_NODE):
+        case (DO_WHILE_STMT_NODE):
+        case (WHILE_STMT_NODE):
+        case (SWITCH_STMT_NODE):
+        case (RETURN_STMT_NODE):
+        case (FOR_STMT_NODE):
+            return ResolveStmts(scope, current);
+        case (EXPR_STMT_NODE):
+            status = ResolveExprs(scope, current);
+            break;
+        case (CALL_FUNC_NODE):
+            status = ResolveFuncCall(scope, current);
+            break;
     }
+
+    if (status == ERRN) return status;
+
+    /* Recursively check children if none apply */
+    for (size_t i = 0; i < current->childCount; i++) {
+        if (ResolveEverything(scope, current->children[i]) == ERRN) 
+            return ERRN;
+    }
+
+
     return VALDN;
 }
 
-int ResolveVars(Scope* scope, ASTNode* current)
+int ResolveVars(ScopeContext* scope, ASTNode* current)
 {
-    if (current->type != VAR_DECL_NODE) return NANN;
-
     char* typeLex = current->children[0]->token.lex.word;
     TYPE* type = StringToType(typeLex);
     return ResolveVar(scope, current->children[1], type);   
 }
 
-int ResolveVar(Scope* scope, ASTNode* current, TYPE* type)
+int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type)
 {
     if (current->type == IDENT_NODE) {
         SymbolType stype = S_VAR;
@@ -173,7 +122,7 @@ int ResolveVar(Scope* scope, ASTNode* current, TYPE* type)
         char* name = current->token.lex.word;
 
         /* Ctrl Scopes don't allow for shadowing */
-        if (scope->stype == CTRL_SCOPE) sym = LookupAllScopes(scope, name, N_VAR);
+        if (PeekScopeStack(&scope->scopeTypes) == CTRL_SCOPE) sym = LookupAllScopes(scope, name, N_VAR);
         else sym = LookupCurrentScope(scope, name, N_VAR);
 
         if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
@@ -191,13 +140,67 @@ int ResolveVar(Scope* scope, ASTNode* current, TYPE* type)
     return VALDN;
 }
 
-int ResolveExprs(Scope* scope, ASTNode* current)
+int ResolveFuncs(ScopeContext* scope, ASTNode* current)
 {
-    if (current->type != EXPR_STMT_NODE) return NANN;
+    /* Function Ident, Type and Scope */
+    char* typeLex = current->children[0]->token.lex.word;
+    TYPE* type = StringToType(typeLex);
+
+    ASTNode* identNode = current->children[1];
+    char* name = identNode->token.lex.word;
+
+    /* Lookup if it exists yet */
+    Symbol* sym = LookupAllScopes(scope, name, N_VAR); /* TODO: lookup all scopes may be wrong here */
+    if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
+
+    sym = STPushNamespace(scope, identNode, N_VAR, type);
+    PushScope(scope, sym, N_VAR);
+    BeginScope(scope, FUNC_SCOPE);
+
+    /* Param List */
+    int status = ResolveParams(scope, current->children[2]);
+    if (status != VALDN) return status;
+
+    /* Body Calls Resolve Var */
+    status = ResolveEverything(scope, current->children[3]);
+    ExitScope(scope);
+    return status;
+}
+
+int ResolveParams(ScopeContext* scope, ASTNode* current)
+{
+    if (current->type != PARAM_LIST_NODE) return NANN;
+
+    for (size_t i = 0; i < current->childCount; i++) {
+        int status = ResolveParam(scope, current->children[i]);
+        if (status != VALDN) return status;
+    }
+    return VALDN;
+}
+
+int ResolveParam(ScopeContext* scope, ASTNode* current) 
+{
+    if (current->type != PARAM_NODE) return NANN;
+
+    /* Still need to lookup because params can be duplicate */
+    ASTNode* identNode = current->children[1];
+
+    Symbol* sym = LookupCurrentScope(scope, identNode->token.lex.word, N_VAR);
+    if (sym) return NERROR_ALREADY_DEFINED(identNode->token.lex.word, current, sym->decl);
+
+    TYPE* type = StringToType(current->children[0]->token.lex.word);
+    sym = STPushNamespace(scope, identNode, N_VAR, type);
+    PushScope(scope, sym, N_VAR);
+
+    return VALDN;
+}
+
+int ResolveExprs(ScopeContext* scope, ASTNode* current)
+{
     return ResolveExpr(scope, current);
 }
 
-int ResolveExpr(Scope* scope, ASTNode* current)
+int ResolveExpr(ScopeContext* scope, ASTNode* current)
 {
     if (current->type == IDENT_NODE) {
         char* name = current->token.lex.word;
@@ -214,68 +217,61 @@ int ResolveExpr(Scope* scope, ASTNode* current)
     return VALDN;
 }
 
-int ResolveStmts(Scope* scpoe, ASTNode* current)
+int ResolveStmts(ScopeContext* scope, ASTNode* current)
 {
     /* TODO: Have resolve stmts handle if / while / etc stmts, 
        and allow for this function to enter scope instead and set a 
        ctrl_stmt flag as well. That way we avoid FindIdentChild and 
        the EnterScopeAsNeeded bloat
+
+       Would need for this function to distringuish between each 
+       type of stmt as well, this should be a switch
     */
 
     /* Return Stmt and CtrlStmt probably the only ones need to check */
-    if (!IsStmt(current)) return NANN;
+
+    BeginScope(scope, CTRL_SCOPE);
+
+    /* Process paramaters then once hit body call ResolveEverything */
+
+    /* Resolve Stmt Similar to Func here */
+
+    ExitScope(scope);
+    return VALDN;
 }
 
-int Resolve(Scope* scope, ASTNode* current)
+/* ---------- Custom Types ---------- */
+
+int ResolveStructs(ScopeContext* scope, ASTNode* current)
 {
-    /* Since C considers the whole switch the same scope, can't redclare inside */
-    Symbol* sym;
-    char* name;     
-    NodeType type = current->type;
+    BeginScope(scope, STRUCT_SCOPE);
+    /* Push struct values to Struct's own namespace */
+    
+    // Fields CAN Shadow
+    // Can Nest Enum / Structs  
 
-    switch (type) {
-        case(IDENT_NODE):   /* TODO: Maybe have this decl, and check children instead */
-            if (!IdentIsDecl(current, parent)) return VALDN;    /* Definately not a var */
-            name = current->token.lex.word;
+    ExitScope(scope);
+    return VALDN;
+}
 
-            /* Ctrl Scopes don't allow for shadowing */
-            if (scope->stype == CTRL_SCOPE) sym = LookupAllScopes(scope, name, N_VAR);
-            else sym = LookupCurrentScope(scope, name, N_VAR);
+int ResolveEnums(ScopeContext* scope, ASTNode* current)
+{
 
-            if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
-            
-            sym = STPushNamespace(scope, current, N_VAR);
-            PushScope(scope, sym, N_VAR);
-            return VALDN;
-        case(BINARY_EXPR_NODE):
-        case(UNARY_EXPR_NODE):  /* Purposeful fall through, all do the same */
-        case(ASGN_EXPR_NODE):
-            ASTNode* exprIdent = FindIdentChild(current);
+}
 
-            /* Exprs don't need to use idents, continue if they don't */
-            if (exprIdent) {
-                name = exprIdent->token.lex.word;
-                if (!LookupAllScopes(scope, name, N_VAR))
-                    return NERROR_DOESNT_EXIST(name, current);
-            }
-            return VALDN;
-        case(CALL_FUNC_NODE):
-        case(ARR_INDEX_NODE):
-            /* TODO: Check for function overloading here */
-            ASTNode* identChild = FindIdentChild(current);
-            if (identChild) {
-                name = identChild->token.lex.word;
-                if (!LookupAllScopes(scope, name , N_VAR))
-                    return NERROR_DOESNT_EXIST(name, identChild);
-            }
-            return VALDN;
-        default: return NANN;
-    } 
-
+int ResolveTypedefs(ScopeContext* scope, ASTNode* current)
+{
     return NANN;
 }
 
-int ResolveTypes(Scope* scope, ASTNode* current)
+/* ---------- Etc ---------- */
+
+int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
+{
+    return NANN;
+}
+
+int ResolveArrIndex(ScopeContext* scope, ASTNode* current)
 {
     return NANN;
 }
