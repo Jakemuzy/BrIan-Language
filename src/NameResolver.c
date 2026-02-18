@@ -2,7 +2,6 @@
 
 /* ----------- Error Handling ---------- */
 
-
 int NERROR_NO_IDENT(ASTNode* curr)
 {
     printf("NAME ERROR: No Identifier found on line '%d'\n", curr->token.line); 
@@ -45,28 +44,28 @@ TYPE* StringToType(const char* name)
     if (strcmp(name, "U32") == 0)  return TY_U32();
     if (strcmp(name, "U64") == 0)  return TY_U64();
 
-    if (strcmp(name, "struct") == 0)  return TY_STRUCT();
+    //if (strcmp(name, "struct") == 0)  return TY_STRUCT();
     if (strcmp(name, "null") == 0)    return TY_NULL();
 
     // If it wasn’t a builtin, treat as named type
-    return NULL;
+    return TY_ERROR();
 }
 
 /* ----------- Name Resolution ---------- */
 
 Namespaces* ResolveNames(AST* ast) 
 {
-    Scope* scope = ScopeInit(2, N_VAR, N_TYPE);
-    scope = BeginScope(scope, PROG_SCOPE);
+    ScopeContext* scope = ScopeInit(2, N_VAR, N_TYPE);
+    BeginScope(scope, PROG_SCOPE);
 
     if (ResolveEverything(scope, ast->root) != VALDN)
         return NULL;
 
-    scope = ExitScope(scope);
+    ExitScope(scope);
     return scope->namespaces;
 }
 
-int ResolveEverything(Scope* scope, ASTNode* current)
+int ResolveEverything(ScopeContext* scope, ASTNode* current)
 {
     if (!current) return VALDN;
 
@@ -79,14 +78,14 @@ int ResolveEverything(Scope* scope, ASTNode* current)
             status = ResolveTypedefs(scope, current);
             break;
         case (FUNC_NODE):
-            return ResolveFuncs(&scope, current);   /* Return since ResolveFuncs already traverses Children */
+            return ResolveFuncs(scope, current);   /* Return since ResolveFuncs already traverses Children */
         case (IF_STMT_NODE):
         case (DO_WHILE_STMT_NODE):
         case (WHILE_STMT_NODE):
         case (SWITCH_STMT_NODE):
         case (RETURN_STMT_NODE):
         case (FOR_STMT_NODE):
-            return ResolveStmts(&scope, current);
+            return ResolveStmts(scope, current);
         case (EXPR_STMT_NODE):
             status = ResolveExprs(scope, current);
             break;
@@ -107,14 +106,14 @@ int ResolveEverything(Scope* scope, ASTNode* current)
     return VALDN;
 }
 
-int ResolveVars(Scope* scope, ASTNode* current)
+int ResolveVars(ScopeContext* scope, ASTNode* current)
 {
     char* typeLex = current->children[0]->token.lex.word;
     TYPE* type = StringToType(typeLex);
     return ResolveVar(scope, current->children[1], type);   
 }
 
-int ResolveVar(Scope* scope, ASTNode* current, TYPE* type)
+int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type)
 {
     if (current->type == IDENT_NODE) {
         SymbolType stype = S_VAR;
@@ -123,7 +122,7 @@ int ResolveVar(Scope* scope, ASTNode* current, TYPE* type)
         char* name = current->token.lex.word;
 
         /* Ctrl Scopes don't allow for shadowing */
-        if (scope->stype == CTRL_SCOPE) sym = LookupAllScopes(scope, name, N_VAR);
+        if (PeekScopeStack(&scope->scopeTypes) == CTRL_SCOPE) sym = LookupAllScopes(scope, name, N_VAR);
         else sym = LookupCurrentScope(scope, name, N_VAR);
 
         if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
@@ -141,37 +140,34 @@ int ResolveVar(Scope* scope, ASTNode* current, TYPE* type)
     return VALDN;
 }
 
-int ResolveFuncs(Scope** scope, ASTNode* current)
+int ResolveFuncs(ScopeContext* scope, ASTNode* current)
 {
     /* Function Ident, Type and Scope */
-    ScopeType stype = GetScopeType(current);
-
     char* typeLex = current->children[0]->token.lex.word;
     TYPE* type = StringToType(typeLex);
-
 
     ASTNode* identNode = current->children[1];
     char* name = identNode->token.lex.word;
 
     /* Lookup if it exists yet */
-    Symbol* sym = LookupAllScopes(*scope, name, N_VAR); /* TODO: lookup all scopes may be wrong here */
+    Symbol* sym = LookupAllScopes(scope, name, N_VAR); /* TODO: lookup all scopes may be wrong here */
     if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
 
-    sym = STPushNamespace(*scope, identNode, N_VAR, type);
-    PushScope(*scope, sym, N_VAR);
-    *scope = BeginScope(*scope, stype);
+    sym = STPushNamespace(scope, identNode, N_VAR, type);
+    PushScope(scope, sym, N_VAR);
+    BeginScope(scope, FUNC_SCOPE);
 
     /* Param List */
-    int status = ResolveParams(*scope, current->children[2]);
+    int status = ResolveParams(scope, current->children[2]);
     if (status != VALDN) return status;
 
     /* Body Calls Resolve Var */
-    status = ResolveEverything(*scope, current->children[3]);
-    *scope = ExitScope(*scope);
+    status = ResolveEverything(scope, current->children[3]);
+    ExitScope(scope);
     return status;
 }
 
-int ResolveParams(Scope* scope, ASTNode* current)
+int ResolveParams(ScopeContext* scope, ASTNode* current)
 {
     if (current->type != PARAM_LIST_NODE) return NANN;
 
@@ -182,7 +178,7 @@ int ResolveParams(Scope* scope, ASTNode* current)
     return VALDN;
 }
 
-int ResolveParam(Scope* scope, ASTNode* current) 
+int ResolveParam(ScopeContext* scope, ASTNode* current) 
 {
     if (current->type != PARAM_NODE) return NANN;
 
@@ -199,12 +195,12 @@ int ResolveParam(Scope* scope, ASTNode* current)
     return VALDN;
 }
 
-int ResolveExprs(Scope* scope, ASTNode* current)
+int ResolveExprs(ScopeContext* scope, ASTNode* current)
 {
     return ResolveExpr(scope, current);
 }
 
-int ResolveExpr(Scope* scope, ASTNode* current)
+int ResolveExpr(ScopeContext* scope, ASTNode* current)
 {
     if (current->type == IDENT_NODE) {
         char* name = current->token.lex.word;
@@ -221,7 +217,7 @@ int ResolveExpr(Scope* scope, ASTNode* current)
     return VALDN;
 }
 
-int ResolveStmts(Scope** scope, ASTNode* current)
+int ResolveStmts(ScopeContext* scope, ASTNode* current)
 {
     /* TODO: Have resolve stmts handle if / while / etc stmts, 
        and allow for this function to enter scope instead and set a 
@@ -233,15 +229,49 @@ int ResolveStmts(Scope** scope, ASTNode* current)
     */
 
     /* Return Stmt and CtrlStmt probably the only ones need to check */
-    ScopeType stype = GetScopeType(current);
 
-    if (stype == CTRL_SCOPE)
-        *scope = BeginScope(*scope, stype);
-    /* Return Stmt Here */
+    BeginScope(scope, CTRL_SCOPE);
 
-    /* Resolve Stmt Similar to Func */
+    /* Process paramaters then once hit body call ResolveEverything */
 
-    if (stype == CTRL_SCOPE)
-        *scope = ExitScope(*scope);
+    /* Resolve Stmt Similar to Func here */
+
+    ExitScope(scope);
     return VALDN;
+}
+
+/* ---------- Custom Types ---------- */
+
+int ResolveStructs(ScopeContext* scope, ASTNode* current)
+{
+    BeginScope(scope, STRUCT_SCOPE);
+    /* Push struct values to Struct's own namespace */
+    
+    // Fields CAN Shadow
+    // Can Nest Enum / Structs  
+
+    ExitScope(scope);
+    return VALDN;
+}
+
+int ResolveEnums(ScopeContext* scope, ASTNode* current)
+{
+
+}
+
+int ResolveTypedefs(ScopeContext* scope, ASTNode* current)
+{
+    return NANN;
+}
+
+/* ---------- Etc ---------- */
+
+int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
+{
+    return NANN;
+}
+
+int ResolveArrIndex(ScopeContext* scope, ASTNode* current)
+{
+    return NANN;
 }

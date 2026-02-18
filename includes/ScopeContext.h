@@ -1,42 +1,38 @@
 #ifndef _SCOPE_CONTEXT_H__
 #define _SCOPE_CONTEXT_H__
 
-#include "Namespaces.h"
+#include "Namespace.h"
 
 /* ---------- Scope Logic ---------- */
 
-typedef enum ScopeType { PROG_SCOPE, FUNC_SCOPE, CTRL_SCOPE, INVALID_SCOPE } ScopeType;
+typedef enum ScopeType { PROG_SCOPE, FUNC_SCOPE, CTRL_SCOPE, STRUCT_SCOPE, ENUM_SCOPE, INVALID_SCOPE } ScopeType;
 
 typedef struct ScopeStack {
     size_t size;
-    ScopeType stypes[];
+    size_t maxSize;
+    ScopeType* stypes;
 } ScopeStack;
 
-typedef struct Scope { /* Scope -> ScopeContext */
+ScopeStack InitScopeStack();
+void PushScopeStack(ScopeStack* stack, ScopeType stype);
+ScopeType PopScopeStack(ScopeStack* stack);
+ScopeType PeekScopeStack(ScopeStack* stack);
+
+typedef struct ScopeContext { 
     Namespaces* namespaces;
-
-    /* TODO: URGENT could simply have this as a stack of symbol types
-       don't need to introduce the complexity of having a linked list 
-       of namespaces inside of a linked list of scopes 
-    */
-    struct Scope* prev; 
-    ScopeType stype;
-
     ScopeStack scopeTypes;
-} Scope;
+} ScopeContext;
 
-/* Adding Namespaces to Scope */
-Scope* ScopeInit(size_t count, ...);    /* NamespaceKind */
+ScopeContext* ScopeInit(size_t count, ...);   
+void BeginScope(ScopeContext* scope, ScopeType type);
+void ExitScope(ScopeContext* scope);
+void PushScope(ScopeContext* scope, Symbol* sym, NamespaceKind nsKind);
 
-/* Scope logic for global Scope struct */
-Scope* BeginScope(Scope* scope, ScopeType type);
-Scope* ExitScope(Scope* scope);
-void PushScope(Scope* scope, Symbol* sym, NamespaceKind nsKind);
+/* ---------- Namespace Scope ----------- */
 
-/* Namespace operations for namespace scope */
-Symbol* LookupCurrentScope(Scope* scope, char* name, NamespaceKind nsKind);
-Symbol* LookupAllScopes(Scope* scope, char* name, NamespaceKind kind);
-Symbol* STPushNamespace(Scope* scope, ASTNode* key, NamespaceKind kind, TYPE* type);
+Symbol* LookupCurrentScope(ScopeContext* scope, char* name, NamespaceKind nsKind);
+Symbol* LookupAllScopes(ScopeContext* scope, char* name, NamespaceKind kind);
+Symbol* STPushNamespace(ScopeContext* scope, ASTNode* key, NamespaceKind kind, TYPE* type);
 
 /* For type checker */
 Symbol* STLookupNamespace(Namespaces* nss, char* name, NamespaceKind kind);

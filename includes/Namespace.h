@@ -31,7 +31,7 @@ typedef struct Namespaces {
     size_t count;   /* Set size array, can't imagine more than maybe 6 */
 } Namespaces;
 
-Namespace* NamspaceInit(NamespaceKind kind);
+Namespace* NamespaceInit(NamespaceKind kind);
 SymbolTable* NamespaceGetST(Namespace* ns);
 
 void BeginNamespaceScope(Namespace* namespace);

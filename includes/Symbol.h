@@ -16,6 +16,8 @@
 
 /* ---------- Forward Declaration Type Info ---------- */
 
+typedef struct Symbol Symbol;
+
 typedef struct TYPE TYPE;
 typedef struct TYPE_LIST TYPE_LIST;
 typedef struct TYPE_FIELD TYPE_FIELD;
@@ -29,11 +31,24 @@ TYPE* TY_FLOAT(void);
 TYPE* TY_DOUBLE(void);
 TYPE* TY_BOOL(void);
 TYPE* TY_STRING(void);
+TYPE* TY_NULL(void);
+
+TYPE* TY_I8();
+TYPE* TY_I16();
+TYPE* TY_I32();
+TYPE* TY_I64();
+
+TYPE* TY_U8();
+TYPE* TY_U16();
+TYPE* TY_U32();
+TYPE* TY_U64();
 
 TYPE* TY_ARR(TYPE* element, int size);
 TYPE* TY_NAME(Symbol* sym, TYPE* type);
 
 /* ---------- Symbols ---------- */
+
+typedef struct Namespace Namespace;
 
 typedef enum SymbolType {   
     S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD, S_TYPEDEF, S_STRUCT, S_ENUM, S_CTRL, S_ERROR
@@ -47,6 +62,9 @@ typedef struct Symbol {
     /* Data Type and actual Symbol Type */
     TYPE* type;
     SymbolType stype;
+
+    /* Lightweight namespace for paramaters / struct fields / etc */
+    Namespace* fields;  
 } Symbol;
 
 Symbol* InitSymbol(ASTNode* decl, Symbol* prev, TYPE* type);
