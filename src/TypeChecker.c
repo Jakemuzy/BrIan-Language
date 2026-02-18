@@ -31,27 +31,27 @@ Cases:
 
 /* ---------- Types ---------- */
 
-TYPE* TY_NULL() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_NULL; return type; }
-TYPE* TY_INT() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_INT; return type; }
-TYPE* TY_FLOAT() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_FLOAT; return type; }
-TYPE* TY_DOUBLE() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_DOUBLE; return type; }
-TYPE* TY_BOOL() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_BOOL; return type; }
-TYPE* TY_STRING() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_STRING; return type; }
+TYPE* TY_VOID(void)   { static TYPE t = { TYPE_VOID };   return &t; }
+TYPE* TY_ERROR(void)  { static TYPE t = { TYPE_ERROR };  return &t; }
+TYPE* TY_NULL(void)   { static TYPE t = { TYPE_NULL };   return &t; }
 
-TYPE* TY_I8() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_I8; return type; }
-TYPE* TY_I16() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_I16; return type; }
-TYPE* TY_I32() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_I32; return type; }
-TYPE* TY_I64() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_I64; return type; }
+TYPE* TY_INT(void)    { static TYPE t = { TYPE_INT };    return &t; }
+TYPE* TY_FLOAT(void)  { static TYPE t = { TYPE_FLOAT };  return &t; }
+TYPE* TY_DOUBLE(void) { static TYPE t = { TYPE_DOUBLE }; return &t; }
+TYPE* TY_BOOL(void)   { static TYPE t = { TYPE_BOOL };   return &t; }
+TYPE* TY_STRING(void) { static TYPE t = { TYPE_STRING }; return &t; }
 
-TYPE* TY_U8() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_U8; return type; }
-TYPE* TY_U16() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_U16; return type; }
-TYPE* TY_U32() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_U32; return type; }
-TYPE* TY_U64() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_U64; return type; }
+TYPE* TY_I8(void)  { static TYPE t = { TYPE_I8 };  return &t; }
+TYPE* TY_I16(void) { static TYPE t = { TYPE_I16 }; return &t; }
+TYPE* TY_I32(void) { static TYPE t = { TYPE_I32 }; return &t; }
+TYPE* TY_I64(void) { static TYPE t = { TYPE_I64 }; return &t; }
 
-TYPE* TY_VOID() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_VOID; return type; }
-TYPE* TY_ERROR() { TYPE* type = malloc(sizeof(TYPE)); type->kind = TYPE_ERROR; return type; }
+TYPE* TY_U8(void)  { static TYPE t = { TYPE_U8 };  return &t; }
+TYPE* TY_U16(void) { static TYPE t = { TYPE_U16 }; return &t; }
+TYPE* TY_U32(void) { static TYPE t = { TYPE_U32 }; return &t; }
+TYPE* TY_U64(void) { static TYPE t = { TYPE_U64 }; return &t; }
 
-TYPE* TY_ARR(TYPE* type) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_ARR; typ->u.array = type; typ; }
+TYPE* TY_ARR(TYPE* type) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_ARR; typ->u.array = type; return typ; }
 TYPE* TY_NAME(Symbol* sym, TYPE* type) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_NAME; typ->u.name.sym = sym; typ->u.name.type = type; return typ; }
 
 TYPE_LIST TY_LIST(TYPE* head, TYPE_LIST* tail);
@@ -59,18 +59,23 @@ TYPE_LIST TY_LIST(TYPE* head, TYPE_LIST* tail);
 
 /* ---------- Error Handling ----------- */
 
-void TERROR_INCOMPATIBLE(OperatorRule rule) 
+TYPE* TERROR_INCOMPATIBLE(OperatorRule rule, ASTNode* node) 
 {
+    int line = node->token.line;
     if (rule.rtype == BINARY_RULE)
-        printf("TYPE ERROR: No rule found for operator %c\n", rule.rule.b.op);  /* TODO: Translate this to  a string instead of enum */
+        printf("TYPE ERROR: Incompatible rule found for binary operator %d on line %d\n", rule.rule.b.op, line);  /* TODO: Translate this to  a string instead of enum */
     else if (rule.rtype == UNARY_RULE)
-        printf("TYPE ERROR: No rule found for operator %c\n", rule.rule.u.op);
+        printf("TYPE ERROR: Incompatible rule found for unary operator %d on line %d\n", rule.rule.u.op, line);
+
+    return TY_ERROR();
 }
-void TERROR_NO_RULE(OperatorRule rule)
+TYPE* TERROR_NO_RULE(OperatorRule rule, ASTNode* node)
 {
     /* TODO: Have this print what type it actually is */
-    if (rule.rtype == BINARY_RULE)
-        printf("TYPE ERROR: Invalid type %d for operator %c\n", rule.rtype, rule.rule.b.op);
+    int line = node->token.line;
+    printf("TYPE ERROR: No rule found for operator %d on line%d\n",  rule.rule.b.op, line);
+
+    return TY_ERROR();
 }
 
 
@@ -88,58 +93,138 @@ Dict ENV_BaseTenv()
 }
 
 
-TYPE* TypeCheckExpr(SymbolTable* venv, Dict* tenv, ASTNode* expr)
+TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
 {
-    Token operator = expr->token;
+    /* TODO: Have each case call their respective function, and the function
+       will recursively call this function, in order to simulate recursive descent 
+    */
     switch (expr->type)
     {
-        case BINARY_EXPR_NODE:
-            /* First child is ident or another epxr */
-            TYPE* left = TypeCheckExpr(venv, tenv, expr->children[0]);
-            if (left->kind == TYPE_ERROR) return left;
+        case SLITERAL: return TY_STRING();
+        case CLITERAL: return TY_U32();
+        case INTEGRAL: return TY_INT();
+        case DECIMAL: return TY_DOUBLE();
+        case BINARY_EXPR_NODE: return TypeCheckBinExpr(nss, expr);
+        case UNARY_EXPR_NODE:  return TypeCheckUnaExpr(nss, expr->children[0]);
 
-            TYPE* right = TypeCheckExpr(venv, tenv, expr->children[1]);
-            if (right->kind == TYPE_ERROR) return right;
+        case ASGN_EXPR_NODE: return TypeCheckAsgn(nss, expr);   /* Check valid type */
 
-            OperatorRule rule = FindRule(operator.type, BINARY_RULE);
-            if (rule.rtype == ERROR_RULE) {
-                TERROR_NO_RULE(rule);
-                return TY_ERROR();  
-            }
-
-            /* Compare rule to current expr */
-            TypeKind kind = left->kind == TYPE_NAME ? left->kind : left->u.name.type->kind;
-            if (!TypeHasCategory(left->kind, rule.rule.b.left) || !TypeHasCategory(right->kind, rule.rule.b.right)) {
-                TERROR_INCOMPATIBLE(rule);
-                return TY_ERROR();  
-            }
-
-            /* Resulting Expr Type based on operator rule */
-            TYPE* result = rule.rule.b.result(left, right);
-            return result;
-
-        case UNARY_EXPR_NODE:
-            TYPE* var = TypeCheckExpr(venv, tenv, expr->children[0]);
-            break;
-
-        case IDENT_NODE:
+        case IDENT_NODE:    /* Context specific */
             /* Lookup Name */
-            TypeCheckVar(venv, tenv, expr);
 
             //return TY_NAME(sym, NULL/* Get type from stype associtaed with ident */);
+
+        case VAR_DECL_NODE:     /* Check matching type */
+
+        case ARR_DECL_NODE:     /* Check Integral Size */
+
+        case ARR_INIT_NODE:     /* Check Valid Types */
+
+        case ARR_INDEX_NODE:   /* Check integral */
+
+        case MEMBER_ACCESS_NODE:  
         
+        case CALL_FUNC_NODE:    /* Check Valid Type */
+
+        case TYPEDEF_DECL_NODE: /* Check for existance */
+
+        case ENUM_BODY_NODE:    /* Check all integral */
+
         default:
+            /* Recursively check children, and then return */
+            for (size_t i = 0; i < expr->childCount; i++) {
+                TYPE* type = TypeCheck(nss, expr->children[i]);
+                if (type->kind == TYPE_ERROR) return type;
+            } 
             break;
     }
+    return TY_NULL();
 }
 
-TYPE* TypeCheckVar(SymbolTable* venv, Dict* tenv, ASTNode* var) 
+TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr) 
 {
+ printf("Binary Expr\n"); 
+    /* First child is ident or another epxr */
+    TYPE* left = TypeCheck(nss, expr->children[0]);
+    if (left->kind == TYPE_ERROR) return left;
+
+    TYPE* right = TypeCheck(nss, expr->children[1]);
+    if (right->kind == TYPE_ERROR) return right;
+
+    Token operator = expr->token;
+    OperatorRule rule = FindRule(operator.type, BINARY_RULE);
+    if (rule.rtype == ERROR_RULE) 
+        return TERROR_NO_RULE(rule, expr);
+
+    printf("Lkind: %d, Lrule: %d, Rkind: %d, Rrule %d\n",left->kind, rule.rule.b.left, right->kind, rule.rule.b.right);
+    /* Compare rule to current expr */
+    if (!TypeHasCategory(left->kind, rule.rule.b.left) || !TypeHasCategory(right->kind, rule.rule.b.right)) 
+        return TERROR_INCOMPATIBLE(rule, expr);
+
+    /* Resulting Expr Type based on operator rule */
+    TYPE* result = rule.rule.b.result(left, right);
+    return result;
+}
+
+TYPE* TypeCheckUnaExpr(Namespaces* nss, ASTNode* expr)
+{
+ printf("Unary Expr\n");
+    TYPE* left = TypeCheck(nss, expr->children[0]);
+    if (left->kind == TYPE_ERROR) return left;
+
+    Token operator = expr->token;
+    OperatorRule rule = FindRule(operator.type, UNARY_RULE);
+    if (rule.rtype == ERROR_RULE) 
+        return TERROR_NO_RULE(rule, expr);
+
+    /* For arrays */
+    if (!TypeHasCategory(left->kind, rule.rule.u.cat)) 
+        return TERROR_INCOMPATIBLE(rule, expr);
+
+    TYPE* result = rule.rule.u.result(left, NULL);
+    return result;
+}
+
+TYPE* TypeCheckAsgn(Namespaces* nss, ASTNode* expr) 
+{
+printf("Asgn Expr\n");
+    TYPE* left = TypeCheck(nss, expr->children[0]);
+    if (left->kind == TYPE_ERROR) return left;
+
+    TYPE* right = TypeCheck(nss, expr->children[1]);
+    if (right->kind == TYPE_ERROR) return right;
+
+    Token operator = expr->token;
+    OperatorRule rule = FindRule(operator.type, BINARY_RULE);
+    if (rule.rtype == ERROR_RULE) 
+        return TERROR_NO_RULE(rule, expr);
+
+    /* Compare rule to current expr */
+    if (!TypeHasCategory(left->kind, rule.rule.b.left) || !TypeHasCategory(right->kind, rule.rule.b.right)) 
+        return TERROR_INCOMPATIBLE(rule, expr);
+
+    TYPE* result = rule.rule.b.result(left, right);
+    return result;
+}
+
+TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var) 
+{
+    /* TODO: Later check typedefs, for now assume var */
     //EnvironmentEntry entry = STLookup(venv, var->token.lex.word);
-    switch(var->type) {
+    EnvironmentEntry entry;
+    entry.kind = ENV_VAR_ENTRY;
+    entry.u.var.ty;
+
+    /*Symbol* sym = STLookupNamespace(nss, var->token.lex.word, N_VAR);
+   
+    Symbol* sym;
+    switch(sym->stype) {
         default: 
             break;
     }
+            */
+
+    return TY_ERROR();
 }
 
 /* ----------- Valid Types ---------- */
@@ -162,6 +247,7 @@ bool TypeHasCategory(TypeKind kind, TypeCategory cat)
 
 /* ---------- Table Driven Type Checking ---------- */
 
+/* Binary */
 TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs)
 {
     /* TODO: Warn on implicit converions */
@@ -200,6 +286,9 @@ TYPE* BoolType(TYPE* lhs, TYPE* rhs)
 
     return TY_ERROR();
 }
+
+/* Unary */
+TYPE* BlankRule(TYPE* expr, TYPE* placeholder) { return expr; }
 
 OperatorRule FindRule(TokenType ttype, RuleType rtype)
 {  

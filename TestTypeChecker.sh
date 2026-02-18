@@ -4,7 +4,7 @@
 
 COMPILER="./compile.sh"
 TEST_CASES_PATH="TestCases/TypeChecker"
-PROG_NAME="AllCases" # Change this to work with all programs 
+PROG_NAME="AllTypes" # Change this to work with all programs 
 FOLDER="TypeChecker"
 
 "$COMPILER" "$PROG_NAME" "$FOLDER"

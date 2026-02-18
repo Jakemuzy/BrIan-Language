@@ -2,15 +2,16 @@
 
 /* ---------- Symbols ---------- */
 
-Symbol* InitSymbol(ASTNode* decl, Symbol* prev) 
+Symbol* InitSymbol(ASTNode* decl, Symbol* prev, TYPE* type) 
 {
     Symbol* sym = malloc(sizeof(Symbol));
     sym->decl = decl;
     sym->name = decl->token.lex.word;
     sym->prev = prev;
-    sym->stype = (decl->type == VAR_DECL_NODE) ? S_VAR : S_FUNC;   /* Determine Type Here */
+    sym->type = type;
     switch(decl->type) {
         case(VAR_DECL_NODE): sym->stype = S_VAR; break;
+        /* Check parent for type? */
         case(FUNC_NODE) : sym->stype = S_FUNC; break;
         case(ARR_INDEX_NODE) : sym->stype = S_INDEX; break;
         case(CALL_FUNC_NODE) : sym->stype = S_CALL; break;
@@ -45,13 +46,13 @@ Symbol* STLookup(SymbolTable* env, char* name)
     return sym;
 }
 
-Symbol* STPush(SymbolTable* env, ASTNode* key)
+Symbol* STPush(SymbolTable* env, ASTNode* key, TYPE* type)
 {
     char* name = key->token.lex.word;
     int index = Hash(name, HASH_STR, env->maxSize);
 
     Symbol* sym, *syms = env->buckets[index];
-    sym = InitSymbol(key, syms);
+    sym = InitSymbol(key, syms, type);
 
     env->buckets[index] = sym;
     return sym;
@@ -222,7 +223,7 @@ Symbol* LookupAllScopes(Scope* scope, char* name, NamespaceKind kind)
     return NULL;
 }
 
-Symbol* STPushNamespace(Scope* scope, ASTNode* key, NamespaceKind kind)
+Symbol* STPushNamespace(Scope* scope, ASTNode* key, NamespaceKind kind, TYPE* type)
 {
     for (size_t i = 0; i < scope->namespaces->count; i++) {
         if (scope->namespaces->nss[i]->kind != kind) continue;

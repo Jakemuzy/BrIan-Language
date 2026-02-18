@@ -19,7 +19,7 @@
 
 #define ERRN 0
 #define VALDN 1
-#define NAN -1  /* Not Applicable */
+#define NANN 2  /* Not Applicable */
 
 int NERROR_NO_IDENT(ASTNode* curr);
 int NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first);
@@ -28,16 +28,26 @@ int NERROR_DOESNT_EXIST(char* name, ASTNode* curr);
 /* ---------- Resolving ---------- */
 
 Namespaces* ResolveNames(AST* ast);
-int ResolveNamesInNode(Scope* scope, ASTNode* node, ASTNode* parent);
 
-int ResolveEverything(Scope* scope, ASTNode* current, ASTNode* parent);
-int ResolveVars(Scope* scope, ASTNode* current, ASTNode* parent);
-int ResolveTypes(Scope* scope, ASTNode* current, ASTNode* parent);
+int ResolveEverything(Scope* scope, ASTNode* current);
+int Resolve(Scope* scope, ASTNode* current);
+int ResolveTypes(Scope* scope, ASTNode* current);
+
+int ResolveVars(Scope* scope, ASTNode* current);
+int ResolveVar(Scope* scope, ASTNode* current, TYPE* type);
+int ResolveFuncs(Scope* scope, ASTNode* current);
+int ResolveExprs(Scope* scope, ASTNode* current);
+int ResolveExpr(Scope* scope, ASTNode* current);
+int ResolveStmts(Scope* scope, ASTNode* current);
+
+int ResolveFuncCall(Scope* scope, ASTNode* current);
+int ResolveArgList();
+
+int EnterScopeIfNeeded(Scope** scope, ASTNode* current);
 
 /* ---------- Helpers ---------- */
 
 ASTNode* FindIdentChild(ASTNode* node);
-bool IdentIsDecl(ASTNode* decl, ASTNode* parent);
 bool IsCtrlStmt(NodeType type);
 NodeType GetScopeType(ASTNode* node) ;
 
