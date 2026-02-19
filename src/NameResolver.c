@@ -92,6 +92,12 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current)
         case (CALL_FUNC_NODE):
             status = ResolveFuncCall(scope, current);
             break;
+        case (STRUCT_DECL_NODE):
+            status = ResolveStructs(scope, current);
+            break;
+        case (ENUM_DECL_NODE):
+            status = ResolveEnums(scope, current);
+            break;
     }
 
     if (status == ERRN) return status;
@@ -368,11 +374,45 @@ int ResolveReturnStmt(ScopeContext* scope, ASTNode* current)
 
 int ResolveStructs(ScopeContext* scope, ASTNode* current)
 {
+    /* Pushes Struct to scope */
+    ASTNode* identNode = current->children[0];
+
+    SymbolType stype = S_STRUCT;
+    Symbol* sym;
+    char* name = identNode->token.lex.word;
+
+    if (PeekScopeStack(&scope->scopeTypes) == CTRL_SCOPE) sym = LookupAllScopes(scope, name, N_VAR);
+    else sym = LookupCurrentScope(scope, name, N_VAR);
+
+    if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
+
+    /* TYPE* will become TY_STRUCT during type checking, NULL for now */
+    sym = STPushNamespace(scope, current, N_VAR, NULL);
+    PushScope(scope, sym, N_VAR);
+
+    /* Evaluates Structs Members */
     BeginScope(scope, STRUCT_SCOPE);
-    /* Push struct values to Struct's own namespace */
-    
-    // Fields CAN Shadow
+
+    /* Push struct values to its own namespace */
+    Namespaces* prevNs = scope->namespaces; 
+    scope->namespaces = sym->fields;  /* THIS IS INCORRECT SINCE SCOPE USES NAMESPACES NOT NAMESPACE */
+
     // Can Nest Enum / Structs  
+    // Fields CAN Shadow
+    ASTNode* structBodyNode = current->children[1];
+    for (size_t i = 0; i < structBodyNode->childCount; i++) {
+        /* Variable case */ 
+        if (structBodyNode->children[i]->type == VAR_DECL_NODE) {
+            /* 
+            ResolveVars() But would need it to push to the structs namespace 
+            instead of the global namespace that it is currently pushing to
+            */
+        }
+        /* Fucntion case */
+    }
+
+    /* Restore old namespace */
+    scope->namespaces = prevNs;
 
     ExitScope(scope);
     return VALDN;
@@ -380,7 +420,7 @@ int ResolveStructs(ScopeContext* scope, ASTNode* current)
 
 int ResolveEnums(ScopeContext* scope, ASTNode* current)
 {
-
+    /* Don't allow shadowing */
 }
 
 int ResolveTypedefs(ScopeContext* scope, ASTNode* current)

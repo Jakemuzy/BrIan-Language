@@ -40,7 +40,13 @@ typedef struct TYPE_LIST {  /* Especially useful for function paramater lists */
 } TYPE_LIST;
 
 typedef struct TYPE_FIELD { /* Struct Fields */
-    Symbol* sym;
+/* 
+Symbol stores type already, though TYPE* might be useful
+here becaues of custom types, also consider the possibility
+of TYPE_FIELDS storing a function type. (As in the case of 
+a function inside a struct )
+*/
+    Symbol* sym;    
     TYPE* type;
 } TYPE_FIELD;
 
@@ -49,11 +55,16 @@ typedef struct TYPE_FIELD_LIST {
     struct TYPE_FIELD_LIST* tail;
 } TYPE_FIELD_LIST;
 
+typedef struct TYPE_STRUCT {
+    TYPE_FIELD_LIST* fields;
+} TYPE_STRUCT;
+
 
 /* Other types already declared in Symbol.h */
 TYPE_LIST TY_LIST(TYPE* head, TYPE_LIST* tail);
 TYPE_FIELD* TY_FIELD(Symbol* sym, TYPE* type);
 TYPE_FIELD_LIST* TY_FIELD_LIST(TYPE_FIELD* head, TYPE_FIELD_LIST* tail);
+TYPE_STRUCT* TY_STRUCT(TYPE_FIELD_LIST* fields);
 
 /* TODO: Implement structs as fields */
 

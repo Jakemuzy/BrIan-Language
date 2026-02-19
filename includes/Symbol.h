@@ -22,6 +22,7 @@ typedef struct TYPE TYPE;
 typedef struct TYPE_LIST TYPE_LIST;
 typedef struct TYPE_FIELD TYPE_FIELD;
 typedef struct TYPE_FIELD_LIST TYPE_FIELD_LIST;
+typedef struct TYPE_STRUCT TYPE_STRUCT;
 
 /* Constructors */
 TYPE* TY_ERROR(void);
