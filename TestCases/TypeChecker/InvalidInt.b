@@ -1,9 +1,4 @@
 
-int functionTime(int b, char c)
-{
-
-}
-
 int main() {
 
     int p, l, k = 4, zf = 174;
@@ -18,8 +13,27 @@ int main() {
     x = x + 5 / 3 + x * 4;
 
     if (x) { }
+    int arr[] = { 3, 2, 1 };
 
-    functionTime(12, 'b');
+    if (1) { }
+    elif (2 == 1) { }
+    else { }
+
+    do {
+
+    } while (0);
+
+    while (1) { }
+
+    for(x = 0; x < 5; x++) { }
+
+    switch (kb) {
+        case(1) {}
+        case(2) {}
+        default {}
+    }
+
+    return x + 5;
 }
 
-int func(int kbr, string blaire) { }
+// FAIL
