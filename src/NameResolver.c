@@ -48,7 +48,7 @@ TYPE* StringToType(const char* name)
     if (strcmp(name, "null") == 0)    return TY_NULL();
 
     // If it wasn’t a builtin, treat as named type
-    return TY_ERROR();
+    return TY_NAME(NULL, NULL); /* This will be resolved in type resolution */
 }
 
 /* ----------- Name Resolution ---------- */
@@ -102,7 +102,6 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current)
             return ERRN;
     }
 
-
     return VALDN;
 }
 
@@ -115,6 +114,9 @@ int ResolveVars(ScopeContext* scope, ASTNode* current)
 
 int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type)
 {
+    /* TODO: Find the underlying cause for this null check being required */
+    if (!current) return NANN;
+
     if (current->type == IDENT_NODE) {
         SymbolType stype = S_VAR;
     
@@ -149,8 +151,8 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
     ASTNode* identNode = current->children[1];
     char* name = identNode->token.lex.word;
 
-    /* Lookup if it exists yet */
-    Symbol* sym = LookupAllScopes(scope, name, N_VAR); /* TODO: lookup all scopes may be wrong here */
+    /* Current since functions in structs can shadow */
+    Symbol* sym = LookupCurrentScope(scope, name, N_VAR); 
     if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
 
     sym = STPushNamespace(scope, identNode, N_VAR, type);
@@ -159,7 +161,7 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
 
     /* Param List */
     int status = ResolveParams(scope, current->children[2]);
-    if (status != VALDN) return status;
+    if (status == ERRN) return status;
 
     /* Body Calls Resolve Var */
     status = ResolveEverything(scope, current->children[3]);
@@ -188,6 +190,7 @@ int ResolveParam(ScopeContext* scope, ASTNode* current)
     Symbol* sym = LookupCurrentScope(scope, identNode->token.lex.word, N_VAR);
     if (sym) return NERROR_ALREADY_DEFINED(identNode->token.lex.word, current, sym->decl);
 
+    /* TODO: Push to Func's personal Namespace */
     TYPE* type = StringToType(current->children[0]->token.lex.word);
     sym = STPushNamespace(scope, identNode, N_VAR, type);
     PushScope(scope, sym, N_VAR);
@@ -211,32 +214,153 @@ int ResolveExpr(ScopeContext* scope, ASTNode* current)
     else {
         for (size_t i = 0; i < current->childCount; i++) {
             int status = ResolveExpr(scope, current->children[i]);
-            if (status == ERRN) return status;
+            if (status == ERRN) return status;  /* Need to have better error handling messages */
         }
     }
     return VALDN;
 }
 
+/* ---------- Statements ---------- */
+
 int ResolveStmts(ScopeContext* scope, ASTNode* current)
 {
-    /* TODO: Have resolve stmts handle if / while / etc stmts, 
-       and allow for this function to enter scope instead and set a 
-       ctrl_stmt flag as well. That way we avoid FindIdentChild and 
-       the EnterScopeAsNeeded bloat
+    /* Process paramaters then once hit body call ResolveEverything */
+    /* Each Function will handle their own scope */
+    switch(current->type) {
+        case (IF_STMT_NODE):
+            return ResolveIfStmt(scope, current);
+        case (DO_WHILE_STMT_NODE):
+            return ResolveDoWhileStmt(scope, current);
+        case (WHILE_STMT_NODE):
+            return ResolveWhileStmt(scope, current);
+        case (SWITCH_STMT_NODE):
+            return ResolveSwitchStmt(scope, current);
+        case (FOR_STMT_NODE):
+            return ResolveForStmt(scope, current);
+        case (RETURN_STMT_NODE):
+            return ResolveReturnStmt(scope, current);  
+        default: 
+            break;
+    }
 
-       Would need for this function to distringuish between each 
-       type of stmt as well, this should be a switch
-    */
+    return NANN;
+}
 
-    /* Return Stmt and CtrlStmt probably the only ones need to check */
+int ResolveIfStmt(ScopeContext* scope, ASTNode* current) 
+{
+    /* TODO: could probably benefit from an ResolveIfElifStmt and ResolveElseStmt */
+    for (size_t i = 0; i < current->childCount; i++) {
+        if (current->children[i]->type == ELSE_NODE) {
+            BeginScope(scope, CTRL_SCOPE);
+
+
+            if (ResolveEverything(scope, current->children[0]) == ERRN) return ERRN; /* Body */
+
+            ExitScope(scope);
+            continue;
+        }
+
+        /* Otherwise if and elif have same format */
+        ASTNode* ifElifNode = current->children[i];
+        ASTNode* ifElifExpr = ifElifNode->children[0];
+        if (ResolveExprs(scope, ifElifExpr) == ERRN) return ERRN;  
+
+        BeginScope(scope, CTRL_SCOPE);
+
+        ASTNode* ifElifBody = ifElifNode->children[1];
+        if (ResolveEverything(scope, ifElifBody) == ERRN) return ERRN; 
+
+        ExitScope(scope);
+    }   
+
+    return VALDN;
+}
+
+int ResolveDoWhileStmt(ScopeContext* scope, ASTNode* current)
+{
+    BeginScope(scope, CTRL_SCOPE);
+
+    ASTNode* doBody = current->children[0];
+    if (ResolveEverything(scope, doBody) == ERRN) return ERRN;
+
+    ExitScope(scope);
+
+    ASTNode* whileExpr = current->children[1];
+    if (ResolveExpr(scope, whileExpr) == ERRN) return ERRN;
+}
+
+int ResolveWhileStmt(ScopeContext* scope, ASTNode* current) 
+{
+    ASTNode* whileExpr = current->children[0];
+    if (ResolveExpr(scope, whileExpr) == ERRN) return ERRN;
 
     BeginScope(scope, CTRL_SCOPE);
 
-    /* Process paramaters then once hit body call ResolveEverything */
-
-    /* Resolve Stmt Similar to Func here */
+    ASTNode* whileBody = current->children[1];
+    if (ResolveEverything(scope, whileBody) == ERRN) return ERRN;
 
     ExitScope(scope);
+}
+
+int ResolveSwitchStmt(ScopeContext* scope, ASTNode* current)
+{
+    ASTNode* valueNode = current->children[0];
+    if (ResolveExpr(scope, valueNode) != VALDN) return ERRN;
+
+    for (size_t i = 1; i < current->childCount; i++) {
+        ASTNode* caseNode = current->children[i];
+
+        if (caseNode->type == DEFAULT_NODE) {
+            BeginScope(scope, CTRL_SCOPE);
+
+            ASTNode* caseBody = caseNode->children[0];
+            if (ResolveEverything(scope, caseBody) == ERRN) return ERRN;
+
+            ExitScope(scope);
+            continue;
+        }
+        
+        ASTNode* valueNode2 = caseNode->children[0];
+        if (ResolveExpr(scope, valueNode2) != VALDN) return ERRN;
+
+        BeginScope(scope, CTRL_SCOPE);
+
+        ASTNode* caseBody = caseNode->children[1];
+        if (ResolveEverything(scope, caseBody) == ERRN) return ERRN;
+
+        ExitScope(scope);
+    }
+
+    return VALDN;
+}
+
+int ResolveForStmt(ScopeContext* scope, ASTNode* current)
+{
+    /* Scope begins early since for stmts can declare variables in their exprs */
+    BeginScope(scope, CTRL_SCOPE);
+
+    /* TODO: Need to allow decls later one I change the grammar to accept them */
+    ASTNode* declExprList = current->children[0];
+    if (ResolveExprs(scope, declExprList) == ERRN) return ERRN; 
+
+    ASTNode* exprNode = current->children[1];
+    if (ResolveExprs(scope, exprNode) == ERRN) return ERRN;
+
+    ASTNode* exprListNode = current->children[2];
+    if (ResolveExprs(scope, exprListNode) == ERRN) return ERRN;
+
+    ASTNode* forBody = current->children[3];
+    if (ResolveEverything(scope, forBody) == ERRN) return ERRN;
+
+    ExitScope(scope);
+    return VALDN;
+}
+
+int ResolveReturnStmt(ScopeContext* scope, ASTNode* current)
+{
+    ASTNode* returnExpr = current->children[0];
+    if (ResolveExprs(scope, returnExpr) == ERRN) return ERRN;
+
     return VALDN;
 }
 

@@ -40,8 +40,14 @@ int ResolveParam(ScopeContext* scope, ASTNode* current);
 
 int ResolveExprs(ScopeContext* scope, ASTNode* current);
 int ResolveExpr(ScopeContext* scope, ASTNode* current);
+
 int ResolveStmts(ScopeContext* scope, ASTNode* current);
-int ResolveStmt(ScopeContext* scope, ASTNode* current);
+int ResolveIfStmt(ScopeContext* scope, ASTNode* current);
+int ResolveDoWhileStmt(ScopeContext* scope, ASTNode* current);
+int ResolveWhileStmt(ScopeContext* scope, ASTNode* current);
+int ResolveSwitchStmt(ScopeContext* scope, ASTNode* current);
+int ResolveForStmt(ScopeContext* scope, ASTNode* current);
+int ResolveReturnStmt(ScopeContext* scope, ASTNode* current);
 
 int ResolveStructs(ScopeContext* scope, ASTNode* current);
 int ResolveEnums(ScopeContext* scope, ASTNode* current);

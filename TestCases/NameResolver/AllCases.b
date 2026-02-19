@@ -29,6 +29,7 @@ int main() {
 
     int arr[] = { 3, 2, 1 };
     arr[15];
+    int charr;
 
 }
 // PASS
