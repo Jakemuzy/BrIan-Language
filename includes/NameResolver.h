@@ -49,7 +49,7 @@ int ResolveSwitchStmt(ScopeContext* scope, ASTNode* current);
 int ResolveForStmt(ScopeContext* scope, ASTNode* current);
 int ResolveReturnStmt(ScopeContext* scope, ASTNode* current);
 
-int ResolveStructs(ScopeContext* scope, ASTNode* current);
+int ResolveStructDecl(ScopeContext* scope, ASTNode* current);
 int ResolveEnums(ScopeContext* scope, ASTNode* current);
 
 int ResolveFuncCall(ScopeContext* scope, ASTNode* current);

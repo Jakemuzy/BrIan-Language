@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
         {"TestCases/NameResolver/Switch.b", false},
         {"TestCases/NameResolver/For.b", true},
         {"TestCases/NameResolver/Return.b", true},
+        {"TestCases/NameResolver/ZStruct.b", true},
     };
 
     int expectedPass = -1;
