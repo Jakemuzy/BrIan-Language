@@ -25,6 +25,9 @@ int NERROR_NO_IDENT(ASTNode* curr);
 int NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first);
 int NERROR_DOESNT_EXIST(char* name, ASTNode* curr);
 
+int NERROR_UNDEFINED_TYPE(char* name, ASTNode* curr);
+int NERROR(char* msg, char* name, ASTNode* curr);
+
 /* ---------- Resolving ---------- */
 
 Namespaces* ResolveNames(AST* ast);
@@ -32,7 +35,7 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current);
 
 
 int ResolveVars(ScopeContext* scope, ASTNode* current);
-int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type);
+int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type, char* typeLex);
 
 int ResolveFuncs(ScopeContext* scope, ASTNode* current);
 int ResolveParams(ScopeContext* scope, ASTNode* current);
@@ -49,7 +52,7 @@ int ResolveSwitchStmt(ScopeContext* scope, ASTNode* current);
 int ResolveForStmt(ScopeContext* scope, ASTNode* current);
 int ResolveReturnStmt(ScopeContext* scope, ASTNode* current);
 
-int ResolveStructs(ScopeContext* scope, ASTNode* current);
+int ResolveStructDecl(ScopeContext* scope, ASTNode* current);
 int ResolveEnums(ScopeContext* scope, ASTNode* current);
 
 int ResolveFuncCall(ScopeContext* scope, ASTNode* current);

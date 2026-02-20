@@ -79,6 +79,10 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
     Param ::= Type IDENT
 
 
+// NOT IMPLEMENTED YET
+    Lambda ::= "func" '(' [ParamList ] ')' Body     
+
+
 	Body ::= '{' StmtList '}'
 	StmtList ::= { Stmt }  
 	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt 

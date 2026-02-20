@@ -6,4 +6,4 @@ int main() {
     } while (x);
 }
 
-// PASS
+// Fail

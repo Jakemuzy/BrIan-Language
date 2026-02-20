@@ -97,7 +97,7 @@ static const size_t POSTFIXS_COUNT = sizeof(POSTFIXS) / sizeof(POSTFIXS[0]);
 static const TokenType PRIMARYS[] = { IDENT, DECIMAL, INTEGRAL, SLITERAL, CLITERAL };
 static const size_t PRIMARYS_COUNT = sizeof(PRIMARYS) / sizeof(PRIMARYS[0]);
 
-static const TokenType TYPES[] = { CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, BOOL, VOID, STRING };
+static const TokenType TYPES[] = { CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, BOOL, VOID, STRING, I8, I16, I32, I64, U8, U16, U32, U64};
 static const size_t TYPES_COUNT = sizeof(TYPES) / sizeof(TYPES[0]);
 
 #endif

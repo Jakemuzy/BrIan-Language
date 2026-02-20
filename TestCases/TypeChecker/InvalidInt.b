@@ -8,32 +8,15 @@ int main() {
     int x = "Str";
     x = x + 5;
 
-    string z = 3;
+    struct Employee {
+        string name;
+        UI32 salary;
+        UI8 weekHours;
+    };
 
-    x = x + 5 / 3 + x * 4;
+    Employee emp;
 
-    if (x) { }
-    int arr[] = { 3, 2, 1 };
-
-    if (1) { }
-    elif (2 == 1) { }
-    else { }
-
-    do {
-
-    } while (0);
-
-    while (1) { }
-
-    for(x = 0; x < 5; x++) { }
-
-    switch (kb) {
-        case(1) {}
-        case(2) {}
-        default {}
-    }
-
-    return x + 5;
+    Employee.b;
 }
 
 // FAIL

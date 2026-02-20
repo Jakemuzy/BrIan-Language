@@ -16,10 +16,21 @@ int NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first)
 
 int NERROR_DOESNT_EXIST(char* name, ASTNode* curr) 
 {
-    printf("NAME ERROR: Identifier '%s' on line %d is undefined\n", name, curr->token.line);
+    printf("NAME ERROR: '%s' on line %d is an undefined IDENTIFIER\n", name, curr->token.line);
     return ERRN;
 }
 
+int NERROR_UNDEFINED_TYPE(char* name, ASTNode* curr) 
+{
+    printf("NAME ERROR: '%s' on line %d is an undefined TYPE\n", name, curr->token.line);
+    return ERRN;
+}
+
+int NERROR(char* msg, char* name, ASTNode* curr) 
+{
+    printf("NAME ERROR: %s '%s' on line %d\n", msg, name, curr->token.line);
+    return ERRN;
+}
 
 /* ----------- Helper ----------- */
 
@@ -48,7 +59,7 @@ TYPE* StringToType(const char* name)
     if (strcmp(name, "null") == 0)    return TY_NULL();
 
     // If it wasn’t a builtin, treat as named type
-    return TY_NAME(NULL, NULL); /* This will be resolved in type resolution */
+    return NULL; /* This will be resolved in type resolution */
 }
 
 /* ----------- Name Resolution ---------- */
@@ -92,6 +103,12 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current)
         case (CALL_FUNC_NODE):
             status = ResolveFuncCall(scope, current);
             break;
+        case (STRUCT_DECL_NODE):
+            return ResolveStructDecl(scope, current);
+            break;
+        case (ENUM_DECL_NODE):
+            status = ResolveEnums(scope, current);
+            break;
     }
 
     if (status == ERRN) return status;
@@ -109,10 +126,22 @@ int ResolveVars(ScopeContext* scope, ASTNode* current)
 {
     char* typeLex = current->children[0]->token.lex.word;
     TYPE* type = StringToType(typeLex);
-    return ResolveVar(scope, current->children[1], type);   
+
+    if (!type) {
+        Symbol* sym = LookupAllScopes(scope, typeLex, N_TYPE);
+
+        if (!sym) 
+            return NERROR_UNDEFINED_TYPE(typeLex, current->children[0]);
+
+        /* TODO: ERROR needs to have var store typeName */
+
+        type = TY_NAME(sym, NULL);
+    }
+
+    return ResolveVar(scope, current->children[1], type, typeLex);   
 }
 
-int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type)
+int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type, char* typeLex)
 {
     /* TODO: Find the underlying cause for this null check being required */
     if (!current) return NANN;
@@ -129,13 +158,13 @@ int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type)
 
         if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
       
-        sym = STPushNamespace(scope, current, N_VAR, type);
+        sym = STPushNamespace(scope, current, N_VAR, type, typeLex);
         PushScope(scope, sym, N_VAR);
         return VALDN;
     }    
     else {
         for (size_t i = 0; i < current->childCount; i++) {
-            int status = ResolveVar(scope, current->children[i], type);
+            int status = ResolveVar(scope, current->children[i], type, typeLex);
             if (status == ERRN) return status;
         }
     }
@@ -153,9 +182,9 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
 
     /* Current since functions in structs can shadow */
     Symbol* sym = LookupCurrentScope(scope, name, N_VAR); 
-    if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
+    if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
 
-    sym = STPushNamespace(scope, identNode, N_VAR, type);
+    sym = STPushNamespace(scope, identNode, N_VAR, type, typeLex);
     PushScope(scope, sym, N_VAR);
     BeginScope(scope, FUNC_SCOPE);
 
@@ -188,11 +217,12 @@ int ResolveParam(ScopeContext* scope, ASTNode* current)
     ASTNode* identNode = current->children[1];
 
     Symbol* sym = LookupCurrentScope(scope, identNode->token.lex.word, N_VAR);
-    if (sym) return NERROR_ALREADY_DEFINED(identNode->token.lex.word, current, sym->decl);
+    if (sym) return NERROR_ALREADY_DEFINED(identNode->token.lex.word, identNode, sym->decl);
 
     /* TODO: Push to Func's personal Namespace */
-    TYPE* type = StringToType(current->children[0]->token.lex.word);
-    sym = STPushNamespace(scope, identNode, N_VAR, type);
+    char* typeLex = current->children[0]->token.lex.word;
+    TYPE* type = StringToType(typeLex);
+    sym = STPushNamespace(scope, identNode, N_VAR, type, typeLex);
     PushScope(scope, sym, N_VAR);
 
     return VALDN;
@@ -210,6 +240,22 @@ int ResolveExpr(ScopeContext* scope, ASTNode* current)
         if (!LookupAllScopes(scope, name, N_VAR))
             return NERROR_DOESNT_EXIST(name, current);
         else return VALDN;
+    }
+    else if (current->type == MEMBER_ACCESS_NODE) {
+        char* name = current->children[0]->token.lex.word;
+        Symbol* sym = LookupAllScopes(scope, name, N_VAR);
+        if (!sym)
+            return NERROR_DOESNT_EXIST(name, current->children[0]);
+        if (!sym->typeName) 
+            return NERROR("Type not defined for struct", name, current->children[0]);
+
+        /* Swap namespace to structs namespace */
+        char* memName = current->children[1]->token.lex.word;
+        Symbol* structNode = LookupAllScopes(scope, sym->typeName, N_TYPE);
+        Symbol* memberNode = LookupNamespaceCurrentScope(structNode->fields, memName);
+        if (!memberNode)
+            return NERROR("Undefined struct member", memName, current->children[1]);
+        else return VALDN; 
     }
     else {
         for (size_t i = 0; i < current->childCount; i++) {
@@ -366,13 +412,54 @@ int ResolveReturnStmt(ScopeContext* scope, ASTNode* current)
 
 /* ---------- Custom Types ---------- */
 
-int ResolveStructs(ScopeContext* scope, ASTNode* current)
+int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
 {
+    /* Pushes Struct to scope */
+    ASTNode* identNode = current->children[0];
+
+    SymbolType stype = S_STRUCT;
+    Symbol* sym;   
+    char* name = identNode->token.lex.word;
+
+    if (PeekScopeStack(&scope->scopeTypes) == CTRL_SCOPE) sym = LookupAllScopes(scope, name, N_TYPE);
+    else sym = LookupCurrentScope(scope, name, N_TYPE);
+
+    if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
+
+    /* TYPE* will become TY_STRUCT during type checking, NULL for now */
+    sym = STPushNamespace(scope, identNode, N_TYPE, NULL, name);
+    sym->typeName = name;
+    sym->fields = NamespaceInit(N_VAR); 
+    PushScope(scope, sym, N_TYPE);
+
+    /* Evaluates Structs Members */
     BeginScope(scope, STRUCT_SCOPE);
-    /* Push struct values to Struct's own namespace */
-    
-    // Fields CAN Shadow
+
+    /* Push struct values to its own namespace */
+    Namespaces* prevNs = scope->namespaces; 
+    Namespaces* temp = malloc(sizeof(Namespaces));
+    temp->nss = malloc(sizeof(Namespace*));
+    temp->count = 1;
+    temp->nss[0] = sym->fields;
+    scope->namespaces = temp;  
+
     // Can Nest Enum / Structs  
+    // Fields CAN Shadow
+    ASTNode* structBodyNode = current->children[1];
+    for (size_t i = 0; i < structBodyNode->childCount; i++) {
+
+        ASTNode* memberNode = structBodyNode->children[i];
+        if (memberNode->type == VAR_DECL_NODE) {
+            if (ResolveVars(scope, memberNode) == ERRN) return ERRN;
+        }
+        else if (memberNode->type == FUNC_NODE) {
+            if (ResolveFuncs(scope, memberNode) == ERRN) return ERRN;
+        }
+    }
+
+    /* Restore old namespace */
+    scope->namespaces = prevNs;
+    free(temp->nss); free(temp);
 
     ExitScope(scope);
     return VALDN;
@@ -380,7 +467,7 @@ int ResolveStructs(ScopeContext* scope, ASTNode* current)
 
 int ResolveEnums(ScopeContext* scope, ASTNode* current)
 {
-
+    /* Don't allow shadowing */
 }
 
 int ResolveTypedefs(ScopeContext* scope, ASTNode* current)
