@@ -25,6 +25,8 @@ int NERROR_NO_IDENT(ASTNode* curr);
 int NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first);
 int NERROR_DOESNT_EXIST(char* name, ASTNode* curr);
 
+int NERROR_UNDEFINED_TYPE(char* name, ASTNode* curr);
+
 /* ---------- Resolving ---------- */
 
 Namespaces* ResolveNames(AST* ast);

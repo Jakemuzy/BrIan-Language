@@ -20,6 +20,11 @@ int NERROR_DOESNT_EXIST(char* name, ASTNode* curr)
     return ERRN;
 }
 
+int NERROR_UNDEFINED_TYPE(char* name, ASTNode* curr) 
+{
+    printf("NAME ERROR: type '%s' on line %d is undefined\n", name, curr->token.line);
+    return ERRN;
+}
 
 /* ----------- Helper ----------- */
 
@@ -48,7 +53,7 @@ TYPE* StringToType(const char* name)
     if (strcmp(name, "null") == 0)    return TY_NULL();
 
     // If it wasn’t a builtin, treat as named type
-    return TY_NAME(NULL, NULL); /* This will be resolved in type resolution */
+    return NULL; /* This will be resolved in type resolution */
 }
 
 /* ----------- Name Resolution ---------- */
@@ -115,6 +120,19 @@ int ResolveVars(ScopeContext* scope, ASTNode* current)
 {
     char* typeLex = current->children[0]->token.lex.word;
     TYPE* type = StringToType(typeLex);
+
+    if (!type) {
+        Symbol* sym;
+
+        if (PeekScopeStack(&scope->scopeTypes) == CTRL_SCOPE) sym = LookupAllScopes(scope, typeLex, N_TYPE);
+        else sym = LookupCurrentScope(scope, typeLex, N_TYPE);
+
+        if (!sym) 
+            return NERROR_UNDEFINED_TYPE(typeLex, current->children[0]);
+
+        type = TY_NAME(sym, NULL);
+    }
+
     return ResolveVar(scope, current->children[1], type);   
 }
 
@@ -216,6 +234,9 @@ int ResolveExpr(ScopeContext* scope, ASTNode* current)
         if (!LookupAllScopes(scope, name, N_VAR))
             return NERROR_DOESNT_EXIST(name, current);
         else return VALDN;
+    }
+    else if (current->type == MEMBER_ACCESS_NODE) {
+        /* Lookup Var in N_VAR */
     }
     else {
         for (size_t i = 0; i < current->childCount; i++) {

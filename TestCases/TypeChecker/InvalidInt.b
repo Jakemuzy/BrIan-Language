@@ -8,11 +8,15 @@ int main() {
     int x = "Str";
     x = x + 5;
 
-    struct Emplyee {
+    struct Employee {
         string name;
         UI32 salary;
         UI8 weekHours;
     };
+
+    Employee emp;
+
+    Employee.b;
 }
 
 // FAIL

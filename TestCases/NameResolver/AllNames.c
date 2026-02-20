@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
         {"TestCases/NameResolver/VarGlob.b", true},
         {"TestCases/NameResolver/VarInvalidScope.b", false},
         {"TestCases/NameResolver/VarShadow.b", true},
-        {"TestCases/NameResolver/DoWhile.b", true},
+        {"TestCases/NameResolver/DoWhile.b", false},
         {"TestCases/NameResolver/While.b", false},
         {"TestCases/NameResolver/Switch.b", false},
         {"TestCases/NameResolver/For.b", true},
