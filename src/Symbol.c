@@ -2,13 +2,14 @@
 
 /* ---------- Symbols ---------- */
 
-Symbol* InitSymbol(ASTNode* decl, Symbol* prev, TYPE* type) 
+Symbol* InitSymbol(ASTNode* decl, Symbol* prev, TYPE* type, char* typeLex) 
 {
     Symbol* sym = malloc(sizeof(Symbol));
     sym->decl = decl;
     sym->name = decl->token.lex.word;
     sym->prev = prev;
     sym->type = type;
+    sym->typeName = typeLex;
     switch(decl->type) {
         case(VAR_DECL_NODE): sym->stype = S_VAR; break;
         /* Check parent for type? */
@@ -51,13 +52,13 @@ Symbol* STLookup(SymbolTable* env, char* name)
     return sym;
 }
 
-Symbol* STPush(SymbolTable* env, ASTNode* key, TYPE* type)
+Symbol* STPush(SymbolTable* env, ASTNode* key, TYPE* type, char* typeLex)
 {
     char* name = key->token.lex.word;
     int index = Hash(name, HASH_STR, env->maxSize);
 
     Symbol* sym, *syms = env->buckets[index];
-    sym = InitSymbol(key, syms, type);
+    sym = InitSymbol(key, syms, type, typeLex);
 
     env->buckets[index] = sym;
     return sym;

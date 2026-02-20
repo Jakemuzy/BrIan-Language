@@ -32,7 +32,7 @@ void PushScope(ScopeContext* scope, Symbol* sym, NamespaceKind nsKind);
 
 Symbol* LookupCurrentScope(ScopeContext* scope, char* name, NamespaceKind nsKind);
 Symbol* LookupAllScopes(ScopeContext* scope, char* name, NamespaceKind kind);
-Symbol* STPushNamespace(ScopeContext* scope, ASTNode* key, NamespaceKind kind, TYPE* type);
+Symbol* STPushNamespace(ScopeContext* scope, ASTNode* key, NamespaceKind kind, TYPE* type, char* typeLex);
 
 /* For type checker */
 Symbol* STLookupNamespace(Namespaces* nss, char* name, NamespaceKind kind);

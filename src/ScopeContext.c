@@ -123,13 +123,13 @@ Symbol* LookupAllScopes(ScopeContext* scope, char* name, NamespaceKind kind)
     return NULL;
 }
 
-Symbol* STPushNamespace(ScopeContext* scope, ASTNode* key, NamespaceKind kind, TYPE* type)
+Symbol* STPushNamespace(ScopeContext* scope, ASTNode* key, NamespaceKind kind, TYPE* type, char* typeLex)
 {
     for (size_t i = 0; i < scope->namespaces->count; i++) {
         if (scope->namespaces->nss[i]->kind != kind) continue;
 
         Namespace* ns = scope->namespaces->nss[i];
-        return STPush(ns->env, key, type);
+        return STPush(ns->env, key, type, typeLex);
     }
 
     return NULL;

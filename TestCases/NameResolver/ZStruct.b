@@ -9,5 +9,5 @@ int main() {
 
     Employee emp;
 
-    Employee.x = 4;
+    emp.x = 4;
 }

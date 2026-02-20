@@ -62,13 +62,14 @@ typedef struct Symbol {
 
     /* Data Type and actual Symbol Type */
     TYPE* type;
+    char* typeName; /* For Field Lookup */
     SymbolType stype;
 
     /* Lightweight namespace for paramaters / struct fields / etc */
     Namespace* fields;  
 } Symbol;
 
-Symbol* InitSymbol(ASTNode* decl, Symbol* prev, TYPE* type);
+Symbol* InitSymbol(ASTNode* decl, Symbol* prev, TYPE* type, char* typeLex);
 void    FreeSymbol(Symbol* sym);
 
 /* ---------- Symbol Table ---------- */
@@ -85,7 +86,7 @@ typedef struct SymbolTable {
 SymbolTable* STInit();
 Symbol* STPop(SymbolTable* env, char* name);
 Symbol* STLookup(SymbolTable* env, char* key);
-Symbol* STPush(SymbolTable* env, ASTNode* key, TYPE* type);
+Symbol* STPush(SymbolTable* env, ASTNode* key, TYPE* type, char* typeLex);
 void STResize(SymbolTable* env, unsigned int newSize);
 
 #endif
