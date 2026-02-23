@@ -153,7 +153,7 @@ int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type, char* typeLex)
         SymbolType stype = S_VAR;
     
         Symbol* sym;
-        char* name = current->token.lex.word;
+        char* name = strdup(current->token.lex.word);
 
         sym = LookupCurrentScope(scope, name, N_VAR);
         if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
@@ -178,7 +178,7 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
     TYPE* type = StringToType(typeLex);
 
     ASTNode* identNode = current->children[1];
-    char* name = identNode->token.lex.word;
+    char* name = strdup(identNode->token.lex.word);
 
     /* Current since functions in structs can shadow */
     Symbol* sym = LookupCurrentScope(scope, name, N_VAR); 
@@ -240,23 +240,11 @@ int ResolveExpr(ScopeContext* scope, ASTNode* current)
         char* name = current->token.lex.word;
         if (!LookupAllScopes(scope, name, N_VAR))
             return NERROR_DOESNT_EXIST(name, current);
-        else return VALDN;
+        return VALDN;
     }
     else if (current->type == MEMBER_ACCESS_NODE) {
-        char* name = current->children[0]->token.lex.word;
-        Symbol* sym = LookupAllScopes(scope, name, N_VAR);
-        if (!sym)
-            return NERROR_DOESNT_EXIST(name, current->children[0]);
-        if (!sym->typeName) 
-            return NERROR("Type not defined for struct", name, current->children[0]);
-
-        /* Swap namespace to structs namespace */
-        char* memName = current->children[1]->token.lex.word;
-        Symbol* structNode = LookupAllScopes(scope, sym->typeName, N_TYPE);
-        Symbol* memberNode = LookupNamespaceCurrentScope(structNode->fields, memName);
-        if (!memberNode)
-            return NERROR("Undefined struct member", memName, current->children[1]);
-        else return VALDN; 
+        Symbol* resolvedSym = NULL;
+        return ResolveMemberAccess(scope, current, &resolvedSym);
     }
     else {
         for (size_t i = 0; i < current->childCount; i++) {
@@ -419,7 +407,7 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
 
     SymbolType stype = S_STRUCT;
     Symbol* sym;   
-    char* name = identNode->token.lex.word;
+    char* name = strdup(identNode->token.lex.word);
 
     sym = LookupCurrentScope(scope, name, N_TYPE);
     if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
@@ -427,19 +415,11 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
     /* TYPE* will become TY_STRUCT during type checking, NULL for now */
     sym = STPushNamespace(scope, identNode, N_TYPE, NULL, name);
     sym->typeName = name;
-    sym->fields = NamespaceInit(N_VAR); 
     PushScope(scope, sym, N_TYPE);
 
-    /* Evaluates Structs Members */
-    BeginScope(&scope, STRUCT_SCOPE);
-
-    /* Push struct values to its own namespace */
-    Namespaces* prevNs = scope->namespaces; 
-    Namespaces* temp = malloc(sizeof(Namespaces));
-    temp->nss = malloc(sizeof(Namespace*));
-    temp->count = 1;
-    temp->nss[0] = sym->fields;
-    scope->namespaces = temp;  
+    /* Stores namespae that resolves struct members inside of struct */
+    BeginPersistentScope(&scope, STRUCT_SCOPE);
+    sym->fields = scope->namespaces;
 
     // Can Nest Enum / Structs  
     // Fields CAN Shadow
@@ -455,11 +435,7 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
         }
     }
 
-    /* Restore old namespace */
-    scope->namespaces = prevNs;
-    free(temp->nss); free(temp);
-
-    ExitScope(&scope);
+    ExitPersistentScope(&scope);
     return VALDN;
 }
 
@@ -479,6 +455,50 @@ int ResolveTypedefs(ScopeContext* scope, ASTNode* current)
 int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
 {
     return NANN;
+}
+
+int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Symbol** resolvedSym) 
+{
+    Symbol* sym = NULL;
+    ASTNode* accessedNode = current->children[0];
+    int status;
+
+    if (accessedNode->type == IDENT_NODE) {
+        sym = LookupAllScopes(scope, accessedNode->token.lex.word, N_VAR);
+        if (!sym)
+            return NERROR_DOESNT_EXIST(accessedNode->token.lex.word, accessedNode);
+    } else if (accessedNode->type == MEMBER_ACCESS_NODE) {
+        status = ResolveMemberAccess(scope, accessedNode, resolvedSym);
+        if (status != VALDN) return status; 
+        sym = *resolvedSym; 
+    } else {
+        status = ResolveExprs(scope, accessedNode);
+        if (status != VALDN) return status;
+
+        /* Resolved Sym in case of Nested member accesses */
+        sym = *resolvedSym; 
+        if (!sym)
+            return NERROR("Cannot resolve member base", NULL, accessedNode);
+    }
+
+    if (!sym->typeName)
+        return NERROR("Type not defined for struct", sym->name, accessedNode);
+
+    // Member lookup
+    char* memName = current->children[1]->token.lex.word;
+    Symbol* structNode = LookupAllScopes(scope, sym->typeName, N_TYPE);
+    if (!structNode)
+        return NERROR("Struct type not found", sym->typeName, accessedNode);
+
+    Namespace* ns = GetNamespace(structNode->fields, N_VAR);
+    Symbol* memberNode = NULL;
+    if (ns) memberNode = LookupNamespaceCurrentScope(ns, memName);
+
+    if (!memberNode)
+        return NERROR("Undefined struct member", memName, current->children[1]);
+
+    *resolvedSym = memberNode; // store resolved symbol for later passes
+    return VALDN;
 }
 
 int ResolveArrIndex(ScopeContext* scope, ASTNode* current)

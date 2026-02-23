@@ -49,7 +49,7 @@ TYPE* TY_NAME(Symbol* sym, TYPE* type);
 
 /* ---------- Symbols ---------- */
 
-typedef struct Namespace Namespace;
+typedef struct Namespaces Namespaces;
 
 typedef enum SymbolType {   
     S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD, S_TYPEDEF, S_STRUCT, S_ENUM, S_CTRL, S_ERROR
@@ -66,7 +66,7 @@ typedef struct Symbol {
     SymbolType stype;
 
     /* Lightweight namespace for paramaters / struct fields / etc */
-    Namespace* fields;  
+    Namespaces* fields;  /* TODO: HAVE THIS BE NAMESPACES (nested types) */
 } Symbol;
 
 Symbol* InitSymbol(ASTNode* decl, Symbol* prev, TYPE* type, char* typeLex);

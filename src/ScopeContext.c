@@ -53,6 +53,7 @@ void ExitScope(ScopeContext** scope)
         ExitNamespaceScope(ns); /* Frees symbols keeps env */
         free(ns);
     }
+    free((*scope)->namespaces->nss);
     free((*scope)->namespaces);
     free(*scope);
     
@@ -68,6 +69,20 @@ void PushScope(ScopeContext* scope, Symbol* sym, NamespaceKind nsKind)
         Namespace* ns = scope->namespaces->nss[i];
         PushNamespaceScope(ns, sym);
     }
+}
+
+void BeginPersistentScope(ScopeContext** scope, ScopeType type)
+{
+    /* Logical wrapper to avoid confusion between scope begin/exit mismatch */
+    BeginScope(scope, type);
+}
+
+void ExitPersistentScope(ScopeContext** scope)
+{
+    ScopeContext* prev = (*scope)->prev;
+    free(*scope);
+    
+    *scope = prev;
 }
 
 /* ---------- Namespace Scope ----------- */

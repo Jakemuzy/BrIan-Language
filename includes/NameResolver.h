@@ -1,6 +1,9 @@
 #ifndef _NAME_RESOLVER_H__
 #define _NAME_RESOLVER_H__
 
+#define _POSIX_C_SOURCE 200809L
+#include <string.h>
+
 #include "Token.h"
 #include "ScopeContext.h"
 
@@ -56,6 +59,7 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current);
 int ResolveEnums(ScopeContext* scope, ASTNode* current);
 
 int ResolveFuncCall(ScopeContext* scope, ASTNode* current);
+int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Symbol** resolvedSym);
 int ResolveArrIndex(ScopeContext* scope, ASTNode* current);
 int ResolveArgList(ScopeContext* scope, ASTNode* current);
 int ResolveTypedefs(ScopeContext* scope, ASTNode* current);
