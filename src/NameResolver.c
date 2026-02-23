@@ -71,13 +71,11 @@ TYPE* StringToType(const char* name)
 
 Namespaces* ResolveNames(AST* ast) 
 {
-    ScopeContext* scope = ScopeInit(2, N_VAR, N_TYPE);
-    BeginScope(scope, PROG_SCOPE);
+    ScopeContext* scope = ScopeInit(PROG_SCOPE, 2, N_VAR, N_TYPE);
 
     if (ResolveEverything(scope, ast->root) != VALDN)
         return NULL;
 
-    ExitScope(scope);
     return scope->namespaces;
 }
 
@@ -187,8 +185,9 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
     if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
 
     sym = STPushNamespace(scope, identNode, N_VAR, type, typeLex);
+    if (!sym) printf("INVALID SYM\n");
     PushScope(scope, sym, N_VAR);
-    BeginScope(scope, FUNC_SCOPE);
+    BeginScope(&scope, FUNC_SCOPE);
 
     /* Param List */
     int status = ResolveParams(scope, current->children[2]);
@@ -196,7 +195,7 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
 
     /* Body Calls Resolve Var */
     status = ResolveEverything(scope, current->children[3]);
-    ExitScope(scope);
+    ExitScope(&scope);
     return status;
 }
 
@@ -299,12 +298,11 @@ int ResolveIfStmt(ScopeContext* scope, ASTNode* current)
     /* TODO: could probably benefit from an ResolveIfElifStmt and ResolveElseStmt */
     for (size_t i = 0; i < current->childCount; i++) {
         if (current->children[i]->type == ELSE_NODE) {
-            BeginScope(scope, CTRL_SCOPE);
-
+            BeginScope(&scope, CTRL_SCOPE);
 
             if (ResolveEverything(scope, current->children[0]) == ERRN) return ERRN; /* Body */
 
-            ExitScope(scope);
+            ExitScope(&scope);
             continue;
         }
 
@@ -313,12 +311,12 @@ int ResolveIfStmt(ScopeContext* scope, ASTNode* current)
         ASTNode* ifElifExpr = ifElifNode->children[0];
         if (ResolveExprs(scope, ifElifExpr) == ERRN) return ERRN;  
 
-        BeginScope(scope, CTRL_SCOPE);
+        BeginScope(&scope, CTRL_SCOPE);
 
         ASTNode* ifElifBody = ifElifNode->children[1];
         if (ResolveEverything(scope, ifElifBody) == ERRN) return ERRN; 
 
-        ExitScope(scope);
+        ExitScope(&scope);
     }   
 
     return VALDN;
@@ -326,12 +324,12 @@ int ResolveIfStmt(ScopeContext* scope, ASTNode* current)
 
 int ResolveDoWhileStmt(ScopeContext* scope, ASTNode* current)
 {
-    BeginScope(scope, CTRL_SCOPE);
+    BeginScope(&scope, CTRL_SCOPE);
 
     ASTNode* doBody = current->children[0];
     if (ResolveEverything(scope, doBody) == ERRN) return ERRN;
 
-    ExitScope(scope);
+    ExitScope(&scope);
 
     ASTNode* whileExpr = current->children[1];
     if (ResolveExpr(scope, whileExpr) == ERRN) return ERRN;
@@ -342,12 +340,12 @@ int ResolveWhileStmt(ScopeContext* scope, ASTNode* current)
     ASTNode* whileExpr = current->children[0];
     if (ResolveExpr(scope, whileExpr) == ERRN) return ERRN;
 
-    BeginScope(scope, CTRL_SCOPE);
+    BeginScope(&scope, CTRL_SCOPE);
 
     ASTNode* whileBody = current->children[1];
     if (ResolveEverything(scope, whileBody) == ERRN) return ERRN;
 
-    ExitScope(scope);
+    ExitScope(&scope);
 }
 
 int ResolveSwitchStmt(ScopeContext* scope, ASTNode* current)
@@ -359,24 +357,24 @@ int ResolveSwitchStmt(ScopeContext* scope, ASTNode* current)
         ASTNode* caseNode = current->children[i];
 
         if (caseNode->type == DEFAULT_NODE) {
-            BeginScope(scope, CTRL_SCOPE);
+            BeginScope(&scope, CTRL_SCOPE);
 
             ASTNode* caseBody = caseNode->children[0];
             if (ResolveEverything(scope, caseBody) == ERRN) return ERRN;
 
-            ExitScope(scope);
+            ExitScope(&scope);
             continue;
         }
         
         ASTNode* valueNode2 = caseNode->children[0];
         if (ResolveExpr(scope, valueNode2) != VALDN) return ERRN;
 
-        BeginScope(scope, CTRL_SCOPE);
+        BeginScope(&scope, CTRL_SCOPE);
 
         ASTNode* caseBody = caseNode->children[1];
         if (ResolveEverything(scope, caseBody) == ERRN) return ERRN;
 
-        ExitScope(scope);
+        ExitScope(&scope);
     }
 
     return VALDN;
@@ -385,7 +383,7 @@ int ResolveSwitchStmt(ScopeContext* scope, ASTNode* current)
 int ResolveForStmt(ScopeContext* scope, ASTNode* current)
 {
     /* Scope begins early since for stmts can declare variables in their exprs */
-    BeginScope(scope, CTRL_SCOPE);
+    BeginScope(&scope, CTRL_SCOPE);
 
     /* TODO: Need to allow decls later one I change the grammar to accept them */
     ASTNode* declExprList = current->children[0];
@@ -400,7 +398,7 @@ int ResolveForStmt(ScopeContext* scope, ASTNode* current)
     ASTNode* forBody = current->children[3];
     if (ResolveEverything(scope, forBody) == ERRN) return ERRN;
 
-    ExitScope(scope);
+    ExitScope(&scope);
     return VALDN;
 }
 
@@ -433,7 +431,7 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
     PushScope(scope, sym, N_TYPE);
 
     /* Evaluates Structs Members */
-    BeginScope(scope, STRUCT_SCOPE);
+    BeginScope(&scope, STRUCT_SCOPE);
 
     /* Push struct values to its own namespace */
     Namespaces* prevNs = scope->namespaces; 
@@ -461,13 +459,14 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
     scope->namespaces = prevNs;
     free(temp->nss); free(temp);
 
-    ExitScope(scope);
+    ExitScope(&scope);
     return VALDN;
 }
 
 int ResolveEnums(ScopeContext* scope, ASTNode* current)
 {
-    /* Don't allow shadowing */
+    /* Don/t allow shadowing */
+
 }
 
 int ResolveTypedefs(ScopeContext* scope, ASTNode* current)
