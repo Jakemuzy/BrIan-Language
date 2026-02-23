@@ -1,5 +1,10 @@
 #include "NameResolver.h"
 
+/* TODO:
+    - Allow Shadowing in ctrl scopes 
+    - Fix Nested Structs
+*/
+
 /* ----------- Error Handling ---------- */
 
 int NERROR_NO_IDENT(ASTNode* curr)
@@ -152,10 +157,7 @@ int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type, char* typeLex)
         Symbol* sym;
         char* name = current->token.lex.word;
 
-        /* Ctrl Scopes don't allow for shadowing */
-        if (PeekScopeStack(&scope->scopeTypes) == CTRL_SCOPE) sym = LookupAllScopes(scope, name, N_VAR);
-        else sym = LookupCurrentScope(scope, name, N_VAR);
-
+        sym = LookupCurrentScope(scope, name, N_VAR);
         if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
       
         sym = STPushNamespace(scope, current, N_VAR, type, typeLex);
@@ -421,9 +423,7 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
     Symbol* sym;   
     char* name = identNode->token.lex.word;
 
-    if (PeekScopeStack(&scope->scopeTypes) == CTRL_SCOPE) sym = LookupAllScopes(scope, name, N_TYPE);
-    else sym = LookupCurrentScope(scope, name, N_TYPE);
-
+    sym = LookupCurrentScope(scope, name, N_TYPE);
     if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
 
     /* TYPE* will become TY_STRUCT during type checking, NULL for now */

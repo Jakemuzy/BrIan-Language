@@ -20,7 +20,11 @@ ScopeType PeekScopeStack(ScopeStack* stack);
 
 typedef struct ScopeContext { 
     Namespaces* namespaces;
-    ScopeStack scopeTypes;
+    struct ScopeContext* prev;
+
+    ScopeType stype;
+    size_t size;
+    size_t maxSize;
 } ScopeContext;
 
 ScopeContext* ScopeInit(size_t count, ...);   
