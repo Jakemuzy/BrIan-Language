@@ -1,4 +1,3 @@
-/*
 int main() {
 
     int p, l, k = 4, zf = 174;
@@ -8,31 +7,11 @@ int main() {
     int x = "Str";
     x = x + 5;
 
-    struct Employee {
-        string name;
-        UI32 salary;
-        UI8 weekHours;
+    enum STATUS {
+        ALIVE, DEAD, AWAKE = 4, SIGMA = 3
     };
 
-    Employee emp;
-
-    Employee.b;
+    STATUS bro = not_ok;
 }
-*/
-
-struct Inner {
-    int a;
-};
-
-struct Outer {
-    Inner i;
-};
-
-int main() {
-    Outer o;
-    o.i.a = 5;
-    return o.i.a;
-}
-//PASS
 
 // FAIL

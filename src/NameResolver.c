@@ -141,6 +141,7 @@ int ResolveVars(ScopeContext* scope, ASTNode* current)
         type = TY_NAME(sym, NULL);
     }
 
+    /* TODO: Should pass sym, so in case of enum or struct, can check members */
     return ResolveVar(scope, current->children[1], type, typeLex);   
 }
 
@@ -150,8 +151,6 @@ int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type, char* typeLex)
     if (!current) return NANN;
 
     if (current->type == IDENT_NODE) {
-        SymbolType stype = S_VAR;
-    
         Symbol* sym;
         char* name = strdup(current->token.lex.word);
 
@@ -159,6 +158,7 @@ int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type, char* typeLex)
         if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
       
         sym = STPushNamespace(scope, current, N_VAR, type, typeLex);
+        sym->stype = S_VAR;
         PushScope(scope, sym, N_VAR);
         return VALDN;
     }    
@@ -405,15 +405,15 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
     /* Pushes Struct to scope */
     ASTNode* identNode = current->children[0];
 
-    SymbolType stype = S_STRUCT;
     Symbol* sym;   
     char* name = strdup(identNode->token.lex.word);
 
     sym = LookupCurrentScope(scope, name, N_TYPE);
-    if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
+    if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
 
     /* TYPE* will become TY_STRUCT during type checking, NULL for now */
     sym = STPushNamespace(scope, identNode, N_TYPE, NULL, name);
+    sym->stype = S_STRUCT;
     sym->typeName = name;
     PushScope(scope, sym, N_TYPE);
 
@@ -442,7 +442,37 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
 int ResolveEnums(ScopeContext* scope, ASTNode* current)
 {
     /* Don/t allow shadowing */
+    ASTNode* identNode = current->children[0];
 
+    Symbol* sym;   
+    char* name = strdup(identNode->token.lex.word);
+
+    sym = LookupCurrentScope(scope, name, N_TYPE);
+    if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
+
+    /* TYPE* will become TY_ENUM during type checking, NULL for now */
+    sym = STPushNamespace(scope, identNode, N_TYPE, NULL, name);
+    sym->stype = S_ENUM;
+    PushScope(scope, sym, N_TYPE);
+
+    /* Enum's Body Namespace */
+    BeginPersistentScope(&scope, ENUM_SCOPE);
+    sym->fields = scope->namespaces;
+
+    ASTNode* enumBody = current->children[1];
+    for (size_t i = 0; i < enumBody->childCount; i++) {
+        ASTNode* memberNode = enumBody->children[i];
+        char* memName = strdup(memberNode->token.lex.word);
+
+        Symbol* memSym = LookupCurrentScope(scope, memName, N_VAR);
+        if (memSym) return NERROR_ALREADY_DEFINED(memName, memberNode, memSym->decl);
+
+        memSym = STPushNamespace(scope, memberNode, N_VAR, TY_INT(), memName);
+        PushScope(scope, memSym, N_VAR);
+    }
+
+    ExitPersistentScope(&scope);
+    return VALDN;
 }
 
 int ResolveTypedefs(ScopeContext* scope, ASTNode* current)
@@ -459,6 +489,7 @@ int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
 
 int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Symbol** resolvedSym) 
 {
+    /* TODO: Not too sure how solid this 'resolvedSym' pattern is */
     Symbol* sym = NULL;
     ASTNode* accessedNode = current->children[0];
     int status;

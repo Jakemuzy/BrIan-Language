@@ -56,6 +56,8 @@ int main(int argc, char* argv[])
         {"TestCases/NameResolver/StructUndefined.b", false},
         {"TestCases/NameResolver/StructInvalidField.b", false},
         {"TestCases/NameResolver/NestedStructs.b", true},
+        {"TestCases/NameResolver/EnumBasic.b", true},
+        {"TestCases/NameResolver/EnumInvalid.b", false},
     };
 
     int expectedPass = -1;
