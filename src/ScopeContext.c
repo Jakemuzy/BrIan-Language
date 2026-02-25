@@ -123,3 +123,16 @@ Symbol* STPushNamespace(ScopeContext* scope, ASTNode* key, NamespaceKind kind, T
 
     return NULL;
 }
+
+/* Type Checker Stuff */
+Symbol* STLookupNamespace(Namespaces* nss, char* name, NamespaceKind kind)
+{
+    for (size_t i = 0; i < nss->count; i++) {
+        if (nss->nss[i]->kind != kind) continue;
+        Symbol* sym = STLookup(nss->nss[i]->env, name);
+        if (sym)
+            return sym;
+        /* TODO: Weirdly ST should be the same, but it depends on scope looks like */
+    }
+    return NULL;
+}

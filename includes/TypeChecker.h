@@ -22,7 +22,9 @@ typedef enum TypeKind {
     TYPE_VOID, TYPE_ERROR, TYPE_NULL, TYPE_NAME,
 
     TYPE_I8, TYPE_I16, TYPE_I32, TYPE_I64,
-    TYPE_U8, TYPE_U16, TYPE_U32, TYPE_U64
+    TYPE_U8, TYPE_U16, TYPE_U32, TYPE_U64,
+
+    TYPE_NAT    /* Not a type */
 } TypeKind;
 
 typedef struct TYPE {
@@ -60,6 +62,7 @@ typedef struct TYPE_STRUCT {
 
 
 /* Other types already declared in Symbol.h */
+TYPE* TY_NAT();
 TYPE_LIST TY_LIST(TYPE* head, TYPE_LIST* tail);
 TYPE_FIELD* TY_FIELD(Symbol* sym, TYPE* type);
 TYPE_FIELD_LIST* TY_FIELD_LIST(TYPE_FIELD* head, TYPE_FIELD_LIST* tail);

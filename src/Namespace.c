@@ -41,7 +41,6 @@ void ExitNamespaceScope(Namespace* namespace)
     for (size_t j = 0; j < namespace->symCount; j++) {
         Symbol* sym = namespace->symbols[j];
         if (!sym) continue;
-        STPop(namespace->env, sym->name);
     }
 
     free(namespace->symbols);

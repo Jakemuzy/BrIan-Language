@@ -73,8 +73,10 @@ Namespaces* ResolveNames(AST* ast)
 {
     ScopeContext* scope = ScopeInit(PROG_SCOPE, 2, N_VAR, N_TYPE);
 
-    if (ResolveEverything(scope, ast->root) != VALDN)
+    if (ResolveEverything(scope, ast->root) != VALDN) {
+        printf("NAME ERROR: failed to build\n");
         return NULL;
+    }
 
     return scope->namespaces;
 }
