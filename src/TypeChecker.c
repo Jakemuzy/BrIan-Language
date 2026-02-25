@@ -82,6 +82,15 @@ TYPE* TERROR_NO_RULE(OperatorRule rule, ASTNode* node)
     return TY_ERROR();
 }
 
+TYPE* TERROR(char* msg, ASTNode* node, NamespaceKind kind)
+{
+    int line = node->token.line;
+    char* name = node->token.lex.word;
+    printf("TYPE ERROR: %s in namespace %d on line %d\n", msg, kind, line);
+
+    return TY_ERROR();
+}
+
 
 /* ----------- Environments ---------- */
 
@@ -121,22 +130,17 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
             */
 
             //return TY_NAME(sym, NULL/* Get type from stype associtaed with ident */);
-            char* ident = expr->token.lex.word;
-            Symbol* sym = STLookupNamespace(nss, ident, N_VAR);
-            if (!sym) {
-                printf("IDENT NOT FOUND: %s\n", ident);
-                return TY_ERROR();
-            }
+            return ValidLval(nss, expr, N_VAR);
 
             /* TODO: Check if sym->type is NULL */
-            return sym->type;
         case BINARY_EXPR_NODE: return TypeCheckBinExpr(nss, expr);
         case UNARY_EXPR_NODE:  return TypeCheckUnaExpr(nss, expr->children[0]);
 
         //case VAR_NODE:  /* Check if assigned a type, and if so check type
         case ASGN_EXPR_NODE: return TypeCheckAsgn(nss, expr);   /* Check valid type */
 
-        case VAR_DECL_NODE:     /* Check matching type */
+        case VAR_DECL_NODE:     /* TODO: Assign type to symbols (currently null from name reoslver) */
+            return TypeCheckVarDecl(nss, expr);
 
         case ARR_DECL_NODE:     /* Check Integral Size */
 
@@ -161,6 +165,15 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
             break;
     }
     //printf("ERROR NAT: %s\n", expr->token.lex.word);
+    return TY_NAT();
+}
+
+TYPE* TypeCheckVarDecl(Namespaces* nss, ASTNode* expr)
+{
+    /* Check if asignments are of valid type */
+    /* Set the TYPE of idents in Symbol* so further mentions can grab type */
+    ASTNode* typeNode = expr->children[0];
+    
     return TY_NAT();
 }
 
@@ -216,6 +229,8 @@ printf("Asgn Expr\n");
     TYPE* right = TypeCheck(nss, expr->children[1]);
     if (right->kind == TYPE_ERROR) return right;
 
+    /* TODO: Lval check instead */
+
     Token operator = expr->token;
     OperatorRule rule = FindRule(operator.type, BINARY_RULE);
     if (rule.rtype == ERROR_RULE) 
@@ -267,6 +282,45 @@ bool TypeHasCategory(TypeKind kind, TypeCategory cat)
     }
 }
 
+/* ----------- Lval Checking  ---------- */
+
+TYPE* ValidLval(Namespaces* nss, ASTNode* identNode, NamespaceKind kind)
+{
+    /* TODO: Lookup based on namespace */
+    char* name = identNode->token.lex.word;
+    Symbol* sym = STLookupNamespace(nss, name, N_VAR);
+    if (!sym) {
+        char msg[128];
+        snprintf(msg, sizeof(msg), "Lval identifier '%s' is invalid", identNode->token.lex.word);
+        return TERROR("Lval identifier '%s' is invalid", identNode, kind);
+    }
+
+    /* Can't be Func or typedef */
+    /* TODO: looks like this crashes it */
+    if (sym->stype == S_FUNC) {
+        char msg[128];
+        snprintf(msg, sizeof(msg), "Lval identifier '%s' cannot be a function", identNode->token.lex.word);
+        return TERROR(msg, identNode, kind);
+    }
+    
+    /* TODO:
+        ident's when resolved in the name resolver don't actually store a type 
+        sometimes, its supposed to happen in the type checker, add an extra
+        check for whether or not its set already ( != TY_NAT ) 
+    */
+    if (!sym->type) {
+        char msg[128];
+        snprintf(msg, sizeof(msg), "Lval identifier '%s' is missing a type associated", identNode->token.lex.word);
+        return TERROR(msg, identNode, kind);
+    }
+    return sym->type;
+}
+
+TYPE* ValidEquals(ASTNode* lhs, ASTNode* rhs, TokenType operator)
+{
+
+}
+
 /* ---------- Table Driven Type Checking ---------- */
 
 /* Binary */
@@ -279,6 +333,32 @@ TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs)
     if (lhs->kind == TYPE_FLOAT || rhs->kind == TYPE_FLOAT)
         return TY_FLOAT();
 
+    if (lhs->kind == TYPE_I64 || rhs->kind == TYPE_I64)
+        return TY_I64();
+    if (lhs->kind == TYPE_INT || rhs->kind == TYPE_INT)
+        return TY_INT();
+    if (lhs->kind == TYPE_I32 || rhs->kind == TYPE_I32)
+        return TY_I32();
+    if (lhs->kind == TYPE_I16 || rhs->kind == TYPE_I16)
+        return TY_I16();
+    if (lhs->kind == TYPE_I8 || rhs->kind == TYPE_I8)
+        return TY_I8();
+    if (lhs->kind == TYPE_U64 || rhs->kind == TYPE_U64)
+        return TY_U64();
+    if (lhs->kind == TYPE_U32 || rhs->kind == TYPE_U32)
+        return TY_U32();
+    if (lhs->kind == TYPE_U16 || rhs->kind == TYPE_U16)
+        return TY_U16();
+    if (lhs->kind == TYPE_U8 || rhs->kind == TYPE_U8)
+        return TY_U8();
+
+    return TY_ERROR();
+}
+
+TYPE* BitwisePromotion(TYPE* lhs, TYPE* rhs) 
+{
+    /* TODO: Warn on implicit converions */
+    /* Always promotes to signed of the largest size */
     if (lhs->kind == TYPE_I64 || rhs->kind == TYPE_I64)
         return TY_I64();
     if (lhs->kind == TYPE_INT || rhs->kind == TYPE_INT)

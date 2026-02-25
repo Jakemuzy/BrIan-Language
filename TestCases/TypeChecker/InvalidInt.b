@@ -1,7 +1,11 @@
+char func() {
+    
+}
+
 int main() {
     int p = "hello";
     int x = 4;
-    x = x + 5;
+    //x = x + 5;
     //x = x + "hello";
 /*
     int p, l, k = 4, zf = 174;
