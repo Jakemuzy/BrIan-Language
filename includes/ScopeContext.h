@@ -19,6 +19,10 @@ void BeginScope(ScopeContext** scope, ScopeType type);
 void ExitScope(ScopeContext** scope);
 void PushScope(ScopeContext* scope, Symbol* sym, NamespaceKind nsKind);
 
+/* For scopes that shouldn't be freed (ie struct members) */
+void BeginPersistentScope(ScopeContext** scope, ScopeType type);
+void ExitPersistentScope(ScopeContext** scope);
+
 /* ---------- Namespace Scope ----------- */
 
 Symbol* LookupCurrentScope(ScopeContext* scope, char* name, NamespaceKind nsKind);

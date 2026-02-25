@@ -14,6 +14,15 @@ Namespace* NamespaceInit(NamespaceKind kind)
     return ns;
 }
 
+Namespace* GetNamespace(Namespaces* namespaces, NamespaceKind kind)
+{
+    for (size_t i = 0; i < namespaces->count; i++) {
+        if (namespaces->nss[i]->kind != kind) continue;
+        return namespaces->nss[i];
+    }
+    return NULL;
+}
+
 Namespace* BeginNamespaceScope(Namespace* namespace) 
 {
     /* SHOULD COPY ENV BUT new SYMBOLS AND KIND */
@@ -32,7 +41,6 @@ void ExitNamespaceScope(Namespace* namespace)
     for (size_t j = 0; j < namespace->symCount; j++) {
         Symbol* sym = namespace->symbols[j];
         if (!sym) continue;
-        STPop(namespace->env, sym->name);
     }
 
     free(namespace->symbols);

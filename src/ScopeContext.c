@@ -53,6 +53,7 @@ void ExitScope(ScopeContext** scope)
         ExitNamespaceScope(ns); /* Frees symbols keeps env */
         free(ns);
     }
+    free((*scope)->namespaces->nss);
     free((*scope)->namespaces);
     free(*scope);
     
@@ -68,6 +69,20 @@ void PushScope(ScopeContext* scope, Symbol* sym, NamespaceKind nsKind)
         Namespace* ns = scope->namespaces->nss[i];
         PushNamespaceScope(ns, sym);
     }
+}
+
+void BeginPersistentScope(ScopeContext** scope, ScopeType type)
+{
+    /* Logical wrapper to avoid confusion between scope begin/exit mismatch */
+    BeginScope(scope, type);
+}
+
+void ExitPersistentScope(ScopeContext** scope)
+{
+    ScopeContext* prev = (*scope)->prev;
+    free(*scope);
+    
+    *scope = prev;
 }
 
 /* ---------- Namespace Scope ----------- */
@@ -106,5 +121,18 @@ Symbol* STPushNamespace(ScopeContext* scope, ASTNode* key, NamespaceKind kind, T
         return STPush(ns->env, key, type, typeLex);
     }
 
+    return NULL;
+}
+
+/* Type Checker Stuff */
+Symbol* STLookupNamespace(Namespaces* nss, char* name, NamespaceKind kind)
+{
+    for (size_t i = 0; i < nss->count; i++) {
+        if (nss->nss[i]->kind != kind) continue;
+        Symbol* sym = STLookup(nss->nss[i]->env, name);
+        if (sym)
+            return sym;
+        /* TODO: Weirdly ST should be the same, but it depends on scope looks like */
+    }
     return NULL;
 }

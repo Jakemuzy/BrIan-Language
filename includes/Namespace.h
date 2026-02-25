@@ -25,7 +25,7 @@ typedef struct Namespaces {
 } Namespaces;
 
 Namespace* NamespaceInit(NamespaceKind kind);
-SymbolTable* NamespaceGetST(Namespace* ns);
+Namespace* GetNamespace(Namespaces* namespaces, NamespaceKind kind);
 
 Namespace* BeginNamespaceScope(Namespace* namespace);
 void ExitNamespaceScope(Namespace* namespace);

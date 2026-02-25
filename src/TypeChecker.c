@@ -54,6 +54,7 @@ TYPE* TY_U64(void) { static TYPE t = { TYPE_U64 }; return &t; }
 TYPE* TY_ARR(TYPE* type, int size) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_ARR; typ->u.array.element = type; typ->u.array.size = size; return typ; }
 TYPE* TY_NAME(Symbol* sym, TYPE* type) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_NAME; typ->u.name.sym = sym; typ->u.name.type = type; return typ; }
 
+TYPE* TY_NAT() { static TYPE t = { TYPE_NAT }; return &t; }
 TYPE_LIST TY_LIST(TYPE* head, TYPE_LIST* tail);
 
 
@@ -63,15 +64,18 @@ TYPE* TERROR_INCOMPATIBLE(OperatorRule rule, ASTNode* node)
 {
     int line = node->token.line;
     if (rule.rtype == BINARY_RULE)
-        printf("TYPE ERROR: Incompatible rule found for binary operator %d on line %d\n", rule.rule.b.op, line);  /* TODO: Translate this to  a string instead of enum */
+        printf("TYPE ERROR: Incompatible types found for binary operator %d on line %d\n", rule.rule.b.op, line);  /* TODO: Translate this to  a string instead of enum */
     else if (rule.rtype == UNARY_RULE)
-        printf("TYPE ERROR: Incompatible rule found for unary operator %d on line %d\n", rule.rule.u.op, line);
+        printf("TYPE ERROR: Incompatible types found for unary operator %d on line %d\n", rule.rule.u.op, line);
 
+    printf("NEITHER\n");
     return TY_ERROR();
 }
+
 TYPE* TERROR_NO_RULE(OperatorRule rule, ASTNode* node)
 {
-    /* TODO: Have this print what type it actually is */
+    /* TODO: Have this print what type it actually is (Map of types to string) */
+    /* TODO: Not a very clear error message AT ALL, fix this */
     int line = node->token.line;
     printf("TYPE ERROR: No rule found for operator %d on line%d\n",  rule.rule.b.op, line);
 
@@ -100,19 +104,37 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
     */
     switch (expr->type)
     {
-        case SLITERAL: return TY_STRING();
-        case CLITERAL: return TY_U32();
-        case INTEGRAL: return TY_INT();
-        case DECIMAL: return TY_DOUBLE();
+        case LITERAL_NODE: /* Determine type */
+            switch (expr->token.type) {
+                case SLITERAL: return TY_STRING();
+                case CLITERAL: return TY_U32();
+                case INTEGRAL: return TY_INT();
+                case DECIMAL: return TY_DOUBLE();   
+            }
+        case IDENT_NODE:     
+            /* Lookup which namespace based on what expr its in */
+            /* Lookup Name */
+
+            /* TODO: STLookupNamespace will never return antyhing because they are 
+            resolved in the inner namespaces (nested scope), need to pass scope, and 
+            then look through all of them. 
+            */
+
+            //return TY_NAME(sym, NULL/* Get type from stype associtaed with ident */);
+            char* ident = expr->token.lex.word;
+            Symbol* sym = STLookupNamespace(nss, ident, N_VAR);
+            if (!sym) {
+                printf("IDENT NOT FOUND: %s\n", ident);
+                return TY_ERROR();
+            }
+
+            /* TODO: Check if sym->type is NULL */
+            return sym->type;
         case BINARY_EXPR_NODE: return TypeCheckBinExpr(nss, expr);
         case UNARY_EXPR_NODE:  return TypeCheckUnaExpr(nss, expr->children[0]);
 
+        //case VAR_NODE:  /* Check if assigned a type, and if so check type
         case ASGN_EXPR_NODE: return TypeCheckAsgn(nss, expr);   /* Check valid type */
-
-        case IDENT_NODE:    /* Context specific */
-            /* Lookup Name */
-
-            //return TY_NAME(sym, NULL/* Get type from stype associtaed with ident */);
 
         case VAR_DECL_NODE:     /* Check matching type */
 
@@ -138,7 +160,8 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
             } 
             break;
     }
-    return TY_NULL();
+    //printf("ERROR NAT: %s\n", expr->token.lex.word);
+    return TY_NAT();
 }
 
 TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr) 
@@ -156,7 +179,6 @@ TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr)
     if (rule.rtype == ERROR_RULE) 
         return TERROR_NO_RULE(rule, expr);
 
-    printf("Lkind: %d, Lrule: %d, Rkind: %d, Rrule %d\n",left->kind, rule.rule.b.left, right->kind, rule.rule.b.right);
     /* Compare rule to current expr */
     if (!TypeHasCategory(left->kind, rule.rule.b.left) || !TypeHasCategory(right->kind, rule.rule.b.right)) 
         return TERROR_INCOMPATIBLE(rule, expr);
