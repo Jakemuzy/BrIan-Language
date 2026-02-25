@@ -68,8 +68,10 @@ TYPE* TERROR_INCOMPATIBLE(OperatorRule rule, ASTNode* node)
     else if (rule.rtype == UNARY_RULE)
         printf("TYPE ERROR: Incompatible types found for unary operator %d on line %d\n", rule.rule.u.op, line);
 
+    printf("NEITHER\n");
     return TY_ERROR();
 }
+
 TYPE* TERROR_NO_RULE(OperatorRule rule, ASTNode* node)
 {
     /* TODO: Have this print what type it actually is (Map of types to string) */
@@ -102,10 +104,13 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
     */
     switch (expr->type)
     {
-        case SLITERAL: return TY_STRING();
-        case CLITERAL: return TY_U32();
-        case INTEGRAL: return TY_INT();
-        case DECIMAL: return TY_DOUBLE();   /* THESE ARE NODE TYPES, THESE ARE TOKEN TYPES */
+        case LITERAL_NODE: /* Determine type */
+            switch (expr->token.type) {
+                case SLITERAL: return TY_STRING();
+                case CLITERAL: return TY_U32();
+                case INTEGRAL: return TY_INT();
+                case DECIMAL: return TY_DOUBLE();   
+            }
         case IDENT_NODE:     
             /* Lookup which namespace based on what expr its in */
             /* Lookup Name */
@@ -122,7 +127,6 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
                 printf("IDENT NOT FOUND: %s\n", ident);
                 return TY_ERROR();
             }
-            printf("IDENT FOUND: %s\n", ident);
 
             /* TODO: Check if sym->type is NULL */
             return sym->type;
@@ -175,7 +179,6 @@ TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr)
     if (rule.rtype == ERROR_RULE) 
         return TERROR_NO_RULE(rule, expr);
 
-    printf("Lkind: %d, Lrule: %d, Rkind: %d, Rrule %d\n",left->kind, rule.rule.b.left, right->kind, rule.rule.b.right);
     /* Compare rule to current expr */
     if (!TypeHasCategory(left->kind, rule.rule.b.left) || !TypeHasCategory(right->kind, rule.rule.b.right)) 
         return TERROR_INCOMPATIBLE(rule, expr);

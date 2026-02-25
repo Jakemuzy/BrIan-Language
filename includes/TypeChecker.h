@@ -141,6 +141,7 @@ OperatorRule FindRule(TokenType ttype, RuleType rtype);
 static BinaryRule BINARY_RULES[] = {    /* Maybe make this a map */
     { PLUS, C_NUMERIC, C_NUMERIC, NumericPromotion },     /* Function pointers for determining what output type should be */
     { MINUS, C_NUMERIC, C_NUMERIC, NumericPromotion }, 
+    { EQ, C_NUMERIC, C_NUMERIC, NumericPromotion },
     { EQQ, C_EQUALITY, C_EQUALITY, BoolType },
     // ... 
     { PEQ, C_EQUALITY, C_EQUALITY, NumericPromotion }
