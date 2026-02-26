@@ -27,36 +27,13 @@ Cases:
             or idents that represent true or false (WIP)
         8.) Strings can only be assigned string literals 
             OR idents that represnt strings   
+
+
+    TODO: 
+        - Instead of checking type->kind == TYPE_ERROR, just check if the 
+        pointer == TY_ERROR() since its static
+        - Account for environments
 */
-
-/* ---------- Types ---------- */
-
-TYPE* TY_VOID(void)   { static TYPE t = { TYPE_VOID };   return &t; }
-TYPE* TY_ERROR(void)  { static TYPE t = { TYPE_ERROR };  return &t; }
-TYPE* TY_NULL(void)   { static TYPE t = { TYPE_NULL };   return &t; }
-
-TYPE* TY_INT(void)    { static TYPE t = { TYPE_INT };    return &t; }
-TYPE* TY_FLOAT(void)  { static TYPE t = { TYPE_FLOAT };  return &t; }
-TYPE* TY_DOUBLE(void) { static TYPE t = { TYPE_DOUBLE }; return &t; }
-TYPE* TY_BOOL(void)   { static TYPE t = { TYPE_BOOL };   return &t; }
-TYPE* TY_STRING(void) { static TYPE t = { TYPE_STRING }; return &t; }
-
-TYPE* TY_I8(void)  { static TYPE t = { TYPE_I8 };  return &t; }
-TYPE* TY_I16(void) { static TYPE t = { TYPE_I16 }; return &t; }
-TYPE* TY_I32(void) { static TYPE t = { TYPE_I32 }; return &t; }
-TYPE* TY_I64(void) { static TYPE t = { TYPE_I64 }; return &t; }
-
-TYPE* TY_U8(void)  { static TYPE t = { TYPE_U8 };  return &t; }
-TYPE* TY_U16(void) { static TYPE t = { TYPE_U16 }; return &t; }
-TYPE* TY_U32(void) { static TYPE t = { TYPE_U32 }; return &t; }
-TYPE* TY_U64(void) { static TYPE t = { TYPE_U64 }; return &t; }
-
-TYPE* TY_ARR(TYPE* type, int size) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_ARR; typ->u.array.element = type; typ->u.array.size = size; return typ; }
-TYPE* TY_NAME(Symbol* sym, TYPE* type) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_NAME; typ->u.name.sym = sym; typ->u.name.type = type; return typ; }
-
-TYPE* TY_NAT() { static TYPE t = { TYPE_NAT }; return &t; }
-TYPE_LIST TY_LIST(TYPE* head, TYPE_LIST* tail);
-
 
 /* ---------- Error Handling ----------- */
 
@@ -82,6 +59,15 @@ TYPE* TERROR_NO_RULE(OperatorRule rule, ASTNode* node)
     return TY_ERROR();
 }
 
+TYPE* TERROR_UNDEFINED(ASTNode* node) 
+{
+    int line = node->token.line;
+    char* name = node->token.lex.word;
+    printf("TYPE ERROR: Undefined type %s on line %d\n", name, line);
+
+    return TY_ERROR();
+}
+
 TYPE* TERROR(char* msg, ASTNode* node, NamespaceKind kind)
 {
     int line = node->token.line;
@@ -92,19 +78,10 @@ TYPE* TERROR(char* msg, ASTNode* node, NamespaceKind kind)
 }
 
 
-/* ----------- Environments ---------- */
 
-/* Generates the Symbol Table for Types (ie, ResolveNames should be this, and it should return a SymbolTable)*/
-Dict ENV_BaseTenv()
-{
-    /* Maps Symbol to TYPE* */
-    /* Map Tenv */
 
-    /* Tenv[int] = TYPE_INT */
-    /* Tenv[float] = TYPE_INT ...*/
-    
-}
 
+/* ---------- Type Checking ---------- */
 
 TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
 {
@@ -133,6 +110,16 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
             return ValidLval(nss, expr, N_VAR);
 
             /* TODO: Check if sym->type is NULL */
+        case FUNC_NODE: 
+
+            /* 
+            1.) Registers func return type  
+                a.) If type is NULL, its a custom type, try to resolve     
+            2.) Registers paramter types
+                a.) If type is NULL, its a custom type, try to resolve
+            3.) Return TypeCheck(expr->children['BodyNode'])
+            */
+           return TypeCheckFunc(nss, expr);
         case BINARY_EXPR_NODE: return TypeCheckBinExpr(nss, expr);
         case UNARY_EXPR_NODE:  return TypeCheckUnaExpr(nss, expr->children[0]);
 
@@ -142,6 +129,9 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
         case VAR_DECL_NODE:     /* TODO: Assign type to symbols (currently null from name reoslver) */
             return TypeCheckVarDecl(nss, expr);
 
+        case CALL_FUNC_NODE:    /* Check Valid Type */
+            return TY_NAT();
+
         case ARR_DECL_NODE:     /* Check Integral Size */
 
         case ARR_INIT_NODE:     /* Check Valid Types */
@@ -150,7 +140,6 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
 
         case MEMBER_ACCESS_NODE:  
         
-        case CALL_FUNC_NODE:    /* Check Valid Type */
 
         case TYPEDEF_DECL_NODE: /* Check for existance */
 
@@ -168,14 +157,144 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
     return TY_NAT();
 }
 
+
+/* ----------- Identifiers ---------- */
+
+
 TYPE* TypeCheckVarDecl(Namespaces* nss, ASTNode* expr)
 {
-    /* Check if asignments are of valid type */
-    /* Set the TYPE of idents in Symbol* so further mentions can grab type */
     ASTNode* typeNode = expr->children[0];
+    char* typeLex = typeNode->token.lex.word;
+
+    TYPE* type = StrToType(typeLex);
+    if (!type) {
+        Symbol* sym = STLookupNamespace(nss, typeLex, N_TYPE);
+        if (!sym || !sym->type)
+            return TERROR_UNDEFINED(typeNode);
+        type = sym->type;
+    }
+
+    ASTNode* varListNode = expr->children[1];
+    for (size_t i = 0; i < varListNode->childCount; i++) {
+        TYPE* ty = TypeCheckVar(nss, varListNode->children[i], type);
+        if (ty->kind == TYPE_ERROR) return ty;
+    }
     
     return TY_NAT();
 }
+
+TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var, TYPE* type) 
+{
+    /* TODO: Account for Envrionments  */
+    //EnvironmentEntry entry = STLookup(venv, var->token.lex.word);
+
+    /*
+    EnvironmentEntry entry;
+    entry.kind = ENV_VAR_ENTRY;
+    entry.u.var.ty;
+    */
+
+    /* TODO: 
+    eq doesn't have a rule since it has to do with lvals, 
+    must check these
+    */
+    
+    /* Actual Var checking */
+    ASTNode* identNode = var->children[0];
+    char* identName = identNode->token.lex.word;
+    Symbol* sym = STLookupNamespace(nss, identName, N_VAR);
+    sym->type = type;
+
+    /* Check compatibility of asgnment with ident type */
+    if (var->childCount > 1) {
+        TYPE* rhs = TypeCheck(nss, var->children[1]);
+        if (rhs->kind == TYPE_ERROR) return rhs;
+
+        /* Use operator rules since technically an '=' */
+        OperatorRule rule = FindRule(EQ, LVAL_RULE);
+        if (rule.rtype == ERROR_RULE) 
+            return TERROR_NO_RULE(rule, var);
+
+        if (!TypeHasCategory(sym->type->kind, rule.rule.b.left) || !TypeHasCategory(rhs->kind, rule.rule.b.right)) 
+            return TERROR_INCOMPATIBLE(rule, var);
+
+        /* Resulting Expr Type based on operator rule */
+        TYPE* result = rule.rule.b.result(sym->type, rhs);
+        return result;
+    }
+
+    return type;
+}
+
+TYPE* TypeCheckFunc(Namespaces* nss, ASTNode* expr) 
+{
+    ASTNode* typeNode = expr->children[0];
+    char* typeLex = typeNode->token.lex.word;
+
+    /* If not valid type, check N_TYPES */
+    TYPE* type = StrToType(typeLex);
+    if (!type) {
+        Symbol* sym = STLookupNamespace(nss, typeLex, N_TYPE);
+        if (!sym || !sym->type)
+            return TERROR_UNDEFINED(typeNode);
+        type = sym->type;
+        // type = TY_NAME(sym, sym->type);  TODO: Goes in typedef
+    }
+    
+    /* Set function return type */
+    ASTNode* identNode = expr->children[1];
+    char* identName = identNode->token.lex.word;
+    Symbol* sym = STLookupNamespace(nss, identName, N_VAR);
+    sym->type = type;
+
+
+    ASTNode* paramListNode = expr->children[2];
+    TYPE* params = TypeCheckParams(nss, paramListNode); 
+    if (params->kind == TYPE_ERROR) return params;
+  
+    ASTNode* bodyNode = expr->children[3];
+    TYPE* body = TypeCheck(nss, bodyNode);
+    if (body->kind == TYPE_ERROR) return body;
+
+    return TY_NAT();
+}
+
+TYPE* TypeCheckParams(Namespaces* nss, ASTNode* expr) 
+{
+    for (size_t i = 0; i < expr->childCount; i++) 
+    {
+        TYPE* type = TypeCheckParam(nss, expr->children[i]);
+        if (type->kind == TYPE_ERROR) return type;
+    }
+    return TY_NAT();
+}
+
+TYPE* TypeCheckParam(Namespaces* nss, ASTNode* expr)
+{
+    /* Early Exit */
+    if (expr->type == EMPTY_NODE) return TY_NAT();
+
+    ASTNode* typeNode = expr->children[0];
+    char* typeLex = typeNode->token.lex.word;
+    TYPE* type = StrToType(typeLex);
+
+    /* If not valid type, check N_TYPES */
+    if (!type) {
+        Symbol* sym = STLookupNamespace(nss, typeLex, N_TYPE);
+        if (!sym || !sym->type)
+            return TERROR_UNDEFINED(typeNode);
+        type = sym->type;
+    }
+    
+    char* identName = expr->children[1]->token.lex.word;
+    Symbol* sym = STLookupNamespace(nss, identName, N_VAR);
+    sym->type = type;
+    return type;
+}
+
+
+/* ---------- Expressions ---------- */
+
 
 TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr) 
 {
@@ -244,175 +363,5 @@ printf("Asgn Expr\n");
     return result;
 }
 
-TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var) 
-{
-    /* TODO: Later check typedefs, for now assume var */
-    //EnvironmentEntry entry = STLookup(venv, var->token.lex.word);
-    EnvironmentEntry entry;
-    entry.kind = ENV_VAR_ENTRY;
-    entry.u.var.ty;
 
-    /*Symbol* sym = STLookupNamespace(nss, var->token.lex.word, N_VAR);
-   
-    Symbol* sym;
-    switch(sym->stype) {
-        default: 
-            break;
-    }
-            */
-
-    return TY_ERROR();
-}
-
-/* ----------- Valid Types ---------- */
-
-bool TypeHasCategory(TypeKind kind, TypeCategory cat)
-{
-    switch (cat) {
-        case C_NUMERIC:
-            return kind == TYPE_INT || kind == TYPE_FLOAT || kind == TYPE_DOUBLE;
-        case C_INTEGRAL:
-            return kind == TYPE_INT;
-        case C_DECIMAL:
-            return kind == TYPE_DOUBLE || kind == TYPE_FLOAT;
-        case C_EQUALITY:
-            return 1;
-        default:
-            return 0;
-    }
-}
-
-/* ----------- Lval Checking  ---------- */
-
-TYPE* ValidLval(Namespaces* nss, ASTNode* identNode, NamespaceKind kind)
-{
-    /* TODO: Lookup based on namespace */
-    char* name = identNode->token.lex.word;
-    Symbol* sym = STLookupNamespace(nss, name, N_VAR);
-    if (!sym) {
-        char msg[128];
-        snprintf(msg, sizeof(msg), "Lval identifier '%s' is invalid", identNode->token.lex.word);
-        return TERROR("Lval identifier '%s' is invalid", identNode, kind);
-    }
-
-    /* Can't be Func or typedef */
-    /* TODO: looks like this crashes it */
-    if (sym->stype == S_FUNC) {
-        char msg[128];
-        snprintf(msg, sizeof(msg), "Lval identifier '%s' cannot be a function", identNode->token.lex.word);
-        return TERROR(msg, identNode, kind);
-    }
-    
-    /* TODO:
-        ident's when resolved in the name resolver don't actually store a type 
-        sometimes, its supposed to happen in the type checker, add an extra
-        check for whether or not its set already ( != TY_NAT ) 
-    */
-    if (!sym->type) {
-        char msg[128];
-        snprintf(msg, sizeof(msg), "Lval identifier '%s' is missing a type associated", identNode->token.lex.word);
-        return TERROR(msg, identNode, kind);
-    }
-    return sym->type;
-}
-
-TYPE* ValidEquals(ASTNode* lhs, ASTNode* rhs, TokenType operator)
-{
-
-}
-
-/* ---------- Table Driven Type Checking ---------- */
-
-/* Binary */
-TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs)
-{
-    /* TODO: Warn on implicit converions */
-    /* Always promotes to signed of the largest size */
-    if (lhs->kind == TYPE_DOUBLE || rhs->kind == TYPE_DOUBLE)
-        return TY_DOUBLE();
-    if (lhs->kind == TYPE_FLOAT || rhs->kind == TYPE_FLOAT)
-        return TY_FLOAT();
-
-    if (lhs->kind == TYPE_I64 || rhs->kind == TYPE_I64)
-        return TY_I64();
-    if (lhs->kind == TYPE_INT || rhs->kind == TYPE_INT)
-        return TY_INT();
-    if (lhs->kind == TYPE_I32 || rhs->kind == TYPE_I32)
-        return TY_I32();
-    if (lhs->kind == TYPE_I16 || rhs->kind == TYPE_I16)
-        return TY_I16();
-    if (lhs->kind == TYPE_I8 || rhs->kind == TYPE_I8)
-        return TY_I8();
-    if (lhs->kind == TYPE_U64 || rhs->kind == TYPE_U64)
-        return TY_U64();
-    if (lhs->kind == TYPE_U32 || rhs->kind == TYPE_U32)
-        return TY_U32();
-    if (lhs->kind == TYPE_U16 || rhs->kind == TYPE_U16)
-        return TY_U16();
-    if (lhs->kind == TYPE_U8 || rhs->kind == TYPE_U8)
-        return TY_U8();
-
-    return TY_ERROR();
-}
-
-TYPE* BitwisePromotion(TYPE* lhs, TYPE* rhs) 
-{
-    /* TODO: Warn on implicit converions */
-    /* Always promotes to signed of the largest size */
-    if (lhs->kind == TYPE_I64 || rhs->kind == TYPE_I64)
-        return TY_I64();
-    if (lhs->kind == TYPE_INT || rhs->kind == TYPE_INT)
-        return TY_INT();
-    if (lhs->kind == TYPE_I32 || rhs->kind == TYPE_I32)
-        return TY_I32();
-    if (lhs->kind == TYPE_I16 || rhs->kind == TYPE_I16)
-        return TY_I16();
-    if (lhs->kind == TYPE_I8 || rhs->kind == TYPE_I8)
-        return TY_I8();
-    if (lhs->kind == TYPE_U64 || rhs->kind == TYPE_U64)
-        return TY_U64();
-    if (lhs->kind == TYPE_U32 || rhs->kind == TYPE_U32)
-        return TY_U32();
-    if (lhs->kind == TYPE_U16 || rhs->kind == TYPE_U16)
-        return TY_U16();
-    if (lhs->kind == TYPE_U8 || rhs->kind == TYPE_U8)
-        return TY_U8();
-
-    return TY_ERROR();
-}
-
-TYPE* BoolType(TYPE* lhs, TYPE* rhs)
-{
-    if (lhs->kind == rhs->kind)
-        return TY_BOOL();
-
-    return TY_ERROR();
-}
-
-/* Unary */
-TYPE* BlankRule(TYPE* expr, TYPE* placeholder) { return expr; }
-
-OperatorRule FindRule(TokenType ttype, RuleType rtype)
-{  
-    int i;
-    OperatorRule rule;
-    rule.rtype = rtype;
-    if (rtype == BINARY_RULE) {
-        for (i = 0; i < BINARY_RULES_SIZE; i++) {
-            if (BINARY_RULES[i].op == ttype) {
-                rule.rule.b = BINARY_RULES[i];
-                return rule;
-            }
-        }
-    }
-    else if (rtype == UNARY_RULE) {
-        for (i = 0; i < UNARY_RULES_SIZE; i++) {
-            if (UNARY_RULES[i].op == ttype) {
-                rule.rule.u = UNARY_RULES[i];
-                return rule;
-            }
-        }
-    }
-    OperatorRule ERR; ERR.rtype == ERROR_RULE;
-    return ERR; 
-}
+/* ---------- Type Definitions --------- */

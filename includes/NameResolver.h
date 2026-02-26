@@ -28,7 +28,6 @@ int NERROR_NO_IDENT(ASTNode* curr);
 int NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first);
 int NERROR_DOESNT_EXIST(char* name, ASTNode* curr);
 
-int NERROR_UNDEFINED_TYPE(char* name, ASTNode* curr);
 int NERROR(char* msg, char* name, ASTNode* curr);
 
 /* ---------- Resolving ---------- */
@@ -38,7 +37,7 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current);
 
 
 int ResolveVars(ScopeContext* scope, ASTNode* current);
-int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type, char* typeLex);
+int ResolveVar(ScopeContext* scope, ASTNode* current);
 
 int ResolveFuncs(ScopeContext* scope, ASTNode* current);
 int ResolveParams(ScopeContext* scope, ASTNode* current);
@@ -59,7 +58,7 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current);
 int ResolveEnums(ScopeContext* scope, ASTNode* current);
 
 int ResolveFuncCall(ScopeContext* scope, ASTNode* current);
-int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Symbol** resolvedSym);
+int ResolveMemberAccess(ScopeContext* scope, ASTNode* current);
 int ResolveArrIndex(ScopeContext* scope, ASTNode* current);
 int ResolveArgList(ScopeContext* scope, ASTNode* current);
 int ResolveTypedefs(ScopeContext* scope, ASTNode* current);
@@ -68,7 +67,6 @@ int EnterScopeContextIfNeeded(ScopeContext** scope, ASTNode* current);
 
 /* ---------- Helpers ---------- */
 
-TYPE* StringToType(const char* name);
 static NodeType CTRL_STMTS[] = { IF_NODE, ELIF_NODE, ELSE_NODE, SWITCH_STMT_NODE,
                                  CASE_NODE, DEFAULT_NODE, WHILE_STMT_NODE, 
                                  DO_WHILE_STMT_NODE, FOR_STMT_NODE };

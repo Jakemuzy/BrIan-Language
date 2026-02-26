@@ -3,6 +3,14 @@
 /* TODO:
     - Allow Shadowing in ctrl scopes 
     - Fix Nested Structs
+    - URGENT: name resolver should NOT try to partially determine types
+        this is ONLY the TypeCheckers job snice variables of different
+        types but the same name can be shadowed. This would make it 
+        extremely hard to check the type from the SymbolTable.
+        SOLUTION: Just check the type in here instead.
+
+    - STRUCT FIELD VALIDATION SHOULD BE IN TYPECHECKER 
+    - Have functions be stateful as well (store their own fields namespace like structs)
 */
 
 /* ----------- Error Handling ---------- */
@@ -25,46 +33,10 @@ int NERROR_DOESNT_EXIST(char* name, ASTNode* curr)
     return ERRN;
 }
 
-int NERROR_UNDEFINED_TYPE(char* name, ASTNode* curr) 
-{
-    printf("NAME ERROR: '%s' on line %d is an undefined TYPE\n", name, curr->token.line);
-    return ERRN;
-}
-
 int NERROR(char* msg, char* name, ASTNode* curr) 
 {
     printf("NAME ERROR: %s '%s' on line %d\n", msg, name, curr->token.line);
     return ERRN;
-}
-
-/* ----------- Helper ----------- */
-
-TYPE* StringToType(const char* name)
-{
-    if (!name) return TY_ERROR();
-
-    if (strcmp(name, "int") == 0)     return TY_INT();
-    if (strcmp(name, "bool") == 0)    return TY_BOOL();
-    if (strcmp(name, "double") == 0)  return TY_DOUBLE();
-    if (strcmp(name, "float") == 0)   return TY_FLOAT();
-    if (strcmp(name, "void") == 0)    return TY_VOID();
-    if (strcmp(name, "string") == 0)  return TY_STRING();
-
-    if (strcmp(name, "I8") == 0)   return TY_I8();
-    if (strcmp(name, "I16") == 0)  return TY_I16();
-    if (strcmp(name, "I32") == 0)  return TY_I32();
-    if (strcmp(name, "I64") == 0)  return TY_I64();
-
-    if (strcmp(name, "U8") == 0)   return TY_U8();
-    if (strcmp(name, "U16") == 0)  return TY_U16();
-    if (strcmp(name, "U32") == 0)  return TY_U32();
-    if (strcmp(name, "U64") == 0)  return TY_U64();
-
-    //if (strcmp(name, "struct") == 0)  return TY_STRUCT();
-    if (strcmp(name, "null") == 0)    return TY_NULL();
-
-    // If it wasn’t a builtin, treat as named type
-    return NULL; /* This will be resolved in type resolution */
 }
 
 /* ----------- Name Resolution ---------- */
@@ -129,25 +101,11 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current)
 
 int ResolveVars(ScopeContext* scope, ASTNode* current)
 {
-    char* typeLex = current->children[0]->token.lex.word;
-    TYPE* type = StringToType(typeLex);
-
-    if (!type) {
-        Symbol* sym = LookupAllScopes(scope, typeLex, N_TYPE);
-
-        if (!sym) 
-            return NERROR_UNDEFINED_TYPE(typeLex, current->children[0]);
-
-        /* TODO: ERROR needs to have var store typeName */
-
-        type = TY_NAME(sym, NULL);
-    }
-
     /* TODO: Should pass sym, so in case of enum or struct, can check members */
-    return ResolveVar(scope, current->children[1], type, typeLex);   
+    return ResolveVar(scope, current->children[1]);   
 }
 
-int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type, char* typeLex)
+int ResolveVar(ScopeContext* scope, ASTNode* current)
 {
     /* TODO: Find the underlying cause for this null check being required */
     if (!current) return NANN;
@@ -159,14 +117,14 @@ int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type, char* typeLex)
         sym = LookupCurrentScope(scope, name, N_VAR);
         if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
       
-        sym = STPushNamespace(scope, current, N_VAR, type, typeLex);
+        sym = STPushNamespace(scope, current, N_VAR);
         sym->stype = S_VAR;
         PushScope(scope, sym, N_VAR);
         return VALDN;
     }    
     else {
         for (size_t i = 0; i < current->childCount; i++) {
-            int status = ResolveVar(scope, current->children[i], type, typeLex);
+            int status = ResolveVar(scope, current->children[i]);
             if (status == ERRN) return status;
         }
     }
@@ -175,10 +133,12 @@ int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type, char* typeLex)
 
 int ResolveFuncs(ScopeContext* scope, ASTNode* current)
 {
-    /* Function Ident, Type and Scope */
-    char* typeLex = current->children[0]->token.lex.word;
-    TYPE* type = StringToType(typeLex);
+    /* TODO: Should be stateful for parameters
+    ->Persistent namespace for parameters ->exit
+    ->Normal namespace for body ->exit  
+    */
 
+    /* Function Ident and Scope */
     ASTNode* identNode = current->children[1];
     char* name = strdup(identNode->token.lex.word);
 
@@ -186,7 +146,7 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
     Symbol* sym = LookupCurrentScope(scope, name, N_VAR); 
     if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
 
-    sym = STPushNamespace(scope, identNode, N_VAR, type, typeLex);
+    sym = STPushNamespace(scope, identNode, N_VAR);
     if (!sym) printf("INVALID SYM\n");
     PushScope(scope, sym, N_VAR);
     BeginScope(&scope, FUNC_SCOPE);
@@ -223,9 +183,7 @@ int ResolveParam(ScopeContext* scope, ASTNode* current)
     if (sym) return NERROR_ALREADY_DEFINED(identNode->token.lex.word, identNode, sym->decl);
 
     /* TODO: Push to Func's personal Namespace */
-    char* typeLex = current->children[0]->token.lex.word;
-    TYPE* type = StringToType(typeLex);
-    sym = STPushNamespace(scope, identNode, N_VAR, type, typeLex);
+    sym = STPushNamespace(scope, identNode, N_VAR);
     PushScope(scope, sym, N_VAR);
 
     return VALDN;
@@ -245,8 +203,7 @@ int ResolveExpr(ScopeContext* scope, ASTNode* current)
         return VALDN;
     }
     else if (current->type == MEMBER_ACCESS_NODE) {
-        Symbol* resolvedSym = NULL;
-        return ResolveMemberAccess(scope, current, &resolvedSym);
+        return ResolveMemberAccess(scope, current);
     }
     else {
         for (size_t i = 0; i < current->childCount; i++) {
@@ -414,9 +371,8 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
     if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
 
     /* TYPE* will become TY_STRUCT during type checking, NULL for now */
-    sym = STPushNamespace(scope, identNode, N_TYPE, NULL, name);
+    sym = STPushNamespace(scope, identNode, N_TYPE);
     sym->stype = S_STRUCT;
-    sym->typeName = name;
     PushScope(scope, sym, N_TYPE);
 
     /* Stores namespae that resolves struct members inside of struct */
@@ -453,7 +409,7 @@ int ResolveEnums(ScopeContext* scope, ASTNode* current)
     if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
 
     /* TYPE* will become TY_ENUM during type checking, NULL for now */
-    sym = STPushNamespace(scope, identNode, N_TYPE, NULL, name);
+    sym = STPushNamespace(scope, identNode, N_TYPE);
     sym->stype = S_ENUM;
     PushScope(scope, sym, N_TYPE);
 
@@ -469,7 +425,7 @@ int ResolveEnums(ScopeContext* scope, ASTNode* current)
         Symbol* memSym = LookupCurrentScope(scope, memName, N_VAR);
         if (memSym) return NERROR_ALREADY_DEFINED(memName, memberNode, memSym->decl);
 
-        memSym = STPushNamespace(scope, memberNode, N_VAR, TY_INT(), memName);
+        memSym = STPushNamespace(scope, memberNode, N_VAR);
         PushScope(scope, memSym, N_VAR);
     }
 
@@ -489,9 +445,17 @@ int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
     return NANN;
 }
 
-int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Symbol** resolvedSym) 
+int ResolveMemberAccess(ScopeContext* scope, ASTNode* current) 
 {
+    /* Type checker ensures type exists */
+    int status = ResolveExprs(scope, current->children[0]);
+    if (status != VALDN)
+        return status;
+
+    // For name resolution phase: done. We assume later type checking handles the rest
+    return VALDN;
     /* TODO: Not too sure how solid this 'resolvedSym' pattern is */
+    /*
     Symbol* sym = NULL;
     ASTNode* accessedNode = current->children[0];
     int status;
@@ -508,14 +472,11 @@ int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Symbol** resolved
         status = ResolveExprs(scope, accessedNode);
         if (status != VALDN) return status;
 
-        /* Resolved Sym in case of Nested member accesses */
+        /* Resolved Sym in case of Nested member accesses 
         sym = *resolvedSym; 
         if (!sym)
             return NERROR("Cannot resolve member base", NULL, accessedNode);
     }
-
-    if (!sym->typeName)
-        return NERROR("Type not defined for struct", sym->name, accessedNode);
 
     // Member lookup
     char* memName = current->children[1]->token.lex.word;
@@ -531,6 +492,7 @@ int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Symbol** resolved
         return NERROR("Undefined struct member", memName, current->children[1]);
 
     *resolvedSym = memberNode; // store resolved symbol for later passes
+    */
     return VALDN;
 }
 

@@ -1,8 +1,13 @@
-char func() {
-    
+//typedef int x;
+
+char func(int x, char y, string str) {
+    int a = 4;
+    int b = 34;
 }
 
+
 int main() {
+    int fun = func(3, 3, 3);
     int p = "hello";
     int x = 4;
     //x = x + 5;
