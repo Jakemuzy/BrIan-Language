@@ -1,16 +1,13 @@
-char func() {
+//typedef int x;
+
+char func(int x, char y, x x) {
     
 }
 
-struct bug {
-    int a;
-};
 
 int main() {
     int p = "hello";
     int x = 4;
-    Bug bg;
-    bg.a;
     //x = x + 5;
     //x = x + "hello";
 /*

@@ -17,35 +17,7 @@
 /* ---------- Forward Declaration Type Info ---------- */
 
 typedef struct Symbol Symbol;
-
 typedef struct TYPE TYPE;
-typedef struct TYPE_LIST TYPE_LIST;
-typedef struct TYPE_FIELD TYPE_FIELD;
-typedef struct TYPE_FIELD_LIST TYPE_FIELD_LIST;
-typedef struct TYPE_STRUCT TYPE_STRUCT;
-
-/* Constructors */
-TYPE* TY_ERROR(void);
-TYPE* TY_VOID(void);
-TYPE* TY_INT(void);
-TYPE* TY_FLOAT(void);
-TYPE* TY_DOUBLE(void);
-TYPE* TY_BOOL(void);
-TYPE* TY_STRING(void);
-TYPE* TY_NULL(void);
-
-TYPE* TY_I8();
-TYPE* TY_I16();
-TYPE* TY_I32();
-TYPE* TY_I64();
-
-TYPE* TY_U8();
-TYPE* TY_U16();
-TYPE* TY_U32();
-TYPE* TY_U64();
-
-TYPE* TY_ARR(TYPE* element, int size);
-TYPE* TY_NAME(Symbol* sym, TYPE* type);
 
 /* ---------- Symbols ---------- */
 

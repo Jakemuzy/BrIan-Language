@@ -32,46 +32,10 @@ int NERROR_DOESNT_EXIST(char* name, ASTNode* curr)
     return ERRN;
 }
 
-int NERROR_UNDEFINED_TYPE(char* name, ASTNode* curr) 
-{
-    printf("NAME ERROR: '%s' on line %d is an undefined TYPE\n", name, curr->token.line);
-    return ERRN;
-}
-
 int NERROR(char* msg, char* name, ASTNode* curr) 
 {
     printf("NAME ERROR: %s '%s' on line %d\n", msg, name, curr->token.line);
     return ERRN;
-}
-
-/* ----------- Helper ----------- */
-
-TYPE* StringToType(const char* name)
-{
-    if (!name) return TY_ERROR();
-
-    if (strcmp(name, "int") == 0)     return TY_INT();
-    if (strcmp(name, "bool") == 0)    return TY_BOOL();
-    if (strcmp(name, "double") == 0)  return TY_DOUBLE();
-    if (strcmp(name, "float") == 0)   return TY_FLOAT();
-    if (strcmp(name, "void") == 0)    return TY_VOID();
-    if (strcmp(name, "string") == 0)  return TY_STRING();
-
-    if (strcmp(name, "I8") == 0)   return TY_I8();
-    if (strcmp(name, "I16") == 0)  return TY_I16();
-    if (strcmp(name, "I32") == 0)  return TY_I32();
-    if (strcmp(name, "I64") == 0)  return TY_I64();
-
-    if (strcmp(name, "U8") == 0)   return TY_U8();
-    if (strcmp(name, "U16") == 0)  return TY_U16();
-    if (strcmp(name, "U32") == 0)  return TY_U32();
-    if (strcmp(name, "U64") == 0)  return TY_U64();
-
-    //if (strcmp(name, "struct") == 0)  return TY_STRUCT();
-    if (strcmp(name, "null") == 0)    return TY_NULL();
-
-    // If it wasn’t a builtin, treat as named type
-    return NULL; /* This will be resolved in type resolution */
 }
 
 /* ----------- Name Resolution ---------- */

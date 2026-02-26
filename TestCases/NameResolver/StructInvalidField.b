@@ -7,4 +7,4 @@ int main() {
     p.y = 5;
     return 0;
 }
-//FAIL
+// PASS
