@@ -2,9 +2,15 @@ char func() {
     
 }
 
+struct bug {
+    int a;
+};
+
 int main() {
     int p = "hello";
     int x = 4;
+    Bug bg;
+    bg.a;
     //x = x + 5;
     //x = x + "hello";
 /*

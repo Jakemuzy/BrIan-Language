@@ -133,6 +133,14 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
             return ValidLval(nss, expr, N_VAR);
 
             /* TODO: Check if sym->type is NULL */
+        case FUNC_NODE: 
+            /* 
+            1.) Registers func return type  
+                a.) If type is NULL, its a custom type, try to resolve     
+            2.) Registers paramter types
+                a.) If type is NULL, its a custom type, try to resolve
+            3.) Return TypeCheck(expr->children['BodyNode'])
+            */
         case BINARY_EXPR_NODE: return TypeCheckBinExpr(nss, expr);
         case UNARY_EXPR_NODE:  return TypeCheckUnaExpr(nss, expr->children[0]);
 

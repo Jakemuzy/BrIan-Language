@@ -38,7 +38,7 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current);
 
 
 int ResolveVars(ScopeContext* scope, ASTNode* current);
-int ResolveVar(ScopeContext* scope, ASTNode* current, TYPE* type, char* typeLex);
+int ResolveVar(ScopeContext* scope, ASTNode* current);
 
 int ResolveFuncs(ScopeContext* scope, ASTNode* current);
 int ResolveParams(ScopeContext* scope, ASTNode* current);
@@ -59,7 +59,7 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current);
 int ResolveEnums(ScopeContext* scope, ASTNode* current);
 
 int ResolveFuncCall(ScopeContext* scope, ASTNode* current);
-int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Symbol** resolvedSym);
+int ResolveMemberAccess(ScopeContext* scope, ASTNode* current);
 int ResolveArrIndex(ScopeContext* scope, ASTNode* current);
 int ResolveArgList(ScopeContext* scope, ASTNode* current);
 int ResolveTypedefs(ScopeContext* scope, ASTNode* current);
