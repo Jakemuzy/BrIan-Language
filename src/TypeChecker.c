@@ -30,10 +30,9 @@ Cases:
 
 
     TODO: 
-        - Split into 4 headers, TYPE*, 
-        Environment, TypeCheck Functions, and Table Driven Rules
         - Instead of checking type->kind == TYPE_ERROR, just check if the 
         pointer == TY_ERROR() since its static
+        - Account for environments
 */
 
 /* ---------- Error Handling ----------- */
@@ -130,6 +129,9 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
         case VAR_DECL_NODE:     /* TODO: Assign type to symbols (currently null from name reoslver) */
             return TypeCheckVarDecl(nss, expr);
 
+        case CALL_FUNC_NODE:    /* Check Valid Type */
+            return TY_NAT();
+
         case ARR_DECL_NODE:     /* Check Integral Size */
 
         case ARR_INIT_NODE:     /* Check Valid Types */
@@ -138,7 +140,6 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
 
         case MEMBER_ACCESS_NODE:  
         
-        case CALL_FUNC_NODE:    /* Check Valid Type */
 
         case TYPEDEF_DECL_NODE: /* Check for existance */
 
@@ -162,31 +163,67 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
 
 TYPE* TypeCheckVarDecl(Namespaces* nss, ASTNode* expr)
 {
-    /* Check if asignments are of valid type */
-    /* Set the TYPE of idents in Symbol* so further mentions can grab type */
     ASTNode* typeNode = expr->children[0];
+    char* typeLex = typeNode->token.lex.word;
+
+    TYPE* type = StrToType(typeLex);
+    if (!type) {
+        Symbol* sym = STLookupNamespace(nss, typeLex, N_TYPE);
+        if (!sym || !sym->type)
+            return TERROR_UNDEFINED(typeNode);
+        type = sym->type;
+    }
+
+    ASTNode* varListNode = expr->children[1];
+    for (size_t i = 0; i < varListNode->childCount; i++) {
+        TYPE* ty = TypeCheckVar(nss, varListNode->children[i], type);
+        if (ty->kind == TYPE_ERROR) return ty;
+    }
     
     return TY_NAT();
 }
 
-TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var) 
+TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var, TYPE* type) 
 {
-    /* TODO: Later check typedefs, for now assume var */
+    /* TODO: Account for Envrionments  */
     //EnvironmentEntry entry = STLookup(venv, var->token.lex.word);
+
+    /*
     EnvironmentEntry entry;
     entry.kind = ENV_VAR_ENTRY;
     entry.u.var.ty;
+    */
 
-    /*Symbol* sym = STLookupNamespace(nss, var->token.lex.word, N_VAR);
-   
-    Symbol* sym;
-    switch(sym->stype) {
-        default: 
-            break;
+    /* TODO: 
+    eq doesn't have a rule since it has to do with lvals, 
+    must check these
+    */
+    
+    /* Actual Var checking */
+    ASTNode* identNode = var->children[0];
+    char* identName = identNode->token.lex.word;
+    Symbol* sym = STLookupNamespace(nss, identName, N_VAR);
+    sym->type = type;
+
+    /* Check compatibility of asgnment with ident type */
+    if (var->childCount > 1) {
+        TYPE* rhs = TypeCheck(nss, var->children[1]);
+        if (rhs->kind == TYPE_ERROR) return rhs;
+
+        /* Use operator rules since technically an '=' */
+        OperatorRule rule = FindRule(EQ, LVAL_RULE);
+        if (rule.rtype == ERROR_RULE) 
+            return TERROR_NO_RULE(rule, var);
+
+        if (!TypeHasCategory(sym->type->kind, rule.rule.b.left) || !TypeHasCategory(rhs->kind, rule.rule.b.right)) 
+            return TERROR_INCOMPATIBLE(rule, var);
+
+        /* Resulting Expr Type based on operator rule */
+        TYPE* result = rule.rule.b.result(sym->type, rhs);
+        return result;
     }
-            */
 
-    return TY_ERROR();
+    return type;
 }
 
 TYPE* TypeCheckFunc(Namespaces* nss, ASTNode* expr) 

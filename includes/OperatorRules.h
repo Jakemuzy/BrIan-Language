@@ -21,11 +21,12 @@ TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs);  /* Automatic type conversions bas
 TYPE* BitwisePromotion(TYPE* lhs, TYPE* rhs);  
 TYPE* EqPromotion(TYPE* lhs, TYPE* rhs);
 TYPE* BoolType(TYPE* lhs, TYPE* rhs);
+TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs); /* Warn */
 
 /* Placeholders since TypeResult takes two arguments */
 TYPE* BlankRule(TYPE* epxr, TYPE* placeholder); /* Just returns type */
 
-typedef enum RuleType { BINARY_RULE, UNARY_RULE, ERROR_RULE } RuleType;
+typedef enum RuleType { BINARY_RULE, UNARY_RULE, LVAL_RULE, ERROR_RULE } RuleType;
 
 typedef TYPE* (*TypeResult)(TYPE* lhs, TYPE* rhs);
 typedef struct BinaryRule {
@@ -42,10 +43,18 @@ typedef struct UnaryRule {
     TypeResult result;
 } UnaryRule;
 
+typedef struct LvalRule {
+    TokenType op;
+    TypeCategory left, right;
+    TypeResult result;
+} LvalRule;
+
 typedef struct OperatorRule { 
     RuleType rtype;
-    union { BinaryRule b; UnaryRule u; } rule; 
+    union { BinaryRule b; UnaryRule u; LvalRule l; } rule; 
 } OperatorRule;
+
+/* ---------- Actual Rule Tables ---------- */
 
 OperatorRule FindRule(TokenType ttype, RuleType rtype);
 static BinaryRule BINARY_RULES[] = {    /* Maybe make this a map */
@@ -79,6 +88,8 @@ static BinaryRule BINARY_RULES[] = {    /* Maybe make this a map */
 };
 static const size_t BINARY_RULES_SIZE = sizeof(BINARY_RULES) / sizeof(BINARY_RULES[0]);
 
+/* ---------------------------------------- */
+
 static UnaryRule UNARY_RULES[] = {
     { PP, C_NUMERIC, BlankRule },
 
@@ -87,6 +98,13 @@ static UnaryRule UNARY_RULES[] = {
     { NOT, C_EQUALITY, BoolType },
 };
 static const size_t UNARY_RULES_SIZE = sizeof(UNARY_RULES) / sizeof(UNARY_RULES[0]);
+
+/* ---------------------------------------- */
+
+static LvalRule LVAL_RULES[] = {
+    { EQ, C_ANY, C_ANY, ImplicitCast }
+};
+static const size_t LVAL_RULES_SIZE = sizeof(LVAL_RULES) / sizeof(LVAL_RULES[0]);
 
 /* ---------- Error Handling ----------- */
 

@@ -10,6 +10,7 @@
         SOLUTION: Just check the type in here instead.
 
     - STRUCT FIELD VALIDATION SHOULD BE IN TYPECHECKER 
+    - Have functions be stateful as well (store their own fields namespace like structs)
 */
 
 /* ----------- Error Handling ---------- */
@@ -132,6 +133,11 @@ int ResolveVar(ScopeContext* scope, ASTNode* current)
 
 int ResolveFuncs(ScopeContext* scope, ASTNode* current)
 {
+    /* TODO: Should be stateful for parameters
+    ->Persistent namespace for parameters ->exit
+    ->Normal namespace for body ->exit  
+    */
+
     /* Function Ident and Scope */
     ASTNode* identNode = current->children[1];
     char* name = strdup(identNode->token.lex.word);

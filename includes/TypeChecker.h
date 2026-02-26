@@ -21,7 +21,7 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr);
 
 TYPE* TypeCheckVarDecl(Namespaces* nss, ASTNode* expr); /* TODO: assign type to symbols (currently null) */
 TYPE* TypeCheckArrDecl(Namespaces* nss, ASTNode* expr);
-TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var);
+TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var, TYPE* type);
 TYPE* TypeCheckArrInit(Namespaces* nss, ASTNode* decl);
 TYPE* TypeCheckFunc(Namespaces* nss, ASTNode* expr);
 TYPE* TypeCheckParams(Namespaces* nss, ASTNode* expr);
@@ -30,7 +30,6 @@ TYPE* TypeCheckParam(Namespaces* nss, ASTNode* expr);
 TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr);  
 TYPE* TypeCheckUnaExpr(Namespaces* nss, ASTNode* expr);  
 TYPE* TypeCheckAsgn(Namespaces* nss, ASTNode* expr);
-
 
 TYPE* TypeCheckArrIndex(Namespaces* nss, ASTNode* decl);
 TYPE* TypeCheckCallFunc(Namespaces* nss, ASTNode* expr);

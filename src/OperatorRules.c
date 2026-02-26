@@ -125,6 +125,15 @@ TYPE* BoolType(TYPE* lhs, TYPE* rhs)
     return TY_ERROR();
 }
 
+TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs) 
+{
+    /* TODO: Casting rules go here */
+    printf("HERE\n");
+    return TY_NAT();
+
+    return TY_ERROR();
+}
+
 /* Unary */
 TYPE* BlankRule(TYPE* expr, TYPE* placeholder) { return expr; }
 
@@ -145,6 +154,14 @@ OperatorRule FindRule(TokenType ttype, RuleType rtype)
         for (i = 0; i < UNARY_RULES_SIZE; i++) {
             if (UNARY_RULES[i].op == ttype) {
                 rule.rule.u = UNARY_RULES[i];
+                return rule;
+            }
+        }
+    }
+    else if (rtype == LVAL_RULE) {
+        for (i = 0; i < LVAL_RULES_SIZE; i++) {
+            if (LVAL_RULES[i].op == ttype) {
+                rule.rule.l = LVAL_RULES[i];
                 return rule;
             }
         }
