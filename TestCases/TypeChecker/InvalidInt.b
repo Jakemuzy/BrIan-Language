@@ -1,4 +1,4 @@
-//typedef int x;
+typedef int x;  // PARSER DOESN'T allow custom types yet
 
 char func(int x, char y, string str) {
     int a = 4;

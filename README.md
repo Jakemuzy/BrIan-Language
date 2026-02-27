@@ -68,6 +68,7 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
         the standard libraries for faster compile times.
     -   Lambdas require closures for support
     -   Compound literals
+    -   Parser allows Ident | Type for anything requiring type
 
 ## GRAMMAR
 
