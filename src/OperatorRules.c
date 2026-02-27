@@ -14,7 +14,7 @@ bool TypeHasCategory(TypeKind kind, TypeCategory cat)
         case C_EQUALITY:
             return 1;
         default:
-            return 0;
+            return C_ANY;
     }
 }
 
@@ -128,8 +128,29 @@ TYPE* BoolType(TYPE* lhs, TYPE* rhs)
 TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs) 
 {
     /* TODO: Casting rules go here */
-    printf("HERE\n");
+    //if (lhs->kind == rhs->kind)
+        //return KindToType(lhs->kind);
+        
+    TWARN("Implicit type conversion from x to y on line z");
     return TY_NAT();
+
+    /* Numeric → Numeric 
+    if (IsNumeric(lhs) && IsNumeric(rhs))
+        return lhs;  // allow narrowing or widening
+
+    /* Integral → Integral 
+    if (IsIntegral(lhs) && IsIntegral(rhs))
+        return lhs;
+
+    /* float/double widening 
+    if (IsFloating(lhs) && IsIntegral(rhs))
+        return lhs;
+
+    /* null → pointer (if you add pointers later) 
+    // if (IsPointer(lhs) && rhs->kind == TYPE_NULL)
+    //     return lhs;
+    */
+
 
     return TY_ERROR();
 }
@@ -168,4 +189,52 @@ OperatorRule FindRule(TokenType ttype, RuleType rtype)
     }
     OperatorRule ERR; ERR.rtype == ERROR_RULE;
     return ERR; 
+}
+
+/* ---------- Error Handling ----------- */
+
+TYPE* TERROR_INCOMPATIBLE(OperatorRule rule, ASTNode* node) 
+{
+    int line = node->token.line;
+    if (rule.rtype == BINARY_RULE)
+        printf("TYPE ERROR: Incompatible types found for binary operator %d on line %d\n", rule.rule.b.op, line);  /* TODO: Translate this to  a string instead of enum */
+    else if (rule.rtype == UNARY_RULE)
+        printf("TYPE ERROR: Incompatible types found for unary operator %d on line %d\n", rule.rule.u.op, line);
+    else if (rule.rtype == LVAL_RULE)
+        printf("TYPE ERROR: Incompatible types found for lvalue operator %d on line %d\n", rule.rule.u.op, line);
+
+    return TY_ERROR();
+}
+
+TYPE* TERROR_NO_RULE(OperatorRule rule, ASTNode* node)
+{
+    /* TODO: Have this print what type it actually is (Map of types to string) */
+    /* TODO: Not a very clear error message AT ALL, fix this */
+    int line = node->token.line;
+    printf("TYPE ERROR: No rule found for operator %d on line%d\n",  rule.rule.b.op, line);
+
+    return TY_ERROR();
+}
+
+TYPE* TERROR_UNDEFINED(ASTNode* node) 
+{
+    int line = node->token.line;
+    char* name = node->token.lex.word;
+    printf("TYPE ERROR: Undefined type %s on line %d\n", name, line);
+
+    return TY_ERROR();
+}
+
+TYPE* TERROR(char* msg, ASTNode* node, NamespaceKind kind)
+{
+    int line = node->token.line;
+    char* name = node->token.lex.word;
+    printf("TYPE ERROR: %s in namespace %d on line %d\n", msg, kind, line);
+
+    return TY_ERROR();
+}
+
+void TWARN(char* msg)
+{
+    printf("%s\n", msg);
 }

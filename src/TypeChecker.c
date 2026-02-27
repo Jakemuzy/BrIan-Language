@@ -35,52 +35,6 @@ Cases:
         - Account for environments
 */
 
-/* ---------- Error Handling ----------- */
-
-TYPE* TERROR_INCOMPATIBLE(OperatorRule rule, ASTNode* node) 
-{
-    int line = node->token.line;
-    if (rule.rtype == BINARY_RULE)
-        printf("TYPE ERROR: Incompatible types found for binary operator %d on line %d\n", rule.rule.b.op, line);  /* TODO: Translate this to  a string instead of enum */
-    else if (rule.rtype == UNARY_RULE)
-        printf("TYPE ERROR: Incompatible types found for unary operator %d on line %d\n", rule.rule.u.op, line);
-
-    printf("NEITHER\n");
-    return TY_ERROR();
-}
-
-TYPE* TERROR_NO_RULE(OperatorRule rule, ASTNode* node)
-{
-    /* TODO: Have this print what type it actually is (Map of types to string) */
-    /* TODO: Not a very clear error message AT ALL, fix this */
-    int line = node->token.line;
-    printf("TYPE ERROR: No rule found for operator %d on line%d\n",  rule.rule.b.op, line);
-
-    return TY_ERROR();
-}
-
-TYPE* TERROR_UNDEFINED(ASTNode* node) 
-{
-    int line = node->token.line;
-    char* name = node->token.lex.word;
-    printf("TYPE ERROR: Undefined type %s on line %d\n", name, line);
-
-    return TY_ERROR();
-}
-
-TYPE* TERROR(char* msg, ASTNode* node, NamespaceKind kind)
-{
-    int line = node->token.line;
-    char* name = node->token.lex.word;
-    printf("TYPE ERROR: %s in namespace %d on line %d\n", msg, kind, line);
-
-    return TY_ERROR();
-}
-
-
-
-
-
 /* ---------- Type Checking ---------- */
 
 TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
@@ -142,6 +96,7 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
         
 
         case TYPEDEF_DECL_NODE: /* Check for existance */
+            return TypeCheckTypedef(nss, expr);
 
         case ENUM_BODY_NODE:    /* Check all integral */
 
@@ -365,3 +320,27 @@ printf("Asgn Expr\n");
 
 
 /* ---------- Type Definitions --------- */
+
+TYPE* TypeCheckTypedef(Namespaces* nss, ASTNode* expr)
+{
+    ASTNode* typeNode = expr->children[0];
+    char* typeLex = typeNode->token.lex.word;
+
+    TYPE* type = StrToType(typeLex);
+    if (!type) {
+        Symbol* sym = STLookupNamespace(nss, typeLex, N_TYPE);
+        if (!sym || !sym->type)
+            return TERROR_UNDEFINED(typeNode);
+        type = sym->type;
+    }
+    
+    // type = TY_NAME(sym, sym->type);  TODO: Goes in typedef
+
+    ASTNode* newTypeNode = expr->children[1];
+    char* newTypeLex = newTypeNode->token.lex.word;
+    Symbol* sym = STLookupNamespace(nss, newTypeLex, N_TYPE);
+    if (sym->type) return TERROR("Type is already defined", newTypeNode, N_TYPE);
+
+    sym->type = type;
+    return sym->type;
+}

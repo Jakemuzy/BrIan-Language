@@ -435,6 +435,19 @@ int ResolveEnums(ScopeContext* scope, ASTNode* current)
 
 int ResolveTypedefs(ScopeContext* scope, ASTNode* current)
 {
+    /* Not sure if this should be in name resolver */
+    ASTNode* newTypeNode = current->children[1];
+    char* newTypeLex = newTypeNode->token.lex.word;
+
+    Symbol* sym = LookupCurrentScope(scope, newTypeLex, N_TYPE);
+    if (sym) return NERROR_ALREADY_DEFINED(newTypeLex, newTypeNode, sym->decl);
+
+    /* TYPE* will become TY_NAME during type checking, NULL for now */
+    sym = STPushNamespace(scope, newTypeNode, N_TYPE);
+    sym->stype = S_TYPEDEF;
+    PushScope(scope, sym, N_TYPE); 
+
+    /* Resolve Typedefs */
     return NANN;
 }
 
