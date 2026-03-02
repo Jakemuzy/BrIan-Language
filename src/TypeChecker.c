@@ -33,6 +33,7 @@ Cases:
         - Instead of checking type->kind == TYPE_ERROR, just check if the 
         pointer == TY_ERROR() since its static
         - Account for environments
+        - Fix Parser to allow idents as types in some nodes (ie param only takes type)
 */
 
 /* ---------- Type Checking ---------- */

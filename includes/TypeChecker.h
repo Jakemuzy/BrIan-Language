@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+#include "Error.h"
 #include "NameResolver.h"
 #include "Environment.h"
 #include "OperatorRules.h"
