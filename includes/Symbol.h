@@ -40,7 +40,7 @@ typedef struct Symbol {
     Namespaces* fields;  /* TODO: HAVE THIS BE NAMESPACES (nested types) */
 } Symbol;
 
-Symbol* InitSymbol(ASTNode* decl, Symbol* prev);
+Symbol* InitSymbol(ASTNode* decl, Symbol* prev, SymbolType stype);
 void    FreeSymbol(Symbol* sym);
 
 /* ---------- Symbol Table ---------- */
@@ -57,7 +57,7 @@ typedef struct SymbolTable {
 SymbolTable* STInit();
 Symbol* STPop(SymbolTable* env, char* name);
 Symbol* STLookup(SymbolTable* env, char* key);
-Symbol* STPush(SymbolTable* env, ASTNode* key);
+Symbol* STPush(SymbolTable* env, ASTNode* key, SymbolType stype);
 void STResize(SymbolTable* env, unsigned int newSize);
 
 #endif
