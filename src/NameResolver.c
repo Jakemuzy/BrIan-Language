@@ -11,6 +11,7 @@
 
     - STRUCT FIELD VALIDATION SHOULD BE IN TYPECHECKER 
     - Have functions be stateful as well (store their own fields namespace like structs)
+    - Determine if a variable is actually defined (ie int x; int b = x + 4) x is not defined
 */
 
 /* ----------- Error Handling ---------- */
@@ -112,16 +113,22 @@ int ResolveVar(ScopeContext* scope, ASTNode* current)
 
     if (current->type == IDENT_NODE) {
         Symbol* sym;
-        char* name = strdup(current->token.lex.word);
+        char* name = current->token.lex.word;
 
         sym = LookupCurrentScope(scope, name, N_VAR);
         if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
       
-        sym = STPushNamespace(scope, current, N_VAR);
+        sym = STPushNamespace(scope, current, N_VAR, S_VAR);
         sym->stype = S_VAR;
         PushScope(scope, sym, N_VAR);
         return VALDN;
     }    
+    else if (current->type == BINARY_EXPR_NODE || current->type == UNARY_EXPR_NODE) {
+        return ResolveExprs(scope, current);
+    }
+    else if (current->type == CALL_FUNC_NODE) {
+        return ResolveFuncCall(scope, current);
+    }
     else {
         for (size_t i = 0; i < current->childCount; i++) {
             int status = ResolveVar(scope, current->children[i]);
@@ -133,31 +140,32 @@ int ResolveVar(ScopeContext* scope, ASTNode* current)
 
 int ResolveFuncs(ScopeContext* scope, ASTNode* current)
 {
-    /* TODO: Should be stateful for parameters
-    ->Persistent namespace for parameters ->exit
-    ->Normal namespace for body ->exit  
-    */
-
     /* Function Ident and Scope */
     ASTNode* identNode = current->children[1];
-    char* name = strdup(identNode->token.lex.word);
+    char* name = identNode->token.lex.word;
 
     /* Current since functions in structs can shadow */
     Symbol* sym = LookupCurrentScope(scope, name, N_VAR); 
     if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
 
-    sym = STPushNamespace(scope, identNode, N_VAR);
+    sym = STPushNamespace(scope, identNode, N_VAR, S_FUNC);
     if (!sym) printf("INVALID SYM\n");
     PushScope(scope, sym, N_VAR);
-    BeginScope(&scope, FUNC_SCOPE);
 
-    /* Param List */
+    /* Param list has own scope, stored as fields of func sym */
+    BeginPersistentScope(&scope, PARAM_SCOPE);
+
     int status = ResolveParams(scope, current->children[2]);
     if (status == ERRN) return status;
 
-    /* Body Calls Resolve Var */
+    sym->fields = scope->namespaces;
+
+    /* Body Calls Resolve Vars */
+    BeginScope(&scope, FUNC_SCOPE);
     status = ResolveEverything(scope, current->children[3]);
-    ExitScope(&scope);
+
+    ExitScope(&scope);  // Func Scope
+    ExitScope(&scope);  // Param Scope
     return status;
 }
 
@@ -182,8 +190,8 @@ int ResolveParam(ScopeContext* scope, ASTNode* current)
     Symbol* sym = LookupCurrentScope(scope, identNode->token.lex.word, N_VAR);
     if (sym) return NERROR_ALREADY_DEFINED(identNode->token.lex.word, identNode, sym->decl);
 
-    /* TODO: Push to Func's personal Namespace */
-    sym = STPushNamespace(scope, identNode, N_VAR);
+    /* S_VAR is not guaranteed, could be a func or another type, so determine */
+    sym = STPushNamespace(scope, identNode, N_VAR, DetermineSymType(current));
     PushScope(scope, sym, N_VAR);
 
     return VALDN;
@@ -365,13 +373,13 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
     ASTNode* identNode = current->children[0];
 
     Symbol* sym;   
-    char* name = strdup(identNode->token.lex.word);
+    char* name = identNode->token.lex.word;
 
     sym = LookupCurrentScope(scope, name, N_TYPE);
     if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
 
     /* TYPE* will become TY_STRUCT during type checking, NULL for now */
-    sym = STPushNamespace(scope, identNode, N_TYPE);
+    sym = STPushNamespace(scope, identNode, N_TYPE, S_STRUCT);
     sym->stype = S_STRUCT;
     PushScope(scope, sym, N_TYPE);
 
@@ -403,13 +411,13 @@ int ResolveEnums(ScopeContext* scope, ASTNode* current)
     ASTNode* identNode = current->children[0];
 
     Symbol* sym;   
-    char* name = strdup(identNode->token.lex.word);
+    char* name = identNode->token.lex.word;
 
     sym = LookupCurrentScope(scope, name, N_TYPE);
     if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
 
     /* TYPE* will become TY_ENUM during type checking, NULL for now */
-    sym = STPushNamespace(scope, identNode, N_TYPE);
+    sym = STPushNamespace(scope, identNode, N_TYPE, S_ENUM);
     sym->stype = S_ENUM;
     PushScope(scope, sym, N_TYPE);
 
@@ -420,12 +428,12 @@ int ResolveEnums(ScopeContext* scope, ASTNode* current)
     ASTNode* enumBody = current->children[1];
     for (size_t i = 0; i < enumBody->childCount; i++) {
         ASTNode* memberNode = enumBody->children[i];
-        char* memName = strdup(memberNode->token.lex.word);
+        char* memName = memberNode->token.lex.word;
 
         Symbol* memSym = LookupCurrentScope(scope, memName, N_VAR);
         if (memSym) return NERROR_ALREADY_DEFINED(memName, memberNode, memSym->decl);
 
-        memSym = STPushNamespace(scope, memberNode, N_VAR);
+        memSym = STPushNamespace(scope, memberNode, N_VAR, S_VAR);
         PushScope(scope, memSym, N_VAR);
     }
 
@@ -443,8 +451,7 @@ int ResolveTypedefs(ScopeContext* scope, ASTNode* current)
     if (sym) return NERROR_ALREADY_DEFINED(newTypeLex, newTypeNode, sym->decl);
 
     /* TYPE* will become TY_NAME during type checking, NULL for now */
-    sym = STPushNamespace(scope, newTypeNode, N_TYPE);
-    sym->stype = S_TYPEDEF;
+    sym = STPushNamespace(scope, newTypeNode, N_TYPE, S_TYPEDEF);
     PushScope(scope, sym, N_TYPE); 
 
     /* Resolve Typedefs */
@@ -455,11 +462,50 @@ int ResolveTypedefs(ScopeContext* scope, ASTNode* current)
 
 int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
 {
+    /* TODO: This breaks recursion */
+    ASTNode* identNode = current->children[0];
+    char* identLex = identNode->token.lex.word;
+
+    Symbol* sym = LookupAllScopes(scope, identLex, N_VAR);
+    if (!sym)
+        return NERROR_DOESNT_EXIST(identLex, identNode);
+    else if (sym->stype != S_FUNC)
+        return NERROR("Attempting to call a non function identifier", identLex, identNode);
+
+    /* Ensure arg count matches */
+    ASTNode* argListNode = current->children[1];
+    printf("%ld : %ld\n", GetTotalSymCount(sym->fields), GetTotalArgCount(argListNode));
+    if (GetTotalSymCount(sym->fields) != GetTotalArgCount(argListNode)) 
+        return NERROR("Mismatch in argument count", identLex, identNode);
+
+    /* TOOD: Ensure arg count matches */
+    for (size_t i = 0; i < argListNode->childCount; i++) {
+        ASTNode* argNode = argListNode->children[i];
+        int status = ResolveFuncArg(scope, argNode);
+        if (status != VALDN)
+            return status;
+    }
+    return VALDN;
+}
+
+int ResolveFuncArg(ScopeContext* scope, ASTNode* current)
+{
+    if (current->type == LITERAL_NODE)
+        return VALDN;
+    else if (current->type == IDENT_NODE) {
+        char* identLex = current->token.lex.word;
+        Symbol* sym = LookupCurrentScope(scope, identLex, N_VAR);
+        if (!sym) 
+            return NERROR_DOESNT_EXIST(identLex, current);
+
+        return VALDN;
+    }
     return NANN;
 }
 
 int ResolveMemberAccess(ScopeContext* scope, ASTNode* current) 
 {
+    /* TODO: CHECK IF ACTUALY STRUCT */
     /* Type checker ensures type exists */
     int status = ResolveExprs(scope, current->children[0]);
     if (status != VALDN)
@@ -512,4 +558,28 @@ int ResolveMemberAccess(ScopeContext* scope, ASTNode* current)
 int ResolveArrIndex(ScopeContext* scope, ASTNode* current)
 {
     return NANN;
+}
+
+
+/* ---------- Helpers ---------- */
+
+SymbolType DetermineSymType(ASTNode* node) 
+{
+
+    switch(node->type) {
+        case(VAR_DECL_NODE): return S_VAR;
+        /* Check parent for type? */
+        case(FUNC_NODE) : return S_FUNC;
+        case(ARR_INDEX_NODE) : return S_INDEX;
+        case(CALL_FUNC_NODE) : return S_CALL;
+        case(TYPEDEF_DECL_NODE) : return S_TYPEDEF;
+        case(STRUCT_DECL_NODE) : return S_STRUCT;
+        case(ENUM_DECL_NODE) : return S_ENUM;
+
+        /* Fall thorugh for speicifc Ctrl Scopes */
+        case(IF_NODE): case(ELIF_NODE): case(ELSE_NODE):
+        case(DO_WHILE_STMT_NODE): case(WHILE_STMT_NODE):
+        case(SWITCH_STMT_NODE): case(FOR_STMT_NODE): return S_CTRL;
+    }
+    return S_ERROR; 
 }

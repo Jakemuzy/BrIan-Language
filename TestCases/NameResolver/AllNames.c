@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
         {"TestCases/NameResolver/Redeclaration.b", false},
         {"TestCases/NameResolver/Resolved.b", true},
         {"TestCases/NameResolver/Undefined.b", false},
-        {"TestCases/NameResolver/VarCall.b", true},
+        {"TestCases/NameResolver/VarCall.b", false},
         {"TestCases/NameResolver/VarEscape.b", false},
         {"TestCases/NameResolver/VarGlob.b", true},
         {"TestCases/NameResolver/VarInvalidScope.b", false},
@@ -58,6 +58,12 @@ int main(int argc, char* argv[])
         {"TestCases/NameResolver/NestedStructs.b", true},
         {"TestCases/NameResolver/EnumBasic.b", true},
         {"TestCases/NameResolver/EnumInvalid.b", true},
+        {"TestCases/NameResolver/FuncArgs.b", true},
+        {"TestCases/NameResolver/FuncBadArgs.b", false},
+        {"TestCases/NameResolver/FuncCall.b", true},
+        {"TestCases/NameResolver/FuncInvalidCall.b", false},
+        {"TestCases/NameResolver/FuncExcessArgs.b", false},
+        {"TestCases/NameResolver/FuncMnimalArgs.b", false},
     };
 
     int expectedPass = -1;

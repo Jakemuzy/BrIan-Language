@@ -32,4 +32,9 @@ void ExitNamespaceScope(Namespace* namespace);
 void PushNamespaceScope(Namespace* namespace, Symbol* sym);
 Symbol* LookupNamespaceCurrentScope(Namespace* namespace, char* name);
 
+/* ---------- Helpers ---------- */
+
+size_t GetTotalSymCount(Namespaces* nss);
+size_t GetTotalArgCount(ASTNode* argListNode);
+
 #endif

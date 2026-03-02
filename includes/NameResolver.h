@@ -58,6 +58,7 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current);
 int ResolveEnums(ScopeContext* scope, ASTNode* current);
 
 int ResolveFuncCall(ScopeContext* scope, ASTNode* current);
+int ResolveFuncArg(ScopeContext* scope, ASTNode* current);
 int ResolveMemberAccess(ScopeContext* scope, ASTNode* current);
 int ResolveArrIndex(ScopeContext* scope, ASTNode* current);
 int ResolveArgList(ScopeContext* scope, ASTNode* current);
@@ -66,6 +67,8 @@ int ResolveTypedefs(ScopeContext* scope, ASTNode* current);
 int EnterScopeContextIfNeeded(ScopeContext** scope, ASTNode* current);
 
 /* ---------- Helpers ---------- */
+
+SymbolType DetermineSymType(ASTNode* node);
 
 static NodeType CTRL_STMTS[] = { IF_NODE, ELIF_NODE, ELSE_NODE, SWITCH_STMT_NODE,
                                  CASE_NODE, DEFAULT_NODE, WHILE_STMT_NODE, 

@@ -197,11 +197,11 @@ TYPE* TERROR_INCOMPATIBLE(OperatorRule rule, ASTNode* node)
 {
     int line = node->token.line;
     if (rule.rtype == BINARY_RULE)
-        printf("TYPE ERROR: Incompatible types found for binary operator %d on line %d\n", rule.rule.b.op, line);  /* TODO: Translate this to  a string instead of enum */
+        printf("TYPE ERROR: Incompatible types found for binary operator '%s' on line %d\n", TokenToStr(rule.rule.b.op), line);  /* TODO: Translate this to  a string instead of enum */
     else if (rule.rtype == UNARY_RULE)
-        printf("TYPE ERROR: Incompatible types found for unary operator %d on line %d\n", rule.rule.u.op, line);
+        printf("TYPE ERROR: Incompatible types found for unary operator '%s' on line %d\n", TokenToStr(rule.rule.u.op), line);
     else if (rule.rtype == LVAL_RULE)
-        printf("TYPE ERROR: Incompatible types found for lvalue operator %d on line %d\n", rule.rule.u.op, line);
+        printf("TYPE ERROR: Incompatible types found for lvalue operator '%s' on line %d\n", TokenToStr(rule.rule.u.op), line);
 
     return TY_ERROR();
 }
@@ -220,7 +220,7 @@ TYPE* TERROR_UNDEFINED(ASTNode* node)
 {
     int line = node->token.line;
     char* name = node->token.lex.word;
-    printf("TYPE ERROR: Undefined type %s on line %d\n", name, line);
+    printf("TYPE ERROR: Undefined type '%s' on line %d\n", name, line);
 
     return TY_ERROR();
 }
@@ -236,5 +236,6 @@ TYPE* TERROR(char* msg, ASTNode* node, NamespaceKind kind)
 
 void TWARN(char* msg)
 {
-    printf("%s\n", msg);
+    if (WARN)
+        printf("%s\n", msg);
 }

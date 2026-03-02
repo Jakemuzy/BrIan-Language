@@ -33,6 +33,7 @@ Cases:
         - Instead of checking type->kind == TYPE_ERROR, just check if the 
         pointer == TY_ERROR() since its static
         - Account for environments
+        - Fix Parser to allow idents as types in some nodes (ie param only takes type)
 */
 
 /* ---------- Type Checking ---------- */
@@ -50,6 +51,7 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
                 case CLITERAL: return TY_U32();
                 case INTEGRAL: return TY_INT();
                 case DECIMAL: return TY_DOUBLE();   
+                default: return TERROR("Invalid literal type", expr, N_VAR);
             }
         case IDENT_NODE:     
             /* Lookup which namespace based on what expr its in */
@@ -84,8 +86,7 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
             return TypeCheckVarDecl(nss, expr);
 
         case CALL_FUNC_NODE:    /* Check Valid Type */
-            return TY_NAT();
-
+            return TypeCheckCallFunc(nss, expr);
         case ARR_DECL_NODE:     /* Check Integral Size */
 
         case ARR_INIT_NODE:     /* Check Valid Types */
@@ -163,7 +164,7 @@ TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var, TYPE* type)
     /* Check compatibility of asgnment with ident type */
     if (var->childCount > 1) {
         TYPE* rhs = TypeCheck(nss, var->children[1]);
-        if (rhs->kind == TYPE_ERROR) return rhs;
+        if (rhs == TY_ERROR() || rhs->kind == TYPE_ERROR) return rhs;
 
         /* Use operator rules since technically an '=' */
         OperatorRule rule = FindRule(EQ, LVAL_RULE);
@@ -320,6 +321,21 @@ printf("Asgn Expr\n");
 
 
 /* ---------- Type Definitions --------- */
+
+TYPE* TypeCheckCallFunc(Namespaces* nss, ASTNode* expr)
+{
+    printf("FUNC NODE \n");
+    ASTNode* identNode = expr->children[0];
+    char* identLex = identNode->token.lex.word;
+
+    Symbol* sym = STLookupNamespace(nss, identLex, N_VAR);
+    if (!sym) return TERROR_UNDEFINED(identNode);
+
+    /* Check Paramaters */
+
+
+    return sym->type;
+}
 
 TYPE* TypeCheckTypedef(Namespaces* nss, ASTNode* expr)
 {

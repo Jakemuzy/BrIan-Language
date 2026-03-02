@@ -25,8 +25,6 @@ int main() {
         }
     }
 
-    character(1, 2, 3, 9 + 10, x++);
-
     int arr[] = { 3, 2, 1 };
     arr[15];
     int charr;

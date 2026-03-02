@@ -5,7 +5,7 @@
 
 /* ---------- Scope Logic ---------- */
 
-typedef enum ScopeType { PROG_SCOPE, FUNC_SCOPE, CTRL_SCOPE, STRUCT_SCOPE, ENUM_SCOPE, INVALID_SCOPE } ScopeType;
+typedef enum ScopeType { PROG_SCOPE, FUNC_SCOPE, PARAM_SCOPE, CTRL_SCOPE, STRUCT_SCOPE, ENUM_SCOPE, INVALID_SCOPE } ScopeType;
 
 typedef struct ScopeContext { 
     Namespaces* namespaces;
@@ -27,7 +27,7 @@ void ExitPersistentScope(ScopeContext** scope);
 
 Symbol* LookupCurrentScope(ScopeContext* scope, char* name, NamespaceKind nsKind);
 Symbol* LookupAllScopes(ScopeContext* scope, char* name, NamespaceKind kind);
-Symbol* STPushNamespace(ScopeContext* scope, ASTNode* key, NamespaceKind kind);
+Symbol* STPushNamespace(ScopeContext* scope, ASTNode* key, NamespaceKind kind, SymbolType stype);
 
 /* For type checker */
 Symbol* STLookupNamespace(Namespaces* nss, char* name, NamespaceKind kind);

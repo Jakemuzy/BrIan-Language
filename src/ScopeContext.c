@@ -99,6 +99,7 @@ Symbol* LookupCurrentScope(ScopeContext* scope, char* name, NamespaceKind nsKind
     return NULL;
 }
 
+/* TODO: Rename to LookupScopeChain */
 Symbol* LookupAllScopes(ScopeContext* scope, char* name, NamespaceKind kind)
 {
     ScopeContext* current = scope;
@@ -112,13 +113,13 @@ Symbol* LookupAllScopes(ScopeContext* scope, char* name, NamespaceKind kind)
     return NULL;
 }
 
-Symbol* STPushNamespace(ScopeContext* scope, ASTNode* key, NamespaceKind kind)
+Symbol* STPushNamespace(ScopeContext* scope, ASTNode* key, NamespaceKind kind, SymbolType stype)
 {
     for (size_t i = 0; i < scope->namespaces->count; i++) {
         if (scope->namespaces->nss[i]->kind != kind) continue;
 
         Namespace* ns = scope->namespaces->nss[i];
-        return STPush(ns->env, key);
+        return STPush(ns->env, key, stype);
     }
 
     return NULL;

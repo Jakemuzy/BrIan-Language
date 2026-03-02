@@ -1,25 +1,8 @@
-typedef int x;  // PARSER DOESN'T allow custom types yet
-
-char func(int x, char y, string str) {
-    int a = 4;
-    int b = 34;
-}
-
-
 int main() {
-    int fun = func(3, 3, 3);
     int p = "hello";
     int x = 4;
-    //x = x + 5;
-    //x = x + "hello";
-/*
-    int p, l, k = 4, zf = 174;
-    int p42[4] = {1, 2, 3, 4};
-    int zxg[];
-    int kb[] = {1, 2};
-    int x = "Str";
     x = x + 5;
-*/
+    x = x + "hello";
 }
 
-// FAIL
+// Fail

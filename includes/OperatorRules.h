@@ -1,6 +1,7 @@
 #ifndef _OPERATOR_RULES_H__
 #define _OPERATOR_RULES_H__
 
+#include "Error.h"
 #include "NameResolver.h"
 #include "Type.h"
 

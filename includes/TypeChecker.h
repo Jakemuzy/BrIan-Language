@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+#include "Error.h"
 #include "NameResolver.h"
 #include "Environment.h"
 #include "OperatorRules.h"
@@ -33,6 +34,7 @@ TYPE* TypeCheckAsgn(Namespaces* nss, ASTNode* expr);
 
 TYPE* TypeCheckArrIndex(Namespaces* nss, ASTNode* decl);
 TYPE* TypeCheckCallFunc(Namespaces* nss, ASTNode* expr);
+
 TYPE* TypeCheckTypedef(Namespaces* nss, ASTNode* expr);
 TYPE* TypeCheckEnumBody(Namespaces* nss, ASTNode* expr);
 

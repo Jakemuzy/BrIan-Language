@@ -9,6 +9,7 @@
           free nodes that aren't parented yet 
         - Add Qualifiers checking to DeclStmt
         - Turn all type nodes into Ident Nodes and check in the type resolver step
+        - Safe reference not added
 */
 
 /* ----------- ERRORS ---------- */
