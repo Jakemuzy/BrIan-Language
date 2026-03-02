@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
         {"TestCases/NameResolver/FuncCall.b", true},
         {"TestCases/NameResolver/FuncInvalidCall.b", false},
         {"TestCases/NameResolver/FuncExcessArgs.b", false},
-        {"TestCases/NameResolver/FuncMnimalArgs.b", false},
+        {"TestCases/NameResolver/FuncMinimalArgs.b", false},
     };
 
     int expectedPass = -1;

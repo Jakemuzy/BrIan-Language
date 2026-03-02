@@ -34,7 +34,6 @@ Symbol* LookupNamespaceCurrentScope(Namespace* namespace, char* name);
 
 /* ---------- Helpers ---------- */
 
-size_t GetTotalSymCount(Namespaces* nss);
 size_t GetTotalArgCount(ASTNode* argListNode);
 
 #endif

@@ -155,7 +155,7 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
     /* Param list has own scope, stored as fields of func sym */
     BeginPersistentScope(&scope, PARAM_SCOPE);
 
-    int status = ResolveParams(scope, current->children[2]);
+    int status = ResolveParams(scope, current->children[2], &sym->fieldCount);
     if (status == ERRN) return status;
 
     sym->fields = scope->namespaces;
@@ -169,13 +169,16 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
     return status;
 }
 
-int ResolveParams(ScopeContext* scope, ASTNode* current)
+/* Returns how many params there are */
+int ResolveParams(ScopeContext* scope, ASTNode* current, size_t* paramCount)
 {
     if (current->type != PARAM_LIST_NODE) return NANN;
 
     for (size_t i = 0; i < current->childCount; i++) {
         int status = ResolveParam(scope, current->children[i]);
         if (status != VALDN) return status;
+
+        (*paramCount)++;
     }
     return VALDN;
 }
@@ -474,8 +477,8 @@ int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
 
     /* Ensure arg count matches */
     ASTNode* argListNode = current->children[1];
-    printf("%ld : %ld\n", GetTotalSymCount(sym->fields), GetTotalArgCount(argListNode));
-    if (GetTotalSymCount(sym->fields) != GetTotalArgCount(argListNode)) 
+    printf("%ld : %ld\n", sym->fieldCount, GetTotalArgCount(argListNode));
+    if (sym->fieldCount != GetTotalArgCount(argListNode)) 
         return NERROR("Mismatch in argument count", identLex, identNode);
 
     /* TOOD: Ensure arg count matches */

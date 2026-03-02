@@ -40,7 +40,7 @@ int ResolveVars(ScopeContext* scope, ASTNode* current);
 int ResolveVar(ScopeContext* scope, ASTNode* current);
 
 int ResolveFuncs(ScopeContext* scope, ASTNode* current);
-int ResolveParams(ScopeContext* scope, ASTNode* current);
+int ResolveParams(ScopeContext* scope, ASTNode* current, size_t* paramCount);   
 int ResolveParam(ScopeContext* scope, ASTNode* current);
 
 int ResolveExprs(ScopeContext* scope, ASTNode* current);

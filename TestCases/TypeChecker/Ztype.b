@@ -1,9 +1,9 @@
-double func(int i, int j) {
-    return 3.0;
+int func() {
+    return 1;
 }
 
 int main() {
-    func();
+    int j = func();
 }
 
-// FAIL
+// PASS
