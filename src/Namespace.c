@@ -69,3 +69,22 @@ Symbol* LookupNamespaceCurrentScope(Namespace* namespace, char* name)
     }
     return NULL;
 }
+
+/* ---------- Helpers ---------- */
+
+size_t GetTotalSymCount(Namespaces* nss) {
+    size_t total = 0;
+    for (size_t i = 0; i < nss->count; i++) {
+        total += nss->nss[i]->env->currSize;
+    }
+    return total;
+}
+
+size_t GetTotalArgCount(ASTNode* argListNode) {
+    size_t total = 0;
+    for (size_t i = 0; i < argListNode->childCount; i++) {
+        if (argListNode->children[i]->type != EMPTY_NODE)
+            total ++;
+    }
+    return total;
+}

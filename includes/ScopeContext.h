@@ -5,7 +5,7 @@
 
 /* ---------- Scope Logic ---------- */
 
-typedef enum ScopeType { PROG_SCOPE, FUNC_SCOPE, CTRL_SCOPE, STRUCT_SCOPE, ENUM_SCOPE, INVALID_SCOPE } ScopeType;
+typedef enum ScopeType { PROG_SCOPE, FUNC_SCOPE, PARAM_SCOPE, CTRL_SCOPE, STRUCT_SCOPE, ENUM_SCOPE, INVALID_SCOPE } ScopeType;
 
 typedef struct ScopeContext { 
     Namespaces* namespaces;

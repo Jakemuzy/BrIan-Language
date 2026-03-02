@@ -16,7 +16,6 @@
 
 /* ---------- Forward Declaration Type Info ---------- */
 
-typedef struct Symbol Symbol;
 typedef struct TYPE TYPE;
 
 /* ---------- Symbols ---------- */

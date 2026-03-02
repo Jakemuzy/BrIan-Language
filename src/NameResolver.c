@@ -113,7 +113,7 @@ int ResolveVar(ScopeContext* scope, ASTNode* current)
 
     if (current->type == IDENT_NODE) {
         Symbol* sym;
-        char* name = strdup(current->token.lex.word);
+        char* name = current->token.lex.word;
 
         sym = LookupCurrentScope(scope, name, N_VAR);
         if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
@@ -140,14 +140,9 @@ int ResolveVar(ScopeContext* scope, ASTNode* current)
 
 int ResolveFuncs(ScopeContext* scope, ASTNode* current)
 {
-    /* TODO: Should be stateful for parameters
-    ->Persistent namespace for parameters ->exit
-    ->Normal namespace for body ->exit  
-    */
-
     /* Function Ident and Scope */
     ASTNode* identNode = current->children[1];
-    char* name = strdup(identNode->token.lex.word);
+    char* name = identNode->token.lex.word;
 
     /* Current since functions in structs can shadow */
     Symbol* sym = LookupCurrentScope(scope, name, N_VAR); 
@@ -156,15 +151,21 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
     sym = STPushNamespace(scope, identNode, N_VAR, S_FUNC);
     if (!sym) printf("INVALID SYM\n");
     PushScope(scope, sym, N_VAR);
-    BeginScope(&scope, FUNC_SCOPE);
 
-    /* Param List */
+    /* Param list has own scope, stored as fields of func sym */
+    BeginPersistentScope(&scope, PARAM_SCOPE);
+
     int status = ResolveParams(scope, current->children[2]);
     if (status == ERRN) return status;
 
-    /* Body Calls Resolve Var */
+    sym->fields = scope->namespaces;
+
+    /* Body Calls Resolve Vars */
+    BeginScope(&scope, FUNC_SCOPE);
     status = ResolveEverything(scope, current->children[3]);
-    ExitScope(&scope);
+
+    ExitScope(&scope);  // Func Scope
+    ExitScope(&scope);  // Param Scope
     return status;
 }
 
@@ -372,7 +373,7 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
     ASTNode* identNode = current->children[0];
 
     Symbol* sym;   
-    char* name = strdup(identNode->token.lex.word);
+    char* name = identNode->token.lex.word;
 
     sym = LookupCurrentScope(scope, name, N_TYPE);
     if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
@@ -410,7 +411,7 @@ int ResolveEnums(ScopeContext* scope, ASTNode* current)
     ASTNode* identNode = current->children[0];
 
     Symbol* sym;   
-    char* name = strdup(identNode->token.lex.word);
+    char* name = identNode->token.lex.word;
 
     sym = LookupCurrentScope(scope, name, N_TYPE);
     if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
@@ -427,7 +428,7 @@ int ResolveEnums(ScopeContext* scope, ASTNode* current)
     ASTNode* enumBody = current->children[1];
     for (size_t i = 0; i < enumBody->childCount; i++) {
         ASTNode* memberNode = enumBody->children[i];
-        char* memName = strdup(memberNode->token.lex.word);
+        char* memName = memberNode->token.lex.word;
 
         Symbol* memSym = LookupCurrentScope(scope, memName, N_VAR);
         if (memSym) return NERROR_ALREADY_DEFINED(memName, memberNode, memSym->decl);
@@ -471,9 +472,15 @@ int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
     else if (sym->stype != S_FUNC)
         return NERROR("Attempting to call a non function identifier", identLex, identNode);
 
+    /* Ensure arg count matches */
+    ASTNode* argListNode = current->children[1];
+    printf("%ld : %ld\n", GetTotalSymCount(sym->fields), GetTotalArgCount(argListNode));
+    if (GetTotalSymCount(sym->fields) != GetTotalArgCount(argListNode)) 
+        return NERROR("Mismatch in argument count", identLex, identNode);
+
     /* TOOD: Ensure arg count matches */
-    for (size_t i = 0; i < current->children[1]->childCount; i++) {
-        ASTNode* argNode = current->children[1]->children[i];
+    for (size_t i = 0; i < argListNode->childCount; i++) {
+        ASTNode* argNode = argListNode->children[i];
         int status = ResolveFuncArg(scope, argNode);
         if (status != VALDN)
             return status;

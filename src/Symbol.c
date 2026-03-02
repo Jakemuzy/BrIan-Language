@@ -20,7 +20,7 @@ SymbolTable* STInit()
 {
     SymbolTable* env = malloc(sizeof(SymbolTable));
     env->buckets = calloc(INIT_SIZE, sizeof(Symbol*));
-    env->maxSize = INIT_SIZE; env->currSize = INIT_SIZE;
+    env->maxSize = INIT_SIZE; env->currSize = 0;
 
     return env;
 }
@@ -37,6 +37,8 @@ Symbol* STLookup(SymbolTable* env, char* name)
 
 Symbol* STPush(SymbolTable* env, ASTNode* key, SymbolType stype)
 {
+    /* TODO: Check if currSize >= maxSize, make like a real map */
+
     char* name = key->token.lex.word;
     int index = Hash(name, HASH_STR, env->maxSize);
 
@@ -44,6 +46,7 @@ Symbol* STPush(SymbolTable* env, ASTNode* key, SymbolType stype)
     sym = InitSymbol(key, syms, stype);
 
     env->buckets[index] = sym;
+    env->currSize++;
     return sym;
 }
 
@@ -55,5 +58,6 @@ Symbol* STPop(SymbolTable* env, char* name)
         return NULL;
     
     env->buckets[index] = top->prev;
+    env->currSize--;
     return top;
 }
