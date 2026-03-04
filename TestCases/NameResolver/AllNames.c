@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
         {"TestCases/NameResolver/ForBodyInit.b", true},
         {"TestCases/NameResolver/ForEscape.b", false},
         {"TestCases/NameResolver/ForScope.b", true},
-        {"TestCases/NameResolver/ForShadow.b", false},
+        {"TestCases/NameResolver/ForShadow.b", true},
         {"TestCases/NameResolver/FuncLeak.b", false},
         {"TestCases/NameResolver/FuncShadow.b", true},
         {"TestCases/NameResolver/FuncUndefined.b", false},

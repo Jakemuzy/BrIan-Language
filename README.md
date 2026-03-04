@@ -113,7 +113,9 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
                     "while" '(' Expr ')' ';'  
     ForStmt ::= "for" '(' [ ExprList ]';' [ Expr ] ';' [ ExprList ] ')' Body
 
+    VarExprList ::= ( Expr | VarDecl ) { ',' ( Expr | VarDecl ) }
     ExprList ::= Expr { ',' Expr }
+
     Expr ::= AsgnExpr  
     AsgnExpr ::= OrlExpr [ ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') AsgnExpr ]
     OrlExpr ::= AndlExpr { '||' AndlExpr }  
@@ -190,13 +192,13 @@ Similar to C, but simpler.
     - [ ] Semanitc Analysis
         - [/] Name Resolution
             - [x] Variable Shadowing
-            - [X] Symbol Table
-            - [ ] Name Spaces
+            - [x] Symbol Table
+            - [x] Name Spaces
             - [ ] Overloading
         - [ ] Type Checking
             - [x] Implicit Casting
-            - [ ] Semantic Rules
-            - [ ] Environment
+            - [x] Semantic Rules
+            - [/] Environment
         - [ ] Desugaring (BrIRan)
         - [ ] Concurrency Checking
     - [ ] Conversion to LLVM IR

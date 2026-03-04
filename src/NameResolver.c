@@ -69,7 +69,7 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current)
         case (FUNC_NODE):
             return ResolveFuncs(scope, current);   /* Return since ResolveFuncs already traverses Children */
         case (IF_STMT_NODE):
-        case (DO_WHILE_STMT_NODE):
+        case (DO_WHILE_STMT_NODE):  // TODO: Just put them here
         case (WHILE_STMT_NODE):
         case (SWITCH_STMT_NODE):
         case (RETURN_STMT_NODE):
@@ -341,11 +341,15 @@ int ResolveSwitchStmt(ScopeContext* scope, ASTNode* current)
 int ResolveForStmt(ScopeContext* scope, ASTNode* current)
 {
     /* Scope begins early since for stmts can declare variables in their exprs */
-    BeginScope(&scope, CTRL_SCOPE);
+    BeginScope(&scope, PARAM_SCOPE);
 
-    /* TODO: Need to allow decls later one I change the grammar to accept them */
+    /* TODO: enter scope for arguments, then another for the body */
     ASTNode* declExprList = current->children[0];
-    if (ResolveExprs(scope, declExprList) == ERRN) return ERRN; 
+    if (declExprList->type == VAR_DECL_NODE) {
+        if(ResolveVars(scope, declExprList) == ERRN) return ERRN;
+    } else {
+        if (ResolveExprs(scope, declExprList) == ERRN) return ERRN; 
+    }
 
     ASTNode* exprNode = current->children[1];
     if (ResolveExprs(scope, exprNode) == ERRN) return ERRN;
@@ -353,9 +357,11 @@ int ResolveForStmt(ScopeContext* scope, ASTNode* current)
     ASTNode* exprListNode = current->children[2];
     if (ResolveExprs(scope, exprListNode) == ERRN) return ERRN;
 
+    BeginScope(&scope, CTRL_SCOPE);
     ASTNode* forBody = current->children[3];
     if (ResolveEverything(scope, forBody) == ERRN) return ERRN;
 
+    ExitScope(&scope); /* Ctrl then Param */
     ExitScope(&scope);
     return VALDN;
 }
@@ -477,11 +483,9 @@ int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
 
     /* Ensure arg count matches */
     ASTNode* argListNode = current->children[1];
-    printf("%ld : %ld\n", sym->fieldCount, GetTotalArgCount(argListNode));
     if (sym->fieldCount != GetTotalArgCount(argListNode)) 
         return NERROR("Mismatch in argument count", identLex, identNode);
 
-    /* TOOD: Ensure arg count matches */
     for (size_t i = 0; i < argListNode->childCount; i++) {
         ASTNode* argNode = argListNode->children[i];
         int status = ResolveFuncArg(scope, argNode);
@@ -493,6 +497,7 @@ int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
 
 int ResolveFuncArg(ScopeContext* scope, ASTNode* current)
 {
+    /* TODO: Resolve for func calls and array index, etc */
     if (current->type == LITERAL_NODE)
         return VALDN;
     else if (current->type == IDENT_NODE) {

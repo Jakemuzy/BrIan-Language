@@ -75,6 +75,7 @@ ParseResult DoWhileStmt(FILE* fptr);
 ParseResult ForStmt(FILE* fptr);
     ParseResult OptionalExpr(FILE* fptr);
 
+ParseResult VarExprList(FILE* fptr);
 ParseResult ExprList(FILE* fptr);
 ParseResult Expr(FILE* fptr);
 ParseResult AsgnExpr(FILE* fptr);

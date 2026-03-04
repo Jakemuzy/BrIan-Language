@@ -1041,7 +1041,7 @@ ParseResult ForStmt(FILE* fptr)
        return PARSE_ERRP("No left parenthesis found in ForStmt", GetNextToken(fptr)); 
     GetNextTokenP(fptr);
 
-    ParseResult exprListNode = ExprList(fptr);
+    ParseResult exprListNode = VarExprList(fptr);
     if (exprListNode.status != VALID) 
         return PARSE_ERRP("Invalid ExprList in ForStmt", GetNextToken(fptr));
 
@@ -1103,6 +1103,46 @@ ParseResult OptionalExpr(FILE* fptr)
 }
 
 /* ----------- Expressions ---------- */
+
+ParseResult VarExprList(FILE* fptr) 
+{
+    /* TODO: This properly*/
+    if (PeekNextTokenP(fptr) == SEMI)     /* Empty ExprList in ForStmt */
+        return EmptyNode();
+
+    /* If not var decl, then expr list */
+    ParseResult varDeclNode = VarDecl(fptr);
+    if (varDeclNode.status == VALID)
+        return PARSE_VALID(varDeclNode.node, VAR_DECL_NODE);
+    else if (varDeclNode.status == ERRP)
+        return PARSE_ERRP("Invalid variable declaration", GetNextToken(fptr));    
+
+
+    ParseResult exprNode = Expr(fptr);
+    if (exprNode.status == ERRP) 
+        return PARSE_ERRP("Invalid Expr in ExprList", GetNextToken(fptr)); 
+    else if (exprNode.status == NAP) 
+        return PARSE_NAP();
+
+    ASTNode* exprListNode = InitASTNode();
+    ASTPushChildNode(exprListNode, exprNode.node);
+
+    while (true) {
+        if (PeekNextTokenP(fptr) != COMMA) 
+            break;
+        GetNextTokenP(fptr);
+
+        exprNode = Expr(fptr);
+        if (exprNode.status != VALID) {
+            ASTFreeNodes(1, exprListNode);
+            return PARSE_ERRP("Invalid Expr in ExprList", GetNextToken(fptr));
+        }
+
+        ASTPushChildNode(exprListNode, exprNode.node);
+    }
+
+    return PARSE_VALID(exprListNode, EXPR_LIST_NODE);
+}
 
 ParseResult ExprList(FILE* fptr) 
 {
