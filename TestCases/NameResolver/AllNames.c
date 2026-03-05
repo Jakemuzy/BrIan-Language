@@ -53,6 +53,7 @@ int main(int argc, char* argv[])
         {"TestCases/NameResolver/SwitchUndefined.b", false},
         {"TestCases/NameResolver/ReturnUndefined.b", false},
         {"TestCases/NameResolver/StructBasic.b", true},
+        {"TestCases/NameResolver/StructFunc.b", true},
         {"TestCases/NameResolver/StructUndefined.b", true},
         {"TestCases/NameResolver/StructInvalidField.b", true},
         {"TestCases/NameResolver/NestedStructs.b", true},

@@ -2,6 +2,8 @@
 
 #include "Parser.h"
 
+/* TODO: Add a LOT more test cases */
+
 /* AI slop debug functions */
 
 const char* NodeTypeToString(NodeType type) {
@@ -35,6 +37,7 @@ const char* NodeTypeToString(NodeType type) {
         case CASE_NODE: return "CASE_NODE";
         case DEFAULT_NODE: return "DEFAULT_NODE";
         case EXPR_LIST_NODE: return "EXPR_LIST_NODE";
+        case VAR_EXPR_LIST_NODE: return "VAR_EXPR_LIST_NODE";
         case EXPR_NODE: return "EXPR_NODE";
         case TYPE_NODE: return "TYPE_NODE";
         case ARG_LIST_NODE: return "ARG_LIST_NODE";
@@ -84,8 +87,39 @@ void PrintAST(AST* ast) {
     PrintASTNode(ast->root, 0);
 }
 
+typedef struct {
+    const char* filename;
+    bool shouldPass;
+} TestCase;
+
+
 int main(int argc, char* argv[])
 {
+    TestCase tests[] = {
+        {"TestCases/Parser/AllCases.b", true},
+        {"TestCases/Parser/Arithmetic.b", true},
+        {"TestCases/Parser/Arrays.b", true},
+        {"TestCases/Parser/EmptyMain.b", true},
+        {"TestCases/Parser/Enum.b", true},
+        {"TestCases/Parser/Functions.b", true},
+        {"TestCases/Parser/GlobalVar.b", true},
+        {"TestCases/Parser/NestedStructs.b", true},
+        {"TestCases/Parser/NoMain.b", true},
+        {"TestCases/Parser/StartFunc.b", true},
+        {"TestCases/Parser/Struct.b.b", true},
+        {"TestCases/Parser/Typedef.b", true},
+        {"TestCases/Parser/Invalid.b", true},
+    };
+
+    int expectedPass = -1;
+    size_t numTests = sizeof(tests) / sizeof(tests[0]);
+    for (size_t i = 0; i < numTests; i++) {
+        if (strcmp(tests[i].filename, argv[1]) == 0) {
+            expectedPass = tests[i].shouldPass;
+            break;
+        }
+    }
+
     /* Open code file to read */
     FILE* fptr;
     fptr = fopen(argv[1], "r");
@@ -99,7 +133,9 @@ int main(int argc, char* argv[])
     AST* ast = Program(fptr); 
     if (!ast) {
         printf("ERROR: ast failed to build\n");
+        return expectedPass ? 1 : 0;  
     }
-    PrintAST(ast);
+
+    // PrintAST(ast);
 	return 0;
 }

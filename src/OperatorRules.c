@@ -28,7 +28,7 @@ TYPE* ValidLval(Namespaces* nss, ASTNode* identNode, NamespaceKind kind)
     if (!sym) {
         char msg[128];
         snprintf(msg, sizeof(msg), "Lval identifier '%s' is invalid", identNode->token.lex.word);
-        return TERROR("Lval identifier '%s' is invalid", identNode, kind);
+        return TERROR(msg, identNode, kind);
     }
 
     /* Can't be Func or typedef */

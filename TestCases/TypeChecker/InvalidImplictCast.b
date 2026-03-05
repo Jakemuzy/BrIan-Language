@@ -4,3 +4,5 @@ int main() {
 
     string s2 = c + s;
 }
+
+// FAIL

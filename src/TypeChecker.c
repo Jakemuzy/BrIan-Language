@@ -94,12 +94,21 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
         case ARR_INDEX_NODE:   /* Check integral */
 
         case MEMBER_ACCESS_NODE:  
-        
+            return TypeCheckMemberAccess(nss, expr);
 
         case TYPEDEF_DECL_NODE: /* Check for existance */
             return TypeCheckTypedef(nss, expr);
 
         case ENUM_BODY_NODE:    /* Check all integral */
+
+        case STRUCT_DECL_NODE: 
+            /* 
+                1. Type check return Type 
+                2. Enter Body
+                3. Type check everything in body by 
+                   calling TypeCheck() 
+            */
+            return TypeCheckStructDecl(nss, expr);
 
         default:
             /* Recursively check children, and then return */
@@ -254,7 +263,6 @@ TYPE* TypeCheckParam(Namespaces* nss, ASTNode* expr)
 
 TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr) 
 {
- printf("Binary Expr\n"); 
     /* First child is ident or another epxr */
     TYPE* left = TypeCheck(nss, expr->children[0]);
     if (left->kind == TYPE_ERROR) return left;
@@ -278,7 +286,6 @@ TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr)
 
 TYPE* TypeCheckUnaExpr(Namespaces* nss, ASTNode* expr)
 {
- printf("Unary Expr\n");
     TYPE* left = TypeCheck(nss, expr->children[0]);
     if (left->kind == TYPE_ERROR) return left;
 
@@ -297,7 +304,6 @@ TYPE* TypeCheckUnaExpr(Namespaces* nss, ASTNode* expr)
 
 TYPE* TypeCheckAsgn(Namespaces* nss, ASTNode* expr) 
 {
-printf("Asgn Expr\n");
     TYPE* left = TypeCheck(nss, expr->children[0]);
     if (left->kind == TYPE_ERROR) return left;
 
@@ -318,20 +324,43 @@ printf("Asgn Expr\n");
     TYPE* result = rule.rule.b.result(left, right);
     return result;
 }
+/* ---------- Accessors & Initalizers ----------- */
 
+TYPE* TypeCheckMemberAccess(Namespaces* nss, ASTNode* expr)
+{
+    ASTNode* identNode = expr->children[0];
+    char* identLex = identNode->token.lex.word;
+
+    Symbol* sym = STLookupNamespace(nss, identLex, N_VAR);
+    Namespaces* memberFields = sym->fields;
+
+    ASTNode* memberNode = expr->children[1];
+    char* memberLex = memberNode->token.lex.word;
+
+    /* TODO: May have to look up types since struct would break this */
+    Symbol* memSym = STLookupNamespace(memberFields, memberLex, N_VAR); 
+    return memSym->type;
+}
+TYPE* TypeCheckArrInitializer(Namespaces* nss, ASTNode* decl)
+{
+
+}
+TYPE* TypeCheckStructInitalizer(Namespaces* nss, ASTNode* decl)
+{
+
+}
 
 /* ---------- Type Definitions --------- */
 
 TYPE* TypeCheckCallFunc(Namespaces* nss, ASTNode* expr)
 {
-    printf("FUNC NODE \n");
     ASTNode* identNode = expr->children[0];
     char* identLex = identNode->token.lex.word;
 
     Symbol* sym = STLookupNamespace(nss, identLex, N_VAR);
     if (!sym) return TERROR_UNDEFINED(identNode);
 
-    /* Check Paramaters */
+    /* TODO: Check Paramaters */
 
 
     return sym->type;
@@ -359,4 +388,28 @@ TYPE* TypeCheckTypedef(Namespaces* nss, ASTNode* expr)
 
     sym->type = type;
     return sym->type;
+}
+
+TYPE* TypeCheckStructDecl(Namespaces* nss, ASTNode* expr)
+{
+    ASTNode* structIdent = expr->children[0];
+    char* structLex = structIdent->token.lex.word;
+    Symbol* sym = STLookupNamespace(nss, structLex, N_TYPE);
+
+    ASTNode* structBodyNode = expr->children[1];
+    TYPE_FIELD_LIST* fields =  TypeCheckStructBody(nss, expr);
+
+    /* Get Type Field List from the fields */
+    sym->type = TY_STRUCT(TY_FIELD_LIST(fields->head, fields->tail));
+    return TypeCheck(nss, structBodyNode);
+}
+
+TYPE_FIELD_LIST* TypeCheckStructBody(Namespaces* nss, ASTNode* expr)
+{
+    /* Copy of TypeCheck except it stores field info */
+}
+
+TYPE_FIELD_LIST* TypeCheckEnumBody(Namespaces* nss, ASTNode* expr)
+{
+
 }

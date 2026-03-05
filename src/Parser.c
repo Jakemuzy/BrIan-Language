@@ -182,6 +182,7 @@ AST* Program(FILE* fptr)
 
 ParseResult Function(FILE* fptr)
 {
+    /* TODO: Nested Functions */
     DEBUG_MESSAGE("Starting Function\n");
     ParseResult typeNode = StdType(fptr);
     if (typeNode.status == ERRP)
@@ -490,7 +491,7 @@ ParseResult StructDecl(FILE* fptr)
 
     ParseResult structBodyNode = StructBody(fptr);
     if (structBodyNode.status != VALID) {
-        ASTFreeNodes(2, structNode, structBodyNode);
+        ASTFreeNodes(1, structNode);
         return PARSE_ERRP("Invalid Struct Body in Struct", GetNextToken(fptr));
     }
     ASTPushChildNode(structNode, structBodyNode.node);
@@ -508,16 +509,32 @@ ParseResult StructBody(FILE* fptr)
 {
     ASTNode* structBodyNode = InitASTNode();
     while (true) {
+
+        /* TODO: This is a bad check since nested structs are allowed */
         if (PeekNextTokenP(fptr) == RBRACE) 
             break;
 
-        ParseResult declStmtNode = DeclStmt(fptr);
-        if (declStmtNode.status == VALID) {
-            ASTPushChildNode(structBodyNode, declStmtNode.node);
-            continue;
-        } else if (declStmtNode.status == ERRP) {
-            ASTFreeNodes(1, structBodyNode);
-            return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
+        /* Need to check if Function Possible since grammar is ambiguous */
+        ParseResult declOrFuncNode;
+        if (FuncNodePossible(fptr) != NAP) {
+            declOrFuncNode = Function(fptr);
+            if (declOrFuncNode.status == VALID) {
+                ASTPushChildNode(structBodyNode, declOrFuncNode.node);
+                continue;
+            }
+            else if (declOrFuncNode.status == ERRP) {
+                ASTFreeNodes(1, structBodyNode);
+                return PARSE_ERRP("Invalid Function in Struct", GetNextToken(fptr));
+            }
+        } else {
+            declOrFuncNode = DeclStmt(fptr);
+            if (declOrFuncNode.status == VALID) {
+                ASTPushChildNode(structBodyNode, declOrFuncNode.node);
+                continue;
+            } else if (declOrFuncNode.status == ERRP) {
+                ASTFreeNodes(1, structBodyNode);
+                return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
+            }
         }
 
         ParseResult enumNode = EnumDecl(fptr);
@@ -526,7 +543,7 @@ ParseResult StructBody(FILE* fptr)
             continue;
         }
         else if (enumNode.status == ERRP) {
-            ASTFreeNodes(2, structBodyNode, enumNode);
+            ASTFreeNodes(2, structBodyNode, declOrFuncNode);
             return PARSE_ERRP("Invalid Enum in Struct", GetNextToken(fptr));
         }
 
@@ -538,7 +555,7 @@ ParseResult StructBody(FILE* fptr)
         else if (structNode.status == NAP)
             break;
 
-        ASTFreeNodes(3, structBodyNode, declStmtNode);
+        ASTFreeNodes(3, structBodyNode, enumNode, declOrFuncNode);
         return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
     }
 

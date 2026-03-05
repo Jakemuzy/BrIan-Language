@@ -84,8 +84,34 @@ void PrintAST(AST* ast) {
     PrintASTNode(ast->root, 0);
 }
 
+
+typedef struct {
+    const char* filename;
+    bool shouldPass;
+} TestCase;
+
 int main(int argc, char* argv[])
 {
+    TestCase tests[] = {
+        {"TestCases/TypeChecker/DefinedType.b", true},
+        {"TestCases/TypeChecker/ImplicitCast.b", true},
+        {"TestCases/TypeChecker/InvalidImplicitCast.b", false},
+        {"TestCases/TypeChecker/InvalidInt.b", false},
+        {"TestCases/TypeChecker/DefinedType.b", true},
+        {"TestCases/TypeChecker/FuncType.b", true},
+        {"TestCases/TypeChecker/FuncInvalidParamTypes.b", false},
+        {"TestCases/TypeChecker/MemberAccess.b", true},
+    };
+
+    int expectedPass = -1;
+    size_t numTests = sizeof(tests) / sizeof(tests[0]);
+    for (size_t i = 0; i < numTests; i++) {
+        if (strcmp(tests[i].filename, argv[1]) == 0) {
+            expectedPass = tests[i].shouldPass;
+            break;
+        }
+    }
+
     /* Open code file to read */
     FILE* fptr;
     fptr = fopen(argv[1], "r");
@@ -114,8 +140,8 @@ int main(int argc, char* argv[])
     TYPE* typeCheck = TypeCheck(nss, ast->root);
     if (!typeCheck || typeCheck->kind == TYPE_ERROR) {
         printf("ERROR: Typechecking failed\n");
-        exit(1);
+        return (expectedPass == 1) ? 1 : 0;
     }
 
-	return 0;
+    return (expectedPass == 0) ? 1 : 0;
 }    
