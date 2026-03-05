@@ -36,7 +36,8 @@ typedef struct Symbol {
     SymbolType stype;
 
     /* Lightweight namespace for paramaters / struct fields / etc */
-    Namespaces* fields;  /* TODO: HAVE THIS BE NAMESPACES (nested types) */
+    Namespaces* fields;  
+    size_t fieldCount;
 } Symbol;
 
 Symbol* InitSymbol(ASTNode* decl, Symbol* prev, SymbolType stype);

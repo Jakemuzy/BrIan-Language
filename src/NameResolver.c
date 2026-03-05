@@ -1,7 +1,7 @@
 #include "NameResolver.h"
 
-/* TODO:
-    - Allow Shadowing in ctrl scopes 
+/* 
+TODO:
     - Fix Nested Structs
     - URGENT: name resolver should NOT try to partially determine types
         this is ONLY the TypeCheckers job snice variables of different
@@ -12,6 +12,12 @@
     - STRUCT FIELD VALIDATION SHOULD BE IN TYPECHECKER 
     - Have functions be stateful as well (store their own fields namespace like structs)
     - Determine if a variable is actually defined (ie int x; int b = x + 4) x is not defined
+
+NOTE: 
+    - There is no possible way to handle name resolution inside of enums and structs without
+      mixing a little bit of types in here since they are technically their own types.
+      That being said, there is no type checking here, just intializing and checking if the 
+      it exists in N_TYPE, not actually checking the type.
 */
 
 /* ----------- Error Handling ---------- */
@@ -69,7 +75,7 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current)
         case (FUNC_NODE):
             return ResolveFuncs(scope, current);   /* Return since ResolveFuncs already traverses Children */
         case (IF_STMT_NODE):
-        case (DO_WHILE_STMT_NODE):
+        case (DO_WHILE_STMT_NODE):  // TODO: Just put them here
         case (WHILE_STMT_NODE):
         case (SWITCH_STMT_NODE):
         case (RETURN_STMT_NODE):
@@ -102,8 +108,46 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current)
 
 int ResolveVars(ScopeContext* scope, ASTNode* current)
 {
-    /* TODO: Should pass sym, so in case of enum or struct, can check members */
+    /* If custom type like struct, need variable to have fields knowledge */
+    ASTNode* typeNode = current->children[0];
+    char* typeLex = typeNode->token.lex.word;
+
+    Symbol* sym = LookupAllScopes(scope, typeLex, N_TYPE);
+    if (sym && sym->stype == S_STRUCT) 
+        return ResolveStructVar(scope, current->children[1], sym);
+
+    /* Otherwise use classic variable resolution */
     return ResolveVar(scope, current->children[1]);   
+}
+
+int ResolveStructVar(ScopeContext* scope, ASTNode* current, Symbol* structSym)
+{
+    if (!current) return NANN;
+
+    if (current->type == IDENT_NODE) {
+        Symbol* sym;
+        char* name = current->token.lex.word;
+
+        sym = LookupCurrentScope(scope, name, N_VAR);
+        if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
+     
+        sym = STPushNamespace(scope, current, N_VAR, S_VAR);
+        sym->stype = S_VAR;
+        sym->fieldCount = structSym->fieldCount;    /* TODO: unsure if this is safe since the same pointer */
+        sym->fields = structSym->fields;        // Copy the fields so the var has access to its own fields
+        PushScope(scope, sym, N_VAR);
+        return VALDN;
+    }    
+    else if (current->type == STRUCT_INIT_NODE) { /* TODO: not implemented yet */ 
+        /* Check field count matches, type checker will resolve types */
+    }
+    else {
+        for (size_t i = 0; i < current->childCount; i++) {
+            int status = ResolveStructVar(scope, current->children[i], structSym);
+            if (status == ERRN) return status;
+        }
+    }
+    return VALDN;
 }
 
 int ResolveVar(ScopeContext* scope, ASTNode* current)
@@ -127,6 +171,13 @@ int ResolveVar(ScopeContext* scope, ASTNode* current)
         return ResolveExprs(scope, current);
     }
     else if (current->type == CALL_FUNC_NODE) {
+        return ResolveFuncCall(scope, current);
+    }
+    else if (current->type == MEMBER_ACCESS_NODE) {
+        return ResolveMemberAccess(scope, current);
+    }
+    else if (current->type == CALL_FUNC_NODE) {
+        /* TODO: This doesn't handle paramters yet */
         return ResolveFuncCall(scope, current);
     }
     else {
@@ -155,7 +206,7 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
     /* Param list has own scope, stored as fields of func sym */
     BeginPersistentScope(&scope, PARAM_SCOPE);
 
-    int status = ResolveParams(scope, current->children[2]);
+    int status = ResolveParams(scope, current->children[2], &sym->fieldCount);
     if (status == ERRN) return status;
 
     sym->fields = scope->namespaces;
@@ -169,13 +220,16 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
     return status;
 }
 
-int ResolveParams(ScopeContext* scope, ASTNode* current)
+/* Returns how many params there are */
+int ResolveParams(ScopeContext* scope, ASTNode* current, size_t* paramCount)
 {
     if (current->type != PARAM_LIST_NODE) return NANN;
 
     for (size_t i = 0; i < current->childCount; i++) {
         int status = ResolveParam(scope, current->children[i]);
         if (status != VALDN) return status;
+
+        (*paramCount)++;
     }
     return VALDN;
 }
@@ -338,11 +392,15 @@ int ResolveSwitchStmt(ScopeContext* scope, ASTNode* current)
 int ResolveForStmt(ScopeContext* scope, ASTNode* current)
 {
     /* Scope begins early since for stmts can declare variables in their exprs */
-    BeginScope(&scope, CTRL_SCOPE);
+    BeginScope(&scope, PARAM_SCOPE);
 
-    /* TODO: Need to allow decls later one I change the grammar to accept them */
+    /* TODO: enter scope for arguments, then another for the body */
     ASTNode* declExprList = current->children[0];
-    if (ResolveExprs(scope, declExprList) == ERRN) return ERRN; 
+    if (declExprList->type == VAR_DECL_NODE) {
+        if(ResolveVars(scope, declExprList) == ERRN) return ERRN;
+    } else {
+        if (ResolveExprs(scope, declExprList) == ERRN) return ERRN; 
+    }
 
     ASTNode* exprNode = current->children[1];
     if (ResolveExprs(scope, exprNode) == ERRN) return ERRN;
@@ -350,9 +408,11 @@ int ResolveForStmt(ScopeContext* scope, ASTNode* current)
     ASTNode* exprListNode = current->children[2];
     if (ResolveExprs(scope, exprListNode) == ERRN) return ERRN;
 
+    BeginScope(&scope, CTRL_SCOPE);
     ASTNode* forBody = current->children[3];
     if (ResolveEverything(scope, forBody) == ERRN) return ERRN;
 
+    ExitScope(&scope); /* Ctrl then Param */
     ExitScope(&scope);
     return VALDN;
 }
@@ -380,7 +440,6 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
 
     /* TYPE* will become TY_STRUCT during type checking, NULL for now */
     sym = STPushNamespace(scope, identNode, N_TYPE, S_STRUCT);
-    sym->stype = S_STRUCT;
     PushScope(scope, sym, N_TYPE);
 
     /* Stores namespae that resolves struct members inside of struct */
@@ -418,7 +477,6 @@ int ResolveEnums(ScopeContext* scope, ASTNode* current)
 
     /* TYPE* will become TY_ENUM during type checking, NULL for now */
     sym = STPushNamespace(scope, identNode, N_TYPE, S_ENUM);
-    sym->stype = S_ENUM;
     PushScope(scope, sym, N_TYPE);
 
     /* Enum's Body Namespace */
@@ -474,11 +532,9 @@ int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
 
     /* Ensure arg count matches */
     ASTNode* argListNode = current->children[1];
-    printf("%ld : %ld\n", GetTotalSymCount(sym->fields), GetTotalArgCount(argListNode));
-    if (GetTotalSymCount(sym->fields) != GetTotalArgCount(argListNode)) 
+    if (sym->fieldCount != GetTotalArgCount(argListNode)) 
         return NERROR("Mismatch in argument count", identLex, identNode);
 
-    /* TOOD: Ensure arg count matches */
     for (size_t i = 0; i < argListNode->childCount; i++) {
         ASTNode* argNode = argListNode->children[i];
         int status = ResolveFuncArg(scope, argNode);
@@ -490,6 +546,7 @@ int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
 
 int ResolveFuncArg(ScopeContext* scope, ASTNode* current)
 {
+    /* TODO: Resolve for func calls and array index, etc */
     if (current->type == LITERAL_NODE)
         return VALDN;
     else if (current->type == IDENT_NODE) {
@@ -507,9 +564,23 @@ int ResolveMemberAccess(ScopeContext* scope, ASTNode* current)
 {
     /* TODO: CHECK IF ACTUALY STRUCT */
     /* Type checker ensures type exists */
-    int status = ResolveExprs(scope, current->children[0]);
-    if (status != VALDN)
-        return status;
+    ASTNode* identNode = current->children[0];
+    char* identLex = identNode->token.lex.word;
+    Symbol* sym = LookupAllScopes(scope, identLex, N_VAR);
+    
+    if (!sym)
+        return NERROR_DOESNT_EXIST(identLex, identNode);
+ 
+    Namespaces* memberFields = sym->fields; 
+
+    ASTNode* memberNode = current->children[1];
+    char* memberLex = memberNode->token.lex.word;
+    /* TODO: Check N_TYPE if not N_VAR, etc */
+    Symbol* memSym = STLookupNamespace(memberFields, memberLex, N_VAR);
+
+    if (!memSym)
+        return NERROR_DOESNT_EXIST(memberLex, memberNode);
+
 
     // For name resolution phase: done. We assume later type checking handles the rest
     return VALDN;

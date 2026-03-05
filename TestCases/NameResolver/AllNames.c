@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
         {"TestCases/NameResolver/ForBodyInit.b", true},
         {"TestCases/NameResolver/ForEscape.b", false},
         {"TestCases/NameResolver/ForScope.b", true},
-        {"TestCases/NameResolver/ForShadow.b", false},
+        {"TestCases/NameResolver/ForShadow.b", true},
         {"TestCases/NameResolver/FuncLeak.b", false},
         {"TestCases/NameResolver/FuncShadow.b", true},
         {"TestCases/NameResolver/FuncUndefined.b", false},
@@ -53,6 +53,7 @@ int main(int argc, char* argv[])
         {"TestCases/NameResolver/SwitchUndefined.b", false},
         {"TestCases/NameResolver/ReturnUndefined.b", false},
         {"TestCases/NameResolver/StructBasic.b", true},
+        {"TestCases/NameResolver/StructFunc.b", true},
         {"TestCases/NameResolver/StructUndefined.b", true},
         {"TestCases/NameResolver/StructInvalidField.b", true},
         {"TestCases/NameResolver/NestedStructs.b", true},
@@ -63,7 +64,7 @@ int main(int argc, char* argv[])
         {"TestCases/NameResolver/FuncCall.b", true},
         {"TestCases/NameResolver/FuncInvalidCall.b", false},
         {"TestCases/NameResolver/FuncExcessArgs.b", false},
-        {"TestCases/NameResolver/FuncMnimalArgs.b", false},
+        {"TestCases/NameResolver/FuncMinimalArgs.b", false},
     };
 
     int expectedPass = -1;

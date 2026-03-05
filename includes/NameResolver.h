@@ -37,10 +37,11 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current);
 
 
 int ResolveVars(ScopeContext* scope, ASTNode* current);
+int ResolveStructVar(ScopeContext* scope, ASTNode* current, Symbol* structSym);
 int ResolveVar(ScopeContext* scope, ASTNode* current);
 
 int ResolveFuncs(ScopeContext* scope, ASTNode* current);
-int ResolveParams(ScopeContext* scope, ASTNode* current);
+int ResolveParams(ScopeContext* scope, ASTNode* current, size_t* paramCount);   
 int ResolveParam(ScopeContext* scope, ASTNode* current);
 
 int ResolveExprs(ScopeContext* scope, ASTNode* current);
@@ -63,6 +64,10 @@ int ResolveMemberAccess(ScopeContext* scope, ASTNode* current);
 int ResolveArrIndex(ScopeContext* scope, ASTNode* current);
 int ResolveArgList(ScopeContext* scope, ASTNode* current);
 int ResolveTypedefs(ScopeContext* scope, ASTNode* current);
+
+/* TODO: These */
+int ResolveStructInitializer(ScopeContext* scope, ASTNode* current, Symbol* structSym);
+int ResolveArrInitializer(ScopeContext* scope, ASTNode* current, Symbol* arrSym);
 
 int EnterScopeContextIfNeeded(ScopeContext** scope, ASTNode* current);
 
