@@ -568,6 +568,7 @@ int ResolveMemberAccess(ScopeContext* scope, ASTNode* current)
     char* identLex = identNode->token.lex.word;
     Symbol* sym = LookupAllScopes(scope, identLex, N_VAR);
     
+    printf("MEMBER\n");
     if (!sym)
         return NERROR_DOESNT_EXIST(identLex, identNode);
  
