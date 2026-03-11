@@ -5,8 +5,7 @@ struct foo {
 int main() {
     foo F; 
 
-    int z = F.z;
-    int k = F.k;
+    F.x = "str";
 }
 
 // Fail

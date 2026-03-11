@@ -312,7 +312,7 @@ TYPE* TypeCheckAsgn(Namespaces* nss, ASTNode* expr)
     /* TODO: Lval check instead */
 
     Token operator = expr->token;
-    OperatorRule rule = FindRule(operator.type, BINARY_RULE);
+    OperatorRule rule = FindRule(operator.type, LVAL_RULE);
     if (rule.rtype == ERROR_RULE) 
         return TERROR_NO_RULE(rule, expr);
 
@@ -321,6 +321,9 @@ TYPE* TypeCheckAsgn(Namespaces* nss, ASTNode* expr)
         return TERROR_INCOMPATIBLE(rule, expr);
 
     TYPE* result = rule.rule.b.result(left, right);
+    if (result == TY_ERROR()) 
+        return TERROR_CAST(left, right, expr);
+
     return result;
 }
 /* ---------- Accessors & Initalizers ----------- */

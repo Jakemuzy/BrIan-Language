@@ -1714,6 +1714,11 @@ ParseResult Primary(FILE* fptr)
             operandNode = ArbitraryNode(tok, LITERAL_NODE);
         return operandNode;
     } 
+    else if (ValidTokType(PREDEF_VAR, PREDEF_VAR_COUNT, PeekNextTokenP(fptr)) == VALID) {
+        Token tok = GetNextTokenP(fptr); 
+        ParseResult predefNode = ArbitraryNode(tok, LITERAL_NODE);
+        return predefNode;
+    }
     /* Check Parenthesis Helper Function Needed */
     else if (PeekNextTokenP(fptr) == LPAREN) {
         GetNextTokenP(fptr);

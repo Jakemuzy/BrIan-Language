@@ -39,7 +39,8 @@ void KWMapInit()
     DictPush(KWmap, (void*) "U32", (void*)(uintptr_t) U32);      DictPush(KWmap, (void*) "U64", (void*)(uintptr_t) U64);     
     DictPush(KWmap, (void*) "I8", (void*)(uintptr_t) I8);        DictPush(KWmap, (void*) "I16", (void*)(uintptr_t) I16);     
     DictPush(KWmap, (void*) "I32", (void*)(uintptr_t) I32);      DictPush(KWmap, (void*) "I64", (void*)(uintptr_t) I64);     
-    DictPush(KWmap, (void*) "bool", (void*)(uintptr_t) BOOL);
+    DictPush(KWmap, (void*) "bool", (void*)(uintptr_t) BOOL);    DictPush(KWmap, (void*) "true", (void*)(uintptr_t) TRUE);
+    DictPush(KWmap, (void*) "false", (void*)(uintptr_t) FALSE);  DictPush(KWmap, (void*) "null", (void*)(uintptr_t) NILL);
 
 }
 

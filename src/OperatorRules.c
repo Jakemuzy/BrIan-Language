@@ -125,32 +125,55 @@ TYPE* BoolType(TYPE* lhs, TYPE* rhs)
     return TY_ERROR();
 }
 
-TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs) 
+TYPE* IntegerPromotion(TYPE* lhs, TYPE* rhs)
 {
-    /* TODO: Casting rules go here */
-    //if (lhs->kind == rhs->kind)
-        //return KindToType(lhs->kind);
-        
-    TWARN("Implicit type conversion from x to y on line z");
-    return TY_NAT();
+    TypeKind lkind = lhs->kind, rkind = rhs->kind;
 
-    /* Numeric → Numeric 
-    if (IsNumeric(lhs) && IsNumeric(rhs))
-        return lhs;  // allow narrowing or widening
+    if (lkind == TYPE_I64 || rkind == TYPE_I64) return TY_I64();
+    if (lkind == TYPE_U64 || rkind == TYPE_U64) return TY_U64();
+    if (lkind == TYPE_I32 || rkind == TYPE_I32) return TY_I32();
+    if (lkind == TYPE_INT || rkind == TYPE_INT) return TY_INT();
+    if (lkind == TYPE_U32 || rkind == TYPE_U32) return TY_U32();
+    if (lkind == TYPE_I16 || rkind == TYPE_I16) return TY_I16();
+    if (lkind == TYPE_U16 || rkind == TYPE_U16) return TY_U16();
+    if (lkind == TYPE_I8  || rkind == TYPE_I8)  return TY_I8();
+    if (lkind == TYPE_U8  || rkind == TYPE_U8)  return TY_U8();
 
-    /* Integral → Integral 
-    if (IsIntegral(lhs) && IsIntegral(rhs))
-        return lhs;
+    return TY_ERROR();
+}
 
-    /* float/double widening 
-    if (IsFloating(lhs) && IsIntegral(rhs))
-        return lhs;
+TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
+{
+    if (!lhs || !rhs) return TY_ERROR();
+    TypeKind lkind = lhs->kind, rkind = rhs->kind;
 
-    /* null → pointer (if you add pointers later) 
-    // if (IsPointer(lhs) && rhs->kind == TYPE_NULL)
-    //     return lhs;
-    */
+    if (lkind == rkind) return KindToType(lkind);
+    if (lkind == TYPE_ERROR || rkind == TYPE_ERROR) return TY_ERROR();
+    if (lkind == TYPE_VOID  || rkind == TYPE_VOID)  return TY_ERROR();
 
+    if (rkind == TYPE_NULL) {
+        if (lkind == TYPE_PTR || lkind == TYPE_STRING || lkind == TYPE_ARR)
+            return lhs;
+        return TY_ERROR();
+    }
+
+    if (lkind == TYPE_BOOL && TypeHasCategory(rkind, C_NUMERIC)) return rhs;
+    if (rkind == TYPE_BOOL && TypeHasCategory(lkind, C_NUMERIC)) return lhs;
+
+    if (lkind == TYPE_DOUBLE || rkind == TYPE_DOUBLE) {
+        if (TypeHasCategory(lkind, C_NUMERIC) && TypeHasCategory(rkind, C_NUMERIC))
+            return TY_DOUBLE();
+    }
+    if (lkind == TYPE_FLOAT || rkind == TYPE_FLOAT) {
+        if (TypeHasCategory(lkind, C_NUMERIC) && TypeHasCategory(rkind, C_NUMERIC))
+            return TY_FLOAT();
+    }
+
+    if (TypeHasCategory(lkind, C_INTEGRAL) && TypeHasCategory(rkind, C_INTEGRAL))
+        return IntegerPromotion(lhs, rhs);
+
+    if (lkind == TYPE_PTR && TypeHasCategory(rkind, C_INTEGRAL)) return lhs;
+    if (rkind == TYPE_PTR && TypeHasCategory(lkind, C_INTEGRAL)) return rhs;
 
     return TY_ERROR();
 }
@@ -225,10 +248,24 @@ TYPE* TERROR_UNDEFINED(ASTNode* node)
     return TY_ERROR();
 }
 
+TYPE* TERROR_CAST(TYPE* left, TYPE* right, ASTNode* expr) 
+{
+    int line = expr->token.line;
+    char* name = expr->token.lex.word;
+    printf("TYPE ERROR: Invalid implicit cast between type %d and type %d on line %d\n", left->kind, left->kind, line);
+
+    return TY_ERROR();
+}
+
 TYPE* TERROR(char* msg, ASTNode* node, NamespaceKind kind)
 {
+    /* 
+        TODO: Check if standard type, TypeKindTo str
+        if user defined type, get type name and print 
+    */
     int line = node->token.line;
     char* name = node->token.lex.word;
+
     printf("TYPE ERROR: %s in namespace %d on line %d\n", msg, kind, line);
 
     return TY_ERROR();

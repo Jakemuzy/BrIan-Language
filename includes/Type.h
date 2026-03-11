@@ -96,5 +96,6 @@ TYPE* TY_STRUCT(TYPE_FIELD_LIST* fields);
 /* TODO: Implement structs as fields */
 
 TYPE* StrToType(char* typeName);
+TYPE* KindToType(TypeKind kind);
 
 #endif

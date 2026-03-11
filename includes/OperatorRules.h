@@ -22,6 +22,7 @@ TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs);  /* Automatic type conversions bas
 TYPE* BitwisePromotion(TYPE* lhs, TYPE* rhs);  
 TYPE* EqPromotion(TYPE* lhs, TYPE* rhs);
 TYPE* BoolType(TYPE* lhs, TYPE* rhs);
+TYPE* IntegerPromotion(TYPE* lhs, TYPE* rhs);
 TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs); /* Warn */
 
 /* Placeholders since TypeResult takes two arguments */
@@ -115,6 +116,7 @@ char* OperatorToStr(TokenType type);
 TYPE* TERROR_INCOMPATIBLE(OperatorRule rule, ASTNode* node);
 TYPE* TERROR_NO_RULE(OperatorRule rule, ASTNode* node);
 TYPE* TERROR_UNDEFINED(ASTNode* node);
+TYPE* TERROR_CAST(TYPE* left, TYPE* right, ASTNode* expr);
 TYPE* TERROR(char* msg, ASTNode* node, NamespaceKind kind);
 void TWARN(char* msg);
 

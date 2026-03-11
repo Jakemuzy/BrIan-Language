@@ -597,10 +597,8 @@ int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Namespaces** nest
     if (!memSym)
         return NERROR_DOESNT_EXIST(memberLex, memberNode);
 
-    printf("LEXEME: %s\n", memberLex);
-    *nestedMembers = memberFields;
-
     // For name resolution phase: done. We assume later type checking handles the rest
+    *nestedMembers = memberFields;
     return VALDN;
 }
 

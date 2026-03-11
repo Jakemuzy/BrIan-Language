@@ -23,6 +23,9 @@ typedef enum {
     I8, I16, I32, I64, U8, U16, U32, U64, 
     ENUM, STRUCT, TYPEDEF,
 
+    /* Predefined Vars */
+    TRUE, FALSE, NILL,
+
     /* Qualifier and Modifier Key Words */
     CONST, SIGNED, UNSIGNED, STATIC,
 
@@ -96,6 +99,9 @@ static const size_t POSTFIXS_COUNT = sizeof(POSTFIXS) / sizeof(POSTFIXS[0]);
 
 static const TokenType PRIMARYS[] = { IDENT, DECIMAL, INTEGRAL, SLITERAL, CLITERAL };
 static const size_t PRIMARYS_COUNT = sizeof(PRIMARYS) / sizeof(PRIMARYS[0]);
+
+static const TokenType PREDEF_VAR[] = { TRUE, FALSE, NILL };
+static const size_t PREDEF_VAR_COUNT = sizeof(PREDEF_VAR) / sizeof(PREDEF_VAR[0]);
 
 static const TokenType TYPES[] = { CHAR, SHORT, INT, FLOAT, DOUBLE, LONG, BOOL, VOID, STRING, I8, I16, I32, I64, U8, U16, U32, U64};
 static const size_t TYPES_COUNT = sizeof(TYPES) / sizeof(TYPES[0]);
