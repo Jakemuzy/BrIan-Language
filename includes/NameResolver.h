@@ -60,7 +60,7 @@ int ResolveEnums(ScopeContext* scope, ASTNode* current);
 
 int ResolveFuncCall(ScopeContext* scope, ASTNode* current);
 int ResolveFuncArg(ScopeContext* scope, ASTNode* current);
-int ResolveMemberAccess(ScopeContext* scope, ASTNode* current);
+int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Namespaces** nestedReturn);
 int ResolveArrIndex(ScopeContext* scope, ASTNode* current);
 int ResolveArgList(ScopeContext* scope, ASTNode* current);
 int ResolveTypedefs(ScopeContext* scope, ASTNode* current);

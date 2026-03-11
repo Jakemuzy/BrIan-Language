@@ -5,10 +5,16 @@
 
 /* ---------- Type Structures  ----------- */
 
+/* Forward Declarations since TYPE encompassed every type */
+struct TYPE_FIELD;
+struct TYPE_FIELD_LIST;
+
 typedef enum TypeKind {
     TYPE_INT, TYPE_BOOL, TYPE_DOUBLE, TYPE_FLOAT,   /* TODO: could probably make int just implicity I32 */
     TYPE_PTR, TYPE_FUNC, TYPE_STRING, TYPE_ARR, 
     TYPE_VOID, TYPE_ERROR, TYPE_NULL, TYPE_NAME,
+
+    TYPE_FIELDS, TYPE_STRUCT, TYPE_ENUM,
 
     TYPE_I8, TYPE_I16, TYPE_I32, TYPE_I64,
     TYPE_U8, TYPE_U16, TYPE_U32, TYPE_U64,
@@ -17,10 +23,23 @@ typedef enum TypeKind {
 } TypeKind;
 
 typedef struct TYPE {
+    /* Predefined types will just use kind */
     TypeKind kind;
+
+    /* Used for specific custom types (ie structs, arrays, and enums )*/
     union {     /* kind == TYPE_ARR -> u.array | kind == OTHER -> u.name */
         struct { struct TYPE* element; size_t size; } array;     
-        struct {Symbol* sym; struct TYPE* type;} name;  
+        struct {Symbol* sym; struct TYPE* type;} name; /* Typedefs already a type, no need to have struct here */ 
+
+        struct { struct TYPE_FIELD* head; struct TYPE_FIELD_LIST* tail;} fieldList;
+        struct { Symbol* sym; struct TYPE_FIELD_LIST* fields; } struc;
+
+        /* TODO: 
+        TY_NAME* def;
+        TYPE_LIST* array;
+        TYPE_STRUCT* struct;
+        TYPE_FIELD_LIST* fields;
+        */
     } u;
 } TYPE;
 
@@ -44,10 +63,6 @@ typedef struct TYPE_FIELD_LIST {
     TYPE_FIELD* head;
     struct TYPE_FIELD_LIST* tail;
 } TYPE_FIELD_LIST;
-
-typedef struct TYPE_STRUCT {
-    TYPE_FIELD_LIST* fields;
-} TYPE_STRUCT;
 
 /* Constructors */
 TYPE* TY_ERROR(void);
@@ -73,10 +88,10 @@ TYPE* TY_ARR(TYPE* element, int size);
 TYPE* TY_NAME(Symbol* sym, TYPE* type);
 
 TYPE* TY_NAT();
-TYPE_LIST TY_LIST(TYPE* head, TYPE_LIST* tail);
+TYPE* TY_LIST(TYPE* head, TYPE_LIST* tail);
 TYPE_FIELD* TY_FIELD(Symbol* sym, TYPE* type);
 TYPE_FIELD_LIST* TY_FIELD_LIST(TYPE_FIELD* head, TYPE_FIELD_LIST* tail);
-TYPE_STRUCT* TY_STRUCT(TYPE_FIELD_LIST* fields);
+TYPE* TY_STRUCT(TYPE_FIELD_LIST* fields);
 
 /* TODO: Implement structs as fields */
 

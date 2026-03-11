@@ -41,7 +41,7 @@ TYPE* TypeCheckCallFunc(Namespaces* nss, ASTNode* expr);
 TYPE* TypeCheckTypedef(Namespaces* nss, ASTNode* expr);
 TYPE* TypeCheckStructDecl(Namespaces* nss, ASTNode* expr);
 TYPE_FIELD_LIST* TypeCheckStructBody(Namespaces* nss, ASTNode* expr);
-TYPE* TypeCheckEnumBody(Namespaces* nss, ASTNode* expr);
+TYPE_FIELD_LIST* TypeCheckEnumBody(Namespaces* nss, ASTNode* expr);
 
 /* Errors in OperatorRules.h */
 

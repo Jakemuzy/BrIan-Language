@@ -174,7 +174,8 @@ int ResolveVar(ScopeContext* scope, ASTNode* current)
         return ResolveFuncCall(scope, current);
     }
     else if (current->type == MEMBER_ACCESS_NODE) {
-        return ResolveMemberAccess(scope, current);
+        Namespaces* nestedMembers = NULL;
+        return ResolveMemberAccess(scope, current, &nestedMembers);
     }
     else if (current->type == CALL_FUNC_NODE) {
         /* TODO: This doesn't handle paramters yet */
@@ -265,7 +266,8 @@ int ResolveExpr(ScopeContext* scope, ASTNode* current)
         return VALDN;
     }
     else if (current->type == MEMBER_ACCESS_NODE) {
-        return ResolveMemberAccess(scope, current);
+        Namespaces* nestedMembers = NULL;
+        return ResolveMemberAccess(scope, current, &nestedMembers);
     }
     else {
         for (size_t i = 0; i < current->childCount; i++) {
@@ -560,69 +562,55 @@ int ResolveFuncArg(ScopeContext* scope, ASTNode* current)
     return NANN;
 }
 
-int ResolveMemberAccess(ScopeContext* scope, ASTNode* current) 
+int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Namespaces** nestedMembers) 
 {
-    /* TODO: CHECK IF ACTUALY STRUCT */
-    /* Type checker ensures type exists */
     ASTNode* identNode = current->children[0];
-    char* identLex = identNode->token.lex.word;
-    Symbol* sym = LookupAllScopes(scope, identLex, N_VAR);
+    char* identLex = identNode->token.lex.word; 
+    Symbol* sym;
+
+    Namespaces* memberFields; 
+
+    // Handles Nested Member Access
+    if (identNode->type == MEMBER_ACCESS_NODE) {
+        if (ResolveMemberAccess(scope, identNode, &memberFields) != VALDN) 
+            return ERRN;
+    }
+    else  {
+        sym = LookupAllScopes(scope, identLex, N_VAR);
+    }
     
+
     if (!sym)
         return NERROR_DOESNT_EXIST(identLex, identNode);
- 
-    Namespaces* memberFields = sym->fields; 
+
+
+    /* Again a nested check */
+    if (!memberFields) {
+        memberFields = sym->fields;
+        nestedMembers = &memberFields;
+    }
+    else {
+        memberFields = *nestedMembers;
+    }
+
+    /* 
+        TODO: This check isn't thourough enough, this would allow functions and enums
+        which could actually be a cool feature of the language. Debate on this later 
+    */
+    if (!memberFields)  
+        return NERROR("Identifier is not a struct", identLex, identNode);
 
     ASTNode* memberNode = current->children[1];
     char* memberLex = memberNode->token.lex.word;
-    /* TODO: Check N_TYPE if not N_VAR, etc */
+    /* TODO: Check N_TYPE if not in N_VAR, etc */
     Symbol* memSym = STLookupNamespace(memberFields, memberLex, N_VAR);
 
     if (!memSym)
         return NERROR_DOESNT_EXIST(memberLex, memberNode);
 
+    printf("LEXEME: %s\n", memberLex);
 
     // For name resolution phase: done. We assume later type checking handles the rest
-    return VALDN;
-    /* TODO: Not too sure how solid this 'resolvedSym' pattern is */
-    /*
-    Symbol* sym = NULL;
-    ASTNode* accessedNode = current->children[0];
-    int status;
-
-    if (accessedNode->type == IDENT_NODE) {
-        sym = LookupAllScopes(scope, accessedNode->token.lex.word, N_VAR);
-        if (!sym)
-            return NERROR_DOESNT_EXIST(accessedNode->token.lex.word, accessedNode);
-    } else if (accessedNode->type == MEMBER_ACCESS_NODE) {
-        status = ResolveMemberAccess(scope, accessedNode, resolvedSym);
-        if (status != VALDN) return status; 
-        sym = *resolvedSym; 
-    } else {
-        status = ResolveExprs(scope, accessedNode);
-        if (status != VALDN) return status;
-
-        /* Resolved Sym in case of Nested member accesses 
-        sym = *resolvedSym; 
-        if (!sym)
-            return NERROR("Cannot resolve member base", NULL, accessedNode);
-    }
-
-    // Member lookup
-    char* memName = current->children[1]->token.lex.word;
-    Symbol* structNode = LookupAllScopes(scope, sym->typeName, N_TYPE);
-    if (!structNode)
-        return NERROR("Struct type not found", sym->typeName, accessedNode);
-
-    Namespace* ns = GetNamespace(structNode->fields, N_VAR);
-    Symbol* memberNode = NULL;
-    if (ns) memberNode = LookupNamespaceCurrentScope(ns, memName);
-
-    if (!memberNode)
-        return NERROR("Undefined struct member", memName, current->children[1]);
-
-    *resolvedSym = memberNode; // store resolved symbol for later passes
-    */
     return VALDN;
 }
 
@@ -636,7 +624,6 @@ int ResolveArrIndex(ScopeContext* scope, ASTNode* current)
 
 SymbolType DetermineSymType(ASTNode* node) 
 {
-
     switch(node->type) {
         case(VAR_DECL_NODE): return S_VAR;
         /* Check parent for type? */
