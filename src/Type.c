@@ -28,7 +28,7 @@ TYPE* TY_NAME(Symbol* sym, TYPE* type) { TYPE* typ = malloc(sizeof(TYPE)); typ->
 TYPE* TY_NAT() { static TYPE t = { TYPE_NAT }; return &t; }
 //TYPE* TY_LIST(TYPE* head, TYPE_LIST* tail) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_LIST }
 
-TYPE* TY_FIELD_LIST(TYPE_FIELD* head, TYPE_FIELD_LIST* tail) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_FIELDS; typ->u.fieldList.head = head; typ->u.fieldList.tail = tail; return typ; }
+TYPE_FIELD_LIST* TY_FIELD_LIST(TYPE_FIELD* head, TYPE_FIELD_LIST* tail) { TYPE_FIELD_LIST* typ = malloc(sizeof(TYPE_FIELD_LIST)); typ->head = head; typ->tail = tail; return typ; }
 TYPE* TY_STRUCT(TYPE_FIELD_LIST* fields) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_STRUCT; typ->u.struc.fields = fields; return typ; }
 
 TYPE* StrToType(char* typeName)

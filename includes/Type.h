@@ -89,8 +89,8 @@ TYPE* TY_NAME(Symbol* sym, TYPE* type);
 
 TYPE* TY_NAT();
 TYPE* TY_LIST(TYPE* head, TYPE_LIST* tail);
-TYPE* TY_FIELD(Symbol* sym, TYPE* type);
-TYPE* TY_FIELD_LIST(TYPE_FIELD* head, TYPE_FIELD_LIST* tail);
+TYPE_FIELD* TY_FIELD(Symbol* sym, TYPE* type);
+TYPE_FIELD_LIST* TY_FIELD_LIST(TYPE_FIELD* head, TYPE_FIELD_LIST* tail);
 TYPE* TY_STRUCT(TYPE_FIELD_LIST* fields);
 
 /* TODO: Implement structs as fields */
