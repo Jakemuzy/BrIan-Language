@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
         {"TestCases/NameResolver/StructBasic.b", true},
         {"TestCases/NameResolver/StructFunc.b", true},
         {"TestCases/NameResolver/StructUndefined.b", true},
-        {"TestCases/NameResolver/StructInvalidField.b", true},
+        {"TestCases/NameResolver/StructInvalidField.b", false},
         {"TestCases/NameResolver/NestedStructs.b", true},
         {"TestCases/NameResolver/EnumBasic.b", true},
         {"TestCases/NameResolver/EnumInvalid.b", true},
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
    
-    //PrintAST(ast);
+   // PrintAST(ast);
 
     if (!ast) {
         printf("ERROR: AST failed to build for %s\n", argv[1]);

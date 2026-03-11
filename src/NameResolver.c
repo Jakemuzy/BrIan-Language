@@ -566,7 +566,6 @@ int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Namespaces** nest
 {
     ASTNode* identNode = current->children[0];
     char* identLex = identNode->token.lex.word; 
-    Symbol* sym;
 
     Namespaces* memberFields; 
 
@@ -576,23 +575,14 @@ int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Namespaces** nest
             return ERRN;
     }
     else  {
-        sym = LookupAllScopes(scope, identLex, N_VAR);
+        Symbol* sym = LookupAllScopes(scope, identLex, N_VAR);
+        if (!sym)
+            return NERROR_DOESNT_EXIST(identLex, identNode);
+        memberFields = sym->fields;
     }
     
-
-    if (!sym)
-        return NERROR_DOESNT_EXIST(identLex, identNode);
-
-
-    /* Again a nested check */
-    if (!memberFields) {
-        memberFields = sym->fields;
-        nestedMembers = &memberFields;
-    }
-    else {
-        memberFields = *nestedMembers;
-    }
-
+    *nestedMembers = memberFields;
+    
     /* 
         TODO: This check isn't thourough enough, this would allow functions and enums
         which could actually be a cool feature of the language. Debate on this later 
