@@ -212,7 +212,6 @@ TYPE* TypeCheckFunc(Namespaces* nss, ASTNode* expr)
     Symbol* sym = STLookupNamespace(nss, identName, N_VAR);
     sym->type = type;
 
-
     ASTNode* paramListNode = expr->children[2];
     TYPE* params = TypeCheckParams(nss, paramListNode); 
     if (params->kind == TYPE_ERROR) return params;

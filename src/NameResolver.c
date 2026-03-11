@@ -67,8 +67,7 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current)
     int status = NANN;
     switch (current->type) {
         case(VAR_DECL_NODE):
-            status = ResolveVars(scope, current);
-            break;
+            return ResolveVars(scope, current);
         case (TYPEDEF_DECL_NODE):
             status = ResolveTypedefs(scope, current);
             break;
@@ -89,7 +88,6 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current)
             break;
         case (STRUCT_DECL_NODE):
             return ResolveStructDecl(scope, current);
-            break;
         case (ENUM_DECL_NODE):
             status = ResolveEnums(scope, current);
             break;
@@ -120,6 +118,49 @@ int ResolveVars(ScopeContext* scope, ASTNode* current)
     return ResolveVar(scope, current->children[1]);   
 }
 
+int ResolveVar(ScopeContext* scope, ASTNode* current)
+{
+    /* TODO: Find the underlying cause for this null check being required */
+    if (!current) return NANN;
+
+    if (current->type == VAR_NODE) {
+        ASTNode* identNode = current->children[0];
+        char* name = identNode->token.lex.word;
+        
+        // Resolve initializer first
+        if (current->childCount > 1) {
+            int status = ResolveVar(scope, current->children[1]);
+            if (status == ERRN) return status;
+        }
+        
+        // Register the variable
+        Symbol* sym = LookupCurrentScope(scope, name, N_VAR);
+        if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
+        sym = STPushNamespace(scope, identNode, N_VAR, S_VAR);
+        sym->stype = S_VAR;
+        PushScope(scope, sym, N_VAR);
+
+        return VALDN;
+    }
+    else if (current->type == BINARY_EXPR_NODE || current->type == UNARY_EXPR_NODE) {
+        return ResolveExprs(scope, current);
+    }
+    else if (current->type == CALL_FUNC_NODE) {
+        return ResolveFuncCall(scope, current);
+    }
+    else if (current->type == MEMBER_ACCESS_NODE) {
+        Namespaces* nestedMembers = NULL;
+        return ResolveMemberAccess(scope, current, &nestedMembers);
+    }
+    else {
+        for (size_t i = 0; i < current->childCount; i++) {
+            int status = ResolveVar(scope, current->children[i]);
+            if (status == ERRN) return status;
+        }
+    }
+    return VALDN;
+}
+
 int ResolveStructVar(ScopeContext* scope, ASTNode* current, Symbol* structSym)
 {
     if (!current) return NANN;
@@ -144,46 +185,6 @@ int ResolveStructVar(ScopeContext* scope, ASTNode* current, Symbol* structSym)
     else {
         for (size_t i = 0; i < current->childCount; i++) {
             int status = ResolveStructVar(scope, current->children[i], structSym);
-            if (status == ERRN) return status;
-        }
-    }
-    return VALDN;
-}
-
-int ResolveVar(ScopeContext* scope, ASTNode* current)
-{
-    /* TODO: Find the underlying cause for this null check being required */
-    if (!current) return NANN;
-
-    if (current->type == IDENT_NODE) {
-        Symbol* sym;
-        char* name = current->token.lex.word;
-
-        sym = LookupCurrentScope(scope, name, N_VAR);
-        if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
-      
-        sym = STPushNamespace(scope, current, N_VAR, S_VAR);
-        sym->stype = S_VAR;
-        PushScope(scope, sym, N_VAR);
-        return VALDN;
-    }    
-    else if (current->type == BINARY_EXPR_NODE || current->type == UNARY_EXPR_NODE) {
-        return ResolveExprs(scope, current);
-    }
-    else if (current->type == CALL_FUNC_NODE) {
-        return ResolveFuncCall(scope, current);
-    }
-    else if (current->type == MEMBER_ACCESS_NODE) {
-        Namespaces* nestedMembers = NULL;
-        return ResolveMemberAccess(scope, current, &nestedMembers);
-    }
-    else if (current->type == CALL_FUNC_NODE) {
-        /* TODO: This doesn't handle paramters yet */
-        return ResolveFuncCall(scope, current);
-    }
-    else {
-        for (size_t i = 0; i < current->childCount; i++) {
-            int status = ResolveVar(scope, current->children[i]);
             if (status == ERRN) return status;
         }
     }
@@ -580,11 +581,9 @@ int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Namespaces** nest
             return NERROR_DOESNT_EXIST(identLex, identNode);
         memberFields = sym->fields;
     }
-    
-    *nestedMembers = memberFields;
-    
+ 
     /* 
-        TODO: This check isn't thourough enough, this would allow functions and enums
+        TODO: This check isn't thorough enough, this would allow functions and enums
         which could actually be a cool feature of the language. Debate on this later 
     */
     if (!memberFields)  
@@ -599,6 +598,7 @@ int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Namespaces** nest
         return NERROR_DOESNT_EXIST(memberLex, memberNode);
 
     printf("LEXEME: %s\n", memberLex);
+    *nestedMembers = memberFields;
 
     // For name resolution phase: done. We assume later type checking handles the rest
     return VALDN;

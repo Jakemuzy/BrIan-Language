@@ -37,8 +37,8 @@ int ResolveEverything(ScopeContext* scope, ASTNode* current);
 
 
 int ResolveVars(ScopeContext* scope, ASTNode* current);
-int ResolveStructVar(ScopeContext* scope, ASTNode* current, Symbol* structSym);
 int ResolveVar(ScopeContext* scope, ASTNode* current);
+int ResolveStructVar(ScopeContext* scope, ASTNode* current, Symbol* structSym);
 
 int ResolveFuncs(ScopeContext* scope, ASTNode* current);
 int ResolveParams(ScopeContext* scope, ASTNode* current, size_t* paramCount);   

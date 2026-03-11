@@ -4,7 +4,9 @@ struct foo {
 
 int main() {
     foo F; 
-    int y = F.x;
+
     int z = F.z;
     int k = F.k;
 }
+
+// Fail
