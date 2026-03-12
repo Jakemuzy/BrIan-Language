@@ -77,7 +77,7 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
             */
            return TypeCheckFunc(nss, expr);
         case BINARY_EXPR_NODE: return TypeCheckBinExpr(nss, expr);
-        case UNARY_EXPR_NODE:  return TypeCheckUnaExpr(nss, expr->children[0]);
+        case UNARY_EXPR_NODE:  return TypeCheckUnaExpr(nss, expr);
 
         //case VAR_NODE:  /* Check if assigned a type, and if so check type
         case ASGN_EXPR_NODE: return TypeCheckAsgn(nss, expr);   /* Check valid type */
@@ -286,7 +286,7 @@ TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr)
 TYPE* TypeCheckUnaExpr(Namespaces* nss, ASTNode* expr)
 {
     TYPE* left = TypeCheck(nss, expr->children[0]);
-    if (left->kind == TYPE_ERROR) return left;
+    if (left == TY_ERROR()) return left;
 
     Token operator = expr->token;
     OperatorRule rule = FindRule(operator.type, UNARY_RULE);
@@ -297,6 +297,7 @@ TYPE* TypeCheckUnaExpr(Namespaces* nss, ASTNode* expr)
     if (!TypeHasCategory(left->kind, rule.rule.u.cat)) 
         return TERROR_INCOMPATIBLE(rule, expr);
 
+    /* TODO: Check if the rule actually exists first before calling func */
     TYPE* result = rule.rule.u.result(left, NULL);
     return result;
 }

@@ -41,7 +41,7 @@ TYPE* ValidLval(Namespaces* nss, ASTNode* identNode, NamespaceKind kind)
     
     /* TODO:
         ident's when resolved in the name resolver don't actually store a type 
-        sometimes, its supposed to happen in the type checker, add an extra
+        , its supposed to happen in the type checker, add an extra
         check for whether or not its set already ( != TY_NAT ) 
     */
     if (!sym->type) {
@@ -179,6 +179,31 @@ TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
 }
 
 /* Unary */
+
+TYPE* IncrementRule(TYPE* expr, TYPE* placeholder) {
+    if (!TypeHasCategory(expr->kind, C_INTEGRAL))
+        return TY_ERROR();
+    return expr;
+}
+
+TYPE* NegateRule(TYPE* expr, TYPE* placeholder) {
+    if (!TypeHasCategory(expr->kind, C_NUMERIC))
+        return TY_ERROR();
+    return expr;
+}
+
+TYPE* BinaryNegateRule(TYPE* expr, TYPE* placeholder) {
+    if (!TypeHasCategory(expr->kind, C_INTEGRAL))
+        return TY_ERROR();
+    return expr;
+}
+
+TYPE* BooleanRule(TYPE* expr, TYPE* placeholder) {
+    if (expr->kind != TYPE_BOOL)
+        return TY_ERROR();
+    return expr;
+}
+
 TYPE* BlankRule(TYPE* expr, TYPE* placeholder) { return expr; }
 
 OperatorRule FindRule(TokenType ttype, RuleType rtype)
