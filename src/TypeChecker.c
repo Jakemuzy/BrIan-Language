@@ -51,6 +51,9 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
                 case CLITERAL: return TY_U32();
                 case INTEGRAL: return TY_INT();
                 case DECIMAL: return TY_DOUBLE();   
+                case NILL: return TY_NULL();
+                case TRUE: return TY_BOOL();
+                case FALSE: return TY_BOOL();
                 default: return TERROR("Invalid literal type", expr, N_VAR);
             }
         case IDENT_NODE:     
@@ -81,23 +84,24 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
 
         //case VAR_NODE:  /* Check if assigned a type, and if so check type
         case ASGN_EXPR_NODE: return TypeCheckAsgn(nss, expr);   /* Check valid type */
+        case VAR_DECL_NODE:  return TypeCheckVarDecl(nss, expr);
+        case CALL_FUNC_NODE: return TypeCheckCallFunc(nss, expr);
 
-        case VAR_DECL_NODE:     /* TODO: Assign type to symbols (currently null from name reoslver) */
-            return TypeCheckVarDecl(nss, expr);
+        case DO_WHILE_STMT_NODE: return TypeCheckDoWhileLoop(nss, expr);
+        case WHILE_STMT_NODE:    return TypeCheckWhileLoop(nss, expr);
+        case FOR_STMT_NODE:      return TypeCheckForLoop(nss, expr);
+        case IF_STMT_NODE:       return TypeCheckIfStmt(nss, expr);
+        case SWITCH_STMT_NODE:   return TypeCheckSwitchStmt(nss, expr);
+        case RETURN_STMT_NODE:   return TypeCheckReturnStmt(nss, expr);
 
-        case CALL_FUNC_NODE:    /* Check Valid Type */
-            return TypeCheckCallFunc(nss, expr);
         case ARR_DECL_NODE:     /* Check Integral Size */
 
         case ARR_INIT_NODE:     /* Check Valid Types */
 
         case ARR_INDEX_NODE:   /* Check integral */
 
-        case MEMBER_ACCESS_NODE:  
-            return TypeCheckMemberAccess(nss, expr);
-
-        case TYPEDEF_DECL_NODE: /* Check for existance */
-            return TypeCheckTypedef(nss, expr);
+        case MEMBER_ACCESS_NODE:  return TypeCheckMemberAccess(nss, expr);
+        case TYPEDEF_DECL_NODE:   return TypeCheckTypedef(nss, expr);
 
         case ENUM_BODY_NODE:    /* Check all integral */
 
@@ -168,7 +172,7 @@ TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var, TYPE* type)
     ASTNode* identNode = var->children[0];
     char* identName = identNode->token.lex.word;
     Symbol* sym = STLookupNamespace(nss, identName, N_VAR);
-    sym->type = type;
+    sym->type = type;     
 
     /* Check compatibility of asgnment with ident type */
     if (var->childCount > 1) {
@@ -310,8 +314,6 @@ TYPE* TypeCheckAsgn(Namespaces* nss, ASTNode* expr)
     TYPE* right = TypeCheck(nss, expr->children[1]);
     if (right->kind == TYPE_ERROR) return right;
 
-    /* TODO: Lval check instead */
-
     Token operator = expr->token;
     OperatorRule rule = FindRule(operator.type, LVAL_RULE);
     if (rule.rtype == ERROR_RULE) 
@@ -327,7 +329,72 @@ TYPE* TypeCheckAsgn(Namespaces* nss, ASTNode* expr)
 
     return result;
 }
+
+
+/* ---------- Conditionals & Loops ----------- */
+
+TYPE* TypeCheckWhileLoop(Namespaces* nss, ASTNode* expr)
+{
+    // Boolean
+    ASTNode* conditionNode = expr->children[0];
+    TYPE* condType;
+
+    if (conditionNode->type == IDENT_NODE) {
+        char* identLex = conditionNode->token.lex.word;
+        /* Can only be a var */
+        Symbol* sym = STLookupNamespace(nss, identLex, N_VAR);
+        condType = sym->type;
+    } else {
+        condType = TypeCheck(nss, conditionNode);
+        if (condType == TY_ERROR()) return condType;
+    }
+
+    if (!condType) 
+        return TERROR("Undefined type", conditionNode, N_VAR);
+
+    if (!TypeHasCategory(condType->kind, C_BOOLEAN)) 
+        return TERROR("Condition in 'WHILE' loop is not boolean", conditionNode, N_VAR);
+
+    /* Type check the body */
+    return TypeCheck(nss, expr->children[1]);
+}
+
+TYPE* TypeCheckDoWhileLoop(Namespaces* nss, ASTNode* expr)
+{
+    // Boolean
+
+    return TY_NAT();
+}
+
+TYPE* TypeCheckForLoop(Namespaces* nss, ASTNode* expr)
+{
+    /* 
+        1.) Type check exprs in params (TypeCheck)
+        2.) Type check body
+    */
+    return TY_NAT();
+}
+
+TYPE* TypeCheckIfStmt(Namespaces* nss, ASTNode* expr)
+{
+    // Boolean
+    return TY_NAT();
+}
+
+TYPE* TypeCheckSwitchStmt(Namespaces* nss, ASTNode* expr)
+{
+
+    return TY_NAT();
+}
+
+TYPE* TypeCheckReturnStmt(Namespaces* nss, ASTNode* expr)
+{
+    /* Compare return type to function type */
+    return TY_NAT();
+}
+
 /* ---------- Accessors & Initalizers ----------- */
+
 
 TYPE* TypeCheckMemberAccess(Namespaces* nss, ASTNode* expr)
 {

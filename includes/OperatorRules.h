@@ -7,7 +7,7 @@
 
 /* ----------- Valid Types ---------- */
 
-typedef enum TypeCategory { C_NUMERIC, C_INTEGRAL, C_DECIMAL, C_COMPARABLE, C_EQUALITY, C_ANY } TypeCategory; 
+typedef enum TypeCategory { C_NUMERIC, C_INTEGRAL, C_DECIMAL, C_BOOLEAN, C_EQUALITY, C_POINTER, C_ANY } TypeCategory; 
 bool TypeHasCategory(TypeKind kind, TypeCategory cat);
 
 /* ----------- Lval Checking  ---------- */
@@ -79,6 +79,9 @@ static BinaryRule BINARY_RULES[] = {    /* Maybe make this a map */
     { LSHIFT, C_INTEGRAL, C_INTEGRAL,  BitwisePromotion }, 
     { RSHIFT, C_INTEGRAL, C_INTEGRAL,  BitwisePromotion }, 
 
+    /* TODO: BoolType would need to check more than of the same type 
+       since implicit casting is allowed
+    */
     { EQQ, C_EQUALITY, C_EQUALITY, BoolType },
     { NEQQ, C_EQUALITY, C_EQUALITY, BoolType },
     { GEQQ, C_EQUALITY, C_EQUALITY, BoolType },
