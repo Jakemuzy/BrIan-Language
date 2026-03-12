@@ -106,7 +106,7 @@ static UnaryRule UNARY_RULES[] = {
 
     { NEG, C_INTEGRAL,  BinaryNegateRule }, 
 
-    { NOT, C_EQUALITY, BooleanRule },
+    { NOT, C_BOOLEAN, BooleanRule },
 };
 static const size_t UNARY_RULES_SIZE = sizeof(UNARY_RULES) / sizeof(UNARY_RULES[0]);
 

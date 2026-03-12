@@ -118,7 +118,7 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
             /* Recursively check children, and then return */
             for (size_t i = 0; i < expr->childCount; i++) {
                 TYPE* type = TypeCheck(nss, expr->children[i]);
-                if (type->kind == TYPE_ERROR) return type;
+                if (type == TY_ERROR()) return type;
             } 
             break;
     }
@@ -143,10 +143,11 @@ TYPE* TypeCheckVarDecl(Namespaces* nss, ASTNode* expr)
         type = sym->type;
     }
 
+
     ASTNode* varListNode = expr->children[1];
     for (size_t i = 0; i < varListNode->childCount; i++) {
         TYPE* ty = TypeCheckVar(nss, varListNode->children[i], type);
-        if (ty->kind == TYPE_ERROR) return ty;
+        if (ty == TY_ERROR()) return ty;
     }
     
     return TY_NAT();
@@ -174,10 +175,14 @@ TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var, TYPE* type)
     Symbol* sym = STLookupNamespace(nss, identName, N_VAR);
     sym->type = type;     
 
+    /* Check if pointer before do this */
+    if (type->kind == TYPE_VOID) 
+        return TERROR("Cannot have variable of type void", identNode, N_VAR);
+
     /* Check compatibility of asgnment with ident type */
     if (var->childCount > 1) {
         TYPE* rhs = TypeCheck(nss, var->children[1]);
-        if (rhs == TY_ERROR() || rhs->kind == TYPE_ERROR) return rhs;
+        if (rhs == TY_ERROR()) return rhs;
 
         /* Use operator rules since technically an '=' */
         OperatorRule rule = FindRule(EQ, LVAL_RULE);
@@ -189,6 +194,8 @@ TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var, TYPE* type)
 
         /* Resulting Expr Type based on operator rule */
         TYPE* result = rule.rule.b.result(sym->type, rhs);
+        if (result == TY_ERROR())
+            printf("RESULT ERROR\n");
         return result;
     }
 
@@ -216,13 +223,17 @@ TYPE* TypeCheckFunc(Namespaces* nss, ASTNode* expr)
     Symbol* sym = STLookupNamespace(nss, identName, N_VAR);
     sym->type = type;
 
+    /* Check if pointer before do this */   /* TODO: CAN have */
+    if (type->kind == TYPE_VOID) 
+        return TERROR("Cannot have function of type void", identNode, N_VAR);
+
     ASTNode* paramListNode = expr->children[2];
     TYPE* params = TypeCheckParams(nss, paramListNode); 
-    if (params->kind == TYPE_ERROR) return params;
+    if (params == TY_ERROR()) return params;
   
     ASTNode* bodyNode = expr->children[3];
     TYPE* body = TypeCheck(nss, bodyNode);
-    if (body->kind == TYPE_ERROR) return body;
+    if (body == TY_ERROR()) return body;
 
     return TY_NAT();
 }
@@ -232,7 +243,7 @@ TYPE* TypeCheckParams(Namespaces* nss, ASTNode* expr)
     for (size_t i = 0; i < expr->childCount; i++) 
     {
         TYPE* type = TypeCheckParam(nss, expr->children[i]);
-        if (type->kind == TYPE_ERROR) return type;
+        if (type == TY_ERROR()) return type;
     }
     return TY_NAT();
 }
@@ -268,10 +279,10 @@ TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr)
 {
     /* First child is ident or another epxr */
     TYPE* left = TypeCheck(nss, expr->children[0]);
-    if (left->kind == TYPE_ERROR) return left;
+    if (left == TY_ERROR()) return left;
 
     TYPE* right = TypeCheck(nss, expr->children[1]);
-    if (right->kind == TYPE_ERROR) return right;
+    if (right == TY_ERROR()) return right;
 
     Token operator = expr->token;
     OperatorRule rule = FindRule(operator.type, BINARY_RULE);
@@ -309,10 +320,10 @@ TYPE* TypeCheckUnaExpr(Namespaces* nss, ASTNode* expr)
 TYPE* TypeCheckAsgn(Namespaces* nss, ASTNode* expr) 
 {
     TYPE* left = TypeCheck(nss, expr->children[0]);
-    if (left->kind == TYPE_ERROR) return left;
+    if (left == TY_ERROR()) return left;
 
     TYPE* right = TypeCheck(nss, expr->children[1]);
-    if (right->kind == TYPE_ERROR) return right;
+    if (right == TY_ERROR()) return right;
 
     Token operator = expr->token;
     OperatorRule rule = FindRule(operator.type, LVAL_RULE);

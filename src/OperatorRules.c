@@ -176,6 +176,8 @@ TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
     if (TypeHasCategory(lkind, C_INTEGRAL) && TypeHasCategory(rkind, C_INTEGRAL))
         return IntegerPromotion(lhs, rhs);
 
+    /* TODO: handle strings */
+
     if (lkind == TYPE_PTR && TypeHasCategory(rkind, C_INTEGRAL)) return lhs;
     if (rkind == TYPE_PTR && TypeHasCategory(lkind, C_INTEGRAL)) return rhs;
 
