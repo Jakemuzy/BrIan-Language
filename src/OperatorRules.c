@@ -8,9 +8,13 @@ bool TypeHasCategory(TypeKind kind, TypeCategory cat)
         case C_NUMERIC:
             return kind == TYPE_INT || kind == TYPE_FLOAT || kind == TYPE_DOUBLE;
         case C_INTEGRAL:
-            return kind == TYPE_INT;
+            return kind == TYPE_INT || 
+            kind == TYPE_I8 || kind == TYPE_I16 || kind == TYPE_I32 || kind == TYPE_I64 ||
+            kind == TYPE_U8 || kind == TYPE_U16 || kind == TYPE_U32 || kind == TYPE_U64;
         case C_DECIMAL:
             return kind == TYPE_DOUBLE || kind == TYPE_FLOAT;
+        case C_BOOLEAN:
+            return TypeHasCategory(kind, C_INTEGRAL) || kind == TYPE_BOOL;
         case C_EQUALITY:
             return 1;
         default:
@@ -172,6 +176,8 @@ TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
     if (TypeHasCategory(lkind, C_INTEGRAL) && TypeHasCategory(rkind, C_INTEGRAL))
         return IntegerPromotion(lhs, rhs);
 
+    /* TODO: handle strings */
+
     if (lkind == TYPE_PTR && TypeHasCategory(rkind, C_INTEGRAL)) return lhs;
     if (rkind == TYPE_PTR && TypeHasCategory(lkind, C_INTEGRAL)) return rhs;
 
@@ -181,7 +187,7 @@ TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
 /* Unary */
 
 TYPE* IncrementRule(TYPE* expr, TYPE* placeholder) {
-    if (!TypeHasCategory(expr->kind, C_INTEGRAL))
+    if (!TypeHasCategory(expr->kind, C_NUMERIC) && !TypeHasCategory(expr->kind, C_POINTER))
         return TY_ERROR();
     return expr;
 }

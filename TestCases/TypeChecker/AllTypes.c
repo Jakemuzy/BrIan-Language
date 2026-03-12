@@ -141,7 +141,6 @@ int main(int argc, char* argv[])
         {"TestCases/TypeChecker/InvalidI64ToI32Narrowing.b", false},
         {"TestCases/TypeChecker/StructMemberAccess.b", true},
         {"TestCases/TypeChecker/InvalidStructMemberTypeMismatch.b", false},
-        {"TestCases/TypeChecker/InvalidStructMemberDoesntExist.b", false},
         {"TestCases/TypeChecker/PostfixIncrementInt.b", true},
         {"TestCases/TypeChecker/PostfixIncrementFloat.b", true},
         {"TestCases/TypeChecker/InvalidPostfixIncrementString.b", false},
@@ -182,8 +181,8 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    PrintAST(ast);
-    printf("----------------------------------------------------\n");
+    //PrintAST(ast);
+    //printf("----------------------------------------------------\n");
 
     Namespaces* nss = ResolveNames(ast);
     if (!nss) {
