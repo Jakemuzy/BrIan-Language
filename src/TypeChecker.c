@@ -77,7 +77,7 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
             */
            return TypeCheckFunc(nss, expr);
         case BINARY_EXPR_NODE: return TypeCheckBinExpr(nss, expr);
-        case UNARY_EXPR_NODE:  return TypeCheckUnaExpr(nss, expr->children[0]);
+        case UNARY_EXPR_NODE:  return TypeCheckUnaExpr(nss, expr);
 
         //case VAR_NODE:  /* Check if assigned a type, and if so check type
         case ASGN_EXPR_NODE: return TypeCheckAsgn(nss, expr);   /* Check valid type */
@@ -212,7 +212,6 @@ TYPE* TypeCheckFunc(Namespaces* nss, ASTNode* expr)
     Symbol* sym = STLookupNamespace(nss, identName, N_VAR);
     sym->type = type;
 
-
     ASTNode* paramListNode = expr->children[2];
     TYPE* params = TypeCheckParams(nss, paramListNode); 
     if (params->kind == TYPE_ERROR) return params;
@@ -287,7 +286,7 @@ TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr)
 TYPE* TypeCheckUnaExpr(Namespaces* nss, ASTNode* expr)
 {
     TYPE* left = TypeCheck(nss, expr->children[0]);
-    if (left->kind == TYPE_ERROR) return left;
+    if (left == TY_ERROR()) return left;
 
     Token operator = expr->token;
     OperatorRule rule = FindRule(operator.type, UNARY_RULE);
@@ -298,6 +297,7 @@ TYPE* TypeCheckUnaExpr(Namespaces* nss, ASTNode* expr)
     if (!TypeHasCategory(left->kind, rule.rule.u.cat)) 
         return TERROR_INCOMPATIBLE(rule, expr);
 
+    /* TODO: Check if the rule actually exists first before calling func */
     TYPE* result = rule.rule.u.result(left, NULL);
     return result;
 }
@@ -313,7 +313,7 @@ TYPE* TypeCheckAsgn(Namespaces* nss, ASTNode* expr)
     /* TODO: Lval check instead */
 
     Token operator = expr->token;
-    OperatorRule rule = FindRule(operator.type, BINARY_RULE);
+    OperatorRule rule = FindRule(operator.type, LVAL_RULE);
     if (rule.rtype == ERROR_RULE) 
         return TERROR_NO_RULE(rule, expr);
 
@@ -322,6 +322,9 @@ TYPE* TypeCheckAsgn(Namespaces* nss, ASTNode* expr)
         return TERROR_INCOMPATIBLE(rule, expr);
 
     TYPE* result = rule.rule.b.result(left, right);
+    if (result == TY_ERROR()) 
+        return TERROR_CAST(left, right, expr);
+
     return result;
 }
 /* ---------- Accessors & Initalizers ----------- */

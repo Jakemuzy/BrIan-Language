@@ -57,3 +57,36 @@ TYPE* StrToType(char* typeName)
     // Not a recognized built-in type
     return NULL;
 }
+
+TYPE* KindToType(TypeKind kind)
+{
+    switch (kind) {
+        case TYPE_INT:    return TY_INT();
+        case TYPE_BOOL:   return TY_BOOL();
+        case TYPE_DOUBLE: return TY_DOUBLE();
+        case TYPE_FLOAT:  return TY_FLOAT();
+        case TYPE_STRING: return TY_STRING();
+        case TYPE_VOID:   return TY_VOID();
+        case TYPE_NULL:   return TY_NULL();
+        case TYPE_ERROR:  return TY_ERROR();
+        case TYPE_NAT:    return TY_NAT();
+        case TYPE_I8:     return TY_I8();
+        case TYPE_I16:    return TY_I16();
+        case TYPE_I32:    return TY_I32();
+        case TYPE_I64:    return TY_I64();
+        case TYPE_U8:     return TY_U8();
+        case TYPE_U16:    return TY_U16();
+        case TYPE_U32:    return TY_U32();
+        case TYPE_U64:    return TY_U64();
+
+        /* Composite types need additional info, can't construct from kind alone */
+        case TYPE_PTR:
+        case TYPE_FUNC:
+        case TYPE_ARR:
+        case TYPE_NAME:
+        case TYPE_FIELDS:
+        case TYPE_STRUCT:
+        case TYPE_ENUM:
+        default:          return NULL;
+    }
+}

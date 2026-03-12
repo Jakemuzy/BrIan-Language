@@ -22,10 +22,15 @@ TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs);  /* Automatic type conversions bas
 TYPE* BitwisePromotion(TYPE* lhs, TYPE* rhs);  
 TYPE* EqPromotion(TYPE* lhs, TYPE* rhs);
 TYPE* BoolType(TYPE* lhs, TYPE* rhs);
+TYPE* IntegerPromotion(TYPE* lhs, TYPE* rhs);
 TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs); /* Warn */
 
+/* Unary */
 /* Placeholders since TypeResult takes two arguments */
-TYPE* BlankRule(TYPE* epxr, TYPE* placeholder); /* Just returns type */
+TYPE* IncrementRule(TYPE* expr, TYPE* placeholder);
+TYPE* NegateRule(TYPE* expr, TYPE* placeholder);
+TYPE* BinaryNegateRule(TYPE* expr, TYPE* placeholder);
+TYPE* BooleanRule(TYPE* expr, TYPE* placeholder);
 
 typedef enum RuleType { BINARY_RULE, UNARY_RULE, LVAL_RULE, ERROR_RULE } RuleType;
 
@@ -92,11 +97,13 @@ static const size_t BINARY_RULES_SIZE = sizeof(BINARY_RULES) / sizeof(BINARY_RUL
 /* ---------------------------------------- */
 
 static UnaryRule UNARY_RULES[] = {
-    { PP, C_NUMERIC, BlankRule },
+    { PP, C_NUMERIC, IncrementRule },
+    { MINUS, C_NUMERIC, NegateRule },
+    { PLUS, C_NUMERIC, NegateRule },
 
-    { NEG, C_INTEGRAL,  BitwisePromotion }, 
+    { NEG, C_INTEGRAL,  BinaryNegateRule }, 
 
-    { NOT, C_EQUALITY, BoolType },
+    { NOT, C_EQUALITY, BooleanRule },
 };
 static const size_t UNARY_RULES_SIZE = sizeof(UNARY_RULES) / sizeof(UNARY_RULES[0]);
 
@@ -115,6 +122,7 @@ char* OperatorToStr(TokenType type);
 TYPE* TERROR_INCOMPATIBLE(OperatorRule rule, ASTNode* node);
 TYPE* TERROR_NO_RULE(OperatorRule rule, ASTNode* node);
 TYPE* TERROR_UNDEFINED(ASTNode* node);
+TYPE* TERROR_CAST(TYPE* left, TYPE* right, ASTNode* expr);
 TYPE* TERROR(char* msg, ASTNode* node, NamespaceKind kind);
 void TWARN(char* msg);
 

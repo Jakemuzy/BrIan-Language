@@ -135,13 +135,15 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
         Index ::= '[' Expr' ']'
         CallFunc ::= IDENT '(' [ ArgList ] ')'
         Member ::= '.' IDENT
-    Primary ::= Literal | '(' Expr ')'
+    Primary ::= Literal | PredefinedVars | '(' Expr ')'
 
     Type = ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" )
     ArgList = Expr { ',' Expr }
 
 	VarList ::= Var { ',' Var }
     Var ::=  IDENT { ArrDecl } [ '=' ( Expr | ArrInitList ) ]
+
+    PredefinedVars ::= ( "true" | "false" | "null" )
     
     ArrDecl ::= '[' [ Expr ] ']'
     ArrInitList ::= '{' ( Literal | ArrInitList ) { ',' Literal | ArrInitList } '}' 

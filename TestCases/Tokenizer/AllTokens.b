@@ -29,6 +29,9 @@ U64
 enum
 struct
 typedef
+true
+false
+null
 const
 signed
 unsigned
