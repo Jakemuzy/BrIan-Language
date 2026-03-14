@@ -2,11 +2,19 @@
 
 /* ----------- Valid Types ---------- */
 
+TypeCategory GetCategory(TypeKind kind) {
+    /* Lots of overlapping categories, so check the smallest first, 
+       getting larger and more encompassing as each subsequent check fails
+     */
+}
+
 bool TypeHasCategory(TypeKind kind, TypeCategory cat)
 {
     switch (cat) {
         case C_NUMERIC:
-            return kind == TYPE_INT || kind == TYPE_FLOAT || kind == TYPE_DOUBLE;
+            return kind == TYPE_INT || kind == TYPE_FLOAT || kind == TYPE_DOUBLE ||
+            kind == TYPE_I8 || kind == TYPE_I16 || kind == TYPE_I32 || kind == TYPE_I64 ||
+            kind == TYPE_U8 || kind == TYPE_U16 || kind == TYPE_U32 || kind == TYPE_U64;
         case C_INTEGRAL:
             return kind == TYPE_INT || 
             kind == TYPE_I8 || kind == TYPE_I16 || kind == TYPE_I32 || kind == TYPE_I64 ||
@@ -20,8 +28,6 @@ bool TypeHasCategory(TypeKind kind, TypeCategory cat)
             return kind == TYPE_DOUBLE || kind == TYPE_FLOAT;
         case C_BOOLEAN:
             return TypeHasCategory(kind, C_INTEGRAL) || kind == TYPE_BOOL;
-        case C_EQUALITY:
-            return 1;
         default:
             return C_ANY;
     }
@@ -68,16 +74,20 @@ TYPE* ValidEquals(ASTNode* lhs, ASTNode* rhs, TokenType operator)
 
 /* ---------- Table Driven Type Checking ---------- */
 
-TYPE* BitwisePromotion(TYPE* lhs, TYPE* rhs) 
-{
-    /* TODO: Warn on implicit converions */
-    /* Always promotes to signed of the largest size */
-    return IntegerPromotion(lhs, rhs);
-}
-
 TYPE* BoolType(TYPE* lhs, TYPE* rhs)
 {
+    /* Already checked if both bools, just double check */
     if (lhs->kind == rhs->kind)
+        return TY_BOOL();
+
+    return TY_ERROR();
+}
+
+TYPE* Comparable(TYPE* lhs, TYPE* rhs)
+{
+    /* If categories are the same, they are comparible */
+    /* Gets highest category, if they share it then they are comparable */
+    if (GetCategory(lhs) == GetCategory(rhs))
         return TY_BOOL();
 
     return TY_ERROR();
@@ -85,7 +95,7 @@ TYPE* BoolType(TYPE* lhs, TYPE* rhs)
 
 TYPE* IntegerPromotion(TYPE* lhs, TYPE* rhs)
 {
-    /* TODO: Warn on implicit converions */
+    /* TODO: Warn on implicit size converions */
     /* Always promotes to signed of the largest size */
     TypeKind lkind = lhs->kind, rkind = rhs->kind;
 
@@ -104,6 +114,11 @@ TYPE* IntegerPromotion(TYPE* lhs, TYPE* rhs)
 
 TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
 {
+    /* 
+        Allows widening, but implicit narrowing is an error
+        Allows converting to signed, but implicit unsigned conversion is an error 
+     */
+
     if (!lhs || !rhs) return TY_ERROR();
     TypeKind lkind = lhs->kind, rkind = rhs->kind;
 
