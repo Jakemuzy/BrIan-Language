@@ -7,7 +7,7 @@
 
 /* ----------- Valid Types ---------- */
 
-typedef enum TypeCategory { C_NUMERIC, C_INTEGRAL, C_DECIMAL, C_BOOLEAN, C_EQUALITY, C_POINTER, C_ANY } TypeCategory; 
+typedef enum TypeCategory { C_NUMERIC, C_INTEGRAL, C_SIGNED, C_UNSIGNED, C_DECIMAL, C_BOOLEAN, C_EQUALITY, C_POINTER, C_ANY } TypeCategory; 
 bool TypeHasCategory(TypeKind kind, TypeCategory cat);
 
 /* ----------- Lval Checking  ---------- */
@@ -18,7 +18,6 @@ TYPE* ValidEquals(ASTNode* lhs, ASTNode* rhs, TokenType operator);
 
 /* ---------- Table Driven Type Checking ---------- */
 
-TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs);  /* Automatic type conversions based on "largest" */
 TYPE* BitwisePromotion(TYPE* lhs, TYPE* rhs);  
 TYPE* EqPromotion(TYPE* lhs, TYPE* rhs);
 TYPE* BoolType(TYPE* lhs, TYPE* rhs);
@@ -65,12 +64,12 @@ typedef struct OperatorRule {
 OperatorRule FindRule(TokenType ttype, RuleType rtype);
 static BinaryRule BINARY_RULES[] = {    /* Maybe make this a map */
     /* TOOD: Anything depending on lval cannot go in the table */
-    { PLUS, C_NUMERIC, C_NUMERIC, NumericPromotion },     /* Function pointers for determining what output type should be */
-    { MINUS, C_NUMERIC, C_NUMERIC, NumericPromotion }, 
-    { DIV, C_NUMERIC, C_NUMERIC, NumericPromotion }, 
-    { MULT, C_NUMERIC, C_NUMERIC, NumericPromotion }, 
-    { POW, C_NUMERIC, C_NUMERIC, NumericPromotion }, 
-    { MOD, C_INTEGRAL, C_INTEGRAL, NumericPromotion }, 
+    { PLUS, C_NUMERIC, C_NUMERIC, IntegerPromotion },     /* Function pointers for determining what output type should be */
+    { MINUS, C_NUMERIC, C_NUMERIC, IntegerPromotion }, 
+    { DIV, C_NUMERIC, C_NUMERIC, IntegerPromotion }, 
+    { MULT, C_NUMERIC, C_NUMERIC, IntegerPromotion }, 
+    { POW, C_NUMERIC, C_NUMERIC, IntegerPromotion }, 
+    { MOD, C_INTEGRAL, C_INTEGRAL, IntegerPromotion }, 
 
     /* TODO: CHECK w of lhs and rhs, warn on diff sizes */
     { XOR, C_INTEGRAL, C_INTEGRAL,  BitwisePromotion }, 
@@ -113,7 +112,22 @@ static const size_t UNARY_RULES_SIZE = sizeof(UNARY_RULES) / sizeof(UNARY_RULES[
 /* ---------------------------------------- */
 
 static LvalRule LVAL_RULES[] = {
-    { EQ, C_ANY, C_ANY, ImplicitCast }
+    { EQ, C_ANY, C_ANY, ImplicitCast },
+    { PEQ, C_ANY, C_ANY, ImplicitCast },
+    { SEQ, C_ANY, C_ANY, ImplicitCast },
+    { MEQ, C_ANY, C_ANY, ImplicitCast },
+    { DEQ, C_ANY, C_ANY, ImplicitCast },
+    { MODEQ, C_ANY, C_ANY, ImplicitCast },
+    { ANDEQ, C_ANY, C_ANY, ImplicitCast },
+    { OREQ, C_ANY, C_ANY, ImplicitCast },
+    { ANDLEQ, C_ANY, C_ANY, ImplicitCast },
+    { ORLEQ, C_ANY, C_ANY, ImplicitCast },
+    { NEGEQ, C_ANY, C_ANY, ImplicitCast },
+    { XOREQ, C_ANY, C_ANY, ImplicitCast },
+    { RIGHTEQ, C_ANY, C_ANY, ImplicitCast },
+    { LEFTEQ, C_ANY, C_ANY, ImplicitCast },
+
+    /* ++ and -- are unary not assignemnt */
 };
 static const size_t LVAL_RULES_SIZE = sizeof(LVAL_RULES) / sizeof(LVAL_RULES[0]);
 
