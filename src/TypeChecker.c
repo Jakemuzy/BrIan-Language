@@ -195,7 +195,7 @@ TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var, TYPE* type)
         /* Resulting Expr Type based on operator rule */
         TYPE* result = rule.rule.b.result(sym->type, rhs);
         if (result == TY_ERROR())
-            printf("RESULT ERROR\n");
+            return TERROR_CAST(sym->type, rhs, identNode);
         return result;
     }
 

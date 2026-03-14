@@ -2,21 +2,32 @@
 
 /* ----------- Valid Types ---------- */
 
+TypeCategory GetCategory(TypeKind kind) {
+    /* Lots of overlapping categories, so check the smallest first, 
+       getting larger and more encompassing as each subsequent check fails
+     */
+}
+
 bool TypeHasCategory(TypeKind kind, TypeCategory cat)
 {
     switch (cat) {
         case C_NUMERIC:
-            return kind == TYPE_INT || kind == TYPE_FLOAT || kind == TYPE_DOUBLE;
+            return kind == TYPE_INT || kind == TYPE_FLOAT || kind == TYPE_DOUBLE ||
+            kind == TYPE_I8 || kind == TYPE_I16 || kind == TYPE_I32 || kind == TYPE_I64 ||
+            kind == TYPE_U8 || kind == TYPE_U16 || kind == TYPE_U32 || kind == TYPE_U64;
         case C_INTEGRAL:
             return kind == TYPE_INT || 
             kind == TYPE_I8 || kind == TYPE_I16 || kind == TYPE_I32 || kind == TYPE_I64 ||
             kind == TYPE_U8 || kind == TYPE_U16 || kind == TYPE_U32 || kind == TYPE_U64;
+        case C_SIGNED:
+            return kind == TYPE_INT || kind == TYPE_I8 || kind == TYPE_I16 || kind == TYPE_I32 || kind == TYPE_I64;
+        case C_UNSIGNED:
+            /* Char is implicitly U8 */
+            return kind == TYPE_U8 || kind == TYPE_U16 || kind == TYPE_U32 || kind == TYPE_U64;
         case C_DECIMAL:
             return kind == TYPE_DOUBLE || kind == TYPE_FLOAT;
         case C_BOOLEAN:
             return TypeHasCategory(kind, C_INTEGRAL) || kind == TYPE_BOOL;
-        case C_EQUALITY:
-            return 1;
         default:
             return C_ANY;
     }
@@ -63,67 +74,20 @@ TYPE* ValidEquals(ASTNode* lhs, ASTNode* rhs, TokenType operator)
 
 /* ---------- Table Driven Type Checking ---------- */
 
-/* Binary */
-TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs)
-{
-    /* TODO: Warn on implicit converions */
-    /* Always promotes to signed of the largest size */
-    if (lhs->kind == TYPE_DOUBLE || rhs->kind == TYPE_DOUBLE)
-        return TY_DOUBLE();
-    if (lhs->kind == TYPE_FLOAT || rhs->kind == TYPE_FLOAT)
-        return TY_FLOAT();
-
-    if (lhs->kind == TYPE_I64 || rhs->kind == TYPE_I64)
-        return TY_I64();
-    if (lhs->kind == TYPE_INT || rhs->kind == TYPE_INT)
-        return TY_INT();
-    if (lhs->kind == TYPE_I32 || rhs->kind == TYPE_I32)
-        return TY_I32();
-    if (lhs->kind == TYPE_I16 || rhs->kind == TYPE_I16)
-        return TY_I16();
-    if (lhs->kind == TYPE_I8 || rhs->kind == TYPE_I8)
-        return TY_I8();
-    if (lhs->kind == TYPE_U64 || rhs->kind == TYPE_U64)
-        return TY_U64();
-    if (lhs->kind == TYPE_U32 || rhs->kind == TYPE_U32)
-        return TY_U32();
-    if (lhs->kind == TYPE_U16 || rhs->kind == TYPE_U16)
-        return TY_U16();
-    if (lhs->kind == TYPE_U8 || rhs->kind == TYPE_U8)
-        return TY_U8();
-
-    return TY_ERROR();
-}
-
-TYPE* BitwisePromotion(TYPE* lhs, TYPE* rhs) 
-{
-    /* TODO: Warn on implicit converions */
-    /* Always promotes to signed of the largest size */
-    if (lhs->kind == TYPE_I64 || rhs->kind == TYPE_I64)
-        return TY_I64();
-    if (lhs->kind == TYPE_INT || rhs->kind == TYPE_INT)
-        return TY_INT();
-    if (lhs->kind == TYPE_I32 || rhs->kind == TYPE_I32)
-        return TY_I32();
-    if (lhs->kind == TYPE_I16 || rhs->kind == TYPE_I16)
-        return TY_I16();
-    if (lhs->kind == TYPE_I8 || rhs->kind == TYPE_I8)
-        return TY_I8();
-    if (lhs->kind == TYPE_U64 || rhs->kind == TYPE_U64)
-        return TY_U64();
-    if (lhs->kind == TYPE_U32 || rhs->kind == TYPE_U32)
-        return TY_U32();
-    if (lhs->kind == TYPE_U16 || rhs->kind == TYPE_U16)
-        return TY_U16();
-    if (lhs->kind == TYPE_U8 || rhs->kind == TYPE_U8)
-        return TY_U8();
-
-    return TY_ERROR();
-}
-
 TYPE* BoolType(TYPE* lhs, TYPE* rhs)
 {
+    /* Already checked if both bools, just double check */
     if (lhs->kind == rhs->kind)
+        return TY_BOOL();
+
+    return TY_ERROR();
+}
+
+TYPE* Comparable(TYPE* lhs, TYPE* rhs)
+{
+    /* If categories are the same, they are comparible */
+    /* Gets highest category, if they share it then they are comparable */
+    if (GetCategory(lhs) == GetCategory(rhs))
         return TY_BOOL();
 
     return TY_ERROR();
@@ -131,6 +95,8 @@ TYPE* BoolType(TYPE* lhs, TYPE* rhs)
 
 TYPE* IntegerPromotion(TYPE* lhs, TYPE* rhs)
 {
+    /* TODO: Warn on implicit size converions */
+    /* Always promotes to signed of the largest size */
     TypeKind lkind = lhs->kind, rkind = rhs->kind;
 
     if (lkind == TYPE_I64 || rkind == TYPE_I64) return TY_I64();
@@ -148,6 +114,11 @@ TYPE* IntegerPromotion(TYPE* lhs, TYPE* rhs)
 
 TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
 {
+    /* 
+        Allows widening, but implicit narrowing is an error
+        Allows converting to signed, but implicit unsigned conversion is an error 
+     */
+
     if (!lhs || !rhs) return TY_ERROR();
     TypeKind lkind = lhs->kind, rkind = rhs->kind;
 
@@ -173,14 +144,23 @@ TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
             return TY_FLOAT();
     }
 
+    /* Signed to unsigned implicit conversion IS an error, should ALWAYS be explicit */
+    if (TypeHasCategory(lkind, C_UNSIGNED) && TypeHasCategory(rkind, C_SIGNED)) {
+        TWARN("SIGNED TO UNSIGNED CONVERSION");
+        return TY_ERROR();
+    }
+
     if (TypeHasCategory(lkind, C_INTEGRAL) && TypeHasCategory(rkind, C_INTEGRAL))
         return IntegerPromotion(lhs, rhs);
 
-    /* TODO: handle strings */
+    /* TODO: Maybe char + add is valid? */
+    if (lkind == TYPE_STRING && rkind == TYPE_STRING)
+        return TY_STRING();
 
     if (lkind == TYPE_PTR && TypeHasCategory(rkind, C_INTEGRAL)) return lhs;
     if (rkind == TYPE_PTR && TypeHasCategory(lkind, C_INTEGRAL)) return rhs;
 
+    /* TERROR_CAST upon return being TY_ERROR */
     return TY_ERROR();
 }
 
@@ -283,7 +263,7 @@ TYPE* TERROR_CAST(TYPE* left, TYPE* right, ASTNode* expr)
 {
     int line = expr->token.line;
     char* name = expr->token.lex.word;
-    printf("TYPE ERROR: Invalid implicit cast between type %d and type %d on line %d\n", left->kind, left->kind, line);
+    printf("TYPE ERROR: Invalid implicit cast between type %d and type %d on line %d\n", left->kind, right->kind, line);
 
     return TY_ERROR();
 }

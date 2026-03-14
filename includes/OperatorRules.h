@@ -7,7 +7,7 @@
 
 /* ----------- Valid Types ---------- */
 
-typedef enum TypeCategory { C_NUMERIC, C_INTEGRAL, C_DECIMAL, C_BOOLEAN, C_EQUALITY, C_POINTER, C_ANY } TypeCategory; 
+typedef enum TypeCategory { C_NUMERIC, C_INTEGRAL, C_SIGNED, C_UNSIGNED, C_DECIMAL, C_BOOLEAN, C_POINTER, C_ANY } TypeCategory; 
 bool TypeHasCategory(TypeKind kind, TypeCategory cat);
 
 /* ----------- Lval Checking  ---------- */
@@ -18,10 +18,9 @@ TYPE* ValidEquals(ASTNode* lhs, ASTNode* rhs, TokenType operator);
 
 /* ---------- Table Driven Type Checking ---------- */
 
-TYPE* NumericPromotion(TYPE* lhs, TYPE* rhs);  /* Automatic type conversions based on "largest" */
-TYPE* BitwisePromotion(TYPE* lhs, TYPE* rhs);  
-TYPE* EqPromotion(TYPE* lhs, TYPE* rhs);
+/* Binary */
 TYPE* BoolType(TYPE* lhs, TYPE* rhs);
+TYPE* ComparableTypes(TYPE* lhs, TYPE* rhs);
 TYPE* IntegerPromotion(TYPE* lhs, TYPE* rhs);
 TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs); /* Warn */
 
@@ -64,36 +63,33 @@ typedef struct OperatorRule {
 
 OperatorRule FindRule(TokenType ttype, RuleType rtype);
 static BinaryRule BINARY_RULES[] = {    /* Maybe make this a map */
-    /* TOOD: Anything depending on lval cannot go in the table */
-    { PLUS, C_NUMERIC, C_NUMERIC, NumericPromotion },     /* Function pointers for determining what output type should be */
-    { MINUS, C_NUMERIC, C_NUMERIC, NumericPromotion }, 
-    { DIV, C_NUMERIC, C_NUMERIC, NumericPromotion }, 
-    { MULT, C_NUMERIC, C_NUMERIC, NumericPromotion }, 
-    { POW, C_NUMERIC, C_NUMERIC, NumericPromotion }, 
-    { MOD, C_INTEGRAL, C_INTEGRAL, NumericPromotion }, 
+    { PLUS, C_NUMERIC, C_NUMERIC, IntegerPromotion },     /* Function pointers for determining what output type should be */
+    { MINUS, C_NUMERIC, C_NUMERIC, IntegerPromotion }, 
+    { DIV, C_NUMERIC, C_NUMERIC, IntegerPromotion }, 
+    { MULT, C_NUMERIC, C_NUMERIC, IntegerPromotion }, 
+    { POW, C_NUMERIC, C_NUMERIC, IntegerPromotion }, 
+    { MOD, C_INTEGRAL, C_INTEGRAL, IntegerPromotion }, 
 
-    /* TODO: CHECK w of lhs and rhs, warn on diff sizes */
-    { XOR, C_INTEGRAL, C_INTEGRAL,  BitwisePromotion }, 
-    { OR, C_INTEGRAL, C_INTEGRAL,  BitwisePromotion }, 
-    { AND, C_INTEGRAL, C_INTEGRAL,  BitwisePromotion }, 
-    { LSHIFT, C_INTEGRAL, C_INTEGRAL,  BitwisePromotion }, 
-    { RSHIFT, C_INTEGRAL, C_INTEGRAL,  BitwisePromotion }, 
+    /* Bitwise Promotion is essentially integer promotion */
+    { XOR, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion }, 
+    { OR, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion }, 
+    { AND, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion }, 
+    { LSHIFT, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion }, 
+    { RSHIFT, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion }, 
 
     /* TODO: BoolType would need to check more than of the same type 
        since implicit casting is allowed
     */
-    { EQQ, C_EQUALITY, C_EQUALITY, BoolType },
-    { NEQQ, C_EQUALITY, C_EQUALITY, BoolType },
-    { GEQQ, C_EQUALITY, C_EQUALITY, BoolType },
-    { LEQQ, C_EQUALITY, C_EQUALITY, BoolType },
+    { EQQ, C_ANY, C_ANY, ComparableTypes },
+    { NEQQ, C_ANY, C_ANY, ComparableTypes },
+    { GEQQ, C_NUMERIC, C_NUMERIC, ComparableTypes },
+    { LEQQ, C_NUMERIC, C_NUMERIC, ComparableTypes },
+    { GREAT, C_BOOLEAN, C_BOOLEAN, ComparableTypes },
+    { LESS, C_BOOLEAN, C_BOOLEAN, ComparableTypes },
 
-    { ANDL, C_EQUALITY, C_EQUALITY, BoolType },
-    { ORL, C_EQUALITY, C_EQUALITY, BoolType },
-    { GREAT, C_EQUALITY, C_EQUALITY, BoolType },
-    { LESS, C_EQUALITY, C_EQUALITY, BoolType },
+    { ANDL, C_BOOLEAN, C_BOOLEAN, BoolType },
+    { ORL, C_BOOLEAN, C_BOOLEAN, BoolType },
 
-    //{ EQ, C_ANY, C_ANY, EqPromotion },    /* Will be handled directly, since lval dependent */
-    //{ PEQ, C_EQUALITY, C_EQUALITY, NumericEqPromotion }
 };
 static const size_t BINARY_RULES_SIZE = sizeof(BINARY_RULES) / sizeof(BINARY_RULES[0]);
 
@@ -113,7 +109,22 @@ static const size_t UNARY_RULES_SIZE = sizeof(UNARY_RULES) / sizeof(UNARY_RULES[
 /* ---------------------------------------- */
 
 static LvalRule LVAL_RULES[] = {
-    { EQ, C_ANY, C_ANY, ImplicitCast }
+    { EQ, C_ANY, C_ANY, ImplicitCast },
+    { PEQ, C_ANY, C_ANY, ImplicitCast },
+    { SEQ, C_ANY, C_ANY, ImplicitCast },
+    { MEQ, C_ANY, C_ANY, ImplicitCast },
+    { DEQ, C_ANY, C_ANY, ImplicitCast },
+    { MODEQ, C_ANY, C_ANY, ImplicitCast },
+    { ANDEQ, C_ANY, C_ANY, ImplicitCast },
+    { OREQ, C_ANY, C_ANY, ImplicitCast },
+    { ANDLEQ, C_ANY, C_ANY, ImplicitCast },
+    { ORLEQ, C_ANY, C_ANY, ImplicitCast },
+    { NEGEQ, C_ANY, C_ANY, ImplicitCast },
+    { XOREQ, C_ANY, C_ANY, ImplicitCast },
+    { RIGHTEQ, C_ANY, C_ANY, ImplicitCast },
+    { LEFTEQ, C_ANY, C_ANY, ImplicitCast },
+
+    /* ++ and -- are unary not assignemnt */
 };
 static const size_t LVAL_RULES_SIZE = sizeof(LVAL_RULES) / sizeof(LVAL_RULES[0]);
 
