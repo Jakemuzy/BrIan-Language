@@ -8,6 +8,7 @@
 /* ----------- Valid Types ---------- */
 
 typedef enum TypeCategory { C_NUMERIC, C_INTEGRAL, C_SIGNED, C_UNSIGNED, C_DECIMAL, C_BOOLEAN, C_POINTER, C_ANY } TypeCategory; 
+size_t TypeSize(TypeKind kind);
 bool TypeHasCategory(TypeKind kind, TypeCategory cat);
 
 /* ----------- Lval Checking  ---------- */
@@ -22,6 +23,7 @@ TYPE* ValidEquals(ASTNode* lhs, ASTNode* rhs, TokenType operator);
 TYPE* BoolType(TYPE* lhs, TYPE* rhs);
 TYPE* ComparableTypes(TYPE* lhs, TYPE* rhs);
 TYPE* IntegerPromotion(TYPE* lhs, TYPE* rhs);
+TYPE* LvalPromotion(TYPE* lhs, TYPE* rhs);
 TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs); /* Warn */
 
 /* Unary */
