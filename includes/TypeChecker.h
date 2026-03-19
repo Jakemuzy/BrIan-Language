@@ -35,6 +35,8 @@ TYPE* TypeCheckWhileLoop(Namespaces* nss, ASTNode* expr);
 TYPE* TypeCheckDoWhileLoop(Namespaces* nss, ASTNode* expr);
 TYPE* TypeCheckForLoop(Namespaces* nss, ASTNode* expr);
 TYPE* TypeCheckIfStmt(Namespaces* nss, ASTNode* expr);
+    TYPE* TypeCheckIfElif(Namespaces* nss, ASTNode* expr);
+    TYPE* TypeCheckElse(Namespaces* nss, ASTNode* expr);
 TYPE* TypeCheckSwitchStmt(Namespaces* nss, ASTNode* expr);
 TYPE* TypeCheckReturnStmt(Namespaces* nss, ASTNode* expr);
 

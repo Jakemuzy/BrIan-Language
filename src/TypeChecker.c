@@ -388,8 +388,39 @@ TYPE* TypeCheckForLoop(Namespaces* nss, ASTNode* expr)
 
 TYPE* TypeCheckIfStmt(Namespaces* nss, ASTNode* expr)
 {
-    // Boolean
+    for (size_t i = 0; i < expr->childCount; i++) {
+        NodeType nodeType = expr->children[i]->type;
+        TYPE* condType;
+        if (nodeType == IF_NODE || nodeType == ELIF_NODE) 
+            condType = TypeCheckIfElif(nss, expr->children[i]);
+        else if (nodeType == ELSE_NODE)
+            condType = TypeCheckElse(nss, expr->children[i]);
+        else 
+            return TERROR("Invalid node type in If Stmt", expr->children[i], N_VAR);
+
+        if (condType == TY_ERROR())
+            return TY_ERROR();
+    }   
+    
     return TY_NAT();
+}
+
+TYPE* TypeCheckIfElif(Namespaces* nss, ASTNode* expr)
+{
+    ASTNode* condNode = expr->children[0];
+    TYPE* condType = TypeCheck(nss, condNode);
+    if (condType == TY_ERROR())
+        return TY_ERROR();
+    else if (!TypeHasCategory(condType->kind, C_BOOLEAN))
+        return TERROR("If stmt conditional does not evaluate to a boolean", condNode, N_VAR);
+    
+    ASTNode* bodyNode = expr->children[1];
+    return TypeCheck(nss, bodyNode);
+}
+
+TYPE* TypeCheckElse(Namespaces* nss, ASTNode* expr)
+{
+    return TypeCheck(nss, expr->children[0]);
 }
 
 TYPE* TypeCheckSwitchStmt(Namespaces* nss, ASTNode* expr)
