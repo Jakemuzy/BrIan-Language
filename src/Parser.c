@@ -10,6 +10,8 @@
         - Add Qualifiers checking to DeclStmt
         - Turn all type nodes into Ident Nodes and check in the type resolver step
         - Safe reference not added
+
+        - Make switch case exprs constant instead of expr
 */
 
 /* ----------- ERRORS ---------- */

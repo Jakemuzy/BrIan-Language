@@ -2,12 +2,6 @@
 
 /* ----------- Valid Types ---------- */
 
-TypeCategory GetCategory(TypeKind kind) {
-    /* Lots of overlapping categories, so check the smallest first, 
-       getting larger and more encompassing as each subsequent check fails
-     */
-}
-
 bool TypeHasCategory(TypeKind kind, TypeCategory cat)
 {
     switch (cat) {
@@ -31,6 +25,24 @@ bool TypeHasCategory(TypeKind kind, TypeCategory cat)
         default:
             return C_ANY;
     }
+}
+
+TypeCategory GetCategory(TYPE* type)
+{
+    /* 
+        Lots of overlapping categories, so check the smallest first, 
+        getting larger and more encompassing as each subsequent check fails
+     */
+    TypeKind kind = type->kind;
+
+    if (TypeHasCategory(kind, C_SIGNED))   return C_SIGNED;
+    if (TypeHasCategory(kind, C_UNSIGNED)) return C_UNSIGNED;
+    if (TypeHasCategory(kind, C_DECIMAL))  return C_DECIMAL;
+    if (TypeHasCategory(kind, C_INTEGRAL)) return C_INTEGRAL;
+    if (TypeHasCategory(kind, C_NUMERIC))  return C_NUMERIC;
+    if (TypeHasCategory(kind, C_BOOLEAN))  return C_BOOLEAN;
+
+    return C_ANY;
 }
 
 /* ----------- Lval Checking  ---------- */
@@ -83,11 +95,13 @@ TYPE* BoolType(TYPE* lhs, TYPE* rhs)
     return TY_ERROR();
 }
 
-TYPE* Comparable(TYPE* lhs, TYPE* rhs)
+TYPE* ComparableTypes(TYPE* lhs, TYPE* rhs)
 {
-    /* If categories are the same, they are comparible */
-    /* Gets highest category, if they share it then they are comparable */
-    if (GetCategory(lhs) == GetCategory(rhs))
+    TypeKind lk = lhs->kind;
+    TypeKind rk = rhs->kind;
+
+    if (TypeHasCategory(lk, GetCategory(rhs)) ||
+        TypeHasCategory(rk, GetCategory(lhs)))
         return TY_BOOL();
 
     return TY_ERROR();
@@ -152,6 +166,7 @@ TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
 
     if (TypeHasCategory(lkind, C_INTEGRAL) && TypeHasCategory(rkind, C_INTEGRAL))
         return IntegerPromotion(lhs, rhs);
+
 
     /* TODO: Maybe char + add is valid? */
     if (lkind == TYPE_STRING && rkind == TYPE_STRING)

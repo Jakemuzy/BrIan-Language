@@ -181,8 +181,8 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    //PrintAST(ast);
-    //printf("----------------------------------------------------\n");
+    PrintAST(ast);
+    printf("----------------------------------------------------\n");
 
     Namespaces* nss = ResolveNames(ast);
     if (!nss) {
