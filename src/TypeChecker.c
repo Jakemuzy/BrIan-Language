@@ -425,8 +425,46 @@ TYPE* TypeCheckElse(Namespaces* nss, ASTNode* expr)
 
 TYPE* TypeCheckSwitchStmt(Namespaces* nss, ASTNode* expr)
 {
+    ASTNode* exprNode = expr->children[0];
+    TYPE* exprType = TypeCheck(nss, exprNode);
+    if (exprType == TY_ERROR())
+        return TY_ERROR();
+
+    for (size_t i = 1; i < expr->childCount; i++) {
+        ASTNode* caseNode = expr->children[1];
+        TYPE* caseType;
+        if (caseNode->type == CASE_NODE) 
+            caseType = TypeCheckCase(nss, caseNode);
+        else if (caseNode->type == DEFAULT_NODE)
+            caseType = TypeCheckDefault(nss, caseNode);
+
+        /* Check if exprType is comparable with caseType */
+        if (caseType == TY_ERROR())
+            return TY_ERROR();
+    }
 
     return TY_NAT();
+}
+
+TYPE* TypeCheckCase(Namespaces* nss, ASTNode* expr)
+{
+    ASTNode* exprNode = expr->children[0];
+    TYPE* exprType = TypeCheck(nss, exprNode);
+    if (exprType == TY_ERROR())
+        return TY_ERROR();
+
+    ASTNode* bodyNode = expr->children[1];
+    TYPE* bodyType = TypeCheck(nss, bodyNode);
+    if (bodyType == TY_ERROR())
+        return TY_ERROR();
+
+    /* Returns case type so Switch Stmt can check against expr type */
+    return exprType;
+}
+
+TYPE* TypeCheckDefault(Namespaces* nss, ASTNode* expr)
+{
+    return TypeCheck(nss, expr->children[0]);
 }
 
 TYPE* TypeCheckReturnStmt(Namespaces* nss, ASTNode* expr)
