@@ -218,7 +218,7 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
     status = ResolveEverything(scope, current->children[3]);
 
     ExitScope(&scope);  // Func Scope
-    ExitScope(&scope);  // Param Scope
+    ExitPersistentScope(&scope);  // Param Scope
     return status;
 }
 

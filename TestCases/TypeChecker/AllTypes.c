@@ -181,6 +181,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
+    /* TODO: Add switch statement test cases */
     //PrintAST(ast);
     //printf("----------------------------------------------------\n");
 
