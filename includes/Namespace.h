@@ -16,7 +16,7 @@ typedef struct Namespace {
     NamespaceKind kind;
 
     Symbol** symbols;
-    size_t symCount;    /* ATODO: add Dynamic resizing */
+    size_t symCount;    /* TODO: add Dynamic resizing */
 } Namespace;
 
 typedef struct Namespaces {

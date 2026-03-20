@@ -4,16 +4,5 @@ int main() {
         i += 1;
     }
 
-    switch (i) {
-        case (3) {
-            //break;
-        }
-        case (4) {
-            //break;
-        }
-        default {
-            //break;
-        }
-    }
 }
 // Pass

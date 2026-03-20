@@ -510,8 +510,20 @@ TYPE* TypeCheckCallFunc(Namespaces* nss, ASTNode* expr)
     Symbol* sym = STLookupNamespace(nss, identLex, N_VAR);
     if (!sym) return TERROR_UNDEFINED(identNode);
 
-    /* TODO: Check Paramaters */
+    /* Param and Arg mismatch checked in name resolver already */
+    ASTNode* paramsNode = expr->children[1];
+    Namespace* fieldNs = GetNamespace(sym->fields, N_VAR);
+    
+    for (size_t i = 0; i < sym->fieldCount; i++) {
+        /* Compare arg type to param type */ 
+        TYPE* paramType = TypeCheck(nss, paramsNode->children[i]);
+        TYPE* argType = fieldNs->symbols[i]->type;
 
+        /* Lval Promotion becasue function params are lval technically? */
+        if (LvalPromotion(argType, paramType)->kind == TYPE_ERROR) 
+        /* TODO: explicitly mention functoin name and which paramaters failed */
+            return TERROR_CAST(paramType, argType, identNode);
+    }
 
     return sym->type;
 }

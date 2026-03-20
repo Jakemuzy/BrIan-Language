@@ -2,6 +2,22 @@
 
 /* ----------- Valid Types ---------- */
 
+size_t TypeSize(TypeKind kind)
+{
+    switch (kind) {
+        case TYPE_BOOL:
+        case TYPE_I8:  case TYPE_U8:  return 8;
+
+        case TYPE_I16: case TYPE_U16: return 16;
+
+        case TYPE_I32: case TYPE_U32: case TYPE_INT: return 32;
+
+        case TYPE_FLOAT: case TYPE_DOUBLE:
+        case TYPE_I64: case TYPE_U64: return 64;
+        default: return -1;
+    }
+}
+
 bool TypeHasCategory(TypeKind kind, TypeCategory cat)
 {
     switch (cat) {
@@ -115,14 +131,36 @@ TYPE* IntegerPromotion(TYPE* lhs, TYPE* rhs)
 
     if (lkind == TYPE_I64 || rkind == TYPE_I64) return TY_I64();
     if (lkind == TYPE_U64 || rkind == TYPE_U64) return TY_U64();
+
     if (lkind == TYPE_I32 || rkind == TYPE_I32) return TY_I32();
     if (lkind == TYPE_INT || rkind == TYPE_INT) return TY_INT();
     if (lkind == TYPE_U32 || rkind == TYPE_U32) return TY_U32();
+
     if (lkind == TYPE_I16 || rkind == TYPE_I16) return TY_I16();
     if (lkind == TYPE_U16 || rkind == TYPE_U16) return TY_U16();
+
     if (lkind == TYPE_I8  || rkind == TYPE_I8)  return TY_I8();
     if (lkind == TYPE_U8  || rkind == TYPE_U8)  return TY_U8();
 
+    return TY_ERROR();
+}
+
+/* Integer promtion but for lvals */
+TYPE* LvalPromotion(TYPE* lhs, TYPE* rhs) 
+{
+    TypeKind lkind = lhs->kind, rkind = rhs->kind;
+
+    if (lkind == rkind) return lhs;
+
+    /* Unsigned to signed is allowed given w on signed is larger */
+    if (TypeHasCategory(lkind, C_SIGNED) && TypeHasCategory(rkind, C_UNSIGNED))
+    {
+        if (TypeSize(lkind) > TypeSize(rkind)) return lhs;
+        return TY_ERROR();
+    }
+
+    /* W comparison */
+    if (TypeSize(rkind) <= TypeSize(lkind)) return lhs;
     return TY_ERROR();
 }
 
@@ -159,13 +197,12 @@ TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
     }
 
     /* Signed to unsigned implicit conversion IS an error, should ALWAYS be explicit */
-    if (TypeHasCategory(lkind, C_UNSIGNED) && TypeHasCategory(rkind, C_SIGNED)) {
-        TWARN("SIGNED TO UNSIGNED CONVERSION");
-        return TY_ERROR();
-    }
+    if (TypeHasCategory(lkind, C_UNSIGNED) && TypeHasCategory(rkind, C_SIGNED)) 
+        return TY_ERROR();  /* TERROR here later */
 
+    /* Narrowing is an error, so custom IntegerPromotion rules */
     if (TypeHasCategory(lkind, C_INTEGRAL) && TypeHasCategory(rkind, C_INTEGRAL))
-        return IntegerPromotion(lhs, rhs);
+        return LvalPromotion(lhs, rhs);
 
 
     /* TODO: Maybe char + add is valid? */
