@@ -193,7 +193,8 @@ TYPE* TypeCheckVar(Namespaces* nss, ASTNode* var, TYPE* type)
             return TERROR_INCOMPATIBLE(rule, var);
 
         /* Resulting Expr Type based on operator rule */
-        TYPE* result = rule.rule.b.result(sym->type, rhs);
+        // THIS FAILS I THINK 
+        TYPE* result = rule.rule.l.result(sym->type, rhs);
         if (result == TY_ERROR())
             return TERROR_CAST(sym->type, rhs, identNode);
         return result;
@@ -295,6 +296,8 @@ TYPE* TypeCheckBinExpr(Namespaces* nss, ASTNode* expr)
 
     /* Resulting Expr Type based on operator rule */
     TYPE* result = rule.rule.b.result(left, right);
+    if (result == TY_ERROR())
+        return TERROR_CAST(left, right, expr);
     return result;
 }
 

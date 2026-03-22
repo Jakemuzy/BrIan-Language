@@ -1453,7 +1453,7 @@ ParseResult ShiftExpr(FILE* fptr)
     while (tokType == LSHIFT || tokType == RSHIFT) {
         Token tok = GetNextTokenP(fptr);
 
-        ParseResult rhs = MultExpr(fptr);
+        ParseResult rhs = AddExpr(fptr);
         if (rhs.status != VALID) {
             ASTFreeNodes(1, lhs.node);
             return PARSE_ERRP("Invalid AddExpr in ShfitExpr", GetNextToken(fptr));
@@ -1464,6 +1464,7 @@ ParseResult ShiftExpr(FILE* fptr)
         ASTPushChildNode(operatorNode.node, rhs.node);
 
         lhs = operatorNode;
+        TokenType tokType = PeekNextTokenP(fptr);;
     }
 
     return lhs;
