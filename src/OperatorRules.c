@@ -38,6 +38,8 @@ bool TypeHasCategory(TypeKind kind, TypeCategory cat)
             return kind == TYPE_DOUBLE || kind == TYPE_FLOAT;
         case C_BOOLEAN:
             return TypeHasCategory(kind, C_INTEGRAL) || kind == TYPE_BOOL;
+        case C_POINTER:
+            return kind == TYPE_STRING || kind == TYPE_PTR;
         default:
             return C_ANY;
     }
@@ -57,6 +59,7 @@ TypeCategory GetCategory(TYPE* type)
     if (TypeHasCategory(kind, C_INTEGRAL)) return C_INTEGRAL;
     if (TypeHasCategory(kind, C_NUMERIC))  return C_NUMERIC;
     if (TypeHasCategory(kind, C_BOOLEAN))  return C_BOOLEAN;
+    if (TypeHasCategory(kind, C_POINTER))  return C_POINTER;
 
     return C_ANY;
 }
@@ -187,6 +190,10 @@ TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
     if (lkind == TYPE_BOOL && TypeHasCategory(rkind, C_NUMERIC)) return rhs;
     if (rkind == TYPE_BOOL && TypeHasCategory(lkind, C_NUMERIC)) return lhs;
 
+    /* Truncation is an error, again should be explicit */
+    if (TypeHasCategory(lkind, C_INTEGRAL) && TypeHasCategory(rkind, C_DECIMAL))
+        return TY_ERROR();
+
     if (lkind == TYPE_DOUBLE || rkind == TYPE_DOUBLE) {
         if (TypeHasCategory(lkind, C_NUMERIC) && TypeHasCategory(rkind, C_NUMERIC))
             return TY_DOUBLE();
@@ -203,7 +210,6 @@ TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
     /* Narrowing is an error, so custom IntegerPromotion rules */
     if (TypeHasCategory(lkind, C_INTEGRAL) && TypeHasCategory(rkind, C_INTEGRAL))
         return LvalPromotion(lhs, rhs);
-
 
     /* TODO: Maybe char + add is valid? */
     if (lkind == TYPE_STRING && rkind == TYPE_STRING)
@@ -277,7 +283,9 @@ OperatorRule FindRule(TokenType ttype, RuleType rtype)
     return ERR; 
 }
 
+
 /* ---------- Error Handling ----------- */
+
 
 TYPE* TERROR_INCOMPATIBLE(OperatorRule rule, ASTNode* node) 
 {
