@@ -47,3 +47,9 @@ struct Complex {
 };
 typedef Complex ComplexNum;
 typedef ComplexNum ComplexAlias;
+
+int main() {
+    for (i = 0; i < 4; i++) {
+
+    }
+}

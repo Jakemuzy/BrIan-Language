@@ -12,6 +12,8 @@
         - Safe reference not added
 
         - Make switch case exprs constant instead of expr
+        - NEED to differentiate between prefix and postfix for unary exprs
+            - Could have an empty node if post fix
 */
 
 /* ----------- ERRORS ---------- */

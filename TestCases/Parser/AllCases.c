@@ -136,6 +136,6 @@ int main(int argc, char* argv[])
         return expectedPass ? 1 : 0;  
     }
 
-    // PrintAST(ast);
+     PrintAST(ast);
 	return 0;
 }
