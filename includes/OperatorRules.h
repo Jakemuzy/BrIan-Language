@@ -11,6 +11,7 @@ typedef enum TypeCategory { C_NUMERIC, C_INTEGRAL, C_SIGNED, C_UNSIGNED, C_DECIM
 size_t TypeSize(TypeKind kind);
 bool TypeHasCategory(TypeKind kind, TypeCategory cat);
 TypeCategory GetCategory(TYPE* type);
+TYPE* DetermineIntType(TYPE* lhs, TYPE* rhs);
 
 /* ----------- Lval Checking  ---------- */
 

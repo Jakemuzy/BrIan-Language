@@ -19,6 +19,7 @@ typedef enum TypeKind {
     TYPE_I8, TYPE_I16, TYPE_I32, TYPE_I64,
     TYPE_U8, TYPE_U16, TYPE_U32, TYPE_U64,
 
+    TYPE_UNTYPED_INT,   /* Avoids implicit casting issues */
     TYPE_NAT    /* Not a type */
 } TypeKind;
 
@@ -83,6 +84,8 @@ TYPE* TY_U8();
 TYPE* TY_U16();
 TYPE* TY_U32();
 TYPE* TY_U64();
+
+TYPE* TY_UNTYPED_INT();
 
 TYPE* TY_ARR(TYPE* element, int size);
 TYPE* TY_NAME(Symbol* sym, TYPE* type);

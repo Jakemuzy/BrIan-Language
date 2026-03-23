@@ -14,6 +14,10 @@ size_t TypeSize(TypeKind kind)
 
         case TYPE_FLOAT: case TYPE_DOUBLE:
         case TYPE_I64: case TYPE_U64: return 64;
+
+        /* Untyped assume max */
+        case TYPE_UNTYPED_INT: return 64;
+
         default: return -1;
     }
 }
@@ -22,11 +26,11 @@ bool TypeHasCategory(TypeKind kind, TypeCategory cat)
 {
     switch (cat) {
         case C_NUMERIC:
-            return kind == TYPE_INT || kind == TYPE_FLOAT || kind == TYPE_DOUBLE ||
+            return kind == TYPE_INT || kind == TYPE_UNTYPED_INT || kind == TYPE_FLOAT || kind == TYPE_DOUBLE ||
             kind == TYPE_I8 || kind == TYPE_I16 || kind == TYPE_I32 || kind == TYPE_I64 ||
             kind == TYPE_U8 || kind == TYPE_U16 || kind == TYPE_U32 || kind == TYPE_U64;
         case C_INTEGRAL:
-            return kind == TYPE_INT || 
+            return kind == TYPE_INT || kind == TYPE_UNTYPED_INT ||
             kind == TYPE_I8 || kind == TYPE_I16 || kind == TYPE_I32 || kind == TYPE_I64 ||
             kind == TYPE_U8 || kind == TYPE_U16 || kind == TYPE_U32 || kind == TYPE_U64;
         case C_SIGNED:
@@ -62,6 +66,27 @@ TypeCategory GetCategory(TYPE* type)
     if (TypeHasCategory(kind, C_POINTER))  return C_POINTER;
 
     return C_ANY;
+}
+
+TYPE* DetermineIntType(TYPE* lhs, TYPE* rhs)
+{
+    char* rhsVal = rhs->u.name.sym->name; 
+    TypeKind lkind = lhs->kind;
+
+    unsigned long long val = strtoull(rhsVal, NULL, 10);
+
+    unsigned long long max;
+    switch (lkind) {
+        case TYPE_I8:  case TYPE_U8:                       max = 0xFF;               break;
+        case TYPE_I16: case TYPE_U16:                      max = 0xFFFF;             break;
+        case TYPE_I32: case TYPE_U32: case TYPE_INT:       max = 0xFFFFFFFF;         break;
+        case TYPE_I64: case TYPE_U64:                      max = 0xFFFFFFFFFFFFFFFF; break;
+        default: return TY_ERROR();
+    }
+
+    printf("DETEREMINED INT TYPE\n");
+    if (val <= max) return lhs;
+    return TY_ERROR();
 }
 
 /* ----------- Lval Checking  ---------- */
@@ -145,6 +170,8 @@ TYPE* IntegerPromotion(TYPE* lhs, TYPE* rhs)
     if (lkind == TYPE_I8  || rkind == TYPE_I8)  return TY_I8();
     if (lkind == TYPE_U8  || rkind == TYPE_U8)  return TY_U8();
 
+    if (rkind == TYPE_UNTYPED_INT) return lhs;
+
     return TY_ERROR();
 }
 
@@ -202,6 +229,10 @@ TYPE* ImplicitCast(TYPE* lhs, TYPE* rhs)
         if (TypeHasCategory(lkind, C_NUMERIC) && TypeHasCategory(rkind, C_NUMERIC))
             return TY_FLOAT();
     }
+
+    /* TODO: check untyped int size and compare it to lhs size error if too big */
+    if (TypeHasCategory(lkind, C_INTEGRAL) && rkind == TYPE_UNTYPED_INT)
+        return lhs;
 
     /* Signed to unsigned implicit conversion IS an error, should ALWAYS be explicit */
     if (TypeHasCategory(lkind, C_UNSIGNED) && TypeHasCategory(rkind, C_SIGNED)) 

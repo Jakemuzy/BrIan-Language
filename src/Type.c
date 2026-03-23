@@ -22,6 +22,8 @@ TYPE* TY_U16(void) { static TYPE t = { TYPE_U16 }; return &t; }
 TYPE* TY_U32(void) { static TYPE t = { TYPE_U32 }; return &t; }
 TYPE* TY_U64(void) { static TYPE t = { TYPE_U64 }; return &t; }
 
+TYPE* TY_UNTYPED_INT(void) { static TYPE t = { TYPE_UNTYPED_INT }; return &t; }
+
 TYPE* TY_ARR(TYPE* type, int size) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_ARR; typ->u.array.element = type; typ->u.array.size = size; return typ; }
 TYPE* TY_NAME(Symbol* sym, TYPE* type) { TYPE* typ = malloc(sizeof(TYPE)); typ->kind = TYPE_NAME; typ->u.name.sym = sym; typ->u.name.type = type; return typ; }
 
