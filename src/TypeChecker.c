@@ -49,7 +49,7 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
             switch (expr->token.type) {
                 case SLITERAL: return TY_STRING();
                 case CLITERAL: return TY_U32();
-                case INTEGRAL: return TY_INT();
+                case INTEGRAL: return TY_UNTYPED_INT();     /* Avoids implcit casting issues */
                 case DECIMAL: return TY_DOUBLE();   
                 case NILL: return TY_NULL();
                 case TRUE: return TY_BOOL();
