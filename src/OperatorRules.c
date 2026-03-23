@@ -5,18 +5,17 @@
 size_t TypeSize(TypeKind kind)
 {
     switch (kind) {
-        case TYPE_BOOL:
+        /* Untyped assume min, so implicit cast works on anything */
+        case TYPE_BOOL: case TYPE_UNTYPED_INT:
         case TYPE_I8:  case TYPE_U8:  return 8;
 
         case TYPE_I16: case TYPE_U16: return 16;
 
+        case TYPE_FLOAT: 
         case TYPE_I32: case TYPE_U32: case TYPE_INT: return 32;
 
-        case TYPE_FLOAT: case TYPE_DOUBLE:
-        case TYPE_I64: case TYPE_U64: return 64;
-
-        /* Untyped assume max */
-        case TYPE_UNTYPED_INT: return 64;
+        case TYPE_DOUBLE:
+        case TYPE_I64: case TYPE_U64: 
 
         default: return -1;
     }

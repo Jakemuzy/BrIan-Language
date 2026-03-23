@@ -48,7 +48,7 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
         case LITERAL_NODE: /* Determine type */
             switch (expr->token.type) {
                 case SLITERAL: return TY_STRING();
-                case CLITERAL: return TY_U32();
+                case CLITERAL: return TY_U8();
                 case INTEGRAL: return TY_UNTYPED_INT();     /* Avoids implcit casting issues */
                 case DECIMAL: return TY_DOUBLE();   
                 case NILL: return TY_NULL();
@@ -224,16 +224,20 @@ TYPE* TypeCheckFunc(Namespaces* nss, ASTNode* expr)
     Symbol* sym = STLookupNamespace(nss, identName, N_VAR);
     sym->type = type;
 
+    /* Get the functions paramaters fields */
+    /* TODO: Need to pass both fields and nss */
+    Namespaces* fieldsNss = sym->fields;
+
     /* Check if pointer before do this */   /* TODO: CAN have */
     if (type->kind == TYPE_VOID) 
         return TERROR("Cannot have function of type void", identNode, N_VAR);
 
     ASTNode* paramListNode = expr->children[2];
-    TYPE* params = TypeCheckParams(nss, paramListNode); 
+    TYPE* params = TypeCheckParams(fieldsNss, paramListNode); 
     if (params == TY_ERROR()) return params;
   
     ASTNode* bodyNode = expr->children[3];
-    TYPE* body = TypeCheck(nss, bodyNode);
+    TYPE* body = TypeCheck(fieldsNss, bodyNode);
     if (body == TY_ERROR()) return body;
 
     return TY_NAT();
@@ -265,9 +269,11 @@ TYPE* TypeCheckParam(Namespaces* nss, ASTNode* expr)
             return TERROR_UNDEFINED(typeNode);
         type = sym->type;
     }
-    
+
+    /* TODO: this doesn't */ 
     char* identName = expr->children[1]->token.lex.word;
     Symbol* sym = STLookupNamespace(nss, identName, N_VAR);
+
     sym->type = type;
     return type;
 }
@@ -516,14 +522,14 @@ TYPE* TypeCheckCallFunc(Namespaces* nss, ASTNode* expr)
     /* Param and Arg mismatch checked in name resolver already */
     ASTNode* paramsNode = expr->children[1];
     Namespace* fieldNs = GetNamespace(sym->fields, N_VAR);
-    
-    for (size_t i = 0; i < sym->fieldCount; i++) {
+
+    for (size_t i = 0; i < fieldNs->symCount; i++) {
         /* Compare arg type to param type */ 
         TYPE* paramType = TypeCheck(nss, paramsNode->children[i]);
         TYPE* argType = fieldNs->symbols[i]->type;
 
         /* Lval Promotion becasue function params are lval technically? */
-        if (LvalPromotion(argType, paramType)->kind == TYPE_ERROR) 
+        if (LvalPromotion(argType, paramType) == TY_ERROR()) 
         /* TODO: explicitly mention functoin name and which paramaters failed */
             return TERROR_CAST(paramType, argType, identNode);
     }

@@ -211,14 +211,15 @@ int ResolveFuncs(ScopeContext* scope, ASTNode* current)
     int status = ResolveParams(scope, current->children[2], &sym->fieldCount);
     if (status == ERRN) return status;
 
-    sym->fields = scope->namespaces;
-
     /* Body Calls Resolve Vars */
     BeginScope(&scope, FUNC_SCOPE);
     status = ResolveEverything(scope, current->children[3]);
 
     ExitScope(&scope);  // Func Scope
     ExitPersistentScope(&scope);  // Param Scope
+
+    /* SET AFTER EXIT SINCE REALLOC IS USED */
+    sym->fields = scope->namespaces;
     return status;
 }
 
@@ -432,6 +433,11 @@ int ResolveReturnStmt(ScopeContext* scope, ASTNode* current)
 
 int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
 {
+    /* TODO: sym-fields should be after exit persistent scope, however 
+       it currently breaks, this is because symbols in the persistent namespace gets realloced
+       which I eventually have to access the symbols directly for type checking. currently this 
+       seg faults, but I will have to fix this later 
+    */
     /* Pushes Struct to scope */
     ASTNode* identNode = current->children[0];
 
@@ -445,7 +451,7 @@ int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
     sym = STPushNamespace(scope, identNode, N_TYPE, S_STRUCT);
     PushScope(scope, sym, N_TYPE);
 
-    /* Stores namespae that resolves struct members inside of struct */
+    /* Stores namespace that resolves struct members inside of struct */
     BeginPersistentScope(&scope, STRUCT_SCOPE);
     sym->fields = scope->namespaces;
 

@@ -1464,7 +1464,7 @@ ParseResult ShiftExpr(FILE* fptr)
         ASTPushChildNode(operatorNode.node, rhs.node);
 
         lhs = operatorNode;
-        TokenType tokType = PeekNextTokenP(fptr);;
+        tokType = PeekNextTokenP(fptr);;
     }
 
     return lhs;

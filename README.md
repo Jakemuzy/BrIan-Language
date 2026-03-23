@@ -191,16 +191,18 @@ Similar to C, but simpler.
         - [ ] Bit manipulation tokens
     - [ ] Proper Preprocessor 
     - [x] Parser and AST
-    - [ ] Semanitc Analysis
+    - [/] Semanitc Analysis
         - [/] Name Resolution
             - [x] Variable Shadowing
             - [x] Symbol Table
             - [x] Name Spaces
             - [ ] Overloading
-        - [ ] Type Checking
+        - [/] Type Checking
             - [x] Implicit Casting
             - [x] Semantic Rules
             - [/] Environment
+        - [ ] Control Flow Analysis
+            - [ ] 
         - [ ] Desugaring (BrIRan)
         - [ ] Concurrency Checking
     - [ ] Conversion to LLVM IR
@@ -219,9 +221,9 @@ Similar to C, but simpler.
             based off the input file. Returns a syntax error if code is invalid.
     5. Name Resolver -> 
             Determines scope and availability of names by generating
-            a symbol table, goal is to ensure names are consistent and available given scope. Also stores type information for later steps.
+            a symbol table, goal is to ensure names are consistent and available given scope. 
     6. Type Checker  -> 
-            Checks the symbol table for any invalid typings
+            Checks the symbol table for any invalid typings.
     7. Desugarizer   ->
             Removes syntactic "sugar" converting the ast to a form that is easily translated to BrIRan (BrIan Intermediate Language)
     7. IR Generation ->
