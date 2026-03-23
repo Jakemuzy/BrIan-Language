@@ -40,7 +40,7 @@ TYPE* StrToType(char* typeName)
     // Built-in primitive types
     if (strcmp(typeName, "void") == 0)   return TY_VOID();
     if (strcmp(typeName, "int") == 0)    return TY_INT();
-    if (strcmp(typeName, "char") == 0)   return TY_INT();   /* Implicit */
+    if (strcmp(typeName, "char") == 0)   return TY_U8();   /* Implicit */
     if (strcmp(typeName, "float") == 0)  return TY_FLOAT();
     if (strcmp(typeName, "double") == 0) return TY_DOUBLE();
     if (strcmp(typeName, "bool") == 0)   return TY_BOOL();
