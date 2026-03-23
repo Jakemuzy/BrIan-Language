@@ -3,7 +3,7 @@ int func(int i, char c) {
 }
 
 int main() {
-    int c = func(1, 'c');
+    int c = func("str", 'c');
 }
 
-// FAIL
+// Fail

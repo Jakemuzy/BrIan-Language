@@ -56,6 +56,7 @@ TYPE* TypeCheck(Namespaces* nss, ASTNode* expr)
                 case FALSE: return TY_BOOL();
                 default: return TERROR("Invalid literal type", expr, N_VAR);
             }
+        case EMPTY_NODE: return TY_NAT();
         case IDENT_NODE:     
             /* Lookup which namespace based on what expr its in */
             /* Lookup Name */
@@ -523,9 +524,13 @@ TYPE* TypeCheckCallFunc(Namespaces* nss, ASTNode* expr)
     ASTNode* paramsNode = expr->children[1];
     Namespace* fieldNs = GetNamespace(sym->fields, N_VAR);
 
-    for (size_t i = 0; i < fieldNs->symCount; i++) {
+    for (size_t i = 0; i < paramsNode->childCount; i++) {
+        /* Just skip empty nodes */
+        if (paramsNode->children[i]->type == EMPTY_NODE) continue;
+
         /* Compare arg type to param type */ 
         TYPE* paramType = TypeCheck(nss, paramsNode->children[i]);
+        /* TODO: FIRST SYMBOL is return type I think? */
         TYPE* argType = fieldNs->symbols[i]->type;
 
         /* Lval Promotion becasue function params are lval technically? */
