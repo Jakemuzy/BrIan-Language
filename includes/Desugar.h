@@ -3,15 +3,19 @@
 
 #include "AST.h"
 
-AST* Desugar(AST* input);
-ASTNode* DesugarNode(ASTNode* input);
+/* ---------- Helper ---------- */
+
+Token NewToken(char* lex, TokenType tokType, ASTNode* original);
 
 /* -------------------- */
+
+AST* Desugar(AST* input);
+ASTNode* DesugarNode(ASTNode* input);
 
 ASTNode* DesugarBinaryNode(ASTNode* input);
 ASTNode* DesugarUnaryNode(ASTNode* input);
 
-ASTNode* DesugarFor(ASTNode* input);
+ASTNode* DesugarFor(ASTNode* input, ASTNode* parent, size_t pos);
 ASTNode* DesugarDoWhile(ASTNode* input);
 ASTNode* DesugarSwitch(ASTNode* input);
 ASTNode* DesugarIf(ASTNode* input);

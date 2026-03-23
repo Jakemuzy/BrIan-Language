@@ -49,7 +49,7 @@ typedef Complex ComplexNum;
 typedef ComplexNum ComplexAlias;
 
 int main() {
-    for (i = 0; i < 4; i++) {
+    for (int i = 0, i = 3; i < 4; i++) {
 
     }
 }

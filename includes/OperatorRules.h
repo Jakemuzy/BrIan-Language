@@ -101,6 +101,7 @@ static const size_t BINARY_RULES_SIZE = sizeof(BINARY_RULES) / sizeof(BINARY_RUL
 
 static UnaryRule UNARY_RULES[] = {
     { PP, C_NUMERIC, IncrementRule },
+    { SS, C_NUMERIC, IncrementRule },
     { MINUS, C_NUMERIC, NegateRule },
     { PLUS, C_NUMERIC, NegateRule },
 

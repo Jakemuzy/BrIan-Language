@@ -1,5 +1,12 @@
 #include "Desugar.h"
 
+Token NewToken(char* lex, TokenType tokType, ASTNode* original) 
+{
+    Token tok = (Token){tokType, (Lexeme){lex, 2, 2}, original->token.line};
+    return tok;
+}
+
+
 AST* Desugar(AST* input) 
 {
     /* 
@@ -18,18 +25,23 @@ ASTNode* DesugarNode(ASTNode* input)
             return DesugarBinaryNode(input);
         case (UNARY_EXPR_NODE):
             return DesugarUnaryNode(input);
-        case (FOR_STMT_NODE):
-            return DesugarFor(input);
         case (DO_WHILE_STMT_NODE):
             return DesugarDoWhile(input);
         case (SWITCH_STMT_NODE):
             return DesugarSwitch(input);
         case (IF_STMT_NODE):
             return DesugarIf(input);
+        case (IDENT_NODE):
+            /* Remove shadowing from ST, give custom name */
     }
 
-    for (size_t i = 0; i < input->childCount; i++) 
-        input->children[i] = DesugarNode(input->children[i]);
+    for (size_t i = 0; i < input->childCount; i++) {
+        /* Handle For Node custom since it adds additional nodes to parent */
+        if (input->children[i]->type == FOR_STMT_NODE)
+           DesugarFor(input->children[i], input, i);
+        else 
+            input->children[i] = DesugarNode(input->children[i]);
+    }
 
     return input;
 }
@@ -81,32 +93,63 @@ ASTNode* DesugarUnaryNode(ASTNode* input)
     /* TODO: Default should return DesugarNode because could be nested */
     /* TODO: prefix vs postfix */
 
-    ASTNode* eqNode = InitASTNode();
-    eqNode->type = EQ;
-    ASTPushChildNode(eqNode, input->children[0]);
+    /* TODO: Postfix will have to create another node where it modifies after and saves current first */
 
     ASTNode* operatorNode = InitASTNode();
     ASTNode* literalNode = InitASTNode();
-    literalNode->type = INTEGRAL;
-    literalNode->token = (Token){INTEGRAL, (Lexeme){"1", 2, 2}, input->children[0]->token.line, 0};
+    literalNode->type = LITERAL_NODE;
+    literalNode->token = NewToken("1", INTEGRAL, input->children[0]);
 
     switch (input->token.type) {
-        case (PP): operatorNode->type = PLUS;  break;
-        case (SS): operatorNode->type = MINUS; break;
+        case (PP): operatorNode->token = NewToken("+", PLUS, input->children[0]);  break;
+        case (SS): operatorNode->token = NewToken("-", MINUS, input->children[0]);; break;
         default: 
-            ASTFreeNodes(3, eqNode, operatorNode, literalNode);
+            ASTFreeNodes(2, operatorNode, literalNode);
             return DesugarNode(input);
     }
 
+    input->type = ASGN_EXPR_NODE;
+    input->token = NewToken("=", EQ, input);
+
+    operatorNode->type = BINARY_EXPR_NODE;
     ASTPushChildNode(operatorNode, input->children[0]);
     ASTPushChildNode(operatorNode, literalNode);
-    ASTPushChildNode(eqNode, operatorNode);
-    return eqNode;
+
+    ASTPushChildNode(input, operatorNode);
+    return input;
 }
 
-ASTNode* DesugarFor(ASTNode* input)
+ASTNode* DesugarFor(ASTNode* input, ASTNode* parent, size_t pos)
 {
+    /* Have to pass parent because declaration gets pushed before while loop */
+    ASTNode* whileNode = InitASTNode();
+    whileNode->type = WHILE_STMT_NODE;
+
+    /* Add declarations */
+    ASTNode* declaration = input->children[0];
+    for (size_t i = 0; i < declaration->childCount; i++) parent->childCount++;
+    parent->children = realloc(parent->children, parent->childCount * sizeof(ASTNode*));
+
+    /* Shift */
+    for (size_t i = parent->childCount - 1; i >= pos + declaration->childCount; --i)
+        parent->children[i] = parent->children[i - declaration->childCount];
+
+    /* Infill */
+    for (size_t i = pos, j = 0; i < pos + declaration->childCount; i++, j++)
+        parent->children[i] = DesugarNode(declaration->children[j]);
     
+    ASTNode* condition = input->children[1];
+    ASTPushChildNode(whileNode, DesugarNode(condition));
+
+    ASTNode* increment = input->children[2];
+    ASTNode* bodyNode = InitASTNode();
+    bodyNode->type = BODY_NODE;
+    for (size_t i = 0; i < increment->childCount; i++) 
+        ASTPushChildNode(bodyNode, DesugarNode(increment->children[i]));
+    ASTPushChildNode(whileNode, bodyNode);
+
+    parent->children[pos + declaration->childCount] = whileNode;
+    return input;
 }
 
 ASTNode* DesugarDoWhile(ASTNode* input)
