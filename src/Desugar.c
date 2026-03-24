@@ -1,11 +1,37 @@
 #include "Desugar.h"
 
+/*
+    TODO:
+        Differentiate between prefix and postfix
+        prefix should have the new value, postfix should have the old when desugared
+*/
+
+/* ---------- Helper ---------- */
+
 Token NewToken(char* lex, TokenType tokType, ASTNode* original) 
 {
-    Token tok = (Token){tokType, (Lexeme){lex, 2, 2}, original->token.line};
+    size_t size = strlen(lex);
+    Token tok = (Token){tokType, (Lexeme){lex, size + 1, size + 1}, original->token.line};
     return tok;
 }
 
+void ASTInsert(ASTNode* parent, size_t childPos, ASTNode** children, size_t childCount)
+{
+    /* Inserts element at pos */
+
+    parent->childCount += childCount;
+    parent->children = realloc(parent->children, parent->childCount * sizeof(ASTNode*));
+
+    /* Shift */
+    for (size_t i = parent->childCount - 1; i >= childPos + childCount; --i)
+        parent->children[i] = parent->children[i - childCount];
+
+    /* Infill */
+    for (size_t i = childPos, j = 0; i < childPos + childCount; i++, j++)
+        parent->children[i] = children[j];
+}
+
+/* -------------------- */
 
 AST* Desugar(AST* input) 
 {
@@ -21,6 +47,8 @@ AST* Desugar(AST* input)
 ASTNode* DesugarNode(ASTNode* input)
 {
     switch (input->type) {
+        case (ASGN_EXPR_NODE):
+            return DesugarAssignNode(input);
         case (BINARY_EXPR_NODE):
             return DesugarBinaryNode(input);
         case (UNARY_EXPR_NODE):
@@ -47,45 +75,52 @@ ASTNode* DesugarNode(ASTNode* input)
 }
 
 
-ASTNode* DesugarBinaryNode(ASTNode* input)
+ASTNode* DesugarAssignNode(ASTNode* input)
 {
-    /* TODO: Default should return DesugarNode because could be nested */
-
-    ASTNode* eqNode = InitASTNode();
-    eqNode->type = EQ;
-    ASTPushChildNode(eqNode, input->children[0]);
-
     ASTNode* operatorNode = InitASTNode();
+    operatorNode->type = BINARY_EXPR_NODE;
 
     switch (input->token.type) {
-        case PEQ:    operatorNode->type = PLUS;   break;
-        case SEQ:    operatorNode->type = MINUS;  break;
-        case MEQ:    operatorNode->type = MULT;   break;
-        case DEQ:    operatorNode->type = DIV;    break;
-        case MODEQ:  operatorNode->type = MOD;    break;
-        case ANDEQ:  operatorNode->type = AND;    break;
-        case OREQ:   operatorNode->type = OR;     break;
-        case ANDLEQ: operatorNode->type = ANDL;   break;
-        case ORLEQ:  operatorNode->type = ORL;    break;
-        case NEGEQ:  operatorNode->type = NEG;    break;
-        case XOREQ:  operatorNode->type = XOR;    break;
-        case RIGHTEQ:operatorNode->type = RSHIFT; break;
-        case LEFTEQ: operatorNode->type = LSHIFT; break; 
-        case (POW):
-            operatorNode->type = MULT;  
-            ASTPushChildNode(operatorNode, input->children[0]);
-            ASTPushChildNode(operatorNode, input->children[1]);
-            ASTFreeNodes(1, eqNode);
-            return operatorNode;
+        case PEQ:     operatorNode->token = NewToken("+", PLUS, input->children[0]); break;
+        case SEQ:     operatorNode->token = NewToken("-", MINUS, input->children[0]); break;
+        case MEQ:     operatorNode->token = NewToken("*", MULT, input->children[0]); break;
+        case DEQ:     operatorNode->token = NewToken("/", DIV, input->children[0]); break;
+        case MODEQ:   operatorNode->token = NewToken("%", MOD, input->children[0]); break;
+        case ANDEQ:   operatorNode->token = NewToken("&", AND, input->children[0]); break;
+        case OREQ:    operatorNode->token = NewToken("|", OR, input->children[0]); break;
+        case ANDLEQ:  operatorNode->token = NewToken("&&", ANDL, input->children[0]); break;
+        case ORLEQ:   operatorNode->token = NewToken("||", ORL, input->children[0]); break;
+        case NEGEQ:   operatorNode->token = NewToken("~", NEG, input->children[0]); break;
+        case XOREQ:   operatorNode->token = NewToken("^", XOR, input->children[0]); break;
+        case RIGHTEQ: operatorNode->token = NewToken(">>", RSHIFT, input->children[0]); break;
+        case LEFTEQ:  operatorNode->token = NewToken("<<", LSHIFT, input->children[0]); break; 
         default: 
-            ASTFreeNodes(2, eqNode, operatorNode);
+            ASTFreeNodes(1, operatorNode);
             return DesugarNode(input);
     }
 
+    input->type = ASGN_EXPR_NODE;
+    input->token = NewToken("=", EQ, input->children[0]);
+
     ASTPushChildNode(operatorNode, input->children[0]);
     ASTPushChildNode(operatorNode, input->children[1]);
-    ASTPushChildNode(eqNode, operatorNode);
-    return eqNode;
+    input->children[1] = operatorNode;
+    return input;
+}
+
+ASTNode* DesugarBinaryNode(ASTNode* input) 
+{
+
+    switch (input->type) {
+        case (POW):
+            /*operatorNode->type = MULT;  
+            ASTPushChildNode(operatorNode, input->children[0]);
+            ASTPushChildNode(operatorNode, input->children[1]);
+            ASTFreeNodes(1, operatorNode);
+            return operatorNode;
+            */
+    }
+    return NULL;
 }
 
 ASTNode* DesugarUnaryNode(ASTNode* input)
@@ -127,19 +162,15 @@ ASTNode* DesugarFor(ASTNode* input, ASTNode* parent, size_t pos)
 
     /* Add declarations */
     ASTNode* declaration = input->children[0];
-    for (size_t i = 0; i < declaration->childCount; i++) parent->childCount++;
-    parent->children = realloc(parent->children, parent->childCount * sizeof(ASTNode*));
+    ASTNode** children = malloc(sizeof(ASTNode*) * declaration->childCount);
+    for (size_t i = 0; i < declaration->childCount; i++) 
+        children[i] = DesugarNode(declaration->children[i]);
+    ASTInsert(parent, pos, children, declaration->childCount);
 
-    /* Shift */
-    for (size_t i = parent->childCount - 1; i >= pos + declaration->childCount; --i)
-        parent->children[i] = parent->children[i - declaration->childCount];
-
-    /* Infill */
-    for (size_t i = pos, j = 0; i < pos + declaration->childCount; i++, j++)
-        parent->children[i] = DesugarNode(declaration->children[j]);
     
     ASTNode* condition = input->children[1];
     ASTPushChildNode(whileNode, DesugarNode(condition));
+
 
     ASTNode* increment = input->children[2];
     ASTNode* bodyNode = InitASTNode();
