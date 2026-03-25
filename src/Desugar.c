@@ -123,7 +123,7 @@ ASTNode* DesugarBinaryNode(ASTNode* input)
             return operatorNode;
             */
     }
-    return NULL;
+    return input;
 }
 
 ASTNode* DesugarUnaryNode(ASTNode* input)
@@ -170,8 +170,12 @@ ASTNode* DesugarFor(ASTNode* input, ASTNode* parent, size_t pos)
     ASTNode* incrementNode = input->children[2];
     ASTNode* bodyNode = input->children[3];
     ASTNode* bodyStmtList = bodyNode->children[0];
-    for (size_t i = 0; i < incrementNode->childCount; i++) 
-        ASTPushChildNode(bodyStmtList, DesugarNode(incrementNode->children[i]));
+    for (size_t i = 0; i < incrementNode->childCount; i++) {
+        if (bodyStmtList->children[i]->type == EMPTY_NODE) 
+            bodyStmtList->children[i] = DesugarNode(incrementNode->children[i]);
+        else 
+            ASTPushChildNode(bodyStmtList, DesugarNode(incrementNode->children[i]));
+    }
 
     /* Creates actual while node with condition and body */
     ASTNode* whileNode = InitASTNode();
@@ -179,7 +183,7 @@ ASTNode* DesugarFor(ASTNode* input, ASTNode* parent, size_t pos)
     whileNode->type = WHILE_STMT_NODE;
 
     ASTPushChildNode(whileNode, DesugarNode(conditionNode));
-    ASTPushChildNode(whileNode, DesugarNode(bodyNode));
+    ASTPushChildNode(whileNode, bodyNode);
 
     /* Pushes the declarations to the parent node before the while loop */
     ASTNode* declaration = input->children[0];
@@ -190,7 +194,7 @@ ASTNode* DesugarFor(ASTNode* input, ASTNode* parent, size_t pos)
 
     /* Have the parent node replace the forNode with the whileNode */
     ASTNode* prev = parent->children[pos + declaration->childCount];
-    ASTFreeNodes(1, prev);
+    //ASTFreeNodes(1, prev);
     parent->children[pos + declaration->childCount] = whileNode;
     return whileNode;
 }
