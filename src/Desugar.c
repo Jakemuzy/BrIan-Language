@@ -116,6 +116,7 @@ ASTNode* DesugarBinaryNode(ASTNode* input)
 
     switch (input->type) {
         case (POW):
+            /* Fractional powers woulnd't work here */
             /*operatorNode->type = MULT;  
             ASTPushChildNode(operatorNode, input->children[0]);
             ASTPushChildNode(operatorNode, input->children[1]);
@@ -215,7 +216,7 @@ ASTNode* DesugarSwitch(ASTNode* input)
     /* 
     Since mine takes exprs and not literals, it would desugar to an 
     if elif else node, I opt to do this later, since I plan on actually 
-    making the switch only allow literals  
+    making the switch only allow literals  ss
     */
 }
 
