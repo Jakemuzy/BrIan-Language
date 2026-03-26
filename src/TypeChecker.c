@@ -582,6 +582,7 @@ TYPE* TypeCheckStructDecl(Namespaces* nss, ASTNode* expr)
 
 TYPE_FIELD_LIST* TypeCheckStructBody(Namespaces* nss, ASTNode* expr)
 {
+
     /* Copy of TypeCheck except it stores field info */
 }
 

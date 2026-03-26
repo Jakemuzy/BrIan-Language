@@ -14,6 +14,12 @@ fi
 EXEC_NAME=$1
 MAIN_LOCATION=$2
 
+# LLVM Config
+LLVM_CONFIG="~/Programming/C/llvm/build/bin/llvm-config"
+LLVM_CXXFLAGS=$($LLVM_CONFIG --cxxflags)
+LLVM_LDFLAGS=$($LLVM_CONFIG --ldflags)
+LLVM_LIBS=$($LLVM_CONFIG --libs)
+
 # General Settings
 GCC_FLAGS="-std=c99 -g -Werror" # -Wall -Wextra"
 
@@ -34,7 +40,7 @@ IFS=$OLD_IFS
 
 # Compile each SRC file separately LATER
 mkdir -p "$BUILD_PATH"
-CUR_EXEC="$GCC_FLAGS $SRC_PATH -o $BUILD_PATH/$EXEC_NAME"
+CUR_EXEC="$GCC_FLAGS $SRC_PATH $LLVM_LDFLAGS $LLVM_LIBS -o $BUILD_PATH/$EXEC_NAME"
 
 printf "COMPILING WITH FLAGS:\n\t%s\n" "$CUR_EXEC"
 gcc $CUR_EXEC
