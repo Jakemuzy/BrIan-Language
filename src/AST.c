@@ -1,6 +1,6 @@
 #include "AST.h"
 
-AST* ASTInit(FILE* fptr)
+AST* ASTInit()
 {
     AST* ast = malloc(sizeof(AST));
     if (!ast) return NULL;
@@ -61,8 +61,7 @@ int ASTFreeNodes(int count, ...)
         ASTNode* node = va_arg(args, ASTNode*); 
         if (!node) continue;
 
-        int j = 0;
-        for (j = 0; j < node->childCount; j++) {
+        for (size_t j = 0; j < node->childCount; j++) {
             ASTFreeNodes(1, node->children[j]);
         }
 

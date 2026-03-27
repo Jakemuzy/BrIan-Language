@@ -27,7 +27,7 @@ typedef struct ParseResult {
         if (DEBUG == true)  { printf("%s", message); } \
     } while(0);
 ParseResult PARSE_VALID(ASTNode* node, NodeType type);
-ParseResult PARSE_NAP();
+ParseResult PARSE_NAP(void);
 ParseResult PARSE_ERRP(char* message, Token tok);
 
 /* ---------- Helpers ---------- */
@@ -37,8 +37,8 @@ int FuncNodePossible(FILE* fptr);   /* Ambiguity helpers */
 int DeclStmtPossible(FILE* fptr);
 
 ParseResult IdentNode(Token tok);
-ParseResult EmptyNode();
-ParseResult ProgNode();
+ParseResult EmptyNode(void);
+ParseResult ProgNode(void);
 ParseResult ArbitraryNode(Token tok, NodeType type);
 
 /* ---------- Recursive Descent ---------- */

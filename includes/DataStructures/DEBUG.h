@@ -1,12 +1,6 @@
-/* Can't test pass/fail since can't fail, have to do visual insepction */
+#include "AST.h"
+/* AI slop debug functions */
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "TypeChecker.h"
-#include "Desugar.h"
-
-/* Testing */
 const char* NodeTypeToString(NodeType type) {
     switch(type) {
         case PROG_NODE: return "PROG_NODE";
@@ -38,6 +32,7 @@ const char* NodeTypeToString(NodeType type) {
         case CASE_NODE: return "CASE_NODE";
         case DEFAULT_NODE: return "DEFAULT_NODE";
         case EXPR_LIST_NODE: return "EXPR_LIST_NODE";
+        case VAR_EXPR_LIST_NODE: return "VAR_EXPR_LIST_NODE";
         case EXPR_NODE: return "EXPR_NODE";
         case TYPE_NODE: return "TYPE_NODE";
         case ARG_LIST_NODE: return "ARG_LIST_NODE";
@@ -87,45 +82,7 @@ void PrintAST(AST* ast) {
     PrintASTNode(ast->root, 0);
 }
 
-
 typedef struct {
     const char* filename;
     bool shouldPass;
 } TestCase;
-
-int main(int argc, char* argv[])
-{
-    /* Open code file to read */
-    FILE* fptr;
-    fptr = fopen(argv[1], "r");
-    if(!fptr)
-    {
-        printf("ERROR: Opening source file %s\n", argv[1]);
-        return 1;
-    }
-
-    /* Build the ast */
-    AST* ast = Program(fptr); 
-    if (!ast) {
-        printf("ERROR: ast failed to build\n");
-        exit(1);
-    }
-
-    Namespaces* nss = ResolveNames(ast);
-    if (!nss) {
-        printf("ERROR: Namespaces failed to build\n");
-        exit(1);
-    }
-
-    TYPE* typeCheck = TypeCheck(nss, ast->root);
-    if (typeCheck == TY_ERROR()) {
-        printf("ERROR: Typechecking failed\n");
-        exit(1);
-    }
-
-    PrintAST(ast);
-    printf("\n\n\n");
-    ast = Desugar(ast);
-    PrintAST(ast);
-    return 0;
-}    
