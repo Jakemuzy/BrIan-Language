@@ -15,28 +15,34 @@
 * Once typechecker finished, namespaces aren't used again (discared), although this works since type is stored in the symbol, it could lead to issues in later steps
 
 ## Grammar
-* Allow pointers symbol before idents ( including in vardecl )
-* Allow dereference symbol before previously declared idents ( not vardecls )
+* Allow pointers symbol before idents ( including in vardecl ) X
+* Allow dereference symbol before previously declared idents ( not vardecls ) X
 * Change type to allow arbitrary idents ( custom defined types, will check validity in later stages )
 * Idents can be custom types, need to allow grammar to use custom types 
-* Add break and return statements
-* Add true and false ( built into the language )
+* Maybe two string types? Mutable and immutable 
+* Add break and return statements X
+* Add true and false ( built into the language ) X
 * Simplify switch statements, allow only literals / constants ( jump table optimization )
 * Handle directives better ( #include, etc )
 * Strings may have to be pointers, maybe constant? ( unsure, lookup why C strings suck )
 * Design a way to handle generics 
-* Design around compound literals 
 * Allow operator overloading for structs 
-* Think about how interfaces will be implemented 
-* Allow type qualifiers
-* Build Ternary operator
-* Allow for string splicing 
+* Think about how interfaces will be implemented X
+* Allow type qualifiers X
+* Build Ternary operator X
 * Some stmts like ForStmt are confusing
 * VarExprList in for stmt allows both exprs and var decls, a bit weird
 * Sub rules such as if elif and else should be removed
 * Should gotos be added? makes desugaring easier
 * Hex type ONLY for @ ( which is memory location )
 * Mayhaps matricies as a built in type? ( doubtful )
+* '%' symbol for registers (ie U32% r1 = 0x...), inheriently volatile 
+* interfaces as a key word
+* default struct member variables
+* Matrices and vectors as built in types
+* Func declarations vs definitions? 
+
+
 
 ## Error handling
 * Need to have a centralized area for error handling
@@ -62,7 +68,7 @@
 * No bounds checking for updating lexeme
 * Should use state machine instead of if-else chain 
 * Comments are not handled elegantly block comments bug out sometimes 
-* Escape characters ( \n \t etc ) are not handled 
+* Escape characters ( \n \t etc ) are not handled X
 
 ## Preprocessor
 * Resolve typedefs ( prevents delayed custom type checking )
