@@ -4,6 +4,7 @@
 * Have a better way to track bugs, progress, things to do, etc
 * Give steps on how to build
 * Convert to using cmake instead of bash
+* Use a dedicated tools for test cases
 * Use clang instead of gcc ( llvm support )
 * Run the program with werror, wall, wextra
 * Give solutions on how BrIan fixes C pain points in the documentation

@@ -14,13 +14,12 @@
         - Make SymbolTable ues Dictionary for dynamic sizing
 */
 
-/* ---------- Forward Declaration Type Info ---------- */
+/* ---------- Forward Declarations ---------- */
 
-typedef struct TYPE TYPE;
+struct TYPE;
+struct Namespaces;
 
 /* ---------- Symbols ---------- */
-
-typedef struct Namespaces Namespaces;
 
 typedef enum SymbolType {   
     S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD, S_TYPEDEF, S_STRUCT, S_ENUM, S_CTRL, S_ERROR
@@ -32,11 +31,11 @@ typedef struct Symbol {
     struct Symbol* prev;    
 
     /* Data Type and actual Symbol Type */
-    TYPE* type;
+    struct TYPE* type;
     SymbolType stype;
 
     /* Lightweight namespace for paramaters / struct fields / etc */
-    Namespaces* fields;  
+    struct Namespaces* fields;  
     size_t fieldCount;
 } Symbol;
 
@@ -54,7 +53,7 @@ typedef struct SymbolTable {
     size_t currSize;
 } SymbolTable;
 
-SymbolTable* STInit();
+SymbolTable* STInit(void);
 Symbol* STPop(SymbolTable* env, char* name);
 Symbol* STLookup(SymbolTable* env, char* key);
 Symbol* STPush(SymbolTable* env, ASTNode* key, SymbolType stype);

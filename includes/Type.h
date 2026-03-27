@@ -75,22 +75,22 @@ TYPE* TY_BOOL(void);
 TYPE* TY_STRING(void);
 TYPE* TY_NULL(void);
 
-TYPE* TY_I8();
-TYPE* TY_I16();
-TYPE* TY_I32();
-TYPE* TY_I64();
+TYPE* TY_I8(void);
+TYPE* TY_I16(void);
+TYPE* TY_I32(void);
+TYPE* TY_I64(void);
 
-TYPE* TY_U8();
-TYPE* TY_U16();
-TYPE* TY_U32();
-TYPE* TY_U64();
+TYPE* TY_U8(void);
+TYPE* TY_U16(void);
+TYPE* TY_U32(void);
+TYPE* TY_U64(void);
 
-TYPE* TY_UNTYPED_INT();
+TYPE* TY_UNTYPED_INT(void);
 
 TYPE* TY_ARR(TYPE* element, int size);
 TYPE* TY_NAME(Symbol* sym, TYPE* type);
 
-TYPE* TY_NAT();
+TYPE* TY_NAT(void);
 TYPE* TY_LIST(TYPE* head, TYPE_LIST* tail);
 TYPE_FIELD* TY_FIELD(Symbol* sym, TYPE* type);
 TYPE_FIELD_LIST* TY_FIELD_LIST(TYPE_FIELD* head, TYPE_FIELD_LIST* tail);

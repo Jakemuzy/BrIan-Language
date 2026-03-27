@@ -18,7 +18,7 @@ EnvironmentEntry ENV_VarEntry(TYPE* ty);
 EnvironmentEntry ENV_FuncEntry(TYPE_LIST* formals, TYPE* result);
 
 /* TODO: Need to use my own map of linked lists that store void* */
-Dict ENV_BaseTenv(); /* Base Type Environment (ie int -> TY_INT ... )*/
-Dict Env_BaseVenv(); /* Base Variable Environment (TODO: will contain predefined functions)*/
+Dict ENV_BaseTenv(void); /* Base Type Environment (ie int -> TY_INT ... )*/
+Dict Env_BaseVenv(void); /* Base Variable Environment (TODO: will contain predefined functions)*/
 
 #endif

@@ -67,32 +67,32 @@ typedef struct OperatorRule {
 
 OperatorRule FindRule(TokenType ttype, RuleType rtype);
 static BinaryRule BINARY_RULES[] = {    /* Maybe make this a map */
-    { PLUS, C_NUMERIC, C_NUMERIC, IntegerPromotion },     /* Function pointers for determining what output type should be */
-    { MINUS, C_NUMERIC, C_NUMERIC, IntegerPromotion }, 
-    { DIV, C_NUMERIC, C_NUMERIC, IntegerPromotion }, 
-    { MULT, C_NUMERIC, C_NUMERIC, IntegerPromotion }, 
-    { POW, C_NUMERIC, C_NUMERIC, IntegerPromotion }, 
-    { MOD, C_INTEGRAL, C_INTEGRAL, IntegerPromotion }, 
+    { PLUS, C_NUMERIC, C_NUMERIC, IntegerPromotion, false },     /* Function pointers for determining what output type should be */
+    { MINUS, C_NUMERIC, C_NUMERIC, IntegerPromotion, false }, 
+    { DIV, C_NUMERIC, C_NUMERIC, IntegerPromotion, true }, 
+    { MULT, C_NUMERIC, C_NUMERIC, IntegerPromotion, false }, 
+    { POW, C_NUMERIC, C_NUMERIC, IntegerPromotion, true }, 
+    { MOD, C_INTEGRAL, C_INTEGRAL, IntegerPromotion, true }, 
 
     /* Bitwise Promotion is essentially integer promotion */
-    { XOR, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion }, 
-    { OR, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion }, 
-    { AND, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion }, 
-    { LSHIFT, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion }, 
-    { RSHIFT, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion }, 
+    { XOR, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion, false }, 
+    { OR, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion, false }, 
+    { AND, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion, false }, 
+    { LSHIFT, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion, false }, 
+    { RSHIFT, C_INTEGRAL, C_INTEGRAL,  IntegerPromotion, false }, 
 
     /* TODO: BoolType would need to check more than of the same type 
        since implicit casting is allowed
     */
-    { EQQ, C_ANY, C_ANY, ComparableTypes },
-    { NEQQ, C_ANY, C_ANY, ComparableTypes },
-    { GEQQ, C_NUMERIC, C_NUMERIC, ComparableTypes },
-    { LEQQ, C_NUMERIC, C_NUMERIC, ComparableTypes },
-    { GREAT, C_BOOLEAN, C_BOOLEAN, ComparableTypes },
-    { LESS, C_BOOLEAN, C_BOOLEAN, ComparableTypes },
+    { EQQ, C_ANY, C_ANY, ComparableTypes, false },
+    { NEQQ, C_ANY, C_ANY, ComparableTypes, false },
+    { GEQQ, C_NUMERIC, C_NUMERIC, ComparableTypes, false },
+    { LEQQ, C_NUMERIC, C_NUMERIC, ComparableTypes, false },
+    { GREAT, C_BOOLEAN, C_BOOLEAN, ComparableTypes, false },
+    { LESS, C_BOOLEAN, C_BOOLEAN, ComparableTypes, false },
 
-    { ANDL, C_BOOLEAN, C_BOOLEAN, BoolType },
-    { ORL, C_BOOLEAN, C_BOOLEAN, BoolType },
+    { ANDL, C_BOOLEAN, C_BOOLEAN, BoolType, false },
+    { ORL, C_BOOLEAN, C_BOOLEAN, BoolType, false },
 
 };
 static const size_t BINARY_RULES_SIZE = sizeof(BINARY_RULES) / sizeof(BINARY_RULES[0]);

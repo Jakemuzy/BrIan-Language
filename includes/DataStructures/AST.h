@@ -40,10 +40,10 @@ typedef struct AST
     ASTNode* root;
 } AST;
 
-AST* ASTInit();
-int ASTFree();
+AST* ASTInit(void);
+int ASTFree(AST* ast);
 
-ASTNode* InitASTNode();
+ASTNode* InitASTNode(void);
 int ASTPushChildNode(ASTNode* node, ASTNode* child);
 int ASTFreeNodes(int count, ...);
 
