@@ -1,24 +1,43 @@
+# Comments are discarded by tokenizer 
+# '%' Means a register, allowed only during decl (similar to: int* var; )
+# String underlying is { char*, U64 size, U64 max }
+
 ```
-	Program ::=  { Function | DeclStmt }
+	Program ::=  { Import } { Function | DeclStmt | InterfaceDecl }
 
-    Function ::= Type IDENT '(' [ ParamList ] ')' Body
-    ParamList ::= Param { ',' Param }
-    Param ::= Type IDENT
+    Import ::= "import" [ "device" ] SLITERAL ';'
 
+    Function ::= FuncDecl | FuncDef 
+    FuncDecl ::= FuncSignature ';'
+    FuncDef ::= FuncSignature Body
 
-// NOT IMPLEMENTED YET
-    Lambda ::= "func" '(' [ParamList ] ')' Body     
+    FuncSignature ::= GenericFunc | RegularFunc
+    GenericFunc ::= TypeQualifier Generic [ DeclPrefix ] IDENT GenericList '(' [ ParamList ] ')'
+    RegularFunc ::= TypeQualifier Type [ DeclPrefix ] IDENT '(' [ ParamList ] ')'
 
+    ParamList ::= ( Param | GenParam ) { ',' ( Param | Genparam ) }
+    Param ::= TypeQualifier Type [ DeclPrefix ] IDENT
+    GenParam ::= TypeQualifier Generic [ DeclPrefix ] IDENT 
 
+    Lambda ::= "lambda" '(' [ParamList ] ')' Body     
+    Reg ::= '@'0x{ [0-9] | [a-f] | [A-F] }
 	Body ::= '{' StmtList '}'
-	StmtList ::= { Stmt }  
-	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt 
+    StmtList ::= { Stmt }
+	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt | JumpStmt | Comment
 
     ExprStmt ::= ';' | Expr ';'  
-	DeclStmt ::= ( VarDecl | StructDecl | EnumDecl | TypedefDecl ) ';'
-        VarDecl ::= ( Type | IDENT ) Varlist 
-        StructDecl ::= "struct" IDENT '{' StructBody '}' 
+	DeclStmt ::= ( VarDecl | StructDecl | EnumDecl | TypedefDecl ) 
+        VarDecl ::= ( Type | IDENT ) ( IDENT { ',' IDENT } )  ';'
+        VarDef ::= ( Type | IDENT ) VarList ';'
+        GenDecl ::= Generic Varlist
+        StructDecl ::= GenericStruct | RegularStruct
+        GenericStruct ::= "struct" IDENT GenericList '{' GenStructBody '}'
+            GenStructBody :: { GenDecl | GenFunc }
+        RegularStruct ::= "struct" IDENT [ ':' IDENT ] '{' StructBody '}' 
             StructBody ::= { DeclStmt | Function }
+        InterfaceDecl ::= "interface" IDENT '{' InterfaceBody '}'
+            InterfaceBody ::= { VarDecl | FuncDecl }
+
         EnumDecl ::= "enum" IDENT EnumBody 
             EnumBody ::= '{' IDENT [ = INTEGRAL ] { ',' IDENT [ = INTEGRAL ] } '}'
         TypedefDecl ::= "typedef" TypeSpec IDENT
@@ -26,25 +45,69 @@
             TypedefPostfix ::= ( '*' | '[' [ INTEGRAL ] ']' )
 	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
     ReturnStmt ::= "return" [Expr] ';'  
+    JumpStmt ::= ( "break" || "continue" ) ';'
 
-    IfStmt ::= If { Elif } [ Else ] 
-        If ::= "if" '(' Expr ')' Body
-        Elif ::= "elif" '(' Expr ')' Body 
-        Else ::= "else" Body 
+    IfStmt ::= "if" '(' Expr ')' Body { "elif" '(' Expr ')' Body } [ "else" Body ] 
     SwitchStmt ::= "switch" '(' Expr ')' '{' {CaseStmt} [DefaultStmt] '}'
-        Case ::= "case" Expr Body       // ALLOW ONLY LITERALS 
+        Case ::= "case" Literal Body       
         Default ::= "default" Body
     WhileStmt ::= "while" '(' Expr ')' Body
     DoWhileStmt ::= "do" ( Body ) 
                     "while" '(' Expr ')' ';'  
-    ForStmt ::= "for" '(' [ ExprList ]';' [ Expr ] ';' [ ExprList ] ')' Body
+    ForStmt ::= "for" '(' [ VarExprList ]';' [ Expr ] ';' [ ExprList ] ')' Body
 
     VarExprList ::= ( Expr | VarDecl ) { ',' ( Expr | VarDecl ) }
     ExprList ::= Expr { ',' Expr }
 
-    Expr ::= AsgnExpr  
+    Expr ::= TernaryExpr  
+    TernaryExpr ::= AsgnExpr [ '?' Expr ':' TernaryExpr ]
     AsgnExpr ::= OrlExpr [ ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') AsgnExpr ]
     OrlExpr ::= AndlExpr { '||' AndlExpr }  
     AndlExpr ::= OrExpr { '&&' OrExpr } 
     OrExpr ::= XorExpr { '|' XorExpr }
     XorExpr ::= AndExpr { '^' AndExpr }
+    AndExpr ::= EqqExpr { '&' EqqExpr }
+    EqqExpr ::= RelationExpr [ ('==' | '!=') RelationExpr ]
+    RelationExpr ::= ShiftExpr [ ('>' | '<' | '<=' | '>=') ShiftExpr ]  
+    ShiftExpr ::= AddExpr { ('<<' | '>>') AddExpr }  
+	AddExpr ::= MultExpr { ( '+' | '-' ) MultExpr }  
+	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }  
+    PowExpr ::= Prefix [ '**' PowExpr ]
+    Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '*' | '&' | Cast ) Prefix | Postfix 
+        Cast ::= '(' Type | IDENT ')'
+    Postfix ::= Primary { '++' | '--' | '$' | Index | CallFunc | Member }
+        Index ::= '[' Expr' ']'
+        CallFunc ::= IDENT '(' [ ArgList ] ')'
+        Member ::= '.' IDENT
+    Primary ::= Literal | PredefinedVars | '(' Expr ')' | Lambda
+
+    Type ::= ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" | "I8" | "I16" | "I32" | "I64" | "U8" | "U16" | "U32" | "U64" | Matrix | Vector ) 
+        Matrix ::= "mat" '<' {1-9} 'x' {1-9} '>'
+        Vector ::= "vec" '<' {1-9} '>'
+    DeclPrefix ::= ( '*' | '%' )          
+    GenericList ::= '<' Generic { ',' Generic } '>'
+        Generic ::= IDENT
+    TypeQualifier ::= [ const ] [ static ] [ volatile ] [ inline ] 
+    Reg ::= '@' Hex
+    Hex :: = 0x{ [0-9] | [a-f] | [A-F] }
+
+
+    ArgList = Expr { ',' Expr }
+
+	VarList ::= Var { ',' Var }
+    Var ::=  IDENT { ArrDecl } [ '=' ( Expr | ArrInitList ) | Reg ] 
+
+    PredefVars ::= ( "true" | "false" | "null" )
+    
+    ArrDecl ::= '[' [ Expr ] ']'
+    ArrInitList ::= '{' ( Literal | ArrInitList ) { ',' Literal | ArrInitList } '}' 
+    Literal ::= IDENT | DECIMAL | INTEGRAL | SLITERAL | CLITERAL 
+        Decimal ::= {1-9}['.'{1-9}]
+        Integral ::= {1-9}
+        Sliteral ::= \" { a-Z | 1-9 | EscapeSequence }  \"
+            EscapeSequence ::= ( '\n' | '\t' | '\\' | '\'' | '\"' |  )
+        Cliteral :: = \' [ a-Z | 1-9 | EscapeSequence ] \'
+
+    Comment ::= ('//' { ? } '\n') | ('/*' { ? } '*/')
+	...	
+```
