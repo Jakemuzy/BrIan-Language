@@ -10,6 +10,7 @@
 * Give solutions on how BrIan fixes C pain points in the documentation
 * Concurrency design needs to be accounted for both in the compiler code and the language semantics
 * Interactions between qualifiers not specified
+* Remove signed and unsigned type qualifiers
 
 ## Pipeline Interactions
 * Once typechecker finished, namespaces aren't used again (discared), although this works since type is stored in the symbol, it could lead to issues in later steps

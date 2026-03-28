@@ -1,11 +1,12 @@
-# Comments are discarded by tokenizer 
-# '%' Means a register, allowed only during decl (similar to: int* var; )
-# String underlying is { char*, U64 size, U64 max }
+## Comments are discarded by tokenizer 
+## '%' Means a register, allowed only during decl (similar to: int* var; )
+## String underlying is { char*, U64 size, U64 max }
+## Lambdas capture current scope 
 
 ```
 	Program ::=  { Import } { Function | DeclStmt | InterfaceDecl }
 
-    Import ::= "import" [ "device" ] SLITERAL ';'
+    Import ::= '#' "import" [ "device" ] SLITERAL ';'
 
     Function ::= FuncDecl | FuncDef 
     FuncDecl ::= FuncSignature ';'
@@ -20,7 +21,6 @@
     GenParam ::= TypeQualifier Generic [ DeclPrefix ] IDENT 
 
     Lambda ::= "lambda" '(' [ParamList ] ')' Body     
-    Reg ::= '@'0x{ [0-9] | [a-f] | [A-F] }
 	Body ::= '{' StmtList '}'
     StmtList ::= { Stmt }
 	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt | JumpStmt | Comment
@@ -88,16 +88,25 @@
     GenericList ::= '<' Generic { ',' Generic } '>'
         Generic ::= IDENT
     TypeQualifier ::= [ const ] [ static ] [ volatile ] [ inline ] 
-    Reg ::= '@' Hex
+
+    Malloc ::= "malloc" '(' IDENT | Integral ')'
+    Calloc ::= "calloc" '(' ( IDENT | Integral ) ',' ( IDENT | Integral ) ')'
+    Realloc ::= "realloc" '(' IDENT ',' ( IDENT | Integral ) ')'
+    SizeOf ::= "sizeof" '(' Type | IDENT ')'
+    // Variadic paramaters 
+
+    Transpose ::= "transpose" '(' IDENT ')' 
+    Inverse ::= "inverse" '(' IDENT ')'
+
+    Reg ::= Hex
     Hex :: = 0x{ [0-9] | [a-f] | [A-F] }
+    PredefVars ::= ( "true" | "false" | "NULL" )
 
 
     ArgList = Expr { ',' Expr }
 
 	VarList ::= Var { ',' Var }
     Var ::=  IDENT { ArrDecl } [ '=' ( Expr | ArrInitList ) | Reg ] 
-
-    PredefVars ::= ( "true" | "false" | "null" )
     
     ArrDecl ::= '[' [ Expr ] ']'
     ArrInitList ::= '{' ( Literal | ArrInitList ) { ',' Literal | ArrInitList } '}' 
