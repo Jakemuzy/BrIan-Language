@@ -3,17 +3,6 @@
 
 #include <stddef.h>
 
-/* TODO: Add
-    SMEM - Safe member access ?.
-    SREF - Safe member access by ref ?->
-    REGISTER - Regsiter access @
-
-    SPLICE - Array splicing and Ternary op :
-
-    ADD true/false keywords
-    ADD Hex type (same sizes as U and I) 
-*/
-
 typedef enum {
     /* Ctrl Stmt Key Words */
     IF = 1, ELIF, ELSE, DO, WHILE, FOR, SWITCH, CASE, DEFAULT, BREAK, RET,
