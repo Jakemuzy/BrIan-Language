@@ -1,4 +1,4 @@
 int main() {
-    1.0;
+    float i = 1.0 + 1;
     return 0;
 }
