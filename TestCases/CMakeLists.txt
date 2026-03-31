@@ -15,6 +15,12 @@ foreach(test_dir ${TEST_DIRS})
             add_executable(${test_name} ${test_file} ${LIB_SOURCES})
 
             # llvm crap
+            llvm_map_components_to_libnames(llvm_libs support core irreader)
+            target_link_libraries(${test_name} PRIVATE ${llvm_libs})
+            target_link_libraries(${test_name} PRIVATE stdc++ gcc_s)
+
+            set_property(TARGET ${test_name} PROPERTY C_STANDARD 99)
+            set_property(TARGET ${test_name} PROPERTY C_STANDARD_REQUIRED ON)
 
             # Register test
             add_test(NAME ${test_module}/${test_name} COMMAND ${test_name})
