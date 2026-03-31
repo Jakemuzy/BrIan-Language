@@ -15,13 +15,24 @@
 std::map<std::string, Value*> NamedValues;
 */
 
+/* ---------- Error Handling ---------- */
+
+void* LLVM_ERR(char* msg, ASTNode* node);
+
+/* ---------- Codegen --------- */
+
 void AssembleLLVM(AST* ast, Namespaces* nss);
-LLVMValueRef* AssembleASTNode(ASTNode* ast, Namespaces* nss, LLVMContextRef* context, LLVMBuilderRef* builder, LLVMModuleRef* modeule);
+LLVMValueRef AssembleASTNode(ASTNode* ast, Namespaces* nss, LLVMContextRef context, LLVMBuilderRef builder, LLVMModuleRef module);
 
-LLVMContextRef* GenerateContext();
-LLVMBuilderRef* GenerateBuilder(LLVMContextRef* ctx);
-LLVMModuleRef* GenerateModule(LLVMContextRef* ctx);
+LLVMValueRef AssembleBinaryNode(ASTNode* expr, Namespaces* nss, LLVMContextRef ctx, LLVMBuilderRef bldr, LLVMModuleRef mod);
+LLVMValueRef AssembleUnaryNode(ASTNode* expr, Namespaces* nss, LLVMContextRef ctx, LLVMBuilderRef bldr, LLVMModuleRef mod);
 
-void LLVMDestructor(LLVMContextRef* ctx, LLVMBuilderRef* bldr, LLVMModuleRef* mod);
+/* ---------- LLVM Functions ---------- */
+
+LLVMContextRef GenerateContext();
+LLVMBuilderRef GenerateBuilder(LLVMContextRef ctx);
+LLVMModuleRef GenerateModule(LLVMContextRef ctx);
+
+void LLVMDestructor(LLVMContextRef ctx, LLVMBuilderRef bldr, LLVMModuleRef mod);
 
 #endif 
