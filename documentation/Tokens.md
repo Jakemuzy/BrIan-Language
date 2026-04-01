@@ -10,16 +10,13 @@
 | case | CASE | Case Keyword |
 | default | DEFAULT | Default Keyword |
 | break | BREAK | Break Keyword |
+| continue | CONT | Continue Keyword |
 | return | RET | Return Keyword |
 |---|---|---|
-| malloc | MALLOC | Memory Allocate Keyword |
-| calloc | CALLOC | Initalzied Memory Allocate Keyword | 
-| realloc | REALLOC | Reallocated Memory Keyword |
 | sizeof | SIZEOF | Size Of Type Keyword | 
 |---|---|---|
 | char | CHAR | Char Type |
 | bool | BOOL | Bool Type |
-| short | SHORT | Short Type |
 | int | INT | Int Type |
 | float | FLOAT | Float Type |
 | double | DOUBLE | Double Type |
@@ -39,7 +36,7 @@
 | struct | STRUCT | Struct Type Keyword |
 | typedef | TYPEDEF | Typdef Type Keyword |
 | interface | INTERFACE | Struct Interface Keyword |
-| lambda | LAMBDS | Anonymous Function Keyword |
+| lambda | LAMBDA | Anonymous Function Keyword |
 |---|---|---|
 | true | TRUE | True Predefined Var |
 | false | FALSE | False Predefined Var |
@@ -49,6 +46,7 @@
 | static | STATIC | Static Type Qualifier |
 | volatile | VOLATILE | Volatile Type Qualifier |
 | inline | INLINE | Inline Type Qualifier |
+| extern | EXTERN | Extern Type Qualifier |
 |---|---|---|
 | = | EQ | Equal Operator |
 | += | PEQ | Plus Equal Operator |
