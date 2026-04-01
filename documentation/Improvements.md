@@ -40,8 +40,9 @@
 * '%' symbol for registers (ie U32% r1 = 0x...), inheriently volatile 
 * interfaces as a key word
 * default struct member variables
-* Matrices and vectors as built in types
+* Matrices and vectors as built in types:w
 * Func declarations vs definitions? 
+* Maybe some bit masking tokens?
 
 
 
@@ -57,6 +58,7 @@
 * Characters as U8? 
 * Floats as 32 bit doubles as 64 bit
 * Void meaning lack of a type 
+* Callee and Caller needs to be specified, otherwise return function won't have any idea of where are what its returning
 
 ## Tokenizer
 * Line numbers are handled in a fragile and confusing manner
