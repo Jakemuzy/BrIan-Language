@@ -3,7 +3,7 @@
 * Type system explanation
 * Have a better way to track bugs, progress, things to do, etc
 * Give steps on how to build
-* Convert to using cmake instead of bash
+* Convert to using cmake instead of bash X
 * Use a dedicated tools for test cases
 * Use clang instead of gcc ( llvm support )
 * Run the program with werror, wall, wextra
@@ -20,28 +20,28 @@
 * Allow dereference symbol before previously declared idents ( not vardecls ) X
 * Change type to allow arbitrary idents ( custom defined types, will check validity in later stages )
 * Idents can be custom types, need to allow grammar to use custom types 
-* Maybe two string types? Mutable and immutable 
+* Maybe two string types? Mutable and immutable X
 * Add break and return statements X
 * Add true and false ( built into the language ) X
-* Simplify switch statements, allow only literals / constants ( jump table optimization )
-* Handle directives better ( #include, etc )
+* Simplify switch statements, allow only literals / constants ( jump table optimization ) x
+* Handle directives better ( #include, etc ) X
 * Strings may have to be pointers, maybe constant? ( unsure, lookup why C strings suck )
-* Design a way to handle generics 
-* Allow operator overloading for structs 
+* Design a way to handle generics X
+* Allow operator overloading for structs X
 * Think about how interfaces will be implemented X
 * Allow type qualifiers X
 * Build Ternary operator X
-* Some stmts like ForStmt are confusing
-* VarExprList in for stmt allows both exprs and var decls, a bit weird
-* Sub rules such as if elif and else should be removed
-* Should gotos be added? makes desugaring easier
-* Hex type ONLY for @ ( which is memory location )
-* Mayhaps matricies as a built in type? ( doubtful )
-* '%' symbol for registers (ie U32% r1 = 0x...), inheriently volatile 
-* interfaces as a key word
-* default struct member variables
-* Matrices and vectors as built in types:w
-* Func declarations vs definitions? 
+* Some stmts like ForStmt are confusing X
+* VarExprList in for stmt allows both exprs and var decls, a bit weird X
+* Sub rules such as if elif and else should be removed X
+* Should gotos be added? makes desugaring easier X
+* Hex type ONLY for @ ( which is memory location ) X
+* Mayhaps matricies as a built in type? ( doubtful ) X
+* '%' symbol for registers (ie U32% r1 = 0x...), inheriently volatile X
+* interfaces as a key word X
+* default struct member variables X
+* Matrices and vectors as built in types X
+* Func declarations vs definitions?  X 
 * Maybe some bit masking tokens?
 
 
@@ -72,6 +72,10 @@
 * Should use state machine instead of if-else chain 
 * Comments are not handled elegantly block comments bug out sometimes 
 * Escape characters ( \n \t etc ) are not handled X
+* Comments are discarded here 
+* DFA table for operators, hash map for keywords, manual for rest
+* Buffer size of 16 to reduce syscalls overhead 
+* Double buffer system 
 
 ## Preprocessor
 * Resolve typedefs ( prevents delayed custom type checking )

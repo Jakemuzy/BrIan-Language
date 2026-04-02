@@ -15,7 +15,10 @@ foreach(test_dir ${TEST_DIRS})
             add_executable(${test_name} ${test_file} ${LIB_SOURCES})
 
             # llvm crap
-            llvm_map_components_to_libnames(llvm_libs support core irreader)
+            llvm_map_components_to_libnames(llvm_libs 
+                support core irreader passes 
+                target native asmprinter
+                )
             target_link_libraries(${test_name} PRIVATE ${llvm_libs})
             target_link_libraries(${test_name} PRIVATE stdc++ gcc_s)
 

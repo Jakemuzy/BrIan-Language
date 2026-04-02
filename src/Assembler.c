@@ -16,9 +16,22 @@ void AssembleLLVM(AST* ast, Namespaces* nss)
     LLVMBuilderRef bldr = GenerateBuilder(ctx);
     LLVMModuleRef mod = GenerateModule(ctx);
 
+    //InitalizeStart(ctx, bldr, mod);
     AssembleASTNode(ast->root, nss, ctx, bldr, mod);
 
+    char outMsg[512];
+    LLVMVerifierFailureAction failureAct = LLVMAbortProcessAction;
+    //LLVMVerifyModule(mod, failureAct, &outMsg);
+
     LLVMDumpModule(mod);
+    OptimizeModule(mod);
+    printf("------------------------------------------------\n");
+    LLVMDumpModule(mod);
+
+    CodegenModule(mod);
+
+    LinkModule(mod);
+
     LLVMDestructor(ctx, bldr, mod);
 }
 
@@ -50,16 +63,37 @@ LLVMValueRef AssembleASTNode(ASTNode* expr, Namespaces* nss, LLVMContextRef ctx,
                     break;
             }
             break;
-        case UNARY_EXPR_NODE:
-            return AssembleUnaryNode(expr, nss, ctx, bldr, mod);
-        case BINARY_EXPR_NODE: 
-            return AssembleBinaryNode(expr, nss, ctx, bldr, mod);
 
-        case FUNC_NODE:
-            return AssembleFuncNode(expr, nss, ctx, bldr, mod);
 
-        case VAR_DECL_NODE:
-            return AssembleVarNode(expr, nss, ctx, bldr, mod);
+        case FUNC_NODE: return AssembleFuncNode(expr, nss, ctx, bldr, mod);
+        case BINARY_EXPR_NODE: return AssembleBinaryNode(expr, nss, ctx, bldr, mod);
+        case UNARY_EXPR_NODE: return AssembleUnaryNode(expr, nss, ctx, bldr, mod);
+
+        //case ASGN_EXPR_NODE: 
+        case VAR_DECL_NODE:  return AssembleVarNode(expr, nss, ctx, bldr, mod);
+        /*
+        case CALL_FUNC_NODE: 
+
+        case DO_WHILE_STMT_NODE: 
+        case WHILE_STMT_NODE:    
+        case FOR_STMT_NODE:      
+        case IF_STMT_NODE:       
+        case SWITCH_STMT_NODE:   
+        */
+        case RETURN_STMT_NODE: return AssembleReturnStmt(expr, nss, ctx, bldr, mod);
+        /*
+
+        case ARR_DECL_NODE:     
+        case ARR_INIT_NODE:     
+        case ARR_INDEX_NODE:   
+
+        case MEMBER_ACCESS_NODE:
+        case TYPEDEF_DECL_NODE:
+
+        case ENUM_BODY_NODE:    
+
+        case STRUCT_DECL_NODE: 
+        */
     }
 
     /* Recursively assemble node at a time */
@@ -77,11 +111,18 @@ LLVMValueRef AssembleBinaryNode(ASTNode* expr, Namespaces* nss, LLVMContextRef c
     if (!lhs || !rhs)
         return LLVM_ERR("Couldn't evalualte binary node", expr);
 
+    /* Cast as LLVM requires same type */
+    if (LLVMTypeOf(lhs) != LLVMTypeOf(rhs))
+        rhs = LLVMBuildSIToFP(bldr, rhs, LLVMTypeOf(lhs), "casttmp");
+
+    bool isFloat = LLVMGetTypeKind(LLVMTypeOf(lhs)) == LLVMFloatTypeKind || LLVMGetTypeKind(LLVMTypeOf(lhs)) == LLVMDoubleTypeKind;
 
     // LLVMBuildBinOp ??
     TokenType type = expr->token.type;
     switch (type) {
-        case (PLUS): printf("PLUH\n"); return LLVMBuildAdd(bldr, lhs, rhs, "addtmp");
+        case (PLUS): 
+            return isFloat ? LLVMBuildFAdd(bldr, lhs, rhs, "addtmp")
+                        : LLVMBuildAdd(bldr, lhs, rhs, "addtmp");
         //return LLVMBuilder()
         default: 
             return LLVM_ERR("Invalid binary operator", expr);
@@ -105,7 +146,6 @@ LLVMValueRef AssembleVarNode(ASTNode* expr, Namespaces* nss, LLVMContextRef ctx,
     for (size_t i = 0; i < varListNode->childCount; i++) 
         AssembleVar(varListNode->children[i], nss, ctx, bldr, mod, type);
 
-    printf("VUHH\n");
     return type;
 }
 
@@ -119,6 +159,10 @@ LLVMValueRef AssembleVar(ASTNode* expr, Namespaces* nss, LLVMContextRef ctx, LLV
         ASTNode* rhs = expr->children[1];
         LLVMValueRef init = AssembleASTNode(rhs, nss, ctx, bldr, mod);
         if (!init) printf("NOT INIT\n");
+
+        if (type != LLVMTypeOf(init)) 
+            init = LLVMBuildFPTrunc(bldr, init, type, "fptrunctmp");
+
         LLVMBuildStore(bldr, init, val);    
     }
 
@@ -197,7 +241,13 @@ LLVMValueRef AssembleSwitchStmt(ASTNode* expr, Namespaces* nss, LLVMContextRef c
 
 LLVMValueRef AssembleReturnStmt(ASTNode* expr, Namespaces* nss, LLVMContextRef ctx, LLVMBuilderRef bldr, LLVMModuleRef mod)
 {
+    LLVMValueRef ret;
+    ASTNode* retValueNode = expr->children[0];
 
+    if (expr->token.type == VOID) ret = LLVMBuildRetVoid(bldr);
+    else ret = LLVMBuildRet(bldr, AssembleASTNode(retValueNode, nss, ctx, bldr, mod));
+
+    return ret;
 }
 
 LLVMTypeRef AssembleType(ASTNode* expr, Namespaces* nss, LLVMContextRef ctx, LLVMBuilderRef bldr, LLVMModuleRef mod)
@@ -254,6 +304,45 @@ LLVMValueRef AssembleStructDecl(ASTNode* expr, Namespaces* nss, LLVMContextRef c
 
 /* ---------- LLVM Functions ---------- */
 
+void OptimizeModule(LLVMModuleRef mod)
+{
+    LLVMPassBuilderOptionsRef options = LLVMCreatePassBuilderOptions();
+    LLVMErrorRef err = LLVMRunPasses(mod, "default<O2>", NULL, options);
+    if (err) {
+        char* msg = LLVMGetErrorMessage(err);
+        printf("Pass error: %s\n", msg);
+        LLVMDisposeErrorMessage(msg);
+    }
+    LLVMDisposePassBuilderOptions(options);
+}
+
+void CodegenModule(LLVMModuleRef mod)
+{
+    /* When targetting embedded eventually pick the specific target */
+    //LLVMInitializeNativeTargetInfo();
+    LLVMInitializeNativeTarget();
+    //LLVMInitalizeNativeTargetAsmPrinter();
+    //LLVMInitializeNativeTargetMC();
+    LLVMInitializeNativeAsmPrinter();
+
+    char* triple = LLVMGetDefaultTargetTriple();
+    LLVMTargetRef target;
+    char* err;
+    LLVMGetTargetFromTriple(triple, &target, &err);
+
+    LLVMTargetMachineRef tm = LLVMCreateTargetMachine(
+        target, triple, "generic", "",
+        LLVMCodeGenLevelAggressive, // Aggressive since targetting embedded
+        LLVMRelocDefault,
+        LLVMCodeModelDefault
+    );
+
+    LLVMTargetMachineEmitToFile(tm, mod, "output.o", LLVMObjectFile, &err);
+}
+
+void LinkModule(LLVMModuleRef mod)
+{
+}
 
 LLVMContextRef GenerateContext()
 {

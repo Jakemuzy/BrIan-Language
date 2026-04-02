@@ -13,6 +13,11 @@
 | continue | CONT | Continue Keyword |
 | return | RET | Return Keyword |
 |---|---|---|
+| lock | LOCK | Lock Keyword |
+| critical | CRITICAL | Critical Keyword | 
+| spawn | SPAWN | Spawn Keyword |
+| await | AWAIT | Await Keyword |
+|---|---|---|
 | sizeof | SIZEOF | Size Of Type Keyword | 
 |---|---|---|
 | char | CHAR | Char Type |
@@ -31,11 +36,16 @@
 | U16 | U16 | Unsigned 16 Byte Type |
 | U32 | U32 | Unsigned 32 Byte Type |
 | U64 | U64 | Unsigned 64 Byte Type |
+| mutex | MUTEX | Mutex Type |
+| semaphore | SEMAPHORE | Semaphore Type |
+| task | TASK | Task Type |
+| chan | CHANNEL | Channel Type |
 |---|---|---|
 | enum | ENUM | Enum Type Keyword |
 | struct | STRUCT | Struct Type Keyword |
 | typedef | TYPEDEF | Typdef Type Keyword |
 | interface | INTERFACE | Struct Interface Keyword |
+| operator | OPERATOR | Operator Overload Keyword |
 | lambda | LAMBDA | Anonymous Function Keyword |
 |---|---|---|
 | true | TRUE | True Predefined Var |
@@ -46,7 +56,8 @@
 | static | STATIC | Static Type Qualifier |
 | volatile | VOLATILE | Volatile Type Qualifier |
 | inline | INLINE | Inline Type Qualifier |
-| extern | EXTERN | Extern Type Qualifier |
+| atomic | ATOMIC | Atommic Type Qualifier |
+| extern | EXTERN | Extern Linkage Specifier |
 |---|---|---|
 | = | EQ | Equal Operator |
 | += | PEQ | Plus Equal Operator |
@@ -56,7 +67,7 @@
 | %= | MODEQ | Modulus Equal Operator |
 | &= | ANDEQ | And Equal Operator |
 | |= | OREQ | Or Equal Operator |
-| &&= | ANDEQ | Logical And Operator |
+| &&= | ANDLEQ | Logical And Operator |
 | ||= | ORLEQ | Logical Or Equal Operator |
 | ~= | NEGEQ | Negate Equal Operator |
 | ^= | XOREQ | Xor Equal Operator |
@@ -89,9 +100,7 @@
 | << | LSHIFT | Left Shift Bitwise Operator |
 | >> | RSHIFT | Right Shift Bitwise Operator |
 |---|---|---|
-| @ | AT | Vector Dot Product Operator |
-| inverse | INV | Vector Inverse Operator |    
-| transpose | TRANS | Vector Transpose Operator |    
+| @ | DOTPROD | Vector Dot Product Operator |
 |---|---|---|
 | ? | QUESTION | Ternary Operator |
 | : | COLON | Ternary Operator |
@@ -100,6 +109,8 @@
 | .? | SMEM | Safe Member Access Operator |
 | -> | REF | Reference Access Operator | 
 | . | MEM | Member Access Operator |
+|---|---|---|
+| <- | SEND | Message Send/Receive Operator |
 |---|---|---|
 | ( | LPAREN | Left Parenthesis |
 | ) | RPAREN | Right Parenthesis |
@@ -114,12 +125,17 @@
 | /* { . } */ | COMMENT | Comment |
 | // { . } \n | COMMENT | Comment |
 |---|---|---|
+| import | IMPORT | Import Directive Keyword |
+| endif | ENDIF | Endif Directive Keyword |
+| pragma | PRAGMA | Pragma Directive Keyword |
+| error | ERROR | ERROR Directive Keyword |
+|---|---|---|
 | \n | NEWLINE | New Line Whitespace |
 | \t | TAB | Tab Whitespace |
 |---|---|---|
 | { a-Z | 0-9 | _ } | IDENT | Identifier |
 | { 0-9 } | INTEGRAL | Integral Number | 
-| { 0-9 } '.' { 0-9 } | REAL | Real Number |
+| { 0-9 } [ '.' { 0-9 } ] [ 'e' [ '+' | '-' ] { 0 - 9 } ] | REAL | Real Number |
 | \' . \' | CLITERAL | Character Literal |
 | \" { . } \" | SLITERAL | String Literal |
 |---|---|---|
