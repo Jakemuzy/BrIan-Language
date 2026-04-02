@@ -74,7 +74,7 @@
 * Escape characters ( \n \t etc ) are not handled X
 * Comments are discarded here 
 * DFA table for operators, hash map for keywords, manual for rest
-* Buffer size of 16 to reduce syscalls overhead 
+* Buffer size of 4096 bytes to reduce syscalls overhead 
 * Double buffer system 
 
 ## Preprocessor
