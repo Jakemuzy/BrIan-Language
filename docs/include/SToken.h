@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#define TOKEN_MAX_LENGTH
+#define TOKEN_MAX_LENGTH 4
 
 /*   BrIan Tokens and TokenTypes 
     ----------------------------
@@ -70,7 +70,7 @@ typedef struct {
     int row, col;
 
     char* lexeme;
-    size_t current, max;
+    size_t lexLength;
 } Token;
 
 #endif

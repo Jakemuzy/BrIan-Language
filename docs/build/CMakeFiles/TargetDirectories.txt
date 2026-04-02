@@ -1,0 +1,3 @@
+/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles/compiler.dir
+/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles/edit_cache.dir
+/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles/rebuild_cache.dir

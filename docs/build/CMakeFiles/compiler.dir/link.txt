@@ -1,0 +1,1 @@
+clang  -Wall -Wextra -Wpedantic -g -Wl,--dependency-file=CMakeFiles/compiler.dir/link.d CMakeFiles/compiler.dir/src/main.c.o CMakeFiles/compiler.dir/src/Tokenizer.c.o -o compiler
