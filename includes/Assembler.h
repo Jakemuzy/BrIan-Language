@@ -6,6 +6,10 @@
 #include "TypeChecker.h"
 #include "Desugar.h"
 
+#include <llvm-c/Transforms/PassBuilder.h>
+#include <llvm-c/Error.h>
+#include "llvm-c/Analysis.h"
+#include "llvm-c/Target.h"
 #include "llvm-c/Core.h"
 
 //#define LLVMValueRef Value
@@ -20,6 +24,7 @@ std::map<std::string, Value*> NamedValues;
 void* LLVM_ERR(char* msg, ASTNode* node);
 
 /* ---------- Codegen --------- */
+
 
 void AssembleLLVM(AST* ast, Namespaces* nss);
 LLVMValueRef AssembleASTNode(ASTNode* ast, Namespaces* nss, LLVMContextRef context, LLVMBuilderRef builder, LLVMModuleRef module);
@@ -45,6 +50,15 @@ LLVMValueRef AssembleTypedef(ASTNode* expr, Namespaces* nss, LLVMContextRef ctx,
 LLVMValueRef AssembleStructDecl(ASTNode* expr, Namespaces* nss, LLVMContextRef ctx, LLVMBuilderRef bldr, LLVMModuleRef mod);
 
 /* ---------- LLVM Functions ---------- */
+
+// Optimizationn
+void OptimizeModule(LLVMModuleRef mod);
+
+// Code gen
+void CodegenModule(LLVMModuleRef mod);
+
+// Linker
+void LinkModule(LLVMModuleRef mod);
 
 LLVMContextRef GenerateContext();
 LLVMBuilderRef GenerateBuilder(LLVMContextRef ctx);

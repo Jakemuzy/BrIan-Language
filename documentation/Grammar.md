@@ -4,6 +4,7 @@
 ## Lambdas capture current scope 
 ## malloc, calloc, realloc, inverse and transpose are builtin functions, while sizeof is a keyword
 ## Vector and Matrix initalizers are just 1D and 2D arrays, this is already valid syntax in the language
+## enum underlying type is i32
 
 ```
 	Program ::=  { Import } { Function | DeclStmt | InterfaceDecl }
@@ -25,12 +26,12 @@
     Lambda ::= "lambda" '(' [ParamList ] ')' Body     
 	Body ::= '{' StmtList '}'
     StmtList ::= { Stmt }
-	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt | JumpStmt | Comment
+	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt | JumpStmt | ConcurrencyStmt
 
     ExprStmt ::= ';' | Expr ';'  
-	DeclStmt ::= ( VarDecl | StructDecl | EnumDecl | TypedefDecl ) 
-        VarDecl ::= LinkageSpecifier TypeQualifier ( Type | IDENT ) VarList ';'
-        GenDecl ::= LinkageSpecifier TypeQualifier Generic Varlist ';'
+	DeclStmt ::= ( VarDecl | StructDecl | EnumDecl | TypedefDecl ) ';'
+        VarDecl ::= LinkageSpecifier TypeQualifier ( Type | IDENT ) VarList 
+        GenDecl ::= LinkageSpecifier TypeQualifier Generic VarList
         StructDecl ::= GenericStruct | RegularStruct
         GenericStruct ::= "struct" IDENT GenericList '{' GenStructBody '}'
             GenStructBody :: { GenDecl | GenericFunc }
@@ -44,6 +45,13 @@
         TypedefDecl ::= "typedef" TypeSpec IDENT
             TypeSpec ::= ( Type | IDENT ) { TypedefPostfix }
             TypedefPostfix ::= ( '*' | '[' [ INTEGRAL ] ']' )
+
+    ConcurrencyStmt ::= LockStmt | CriticalStmt | AwaitStmt
+        LockStmt     ::= "lock" '(' Expr ')' Body
+        CriticalStmt ::= "critical" Body
+        AwaitStmt    ::= "await" Expr ';'
+
+
 	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
     ReturnStmt ::= "return" [Expr] ';'  
     JumpStmt ::= ( "break" || "continue" ) ';'
@@ -62,7 +70,7 @@
 
     Expr ::= TernaryExpr  
     TernaryExpr ::= AsgnExpr [ '?' Expr ':' TernaryExpr ]
-    AsgnExpr ::= OrlExpr [ ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') AsgnExpr ]
+    AsgnExpr ::= OrlExpr [ ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=' | '<-' ) AsgnExpr ]
     OrlExpr ::= AndlExpr { '||' AndlExpr }  
     AndlExpr ::= OrExpr { '&&' OrExpr } 
     OrExpr ::= XorExpr { '|' XorExpr }
@@ -74,7 +82,7 @@
 	AddExpr ::= MultExpr { ( '+' | '-' ) MultExpr }  
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' | '@' ) PowExpr }  
     PowExpr ::= Prefix [ '**' PowExpr ]
-    Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '*' | '&' | Cast ) Prefix | Postfix 
+    Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '*' | '&' | "spawn" | "await" | '<-' | Cast ) Prefix | Postfix 
         Cast ::= '(' Type | IDENT ')'
     Postfix ::= Primary { '++' | '--' | Index | CallFunc | Member | Ref | SafeMem | SafeRef }
         Index ::= '[' Expr' ']'
@@ -83,15 +91,16 @@
         Ref ::= '->' IDENT
         SafeMem ::= '.?' IDENT
         SafeRef ::= '->?' IDENT
-    Primary ::= IDENT | Literal | PredefinedVars | SizeOf | '(' Expr ')' | Lambda
+    Primary ::= IDENT | Literal | PredefVars | SizeOf | '(' Expr ')' | Lambda
 
-    Type ::= ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" | "I8" | "I16" | "I32" | "I64" | "U8" | "U16" | "U32" | "U64" | Matrix | Vector ) 
+    Type ::= ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" | "I8" | "I16" | "I32" | "I64" | "U8" | "U16" | "U32" | "U64" | Matrix | Vector | "mutex" | "semaphore" | "task" | Channel ) 
+        Channel ::= "chan" '<' Type '>'
         Matrix ::= "mat" '<' {1-9} 'x' {1-9} '>'
         Vector ::= "vec" '<' {1-9} '>'
     DeclPrefix ::= ( '*' | '%' )          
     GenericList ::= '<' Generic { ',' Generic } '>'
         Generic ::= IDENT
-    TypeQualifier ::= [ const ] [ static ] [ volatile ] [ inline ] 
+    TypeQualifier ::= [ static ] [ inline ] [ const ] [ volatile ] [ atomic ]
     LinkageSpecifier ::= [ extern ]
 
     SizeOf ::= "sizeof" '(' Type | IDENT ')'
@@ -110,13 +119,12 @@
     
     ArrDecl ::= '[' [ Expr ] ']'
     ArrInitList ::= '{' ( IDENT | Literal | ArrInitList ) { ',' ( IDENT | Literal | ArrInitList ) } '}' 
-    Literal ::= DECIMAL | INTEGRAL | SLITERAL | CLITERAL 
-        Decimal ::= {1-9}['.'{1-9}]
+    Literal ::= DECIMAL | INTEGRAL | SLITERAL | CLITERAL | Hex
+        Decimal  ::= {0-9} [ '.' {0-9} ] [ ('e' | 'E') [ '+' | '-' ] {0-9} ]
         Integral ::= {1-9}
         Sliteral ::= \" { a-Z | 1-9 | EscapeSequence }  \"
             EscapeSequence ::= ( '\n' | '\t' | '\\' | '\'' | '\"' |  )
         Cliteral :: = \' [ a-Z | 1-9 | EscapeSequence ] \'
 
-    Comment ::= ('//' { ? } '\n') | ('/*' { ? } '*/')
 	...	
 ```

@@ -3,7 +3,7 @@
 * Type system explanation
 * Have a better way to track bugs, progress, things to do, etc
 * Give steps on how to build
-* Convert to using cmake instead of bash
+* Convert to using cmake instead of bash X
 * Use a dedicated tools for test cases
 * Use clang instead of gcc ( llvm support )
 * Run the program with werror, wall, wextra

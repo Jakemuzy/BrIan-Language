@@ -13,6 +13,11 @@
 | continue | CONT | Continue Keyword |
 | return | RET | Return Keyword |
 |---|---|---|
+| lock | LOCK | Lock Keyword |
+| critical | CRITICAL | Critical Keyword | 
+| spawn | SPAWN | Spawn Keyword |
+| await | AWAIT | Await Keyword |
+|---|---|---|
 | sizeof | SIZEOF | Size Of Type Keyword | 
 |---|---|---|
 | char | CHAR | Char Type |
@@ -46,7 +51,8 @@
 | static | STATIC | Static Type Qualifier |
 | volatile | VOLATILE | Volatile Type Qualifier |
 | inline | INLINE | Inline Type Qualifier |
-| extern | EXTERN | Extern Type Qualifier |
+| atomic | ATOMIC | Atommic Type Qualifier |
+| extern | EXTERN | Extern Linkage Specifier |
 |---|---|---|
 | = | EQ | Equal Operator |
 | += | PEQ | Plus Equal Operator |
@@ -101,6 +107,8 @@
 | -> | REF | Reference Access Operator | 
 | . | MEM | Member Access Operator |
 |---|---|---|
+| <- | SEND | Message Send/Receive Operator |
+|---|---|---|
 | ( | LPAREN | Left Parenthesis |
 | ) | RPAREN | Right Parenthesis |
 | [ | LBRACK | Left Bracket | 
@@ -119,7 +127,7 @@
 |---|---|---|
 | { a-Z | 0-9 | _ } | IDENT | Identifier |
 | { 0-9 } | INTEGRAL | Integral Number | 
-| { 0-9 } '.' { 0-9 } | REAL | Real Number |
+| { 0-9 } [ '.' { 0-9 } ] [ 'e' [ '+' | '-' ] { 0 - 9 } ] | REAL | Real Number |
 | \' . \' | CLITERAL | Character Literal |
 | \" { . } \" | SLITERAL | String Literal |
 |---|---|---|
