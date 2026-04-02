@@ -1,15 +1,29 @@
-## Comments are discarded by tokenizer 
-## '%' Means a register, allowed only during decl (similar to: int* var; )
-## Strings are immutable
-## Lambdas capture current scope 
-## malloc, calloc, realloc, inverse and transpose are builtin functions, while sizeof is a keyword
-## Vector and Matrix initalizers are just 1D and 2D arrays, this is already valid syntax in the language
-## enum underlying type is i32
+### Comments are discarded by tokenizer 
+### '%' Means a register, allowed only during decl (similar to: int* var; )
+### Strings are immutable
+### Lambdas capture current scope 
+### malloc, calloc, realloc, inverse and transpose are builtin functions, while sizeof is a keyword
+### Vector and Matrix initalizers are just 1D and 2D arrays, this is already valid syntax in the language
+### enum underlying type is i32
+### Operator overloading is restricted to non assignment operators to prevent weird move semantics
 
 ```
-	Program ::=  { Import } { Function | DeclStmt | InterfaceDecl }
+	Program ::=  { Import | Directive } { Function | DeclStmt | InterfaceDecl }
 
     Import ::= '#' "import" [ "device" ] SLITERAL ';'
+    Directive ::= '#' ( Ifdir | Elifdir | Elsedir | Endifdir | Pragmadir | Errdir ) ';'
+        Ifdir ::= "if" CondExpr 
+        ElifDir ::= "elif" CondExpr
+        Elsedir ::= "else" 
+        Endifdir ::= "endif"
+        Pragmadir ::= "pragma" IDENT { IDENT | INTEGRAL | SLITERAL }
+        Errdir ::= "error" SLITERAL 
+
+    CondExpr ::= IDENT | INTEGRAL
+           | CondExpr ( '&&' | '||' ) CondExpr
+           | CondExpr ( '==' | '!=' | '<' | '>' | '<=' | '>=' ) CondExpr
+           | '!' CondExpr
+           | '(' CondExpr ')'
 
     Function ::= FuncDecl | FuncDef 
     FuncDecl ::= FuncSignature ';'
@@ -29,27 +43,33 @@
 	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt | JumpStmt | ConcurrencyStmt
 
     ExprStmt ::= ';' | Expr ';'  
-	DeclStmt ::= ( VarDecl | StructDecl | EnumDecl | TypedefDecl ) ';'
-        VarDecl ::= LinkageSpecifier TypeQualifier ( Type | IDENT ) VarList 
-        GenDecl ::= LinkageSpecifier TypeQualifier Generic VarList
-        StructDecl ::= GenericStruct | RegularStruct
-        GenericStruct ::= "struct" IDENT GenericList '{' GenStructBody '}'
-            GenStructBody :: { GenDecl | GenericFunc }
-        RegularStruct ::= "struct" IDENT [ ':' IDENT ] '{' StructBody '}' 
-            StructBody ::= { DeclStmt | Function }
-        InterfaceDecl ::= "interface" IDENT '{' InterfaceBody '}'
-            InterfaceBody ::= { VarDecl | FuncDecl }
+	DeclStmt ::= ( VarDecl  | EnumDecl | TypedefDecl ) ';'
+                 | StructDecl        // Semicolon after struct is annoying
 
-        EnumDecl ::= "enum" IDENT EnumBody 
-            EnumBody ::= '{' IDENT [ = INTEGRAL ] { ',' IDENT [ = INTEGRAL ] } '}'
-        TypedefDecl ::= "typedef" TypeSpec IDENT
-            TypeSpec ::= ( Type | IDENT ) { TypedefPostfix }
-            TypedefPostfix ::= ( '*' | '[' [ INTEGRAL ] ']' )
+    VarDecl ::= LinkageSpecifier TypeQualifier ( Type | IDENT ) VarList 
+    GenDecl ::= LinkageSpecifier TypeQualifier Generic VarList
+    StructDecl ::= GenericStruct | RegularStruct
+    GenericStruct ::= "struct" IDENT GenericList '{' GenStructBody '}'
+        GenStructBody :: { GenDecl | GenericFunc | OperatorOverload }
+    RegularStruct ::= "struct" IDENT [ ':' IDENT ] '{' StructBody '}' 
+        StructBody ::= { DeclStmt | Function | OperatorOverload }
+        OperatorOverload ::= "operator" OverloadableOp '(' Param ')' Body
+        OverloadableOp   ::= '+' | '-' | '*' | '/' | '%' | '@'
+                        | '==' | '!=' | '<' | '>' | '<=' | '>='
+                        | '<<' | '>>' | '&' | '|' | '^' | '~'
+                        | "[]"
+    InterfaceDecl ::= "interface" IDENT '{' InterfaceBody '}'
+        InterfaceBody ::= { VarDecl | FuncDecl }
 
-    ConcurrencyStmt ::= LockStmt | CriticalStmt | AwaitStmt
+    EnumDecl ::= "enum" IDENT EnumBody 
+        EnumBody ::= '{' IDENT [ = INTEGRAL ] { ',' IDENT [ = INTEGRAL ] } '}'
+    TypedefDecl ::= "typedef" TypeSpec IDENT
+        TypeSpec ::= ( Type | IDENT ) { TypedefPostfix }
+        TypedefPostfix ::= ( '*' | '[' [ INTEGRAL ] ']' )
+
+    ConcurrencyStmt ::= LockStmt | CriticalStmt | 
         LockStmt     ::= "lock" '(' Expr ')' Body
         CriticalStmt ::= "critical" Body
-        AwaitStmt    ::= "await" Expr ';'
 
 
 	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
@@ -61,12 +81,9 @@
         Case ::= "case" Literal Body       
         Default ::= "default" Body
     WhileStmt ::= "while" '(' Expr ')' Body
-    DoWhileStmt ::= "do" ( Body ) 
-                    "while" '(' Expr ')' ';'  
-    ForStmt ::= "for" '(' [ VarExprList ]';' [ Expr ] ';' [ ExprList ] ')' Body
-
-    VarExprList ::= ( Expr | VarDecl ) { ',' ( Expr | VarDecl ) }
-    ExprList ::= Expr { ',' Expr }
+    DoWhileStmt ::= "do" ( Body ) "while" '(' Expr ')' ';'  
+    ForStmt ::= "for" '(' [ VarDecl | ExprList ]';' [ Expr ] ';' [ ExprList ] ')' Body
+        ExprList ::= Expr { ',' Expr }
 
     Expr ::= TernaryExpr  
     TernaryExpr ::= AsgnExpr [ '?' Expr ':' TernaryExpr ]
@@ -112,8 +129,6 @@
 
     ArgList = Expr { ',' Expr }
 
-    // VEC AND MAT INITALIZERS NOT YET CREATED, 
-    // Implement as 1D and 2D arrays, already handled nested arrays  
 	VarList ::= Var { ',' Var }
     Var ::=  IDENT { ArrDecl } [ '=' ( Expr | ArrInitList ) | Reg ] 
     
@@ -121,10 +136,9 @@
     ArrInitList ::= '{' ( IDENT | Literal | ArrInitList ) { ',' ( IDENT | Literal | ArrInitList ) } '}' 
     Literal ::= DECIMAL | INTEGRAL | SLITERAL | CLITERAL | Hex
         Decimal  ::= {0-9} [ '.' {0-9} ] [ ('e' | 'E') [ '+' | '-' ] {0-9} ]
-        Integral ::= {1-9}
+        Integral ::= {0-9}
         Sliteral ::= \" { a-Z | 1-9 | EscapeSequence }  \"
             EscapeSequence ::= ( '\n' | '\t' | '\\' | '\'' | '\"' |  )
         Cliteral :: = \' [ a-Z | 1-9 | EscapeSequence ] \'
 
-	...	
 ```

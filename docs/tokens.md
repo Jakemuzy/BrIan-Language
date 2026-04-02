@@ -36,11 +36,16 @@
 | U16 | U16 | Unsigned 16 Byte Type |
 | U32 | U32 | Unsigned 32 Byte Type |
 | U64 | U64 | Unsigned 64 Byte Type |
+| mutex | MUTEX | Mutex Type |
+| semaphore | SEMAPHORE | Semaphore Type |
+| task | TASK | Task Type |
+| chan | CHANNEL | Channel Type |
 |---|---|---|
 | enum | ENUM | Enum Type Keyword |
 | struct | STRUCT | Struct Type Keyword |
 | typedef | TYPEDEF | Typdef Type Keyword |
 | interface | INTERFACE | Struct Interface Keyword |
+| operator | OPERATOR | Operator Overload Keyword |
 | lambda | LAMBDA | Anonymous Function Keyword |
 |---|---|---|
 | true | TRUE | True Predefined Var |
@@ -62,7 +67,7 @@
 | %= | MODEQ | Modulus Equal Operator |
 | &= | ANDEQ | And Equal Operator |
 | |= | OREQ | Or Equal Operator |
-| &&= | ANDEQ | Logical And Operator |
+| &&= | ANDLEQ | Logical And Operator |
 | ||= | ORLEQ | Logical Or Equal Operator |
 | ~= | NEGEQ | Negate Equal Operator |
 | ^= | XOREQ | Xor Equal Operator |
@@ -95,9 +100,7 @@
 | << | LSHIFT | Left Shift Bitwise Operator |
 | >> | RSHIFT | Right Shift Bitwise Operator |
 |---|---|---|
-| @ | AT | Vector Dot Product Operator |
-| inverse | INV | Vector Inverse Operator |    
-| transpose | TRANS | Vector Transpose Operator |    
+| @ | DOTPROD | Vector Dot Product Operator |
 |---|---|---|
 | ? | QUESTION | Ternary Operator |
 | : | COLON | Ternary Operator |
@@ -121,6 +124,11 @@
 | # | HASH | Preprocessor Directive |
 | /* { . } */ | COMMENT | Comment |
 | // { . } \n | COMMENT | Comment |
+|---|---|---|
+| import | IMPORT | Import Directive Keyword |
+| endif | ENDIF | Endif Directive Keyword |
+| pragma | PRAGMA | Pragma Directive Keyword |
+| error | ERROR | ERROR Directive Keyword |
 |---|---|---|
 | \n | NEWLINE | New Line Whitespace |
 | \t | TAB | Tab Whitespace |
