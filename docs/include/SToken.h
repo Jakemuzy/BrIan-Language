@@ -31,9 +31,6 @@ typedef enum {
     /* Custom Types Keywords */
     ENUM, STRUCT, TYPEDEF, INTERFACE, OPERATOR, LAMBDA,
 
-    /* Preprocessor Directive Keywords */
-    IMPORT, ENDIF, PRAGMA, ERROR, 
-
     /* Predefined Types */
     TRUE, FALSE, NILL,
 
@@ -52,7 +49,7 @@ typedef enum {
     EQQ, NEQQ, GEQQ, LEQQ, NOT, ANDL, ORL, GREAT, LESS,
 
     /* Bitwise Operators */
-    NEG, XOR, OR, AND, LSHFIT, RSHIFT,
+    NEG, XOR, OR, AND, LSHIFT, RSHIFT,
 
     /* Structures Operators */
     SREF, SMEM, REF, MEM,
@@ -110,8 +107,6 @@ static const KeywordTypePair KEYWORD_MAP[378] = {
     [20]  = {"const", CONST},  [73]  = {"static", STATIC},
     [341] = {"volatile", VOLATILE}, [160] = {"inline", INLINE},
     [348] = {"atomic", ATOMIC}, [95]  = {"extern", EXTERN},
-    [280] = {"import", IMPORT}, [329] = {"endif", ENDIF},
-    [247] = {"pragma", PRAGMA}, [265] = {"error", ERROR},
 };
 
 int KeywordHash(const char* word);

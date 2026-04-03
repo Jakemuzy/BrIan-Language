@@ -33,10 +33,11 @@ void LoadBuffer(TokenizerContext* ctx, int bufferNum)
 
 void RetractBuffer(TokenizerContext* ctx, char* pos) 
 {
-    while (ctx->forward != pos)
+    while (ctx->forward != pos) {
         ctx->forward--;
         if (*ctx->forward == '\0')  
             ctx->forward--;
+    }
 }
 
 char AdvanceBuffer(TokenizerContext* ctx)
@@ -75,14 +76,6 @@ Token ExtractTokenFromBuffer(TokenizerContext* ctx)
     return (Token) {ERR, ctx->row, ctx->col, lexeme, lexLength};
 }
 
-/* ----- Table Driven DFA ----- */
-
-bool IsAcceptState(int c)
-{
-    for (size_t i = 0; i < sizeof(ACCEPT_STATES) / sizeof(int); i++)
-        if (c == ACCEPT_STATES[i]) return true;
-    return false;
-}
 
 /* ----- Function Driven DFA ----- */
 
@@ -107,39 +100,44 @@ Token GetNextToken(TokenizerContext* ctx)
 
 int SkipWhitespace(TokenizerContext* ctx) 
 {
-    int c = ' ';
-    while (isspace(c)) c = AdvanceBuffer(ctx);
+    int c = AdvanceBuffer(ctx);
+    while (isspace(c)) {
+        ctx->col++;
+        if (c == '\n') { ctx->row++; ctx->col = 0; }
+
+        ctx->lexemeBegin = ctx->forward;  
+        c = AdvanceBuffer(ctx);
+    }
+
+    RetractBuffer(ctx, ctx->forward - 1);
     return c;
 }
 
 Token ScanOperator(TokenizerContext* ctx)
 {
     int c;
-    int current = 1, lastAccept = -1;
-    char* lastAcceptPos = NULL;
-   
+    int current = 1, lastAccept = 0;
+    char* lastAcceptPos = ctx->forward;
+  
     while (current != 0) {
-        int c = AdvanceBuffer(ctx);
-        current = TABLE_DFA[current][(unsigned int)c];
+        c = AdvanceBuffer(ctx);
+        if (c == EOF) break;
 
-        if (c == '\n') { ctx->row++; ctx->col = 0; }
-        else ctx->col++;
+        CharClass cc = CHAR_MAP[c];
+        current = TABLE_DFA[current][(unsigned int)cc];
 
-        if (IsAcceptState(current)) {
+        if (ACCEPT_STATES[current] != ERR) {
             lastAccept = current;
             lastAcceptPos = ctx->forward;
         }
     }
 
-    // Retract to last accept pos 
-    if (lastAccept == -1) { printf("Invalid Table DFA\n"); abort(); }
-    if (current != lastAccept) {
-        ctx->forward = lastAcceptPos;
-        if (*ctx->forward == '\0') ctx->forward--;
-    }
+    if (lastAccept == 0) { printf("Invalid Table DFA\n"); abort(); }
+    RetractBuffer(ctx, lastAcceptPos);
 
     Token tok = ExtractTokenFromBuffer(ctx);
     tok.type = ACCEPT_STATES[lastAccept];
+    ctx->col += tok.lexLength;
     return tok;
 }
 
@@ -165,7 +163,7 @@ Token ScanCharacter(TokenizerContext* ctx)
 
 Token ScanIdentOrKeyword(TokenizerContext* ctx)
 {
-    int c = AdvanceBuffer(ctx);
+    int c = '_';
     while (isalpha((unsigned int)c) || isdigit((unsigned int)c) || c == '_') 
         c = AdvanceBuffer(ctx);
     RetractBuffer(ctx, ctx->forward - 1);    

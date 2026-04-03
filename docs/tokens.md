@@ -125,10 +125,10 @@
 | /* { . } */ | COMMENT | Comment |
 | // { . } \n | COMMENT | Comment |
 |---|---|---|
-| import | IMPORT | Import Directive Keyword |
-| endif | ENDIF | Endif Directive Keyword |
-| pragma | PRAGMA | Pragma Directive Keyword |
-| error | ERROR | ERROR Directive Keyword |
+| import | - | Import Directive Keyword |
+| endif | - | Endif Directive Keyword |
+| pragma | - | Pragma Directive Keyword |
+| error | - | ERROR Directive Keyword |
 |---|---|---|
 | \n | NEWLINE | New Line Whitespace |
 | \t | TAB | Tab Whitespace |

@@ -14,15 +14,12 @@ lock
 critical
 spawn
 await
-sizeof
 char
 bool
 int
 float
 double
 long
-void
-string
 i8
 i16
 i32
@@ -35,6 +32,8 @@ mutex
 semaphore
 task
 chan
+void
+string
 enum
 struct
 typedef
@@ -91,6 +90,7 @@ extern
 ?
 :
 ->?
+sizeof
 .?
 ->
 .
