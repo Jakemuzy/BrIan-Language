@@ -10,8 +10,8 @@
 | case | CASE | Case Keyword |
 | default | DEFAULT | Default Keyword |
 | break | BREAK | Break Keyword |
-| continue | CONT | Continue Keyword |
-| return | RET | Return Keyword |
+| continue | CONTINUE | Continue Keyword |
+| return | RETURN | Return Keyword |
 |---|---|---|
 | lock | LOCK | Lock Keyword |
 | critical | CRITICAL | Critical Keyword | 
@@ -28,14 +28,14 @@
 | long | LONG | Long Type |
 | void | VOID | Void Type |
 | string | STRING | String Type |
-| I8 | I8 | Signed 8 Byte Type |
-| I16 | I16 | Signed 16 Byte Type |
-| I32 | I32 | Signed 32 Byte Type |
-| I64 | I64 | Signed 64 Byte Type |
-| U8 | U8 | Unsigned 8 Byte Type |
-| U16 | U16 | Unsigned 16 Byte Type |
-| U32 | U32 | Unsigned 32 Byte Type |
-| U64 | U64 | Unsigned 64 Byte Type |
+| i8 | I8 | Signed 8 Byte Type |
+| i16 | I16 | Signed 16 Byte Type |
+| i32 | I32 | Signed 32 Byte Type |
+| i64 | I64 | Signed 64 Byte Type |
+| u8 | U8 | Unsigned 8 Byte Type |
+| u16 | U16 | Unsigned 16 Byte Type |
+| u32 | U32 | Unsigned 32 Byte Type |
+| u64 | U64 | Unsigned 64 Byte Type |
 | mutex | MUTEX | Mutex Type |
 | semaphore | SEMAPHORE | Semaphore Type |
 | task | TASK | Task Type |
@@ -50,7 +50,7 @@
 |---|---|---|
 | true | TRUE | True Predefined Var |
 | false | FALSE | False Predefined Var |
-| NULL | NILL | Null Predefined Var |
+| null | NILL | Null Predefined Var |
 |---|---|---|
 | const | CONST | Const Type Qualifier |
 | static | STATIC | Static Type Qualifier |

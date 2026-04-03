@@ -31,6 +31,14 @@ void LoadBuffer(TokenizerContext* ctx, int bufferNum)
     fread(buffer, sizeof(char), TOKENIZER_BUFFER_SIZE-1, ctx->fptr);
 }
 
+void RetractBuffer(TokenizerContext* ctx, char* pos) 
+{
+    while (ctx->forward != pos)
+        ctx->forward--;
+        if (*ctx->forward == '\0')  
+            ctx->forward--;
+}
+
 char AdvanceBuffer(TokenizerContext* ctx)
 {
     if (*ctx->forward == TOKENIZER_SENTINEL) {
@@ -47,6 +55,24 @@ char AdvanceBuffer(TokenizerContext* ctx)
         }
     }
     return *ctx->forward++;
+}
+
+Token ExtractTokenFromBuffer(TokenizerContext* ctx)
+{
+    size_t lexLength = ctx->forward - ctx->lexemeBegin;
+    char* lexeme = malloc(lexLength + 1);
+    memcpy(lexeme, ctx->lexemeBegin, lexLength);
+    lexeme[lexLength] = '\0';
+
+    ctx->lexemeBegin = ctx->forward;
+
+    if (lexLength >= TOKENIZER_BUFFER_SIZE) {
+        printf("ERROR: Identifier is too long \n");
+        abort();
+    }
+
+    /* Caller fills TokenType */
+    return (Token) {ERR, ctx->row, ctx->col, lexeme, lexLength};
 }
 
 /* ----- Table Driven DFA ----- */
@@ -77,11 +103,6 @@ Token GetNextToken(TokenizerContext* ctx)
         case (CC_DOUBLE_QUOTE): return ScanString(ctx);
         default: return ScanOperator(ctx);
     }
-    /* Table driven */
-
-    /* Function Driven */
-
-    /* Keyword Map For Rest */
 }
 
 int SkipWhitespace(TokenizerContext* ctx) 
@@ -110,45 +131,46 @@ Token ScanOperator(TokenizerContext* ctx)
         }
     }
 
+    // Retract to last accept pos 
     if (lastAccept == -1) { printf("Invalid Table DFA\n"); abort(); }
     if (current != lastAccept) {
         ctx->forward = lastAcceptPos;
         if (*ctx->forward == '\0') ctx->forward--;
     }
 
-    size_t lexLength = ctx->forward - ctx->lexemeBegin;
-    char lexeme[lexLength + 1];
-    strncpy(lexeme, ctx->lexemeBegin, lexLength);
-    lexeme[lexLength] = '\0';
-
-    ctx->lexemeBegin = ctx->forward;
-    return (Token) {ACCEPT_STATES[lastAccept], ctx->row, ctx->col, lexeme, lexLength};
+    Token tok = ExtractTokenFromBuffer(ctx);
+    tok.type = ACCEPT_STATES[lastAccept];
+    return tok;
 }
 
 Token ScanDirective(TokenizerContext* ctx)
 {
-
+    return (Token) {ERR, -1, -1, "", 0};
 }
 
 Token ScanNumber(TokenizerContext* ctx)
 {
-
+    return (Token) {ERR, -1, -1, "", 0};
 }
 
 Token ScanString(TokenizerContext* ctx)
 {
-
+    return (Token) {ERR, -1, -1, "", 0};
 }
 
 Token ScanCharacter(TokenizerContext* ctx)
 {
-
+    return (Token) {ERR, -1, -1, "", 0};
 }
 
 Token ScanIdentOrKeyword(TokenizerContext* ctx)
 {
+    int c = AdvanceBuffer(ctx);
+    while (isalpha((unsigned int)c) || isdigit((unsigned int)c) || c == '_') 
+        c = AdvanceBuffer(ctx);
+    RetractBuffer(ctx, ctx->forward - 1);    
 
-{
-
-}
+    Token tok = ExtractTokenFromBuffer(ctx);
+    tok.type = KeywordLookup(tok.lexeme);
+    return tok;
 }

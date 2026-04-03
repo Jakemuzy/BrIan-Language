@@ -1,5 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/compiler.dir/link.d"
+  "CMakeFiles/compiler.dir/src/Token.c.o"
+  "CMakeFiles/compiler.dir/src/Token.c.o.d"
   "CMakeFiles/compiler.dir/src/Tokenizer.c.o"
   "CMakeFiles/compiler.dir/src/Tokenizer.c.o.d"
   "CMakeFiles/compiler.dir/src/main.c.o"

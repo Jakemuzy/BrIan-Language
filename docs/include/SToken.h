@@ -2,8 +2,11 @@
 #define _BRIAN_TOKEN_H_
 
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 #define TOKEN_MAX_LENGTH 4
+#define MAX_KW_HASH 378
 
 /*   BrIan Tokens and TokenTypes 
     ----------------------------
@@ -17,7 +20,7 @@ typedef enum {
     CASE, DEFAULT, BREAK, CONTINUE, RETURN,
 
     /* Concurrency Keywords */
-    LOCK, CRITICAl, SPAWN, AWAIT, 
+    LOCK, CRITICAL, SPAWN, AWAIT, 
 
     /* Data Type Keywords */
     CHAR, BOOL, INT, FLOAT, DOUBLE, LONG, 
@@ -55,10 +58,13 @@ typedef enum {
     SREF, SMEM, REF, MEM,
 
     /* Other Operators */
-    DOTPROD, QUESTION, COLON, SEND, SEMI, COMMA, HASH,
+    SIZEOF, DOTPROD, QUESTION, COLON, SEND, SEMI, COMMA, HASH,
 
     /* Brackets */
     LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE, 
+
+    /* Idenifiers */
+    IDENT, 
 
     /* Errors */
     NA, ERR
@@ -72,5 +78,44 @@ typedef struct {
     char* lexeme;
     size_t lexLength;
 } Token;
+
+/* ----- Keyword Map ----- */
+
+// Each value of the string is added together and 
+typedef struct { char* str; TokenType type; } KeywordTypePair;
+static const KeywordTypePair KEYWORD_MAP[378] = {
+    [76]  = {"if", IF},        [173] = {"elif", ELIF},
+    [6]   = {"else", ELSE},    [170] = {"do", DO},
+    [82]  = {"while", WHILE},  [192] = {"for", FOR},
+    [255] = {"switch", SWITCH},[203] = {"case", CASE},
+    [102] = {"default", DEFAULT},[106] = {"break", BREAK},
+    [116] = {"continue", CONTINUE},[257] = {"return", RETURN},
+    [300] = {"lock", LOCK},    [250] = {"critical", CRITICAL},
+    [54]  = {"spawn", SPAWN},  [41]  = {"await", AWAIT},
+    [37]  = {"sizeof", SIZEOF},[39]  = {"char", CHAR},
+    [201] = {"bool", BOOL},    [128] = {"int", INT},
+    [27]  = {"float", FLOAT},  [208] = {"double", DOUBLE},
+    [283] = {"long", LONG},    [243] = {"void", VOID},
+    [358] = {"string", STRING},[148] = {"i8", I8},
+    [11]  = {"i16", I16},      [235] = {"i32", I32},
+    [18]  = {"i64", I64},      [326] = {"u8", U8},
+    [99]  = {"u16", U16},      [61]  = {"u32", U32},
+    [338] = {"u64", U64},      [262] = {"mutex", MUTEX},
+    [269] = {"semaphore", SEMAPHORE}, [284] = {"task", TASK},
+    [17]  = {"chan", CHANNEL},  [230] = {"enum", ENUM},
+    [136] = {"struct", STRUCT}, [178] = {"typedef", TYPEDEF},
+    [90]  = {"interface", INTERFACE}, [375] = {"operator", OPERATOR},
+    [200] = {"lambda", LAMBDA}, [9]   = {"true", TRUE},
+    [366] = {"false", FALSE},   [2]   = {"null", NILL},
+    [20]  = {"const", CONST},  [73]  = {"static", STATIC},
+    [341] = {"volatile", VOLATILE}, [160] = {"inline", INLINE},
+    [348] = {"atomic", ATOMIC}, [95]  = {"extern", EXTERN},
+    [280] = {"import", IMPORT}, [329] = {"endif", ENDIF},
+    [247] = {"pragma", PRAGMA}, [265] = {"error", ERROR},
+};
+
+int KeywordHash(const char* word);
+TokenType KeywordLookup(const char* word);
+
 
 #endif

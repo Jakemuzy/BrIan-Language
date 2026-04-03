@@ -129,6 +129,30 @@ compiler/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/build
 .PHONY : compiler/fast
 
+src/Token.o: src/Token.c.o
+.PHONY : src/Token.o
+
+# target to build an object file
+src/Token.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Token.c.o
+.PHONY : src/Token.c.o
+
+src/Token.i: src/Token.c.i
+.PHONY : src/Token.i
+
+# target to preprocess a source file
+src/Token.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Token.c.i
+.PHONY : src/Token.c.i
+
+src/Token.s: src/Token.c.s
+.PHONY : src/Token.s
+
+# target to generate assembly for a file
+src/Token.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Token.c.s
+.PHONY : src/Token.c.s
+
 src/Tokenizer.o: src/Tokenizer.c.o
 .PHONY : src/Tokenizer.o
 
@@ -186,6 +210,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... compiler"
+	@echo "... src/Token.o"
+	@echo "... src/Token.i"
+	@echo "... src/Token.s"
 	@echo "... src/Tokenizer.o"
 	@echo "... src/Tokenizer.i"
 	@echo "... src/Tokenizer.s"
