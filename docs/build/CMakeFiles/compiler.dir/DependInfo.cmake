@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Token.c" "CMakeFiles/compiler.dir/src/Token.c.o" "gcc" "CMakeFiles/compiler.dir/src/Token.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c" "CMakeFiles/compiler.dir/src/Tokenizer.c.o" "gcc" "CMakeFiles/compiler.dir/src/Tokenizer.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/main.c" "CMakeFiles/compiler.dir/src/main.c.o" "gcc" "CMakeFiles/compiler.dir/src/main.c.o.d"
   "" "compiler" "gcc" "CMakeFiles/compiler.dir/link.d"

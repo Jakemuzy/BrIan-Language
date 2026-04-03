@@ -40,8 +40,9 @@ TokenizerContext* InitalizeTokenizerContext(FILE* fptr);
 void DestroyTokenizerContext(TokenizerContext* ctx);
 
 void LoadBuffer(TokenizerContext* ctx, int bufferNum);
-void RetractBuffer(TokenizerContext* ctx);
+void RetractBuffer(TokenizerContext* ctx, char* pos);
 char AdvanceBuffer(TokenizerContext* ctx);
+Token ExtractTokenFromBuffer(TokenizerContext* ctx);
 
 /* ----- Table Driven DFA ----- */
 
