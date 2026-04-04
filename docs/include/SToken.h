@@ -5,7 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#define TOKEN_MAX_LENGTH 4
+/* 1 Less than buffer tokenizer buffer size */
+#define TOKEN_MAX_LENGTH 511
 #define MAX_KW_HASH 378
 
 /*   BrIan Tokens and TokenTypes 
@@ -60,11 +61,11 @@ typedef enum {
     /* Brackets */
     LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE, 
 
-    /* Idenifiers */
-    IDENT, 
+    /* Idenifiers and Literals */
+    IDENT, SLITERAL, CLITERAL, REAL, INTEGRAL,
 
-    /* Errors */
-    NA, ERR
+    /* Others */
+    DIRECTIVE, COMMENT, NA, ERR, END
 
 } TokenType;
 

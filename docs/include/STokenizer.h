@@ -100,7 +100,7 @@ static const int TABLE_DFA[][CC_COUNT] = {
     { [CC_EQUALS] = 27, [CC_PLUS] = 28 }, // +
     { [CC_EQUALS] = 29, [CC_MINUS] = 30, [CC_RANGLE] = 31 }, // -
     { [CC_EQUALS] = 32, [CC_MULT] = 33 }, // *
-    { [CC_EQUALS] = 34 }, // / Maybe comments here?
+    { [CC_EQUALS] = 34 }, // /
     { [CC_EQUALS] = 35 }, // %
     { [CC_EQUALS] = 36 }, // =
     { [CC_EQUALS] = 37, [CC_AND] = 38 }, // &
@@ -158,10 +158,11 @@ static const int ACCEPT_STATES[] = {
     [8] = AND, [9] = OR, [10] = NEG, [11] = XOR, [12] = GREAT, [13] = LESS,
     [14] = LBRACE, [15] = RBRACE, [16] = LPAREN, [17] = RPAREN, [18] = LBRACK, [19] = RBRACK,
     [20] = MEM, [21] = DOTPROD, [22] = COLON, [23] = SEMI, [24] = QUESTION, [25] = NOT,
-    [26] = COMMA, [27] = PEQ, [28] = INC, [29] = SEQ, [30] = DEC, [31] = MEQ, [32] = POW,
-    [33] = REF, [34] = DEQ, [35] = MODEQ, [36] = EQQ, [37] = ANDEQ, [38] = ANDL, [39] = OREQ,
+    [26] = COMMA, [27] = PEQ, [28] = INC, [29] = SEQ, [30] = DEC, [31] = REF, [32] = MEQ, 
+    [33] = POW, [34] = DEQ, [35] = MODEQ, [36] = EQQ, [37] = ANDEQ, [38] = ANDL, [39] = OREQ,
     [40] = ORL, [41] = NEGEQ, [42] = XOREQ, [43] = GEQQ, [44] = RSHIFT, [45] = LEQQ, [46] = LSHIFT,
-    [47] = SEND, [48] = SMEM, [49] = NEQQ, [50] = SREF, [51] = ANDLEQ, [52] = RIGHTEQ, [53] = LEFTEQ
+    [47] = SEND, [48] = SMEM, [49] = NEQQ, [50] = SREF, [51] = ANDLEQ, [52] = ORLEQ,
+    [53] = RIGHTEQ, [54] = LEFTEQ
 };
 
 
@@ -170,6 +171,7 @@ static const int ACCEPT_STATES[] = {
 Token GetNextToken(TokenizerContext* ctx);
 
 int SkipWhitespace(TokenizerContext* ctx);
+Token SkipComment(TokenizerContext* ctx);
 Token ScanOperator(TokenizerContext* ctx);
 Token ScanDirective(TokenizerContext* ctx);
 Token ScanNumber(TokenizerContext* ctx);

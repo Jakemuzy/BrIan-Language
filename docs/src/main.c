@@ -8,8 +8,9 @@ int main(int argc, char* argv[]) {
 
     TokenizerContext* ctx = InitalizeTokenizerContext(fptr);
     Token tok;
-    while ( (tok = GetNextToken(ctx)).type != ERR)
+    while ( (tok = GetNextToken(ctx)).type != ERR && tok.type != END)
         printf("Token: %s\tRow: %d\tCol:%d\tTokNum: %d\n", tok.lexeme, tok.row, tok.col, tok.type);
+    DestroyTokenizerContext(ctx);
 
     return 0;
 }
