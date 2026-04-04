@@ -5,7 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#define TOKEN_MAX_LENGTH 4
+/* 1 Less than buffer tokenizer buffer size */
+#define TOKEN_MAX_LENGTH 511
 #define MAX_KW_HASH 378
 
 /*   BrIan Tokens and TokenTypes 
@@ -31,9 +32,6 @@ typedef enum {
     /* Custom Types Keywords */
     ENUM, STRUCT, TYPEDEF, INTERFACE, OPERATOR, LAMBDA,
 
-    /* Preprocessor Directive Keywords */
-    IMPORT, ENDIF, PRAGMA, ERROR, 
-
     /* Predefined Types */
     TRUE, FALSE, NILL,
 
@@ -52,7 +50,7 @@ typedef enum {
     EQQ, NEQQ, GEQQ, LEQQ, NOT, ANDL, ORL, GREAT, LESS,
 
     /* Bitwise Operators */
-    NEG, XOR, OR, AND, LSHFIT, RSHIFT,
+    NEG, XOR, OR, AND, LSHIFT, RSHIFT,
 
     /* Structures Operators */
     SREF, SMEM, REF, MEM,
@@ -63,11 +61,11 @@ typedef enum {
     /* Brackets */
     LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE, 
 
-    /* Idenifiers */
-    IDENT, 
+    /* Idenifiers and Literals */
+    IDENT, SLITERAL, CLITERAL, REAL, INTEGRAL,
 
-    /* Errors */
-    NA, ERR
+    /* Others */
+    DIRECTIVE, COMMENT, NA, ERR, END
 
 } TokenType;
 
@@ -110,8 +108,6 @@ static const KeywordTypePair KEYWORD_MAP[378] = {
     [20]  = {"const", CONST},  [73]  = {"static", STATIC},
     [341] = {"volatile", VOLATILE}, [160] = {"inline", INLINE},
     [348] = {"atomic", ATOMIC}, [95]  = {"extern", EXTERN},
-    [280] = {"import", IMPORT}, [329] = {"endif", ENDIF},
-    [247] = {"pragma", PRAGMA}, [265] = {"error", ERROR},
 };
 
 int KeywordHash(const char* word);

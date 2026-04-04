@@ -61,11 +61,11 @@
 * Callee and Caller needs to be specified, otherwise return function won't have any idea of where are what its returning
 
 ## Tokenizer
-* Line numbers are handled in a fragile and confusing manner
-* Needs to track columns
-* Keywords are analyzed via a weird map system
-* State should not be global or mutable
-* Don't use macros for getting characters 
+* Line numbers are handled in a fragile and confusing manner X
+* Needs to track columns X
+* Keywords are analyzed via a weird map system X
+* State should not be global or mutable X
+* Don't use macros for getting characters X
 * Lexeme never frees ( memory leak )
 * Lexeme grows unbounded, MAX_LEXEME exists but a single token can expand past this 
 * No bounds checking for updating lexeme

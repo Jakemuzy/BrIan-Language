@@ -12,7 +12,6 @@ int KeywordHash(const char* word) {
 TokenType KeywordLookup(const char* word)
 {
     int hash = KeywordHash(word);
-    printf("%s\t%d\n", word, hash);
     if (hash > MAX_KW_HASH) return IDENT;
 
     KeywordTypePair pair = KEYWORD_MAP[hash];
