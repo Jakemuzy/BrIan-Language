@@ -5,12 +5,12 @@
 * Give steps on how to build
 * Convert to using cmake instead of bash X
 * Use a dedicated tools for test cases
-* Use clang instead of gcc ( llvm support )
-* Run the program with werror, wall, wextra
+* Use clang instead of gcc ( llvm support ) X
+* Run the program with werror, wall, wextra X
 * Give solutions on how BrIan fixes C pain points in the documentation
-* Concurrency design needs to be accounted for both in the compiler code and the language semantics
-* Interactions between qualifiers not specified
-* Remove signed and unsigned type qualifiers
+* Concurrency design needs to be accounted for both in the compiler code and the language semantics 
+* Interactions between qualifiers not specified 
+* Remove signed and unsigned type qualifiers X
 
 ## Pipeline Interactions
 * Once typechecker finished, namespaces aren't used again (discared), although this works since type is stored in the symbol, it could lead to issues in later steps
@@ -52,6 +52,9 @@
 * Erroring should have a recovery system
 * Warnings should also be allowed 
 * Maybe have an enum for ERROR_TYPE, and pass that as well as multiple flags casted to void* for variadic error message handling
+* Maybe have the context of the program in a stateful function, and call the function
+The function will also have a section called Cleanup() where is frees all the memory that was allocated
+and upon an abort or exit error that function will be called.
 
 ## General Design
 * Need to think of how strings will work for embedded systems (don't want just pointers)
@@ -69,13 +72,13 @@
 * Lexeme never frees ( memory leak )
 * Lexeme grows unbounded, MAX_LEXEME exists but a single token can expand past this 
 * No bounds checking for updating lexeme
-* Should use state machine instead of if-else chain 
-* Comments are not handled elegantly block comments bug out sometimes 
+* Should use state machine instead of if-else chain X
+* Comments are not handled elegantly block comments bug out sometimes X
 * Escape characters ( \n \t etc ) are not handled X
-* Comments are discarded here 
-* DFA table for operators, hash map for keywords, manual for rest
-* Buffer size of 4096 bytes to reduce syscalls overhead 
-* Double buffer system 
+* Comments are discarded here X
+* DFA table for operators, hash map for keywords, manual for restX
+* Buffer size of 4096 bytes to reduce syscalls overhead X
+* Double buffer system X
 
 ## Preprocessor
 * Resolve typedefs ( prevents delayed custom type checking )

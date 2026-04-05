@@ -8,6 +8,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Compiler.c" "CMakeFiles/compiler.dir/src/Compiler.c.o" "gcc" "CMakeFiles/compiler.dir/src/Compiler.c.o.d"
+  "/home/jmuzy/Programming/C/BrIan-Language/docs/src/ErrorHandler.c" "CMakeFiles/compiler.dir/src/ErrorHandler.c.o" "gcc" "CMakeFiles/compiler.dir/src/ErrorHandler.c.o.d"
+  "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c" "CMakeFiles/compiler.dir/src/Parser.c.o" "gcc" "CMakeFiles/compiler.dir/src/Parser.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Token.c" "CMakeFiles/compiler.dir/src/Token.c.o" "gcc" "CMakeFiles/compiler.dir/src/Token.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c" "CMakeFiles/compiler.dir/src/Tokenizer.c.o" "gcc" "CMakeFiles/compiler.dir/src/Tokenizer.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/main.c" "CMakeFiles/compiler.dir/src/main.c.o" "gcc" "CMakeFiles/compiler.dir/src/main.c.o.d"
