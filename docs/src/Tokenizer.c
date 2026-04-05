@@ -1,4 +1,4 @@
-#include "STokenizer.h"
+#include "Tokenizer.h"
 
 /* ----- Double Buffered Context ----- */
 
@@ -69,18 +69,12 @@ Token ExtractTokenFromBuffer(TokenizerContext* ctx)
 
     ctx->lexemeBegin = ctx->forward;
 
-    if (lexLength >= TOKEN_MAX_LENGTH) {
-        printf("ERROR: Identifier is limited to %d characters\n", TOKEN_MAX_LENGTH);
-        abort();
-    }
+    if (lexLength >= TOKEN_MAX_LENGTH) 
+        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, UNKNOWN_ERR, "Identifier is limited to %d", TOKEN_MAX_LENGTH);
 
     /* Caller fills TokenType */
     return (Token) {ERR, ctx->row, ctx->col, lexeme, lexLength};
 }
-
-
-/* ----- Function Driven DFA ----- */
-
 
 /* ----- Tokenization ----- */
 
@@ -92,8 +86,7 @@ Token GetNextToken(TokenizerContext* ctx)
 
 
     switch (class) {
-        /* Error likely eof */
-        case (CC_ERROR): printf("Invalid character found"); abort();
+        case (CC_ERROR): ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, UNKNOWN_ERR, "Unknown character discovered %c on line %d row %d\n", c, ctx->row, ctx->col - 1);
         case (CC_DIGIT): return ScanNumber(ctx);
         case (CC_ALPHA): return ScanIdentOrKeyword(ctx);
         case (CC_HASH): return ScanDirective(ctx);
@@ -157,10 +150,10 @@ int SkipWhitespace(TokenizerContext* ctx)
 Token ScanOperator(TokenizerContext* ctx)
 {
     int c;
-    int current = 1, lastAccept = 0;
+    int current = 1, lastAccept = DFA_ERROR_STATE;
     char* lastAcceptPos = ctx->forward;
   
-    while (current != 0) {
+    while (current != DFA_ERROR_STATE) {
         c = AdvanceBuffer(ctx);
         if (c == EOF) break;
 
@@ -173,7 +166,9 @@ Token ScanOperator(TokenizerContext* ctx)
         }
     }
 
-    if (lastAccept == 0) { printf("Invalid Table DFA\n"); abort(); }
+    if (lastAccept == DFA_ERROR_STATE) 
+        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, UNKNOWN_ERR, "Invalid operator discovered %s  on line %d row %d\n", c, ctx->row, ctx->col);
+
     RetractBuffer(ctx, lastAcceptPos);
 
     Token tok = ExtractTokenFromBuffer(ctx);
@@ -199,7 +194,6 @@ Token ScanNumber(TokenizerContext* ctx)
     int c = AdvanceBuffer(ctx);
     bool isReal = false;
 
-    if (!isdigit(c)) { printf("Invalid number\n"); abort(); }
     while (isdigit(c)) c = AdvanceBuffer(ctx);
 
     if (c == '.') {

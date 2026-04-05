@@ -1,4 +1,4 @@
-#include "SToken.h"
+#include "Token.h"
 
 int KeywordHash(const char* word) {
     unsigned int h = 2166136261u;

@@ -129,6 +129,78 @@ compiler/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/build
 .PHONY : compiler/fast
 
+src/Compiler.o: src/Compiler.c.o
+.PHONY : src/Compiler.o
+
+# target to build an object file
+src/Compiler.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Compiler.c.o
+.PHONY : src/Compiler.c.o
+
+src/Compiler.i: src/Compiler.c.i
+.PHONY : src/Compiler.i
+
+# target to preprocess a source file
+src/Compiler.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Compiler.c.i
+.PHONY : src/Compiler.c.i
+
+src/Compiler.s: src/Compiler.c.s
+.PHONY : src/Compiler.s
+
+# target to generate assembly for a file
+src/Compiler.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Compiler.c.s
+.PHONY : src/Compiler.c.s
+
+src/ErrorHandler.o: src/ErrorHandler.c.o
+.PHONY : src/ErrorHandler.o
+
+# target to build an object file
+src/ErrorHandler.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/ErrorHandler.c.o
+.PHONY : src/ErrorHandler.c.o
+
+src/ErrorHandler.i: src/ErrorHandler.c.i
+.PHONY : src/ErrorHandler.i
+
+# target to preprocess a source file
+src/ErrorHandler.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/ErrorHandler.c.i
+.PHONY : src/ErrorHandler.c.i
+
+src/ErrorHandler.s: src/ErrorHandler.c.s
+.PHONY : src/ErrorHandler.s
+
+# target to generate assembly for a file
+src/ErrorHandler.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/ErrorHandler.c.s
+.PHONY : src/ErrorHandler.c.s
+
+src/Parser.o: src/Parser.c.o
+.PHONY : src/Parser.o
+
+# target to build an object file
+src/Parser.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Parser.c.o
+.PHONY : src/Parser.c.o
+
+src/Parser.i: src/Parser.c.i
+.PHONY : src/Parser.i
+
+# target to preprocess a source file
+src/Parser.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Parser.c.i
+.PHONY : src/Parser.c.i
+
+src/Parser.s: src/Parser.c.s
+.PHONY : src/Parser.s
+
+# target to generate assembly for a file
+src/Parser.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Parser.c.s
+.PHONY : src/Parser.c.s
+
 src/Token.o: src/Token.c.o
 .PHONY : src/Token.o
 
@@ -210,6 +282,15 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... compiler"
+	@echo "... src/Compiler.o"
+	@echo "... src/Compiler.i"
+	@echo "... src/Compiler.s"
+	@echo "... src/ErrorHandler.o"
+	@echo "... src/ErrorHandler.i"
+	@echo "... src/ErrorHandler.s"
+	@echo "... src/Parser.o"
+	@echo "... src/Parser.i"
+	@echo "... src/Parser.s"
 	@echo "... src/Token.o"
 	@echo "... src/Token.i"
 	@echo "... src/Token.s"

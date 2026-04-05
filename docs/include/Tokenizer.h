@@ -7,10 +7,12 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "SToken.h"
+#include "ErrorHandler.h"
+#include "Token.h"
 
 #define TOKENIZER_BUFFER_SIZE 512
 #define TOKENIZER_SENTINEL '\0'
+#define DFA_ERROR_STATE 0
 
 /*         BrIan Tokenizer
     ----------------------------
