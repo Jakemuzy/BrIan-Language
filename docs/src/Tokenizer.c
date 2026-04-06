@@ -70,7 +70,7 @@ Token ExtractTokenFromBuffer(TokenizerContext* ctx)
     ctx->lexemeBegin = ctx->forward;
 
     if (lexLength >= TOKEN_MAX_LENGTH) 
-        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, UNKNOWN_ERR, "Identifier is limited to %d", TOKEN_MAX_LENGTH);
+        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Identifier is limited to %d", TOKEN_MAX_LENGTH);
 
     /* Caller fills TokenType */
     return (Token) {ERR, ctx->row, ctx->col, lexeme, lexLength};
@@ -86,7 +86,7 @@ Token GetNextToken(TokenizerContext* ctx)
 
 
     switch (class) {
-        case (CC_ERROR): ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, UNKNOWN_ERR, "Unknown character discovered %c on line %d row %d\n", c, ctx->row, ctx->col - 1);
+        case (CC_ERROR): ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Unknown character discovered %c on line %d row %d\n", c, ctx->row, ctx->col - 1);
         case (CC_DIGIT): return ScanNumber(ctx);
         case (CC_ALPHA): return ScanIdentOrKeyword(ctx);
         case (CC_HASH): return ScanDirective(ctx);
@@ -106,17 +106,16 @@ Token SkipComment(TokenizerContext* ctx)
     if (c == '/') {
         c = AdvanceBuffer(ctx);
         if (c == '/') {
-            while (c != '\n') {
+            while (c != '\n' && c != EOF) 
                 c = AdvanceBuffer(ctx);
-                if (c == EOF) { printf("EOF reached before comment end\n"); abort(); }
-            }
             ctx->lexemeBegin = ctx->forward;
             return GetNextToken(ctx);
         }
         else if (c == '*') {
             int last = ' ';
             while (!(c == '/' && last == '*')) {
-                if (c == EOF) { printf("EOF reached before comment end\n"); abort(); }
+                if (c == EOF) 
+                    ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "EOF reached before comment end");
                 last = c; 
                 c = AdvanceBuffer(ctx); 
             }
@@ -167,7 +166,7 @@ Token ScanOperator(TokenizerContext* ctx)
     }
 
     if (lastAccept == DFA_ERROR_STATE) 
-        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, UNKNOWN_ERR, "Invalid operator discovered %s  on line %d row %d\n", c, ctx->row, ctx->col);
+        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Invalid operator discovered %s  on line %d row %d\n", c, ctx->row, ctx->col);
 
     RetractBuffer(ctx, lastAcceptPos);
 
@@ -180,8 +179,8 @@ Token ScanOperator(TokenizerContext* ctx)
 Token ScanDirective(TokenizerContext* ctx)
 {
     int c = AdvanceBuffer(ctx);
-    while (c != '\n') c = AdvanceBuffer(ctx);
-    RetractBuffer(ctx, ctx->forward - 1);
+    while (c != '\n' && c != EOF) c = AdvanceBuffer(ctx); // EOF fail
+    RetractBuffer(ctx, ctx->forward);
 
     Token tok = ExtractTokenFromBuffer(ctx);
     tok.type = DIRECTIVE;
@@ -199,7 +198,10 @@ Token ScanNumber(TokenizerContext* ctx)
     if (c == '.') {
         isReal = true;
         c = AdvanceBuffer(ctx);
-        if (!isdigit(c)) { printf("Expected digit after '.'\n"); abort(); }
+        if (!isdigit(c)) {
+            RetractBuffer(ctx, ctx->forward - 1); Token t = ExtractTokenFromBuffer(ctx);
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Expected digit after '.' in token '%s' on line %d row %d\n", t.lexeme, t.row, t.col);
+        }
         while (isdigit(c)) c = AdvanceBuffer(ctx);
     }
 
@@ -207,7 +209,10 @@ Token ScanNumber(TokenizerContext* ctx)
         isReal = true;
         c = AdvanceBuffer(ctx);
         if (c == '+' || c == '-') c = AdvanceBuffer(ctx);
-        if (!isdigit(c)) { printf("Expected digit after exponent\n"); abort(); }
+        if (!isdigit(c)) { 
+            RetractBuffer(ctx, ctx->forward - 1); Token t = ExtractTokenFromBuffer(ctx);
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Expected digit after exponent in token '%s' on line %d row %d\n", t.lexeme, t.row, t.col);
+        }
         while (isdigit(c)) c = AdvanceBuffer(ctx);
     }
 
@@ -225,9 +230,18 @@ Token ScanString(TokenizerContext* ctx)
     while (1) {
         c = AdvanceBuffer(ctx);
 
-        if (c == EOF)  { printf("EOF reached before string closed\n"); abort(); }
-        if (c == '\n') { printf("Newline in string literal at line %d\n", ctx->row); abort(); }
-        if (c == '\0') { printf("Null byte in string literal\n"); abort(); }
+        if (c == EOF)  {
+            RetractBuffer(ctx, ctx->forward); Token t = ExtractTokenFromBuffer(ctx);
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "EOF discovered before string terminator ' %s ' on line %d row %d\n", t.lexeme, t.row, t.col);
+        }
+        if (c == '\n') {
+            RetractBuffer(ctx, ctx->forward - 1); Token t = ExtractTokenFromBuffer(ctx);
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Illegal newline in string literal ' %s ' on line %d row %d\n", t.lexeme, t.row, t.col);
+        }
+        if (c == '\0') { 
+            RetractBuffer(ctx, ctx->forward); Token t = ExtractTokenFromBuffer(ctx);
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Illegal null byte '\0' found in string literal ' %s ' on line %d row %d\n", t.lexeme, t.row, t.col);
+        }
 
         if (c == '\\') {
             c = AdvanceBuffer(ctx);
@@ -236,7 +250,9 @@ Token ScanString(TokenizerContext* ctx)
                 case 'n': case 't': case 'r':
                 case 'b': case 'f':             break;
                 case 'u': /* TODO: \uXXXX */    break;
-                default: printf("Unknown escape sequence '\\%c'\n", c); abort();
+                default: 
+                    Token t = ExtractTokenFromBuffer(ctx);
+                    ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Unknown escape sequence '\\%c' found in string literal ' %s ' on line %d row %d\n", c, t.lexeme, t.row, t.col);
             }
             continue;
         }
@@ -255,8 +271,19 @@ Token ScanCharacter(TokenizerContext* ctx)
     int c = AdvanceBuffer(ctx);
     c = AdvanceBuffer(ctx);
 
-    if (c == '\n' || c == '\0') { printf("Invalid character in string\n"); abort(); }
-    if (c == EOF) { printf("EOF reached before string closed\n"); abort(); }
+    if (c == '\n' || c == '\0') ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Invalid newline or null byte found in character literal on line %d row %d\n", ctx->row, ctx->col);
+    if (c == EOF) ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Invalid EOF found in character literal on line %d row %d\n", ctx->row, ctx->col);
+
+    if (c == '\\') {
+        c = AdvanceBuffer(ctx);
+        switch (c) {
+            case '"': case '\\': case '/':
+            case 'n': case 't': case 'r':
+            case 'b': case 'f':             break;
+            case 'u': /* TODO: \uXXXX */    break;
+            default: ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Unknown escape sequence '\\%c' found in character literal on line %d row %d\n", c, ctx->row, ctx->col);
+        }
+    }
 
     c = AdvanceBuffer(ctx);
     if (c != '\'') { printf("No closing \' found for character\n"); abort(); }
