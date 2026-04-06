@@ -24,13 +24,6 @@ typedef enum {
     LLVM_ERR, COMPILER_ERR, 
 } ErrorCategory;
 
-typedef enum {
-    /* Could really expand this if need be */
-    /* Rename to ErrorCode */
-    INSUFFICIENT_MEMORY_ERR, MEMORY_CONFLICT_ERR, 
-    LOGICAL_ERR, UNKNOWN_ERR
-} ErrorType;
-
 typedef struct {
     char* msg;
     void* context;
@@ -42,7 +35,7 @@ typedef struct {
 } Error;
 
 // Probably want it to return null or something as well
-Error ERROR(ErrorRecovery recovery, ErrorCategory cat, ErrorType type, const char* format, ...);
-void WARN(ErrorCategory cat, ErrorType type, const char* format, ...);
+Error ERROR(ErrorRecovery recovery, ErrorCategory cat, const char* format, ...);
+void WARN(ErrorCategory cat, const char* format, ...);
 
 #endif 

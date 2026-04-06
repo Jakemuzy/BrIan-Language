@@ -21,15 +21,17 @@ typedef struct {
     
     /* LLVM Flags */
     char* target;
+} CompilerFlags;
 
-    /* ----- ----- */
+typedef struct {
+    CompilerFlags flags;
+
     /* 
     Store actual state as well like the ast, 
     or the symbol table, for passing down to 
     next pipeline stages
     */
     FILE* fptr;
-
 } CompilationState;
 
 /* Handle Flags, and Cleanup */

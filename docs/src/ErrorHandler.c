@@ -7,7 +7,7 @@ The function will also have a section called Cleanup() where is frees all the me
 and upon an abort or exit error that function will be called.
 */
 
-Error ERROR(ErrorRecovery recovery, ErrorCategory cat, ErrorType type, const char* format, ...)
+Error ERROR(ErrorRecovery recovery, ErrorCategory cat, const char* format, ...)
 {
     char* catStr;
 

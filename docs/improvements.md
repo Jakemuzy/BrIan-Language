@@ -97,6 +97,7 @@ and upon an abort or exit error that function will be called.
 * No distinction between prefix and postfix operators 
 * Should only parse Type ( not idents ) since the type checking is relocated to later stages, will verify typedefs in the preprocessor
 * GetNextTokenP (preporcessor is fragile)
+* Needs to be able to read EOF (built into grammar) 
 
 ## Name Resolver 
 * Shouldn't be doing partial type checking, type checking redoes the work ( given in terms of sym->stype, but I think this is necessary for verifiying names inside of structs )

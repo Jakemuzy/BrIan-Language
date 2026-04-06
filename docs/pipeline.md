@@ -32,6 +32,18 @@ The improvements singlehandedly droped the time to tokenize every token in the g
 
 ## Parser 
 
+The two main benefits over the previous parser system are pratt parsing and using an arena allocator to reduce the overhead of memory allocations.
+Pratt parsing simplifies the operator resolution a lot. Instead of deep stack calls due to recursive descent, pratt parsing handles precedence far more elegantly.
+
+For BrIan, operator parsing is divided into three categories for easier use during future phases: assignment, unary, and binary operators.
+As for arena allocation; it allows AST nodes to be allocated in builk, and having uniform lifetimes, allowing for easier cleanup during error resolation or recovery as well.
+A little note on the arena allocator, it allows for better locality among datatypes during BrIans compilation such as the ASTNodes and the temporary scopes used during name resolution. Although allowing for better locality, less frequent memory allocations and easier memory freeing, it does have a small caveat. 
+The main drawback with the arena allocator in our scenario is that we don't know how much space to allocate at runtime, which can lead to a lot of allocated memory that we don't end up using. For this reason BrIan enacts a couple of different methods.
+The first method being; BrIan estimates how much memory will be used during each step based on the file size (this could potentially be explictly specified via a compiler flag as well)
+The second method BrIan enacts is to use a linked list of arena's if the first one fills up. Although this is a viable solution, we again don't know how much space to allocate, and even worse, if paired with our previous estimate, we could grossly misestimate the amount of space we need to allocate for the second arena. For this reason it is extremely important to specify the growth pattern of the next arena (ie double space, half, etc)
+
+The way the compiler interacts with the Parser is also of note. CompilationState* is passed to every phase in order to allow for proper error propagation.
+
 # ----------
 
 ## Compilation 
@@ -50,6 +62,8 @@ Brian handles all its compilation needs in the CompileBrian function. This funct
 |---|---|---|---|
 | target | Specifies target machine | LLVM Flag | ='target_goes_here' | 
 | target | Specifies target machine | LLVM Flag | ='target_goes_here' | 
+|---|---|---|---|
+| arena | Specifies total memory to allocate to each arena | Memory Flag | ='size_goes_here' |
 
 ## Error Handling
 
