@@ -1,5 +1,11 @@
 #include "Parser.h"
 
+#define TYPE_CASES \
+    case CHAR: case BOOL: case INT: case LONG: case DOUBLE: case FLOAT: \
+    case VOID: case STRING: case I8: case I16: case I32: case I64: \
+    case U8: case U16: case U32: case U64: case MAT: case VEC: \
+    case MUTEX: case SEMAPHORE: case TASK: case CHANNEL:
+
 /* 
 Could implement a predictive parsing table (similar to dfa table)
 */
@@ -84,6 +90,12 @@ void DestroyParserContext(ParserContext* ctx)
     ResetArena(ctx->arena);
 }
 
+void SyncRecovery(ParserContext* ctx, TokenType tt) 
+{
+	while (GetNextToken(ctx->tokenizer).type != tt) ;
+		// if (ctx->current.type == END && tt != END) ERROR();
+}
+
 /* ----- Recursive Descent ----- */
 
 void Program(ParserContext* ctx) 
@@ -92,385 +104,401 @@ void Program(ParserContext* ctx)
     ctx->ast = InitalizeAST(ctx->arena);
    
     while (true) {
-        Token tok = GetNextToken(ctx->tokenizer);
-        switch (tok.type) {
-            case INTERFACE:
-                ASTNode* interfaceDeclNode = InterfaceDecl(ctx);
-                // Check error
-                AddChildASTNode(ctx->arena, ctx->ast, interfaceDeclNode);
-                break;
-            case EXTERN: 
-            case STATIC: case INLINE: case CONST: case VOLATILE: case ATOMIC:
-                ASTNode* funcOrDecl = DeclQualifiers(ctx);
-                // Check Error
-                AddChildASTNode(ctx->arena, ctx->ast, funcOrDecl);
-                break;
+        ctx->current = GetNextToken(ctx->tokenizer);
+        switch (ctx->current.type) {
             case FUNCTION: 
                 printf("Func\n");
-                ASTNode* funcNode = Function(ctx);
+                ParseResult funcNode = Function(ctx);
+				if (funcNode.flag == PARSE_ERROR) SyncRecovery(ctx, RBRACE);
+                AddChildASTNode(ctx->arena, ctx->ast, funcNode.node);
                 break;
-            case IDENT:
+            case INTERFACE:
+				printf("Interface\n");
+                ParseResult interfaceDeclNode = InterfaceDecl(ctx);
+				if (interfaceDeclNode.flag == PARSE_ERROR) SyncRecovery(ctx, RBRACE);
+                AddChildASTNode(ctx->arena, ctx->ast, interfaceDeclNode.node);
+                break;
+			case LET:
                 printf("VarDecl\n");
-                ASTNode* varDeclNode = VarDecl(ctx);
+                ParseResult varDeclNode = VarDecl(ctx);
+				if (varDeclNode.flag == PARSE_ERROR) SyncRecovery(ctx, SEMI);
+                AddChildASTNode(ctx->arena, ctx->ast, varDeclNode.node);
                 break;
             case END:   
                 printf("End\n");
-                // end 
                 return;
-                break;
+			default: 
+				ERROR(ERR_FLAG_EXIT, PARSER_ERR, "Unexpected token occured in glboal scope: '%s'", ctx->current);
         }
     }
 }
 
 
-ASTNode* DeclQualifiers(ParserContext* ctx)
+ParseResult DeclQualifiers(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult Function(ParserContext* ctx)
+{
+	ParseResult funcNode, linkageNode, qualifierNode;
+	ctx->current = GetNextToken(ctx->tokenizer);
+
+	/* Optional Specifiers and Qualifiers */
+	if (ctx->current.type == EXTERN) { linkageNode = LinkageSpecifier(ctx); ctx->current = GetNextToken(ctx->tokenizer); }
+	if (ctx->current.type == QUALIFIER) { qualifierNode = TypeQualifier(ctx); ctx->current = GetNextToken(ctx->tokenizer); }
+
+	switch (ctx->current.type) {
+
+		TYPE_CASES
+		case IDENT:
+
+		case GEN: 
+	}
+
+	if (linkageNode.node) AddChildASTNode(ctx->arena, funcNode.node, linkageNode.node);
+	if (qualifierNode.node) AddChildASTNode(ctx->arena, funcNode.node, qualifierNode.node);
+
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult FuncDecl(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult FuncDef(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 
-ASTNode* Function(ParserContext* ctx)
+ParseResult FuncSignature(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* FuncDecl(ParserContext* ctx)
+ParseResult GenericFunc(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* FuncDef(ParserContext* ctx)
+ParseResult RegularFunc(ParserContext* ctx)
 {
-	return NULL;
-}
-
-
-ASTNode* FuncSignature(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* GenericFunc(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* RegularFunc(ParserContext* ctx)
-{
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 
-ASTNode* ParamList(ParserContext* ctx)
+ParseResult ParamList(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* Param(ParserContext* ctx)
+ParseResult Param(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* GenParam(ParserContext* ctx)
+ParseResult GenParam(ParserContext* ctx)
 {
-	return NULL;
-}
-
-
-ASTNode* Lamba(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* Body(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* StmtList(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* Stmt(ParserContext* ctx)
-{
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 
-ASTNode* ExprStmt(ParserContext* ctx)
+ParseResult Lamba(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* DeclStmt(ParserContext* ctx)
+ParseResult Body(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult StmtList(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult Stmt(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 
-ASTNode* VarDecl(ParserContext* ctx)
+ParseResult ExprStmt(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* GenDecl(ParserContext* ctx)
+ParseResult DeclStmt(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* StructDecl(ParserContext* ctx)
+
+ParseResult VarDecl(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* GenericStruct(ParserContext* ctx)
+ParseResult GenDecl(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* GenStructBody(ParserContext* ctx)
+ParseResult StructDecl(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* RegularStruct(ParserContext* ctx)
+ParseResult GenericStruct(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* StructBody(ParserContext* ctx)
+ParseResult GenStructBody(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* OperatorOverload(ParserContext* ctx)
+ParseResult RegularStruct(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult StructBody(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult OperatorOverload(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 // Overloadable op 
-ASTNode* InterfaceDecl(ParserContext* ctx)
+ParseResult InterfaceDecl(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* InterfaceBody(ParserContext* ctx)
+ParseResult InterfaceBody(ParserContext* ctx)
 {
-	return NULL;
-}
-
-
-ASTNode* EnumDecl(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* EnumBody(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* TypedefDecl(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* TypeSpec(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* TypedefPostfix(ParserContext* ctx)
-{
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 
-ASTNode* ConcurrencyStmt(ParserContext* ctx)
+ParseResult EnumDecl(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* LockStmt(ParserContext* ctx)
+ParseResult EnumBody(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* CriticalStmt(ParserContext* ctx)
+ParseResult TypedefDecl(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-
-ASTNode* IfStmt(ParserContext* ctx)
+ParseResult TypeSpec(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* SwitchStmt(ParserContext* ctx)
+ParseResult TypedefPostfix(ParserContext* ctx)
 {
-	return NULL;
-}
-
-ASTNode* Case(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* Default(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* WhileStmt(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* DoWhlieStmt(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* ForStmt(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* ExprList(ParserContext* ctx)
-{
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 
-ASTNode* Expr(ParserContext* ctx)
+ParseResult ConcurrencyStmt(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* TernaryExpr(ParserContext* ctx)
+ParseResult LockStmt(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* AsgnExpr(ParserContext* ctx)
+ParseResult CriticalStmt(ParserContext* ctx)
 {
-	return NULL;
-}
-
-ASTNode* BinaryExpr(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* UnaryExpr(ParserContext* ctx)
-{
-	return NULL;
-}
-
-ASTNode* Primary(ParserContext* ctx)
-{
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 
-ASTNode* Type(ParserContext* ctx)
+ParseResult IfStmt(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* Channel(ParserContext* ctx)
+ParseResult SwitchStmt(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* Matrix(ParserContext* ctx)
+ParseResult Case(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* Vector(ParserContext* ctx)
+ParseResult Default(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* DeclPrefix(ParserContext* ctx)
+ParseResult WhileStmt(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* GenericList(ParserContext* ctx)
+ParseResult DoWhlieStmt(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* Generic(ParserContext* ctx)
+ParseResult ForStmt(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* TypeQualifier(ParserContext* ctx)
+ParseResult ExprList(ParserContext* ctx)
 {
-	return NULL;
-}
-
-ASTNode* LinkageSpecifier(ParserContext* ctx)
-{
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 
-ASTNode* Sizeof(ParserContext* ctx)
+ParseResult Expr(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult TernaryExpr(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult AsgnExpr(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult BinaryExpr(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult UnaryExpr(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult Primary(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 
-ASTNode* Reg(ParserContext* ctx)
+ParseResult Type(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* Hex(ParserContext* ctx)
+ParseResult Channel(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* PredefVars(ParserContext* ctx)
+ParseResult Matrix(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult Vector(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult DeclPrefix(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult GenericList(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult Generic(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult TypeQualifier(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult LinkageSpecifier(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 
-ASTNode* ArgList(ParserContext* ctx)
+ParseResult Sizeof(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 
-ASTNode* VarList(ParserContext* ctx)
+ParseResult Reg(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* Var(ParserContext* ctx)
+ParseResult Hex(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult PredefVars(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
 
-ASTNode* ArrDecl(ParserContext* ctx)
+ParseResult ArgList(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* ArrInitList(ParserContext* ctx)
+
+ParseResult VarList(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
 }
 
-ASTNode* Literal(ParserContext* ctx)
+ParseResult Var(ParserContext* ctx)
 {
-	return NULL;
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+
+ParseResult ArrDecl(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult ArrInitList(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
+}
+
+ParseResult Literal(ParserContext* ctx)
+{
+	return (ParseResult){ PARSE_VALID, NULL };
 }

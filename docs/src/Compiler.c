@@ -80,8 +80,9 @@ void RunTokenizer(CompilationState* cs)
     TokenizerContext* ctx = InitalizeTokenizerContext(cs->fptr);
     Token tok;
     if (cs->flags.stopAfter == TOKENIZE) {
-        while ( (tok = GetNextToken(ctx)).type != ERR && tok.type != END)
+        while ( (tok = GetNextToken(ctx)).type != ERR && tok.type != END) {
             printf("Token: %s\tRow: %d\tCol:%d\tTokNum: %d\n", tok.lexeme, tok.row, tok.col, tok.type);
+        }
         DestroyTokenizerContext(ctx);
     }
     cs->tokenizer = ctx;

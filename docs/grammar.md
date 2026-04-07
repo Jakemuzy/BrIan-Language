@@ -6,6 +6,8 @@
 ### Vector and Matrix initalizers are just 1D and 2D arrays, this is already valid syntax in the language
 ### enum underlying type is i32
 ### Operator overloading is restricted to non assignment operators to prevent weird move semantics
+### An interesting thing about generics, they require gen<> surrounding the generic to signifiy a generic return type
+### <- as a prefix indicates a message will receive, where as a posfix indicates it will send
 
 ```
 	Program ::=  { Import | Directive } { Function | DeclStmt | InterfaceDecl }
@@ -30,11 +32,11 @@
     FuncDef ::= FuncSignature Body
 
     FuncSignature ::= GenericFunc | RegularFunc
-    GenericFunc ::= LinkageSpecifier TypeQualifier Generic [ DeclPrefix ] "fn" IDENT GenericList '(' [ ParamList ] ')'
-    RegularFunc ::= LinkageSpecifier TypeQualifier Type [ DeclPrefix ] IDENT '(' [ ParamList ] ')'
+    GenericFunc ::= "fn" LinkageSpecifier TypeQualifier Generic [ DeclPrefix ] IDENT GenericList '(' [ ParamList ] ')'
+    RegularFunc ::= "fn" LinkageSpecifier TypeQualifier ( Type | IDENT ) [ DeclPrefix ] IDENT '(' [ ParamList ] ')'
 
     ParamList ::= ( Param | GenParam ) { ',' ( Param | Genparam ) }
-    Param ::= TypeQualifier Type [ DeclPrefix ] IDENT
+    Param ::= TypeQualifier ( Type | IDENT ) [ DeclPrefix ] IDENT
     GenParam ::= TypeQualifier Generic [ DeclPrefix ] IDENT 
 
     Lambda ::= "lambda" '(' [ParamList ] ')' Body     
@@ -46,8 +48,8 @@
 	DeclStmt ::= ( VarDecl  | EnumDecl | TypedefDecl ) ';'
                  | StructDecl        // Semicolon after struct is annoying
 
-    VarDecl ::= LinkageSpecifier TypeQualifier ( Type | IDENT ) VarList 
-    GenDecl ::= LinkageSpecifier TypeQualifier Generic VarList
+    VarDecl ::= "let" LinkageSpecifier TypeQualifier ( Type | IDENT ) VarList 
+    GenDecl ::= "let" LinkageSpecifier TypeQualifier Generic VarList
     StructDecl ::= GenericStruct | RegularStruct
     GenericStruct ::= "struct" IDENT GenericList '{' GenStructBody '}'
         GenStructBody :: { GenDecl | GenericFunc | OperatorOverload }
@@ -67,7 +69,7 @@
         TypeSpec ::= ( Type | IDENT ) { TypedefPostfix }
         TypedefPostfix ::= ( '*' | '[' [ INTEGRAL ] ']' )
 
-    ConcurrencyStmt ::= LockStmt | CriticalStmt | 
+    ConcurrencyStmt ::= LockStmt | CriticalStmt 
         LockStmt     ::= "lock" '(' Expr ')' Body
         CriticalStmt ::= "critical" Body
 
@@ -99,9 +101,9 @@
 	AddExpr ::= MultExpr { ( '+' | '-' ) MultExpr }  
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' | '@' ) PowExpr }  
     PowExpr ::= Prefix [ '**' PowExpr ]
-    Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '*' | '&' | "spawn" | "await" | '<-' | Cast ) Prefix | Postfix 
-        Cast ::= '(' Type | IDENT ')'
-    Postfix ::= Primary { '++' | '--' | Index | CallFunc | Member | Ref | SafeMem | SafeRef }
+    Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '*' | '&' | "spawn" | "await" | '<-' ) Prefix | Postfix 
+    Postfix ::= Primary { '++' | '--' | Cast | Index | CallFunc | Member | Ref | SafeMem | SafeRef }
+        Cast ::= "as" ( Type | IDENT )
         Index ::= '[' Expr' ']'
         CallFunc ::= '(' [ ArgList ] ')'    
         Member ::= '.' IDENT
@@ -115,12 +117,13 @@
         Matrix ::= "mat" '<' {1-9} 'x' {1-9} '>'
         Vector ::= "vec" '<' {1-9} '>'
     DeclPrefix ::= ( '*' | '%' )          
-    GenericList ::= '<' Generic { ',' Generic } '>'
-        Generic ::= IDENT
-    TypeQualifier ::= [ static ] [ inline ] [ const ] [ volatile ] [ atomic ]
+    GenericList ::= "gen" '<' IDENT { ',' IDENT } '>'
+        Generic ::= "gen" '<' IDENT '>'
+    TypeQualifier ::= { TypeQualifierItem }
+    TypeQualifierItem ::= "static" | "inline" | "const" | "volatile" | "atomic"
     LinkageSpecifier ::= [ extern ]
 
-    SizeOf ::= "sizeof" '(' Type | IDENT ')'
+    SizeOf ::= "sizeof" '(' ( Type | IDENT ) ')'
 
     Reg ::= Hex
     Hex :: = 0x{ [0-9] | [a-f] | [A-F] }

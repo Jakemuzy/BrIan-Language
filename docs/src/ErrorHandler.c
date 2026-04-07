@@ -46,15 +46,6 @@ Error ERROR(ErrorRecovery recovery, ErrorCategory cat, const char* format, ...)
         Pretends like the instruction was never
         excuted, program passes normally 
         */ 
-        case (ERR_FLAG_IGNORE):
-            return (Error) { NULL, cat };
-
-        /* 
-        This will show errors caused by the oriringal 
-        error, propogating the errors affect 
-        */
-        case (ERR_FLAG_PROPOGATE): 
-            return (Error) { NULL, cat };
     }
 
     /* 

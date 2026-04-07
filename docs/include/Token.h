@@ -27,8 +27,11 @@ typedef enum TokenType {
     /* Data Type Keywords */
     CHAR, BOOL, INT, FLOAT, DOUBLE, LONG, 
     I8, I16, I32, I64, U8, U16, U32, U64,
-    MUTEX, SEMAPHORE, TASK, CHANNEL,
+    MAT, VEC, CHANNEL, MUTEX, SEMAPHORE, TASK, 
     VOID, STRING, 
+
+    /* Type Declarators */
+    AS, LET, GEN,
 
     /* Custom Types Keywords */
     ENUM, STRUCT, TYPEDEF, FUNCTION, INTERFACE, OPERATOR, LAMBDA, 
@@ -57,7 +60,7 @@ typedef enum TokenType {
     SREF, SMEM, REF, MEM,
 
     /* Other Operators */
-    SIZEOF, DOTPROD, QUESTION, COLON, SEND, SEMI, COMMA, HASH,
+    SIZEOF, DOTPROD, QUESTION, COLON, SEND, SEMI, COMMA, 
 
     /* Brackets */
     LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE, 
@@ -111,7 +114,9 @@ static const KeywordTypePair KEYWORD_MAP[378] = {
     [20]  = {"const", CONST},  [73]  = {"static", STATIC},
     [341] = {"volatile", VOLATILE}, [160] = {"inline", INLINE},
     [348] = {"atomic", ATOMIC}, [95]  = {"extern", EXTERN},
-    [339]  = {"fn", FUNCTION}
+    [339]  = {"fn", FUNCTION}, [335] = {"mat", MAT},
+    [109] = {"vec", VEC},      [325] = {"as", AS}, 
+    [164] = {"let", LET},      [157] = {"gen", GEN}
 };
 
 int KeywordHash(const char* word);

@@ -26,8 +26,6 @@
 | float | FLOAT | Float Type |
 | double | DOUBLE | Double Type |
 | long | LONG | Long Type |
-| void | VOID | Void Type |
-| string | STRING | String Type |
 | i8 | I8 | Signed 8 Byte Type |
 | i16 | I16 | Signed 16 Byte Type |
 | i32 | I32 | Signed 32 Byte Type |
@@ -36,10 +34,18 @@
 | u16 | U16 | Unsigned 16 Byte Type |
 | u32 | U32 | Unsigned 32 Byte Type |
 | u64 | U64 | Unsigned 64 Byte Type |
+| mat | MAT | Matrix Type |
+| vec | VEC | Vector Type |
+| chan | CHANNEL | Channel Type |
 | mutex | MUTEX | Mutex Type |
 | semaphore | SEMAPHORE | Semaphore Type |
 | task | TASK | Task Type |
-| chan | CHANNEL | Channel Type |
+| void | VOID | Void Type |
+| string | STRING | String Type |
+|---|---|---|
+| as | AS | Cast Type Keyword |
+| let | LET | Let Type Keyword |
+| gen | GEN | Generic Type Keyword |
 |---|---|---|
 | enum | ENUM | Enum Type Keyword |
 | struct | STRUCT | Struct Type Keyword |
