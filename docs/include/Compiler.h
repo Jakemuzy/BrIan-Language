@@ -15,15 +15,18 @@
 
 */
 
-typedef struct {
+typedef struct CompilerFlags {
     /* Debug Flags */
     enum { TOKENIZE, PARSE, PREPROCESS, NAMERES, TYPECHECK, IR, ASSEMBLE, NOT_APPLICABLE } stopAfter;
     
     /* LLVM Flags */
     char* target;
+
+    /* Arena size */
+    size_t arena;
 } CompilerFlags;
 
-typedef struct {
+typedef struct CompilationState {
     CompilerFlags flags;
 
     /* 
@@ -32,20 +35,29 @@ typedef struct {
     next pipeline stages
     */
     FILE* fptr;
+    size_t fileSize; /* In bytes useful for estimating arena size */
+
+    AST* ast;
+
+    TokenizerContext* tokenizer;
+    ParserContext* parser;
+
+    /* TEMPORARY */
+    void* preprocessor, *nameres, *typecheck, *irgen, *assembler;
 } CompilationState;
 
 /* Handle Flags, and Cleanup */
 void CompileBrian(int argc, char* argv[]);
-static CompilationState ParseFlagsBrian(int argc, char* argv[]);
+static CompilationState* ParseFlagsBrian(int argc, char* argv[]);
 
 /* ----- Running Each Phase ------ */
 
-void RunTokenizer(CompilationState cs);
-void RunParser(CompilationState cs);
-void RunPreprocessor(CompilationState cs);
-void RunNameResolver(CompilationState cs);
-void RunTypeChecker(CompilationState cs);
-void RunLLVMGenerateIR(CompilationState cs);
-void RunAssemble(CompilationState cs);
+void RunTokenizer(CompilationState* cs);
+void RunParser(CompilationState* cs);
+void RunPreprocessor(CompilationState* cs);
+void RunNameResolver(CompilationState* cs);
+void RunTypeChecker(CompilationState* cs);
+void RunLLVMGenerateIR(CompilationState* cs);
+void RunAssemble(CompilationState* cs);
 
 #endif

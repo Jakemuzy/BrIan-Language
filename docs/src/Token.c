@@ -1,5 +1,10 @@
 #include "Token.h"
 
+void DestroyToken(Token* token)
+{
+    free(token->lexeme);
+}
+
 int KeywordHash(const char* word) {
     unsigned int h = 2166136261u;
     while (*word) {

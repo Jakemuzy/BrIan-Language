@@ -16,7 +16,7 @@
 
 */
 
-typedef enum {
+typedef enum TokenType {
     /* Control Flow Keywords */
     IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH,
     CASE, DEFAULT, BREAK, CONTINUE, RETURN,
@@ -31,7 +31,7 @@ typedef enum {
     VOID, STRING, 
 
     /* Custom Types Keywords */
-    ENUM, STRUCT, TYPEDEF, INTERFACE, OPERATOR, LAMBDA,
+    ENUM, STRUCT, TYPEDEF, FUNCTION, INTERFACE, OPERATOR, LAMBDA, 
 
     /* Predefined Types */
     TRUE, FALSE, NILL,
@@ -70,13 +70,15 @@ typedef enum {
 
 } TokenType;
 
-typedef struct {
+typedef struct Token {
     TokenType type; 
     int row, col;
 
     char* lexeme;
     size_t lexLength;
 } Token;
+
+void DestroyToken(Token* token);
 
 /* ----- Keyword Map ----- */
 
@@ -109,6 +111,7 @@ static const KeywordTypePair KEYWORD_MAP[378] = {
     [20]  = {"const", CONST},  [73]  = {"static", STATIC},
     [341] = {"volatile", VOLATILE}, [160] = {"inline", INLINE},
     [348] = {"atomic", ATOMIC}, [95]  = {"extern", EXTERN},
+    [339]  = {"fn", FUNCTION}
 };
 
 int KeywordHash(const char* word);

@@ -28,7 +28,7 @@
 
 /* ----- Double Buffered Context ----- */
 
-typedef struct {
+typedef struct TokenizerContext {
     char buffer1[TOKENIZER_BUFFER_SIZE];
     char buffer2[TOKENIZER_BUFFER_SIZE];
     char* lexemeBegin, *forward;
@@ -48,7 +48,7 @@ Token ExtractTokenFromBuffer(TokenizerContext* ctx);
 
 /* ----- Table Driven DFA ----- */
 
-typedef enum {
+typedef enum CharClass {
     CC_ERROR,
     CC_DIGIT, CC_ALPHA, CC_PLUS, CC_MINUS, CC_EQUALS, 
     CC_MULT, CC_DIVIDE, CC_MODULUS, CC_AND, CC_OR, CC_NOT, 

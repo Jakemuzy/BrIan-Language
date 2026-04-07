@@ -11,7 +11,6 @@ Error ERROR(ErrorRecovery recovery, ErrorCategory cat, const char* format, ...)
 {
     char* catStr;
 
-
     switch (cat) {
         case TOKENIZER_ERR: catStr = "TOKENIZER"; break;
         case PARSER_ERR: catStr = "SYNTAX"; break;

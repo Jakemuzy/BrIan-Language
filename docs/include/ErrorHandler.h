@@ -12,25 +12,26 @@
 
 */
 
-typedef enum {
+typedef enum ErrorRecovery {
     ERR_FLAG_PROPOGATE, ERR_FLAG_IGNORE, 
     ERR_FLAG_CONTINUE,  ERR_FLAG_ABORT,
     ERR_FLAG_EXIT
 } ErrorRecovery;
 
-typedef enum {
+typedef enum ErrorCategory {
     TOKENIZER_ERR, PARSER_ERR, PREPROCESSER_ERR, 
     NAME_RESOLVER_ERR, TYPE_RESOLVER_ERR, DESUGARIZER_ERR,
     LLVM_ERR, COMPILER_ERR, 
 } ErrorCategory;
 
-typedef struct {
+typedef struct ErrorContext {
     char* msg;
     void* context;
 } ErrorContext;
 
-typedef struct {
+typedef struct Error {
     void* returnVal;
+    ErrorRecovery recovery;
     ErrorCategory cat;
 } Error;
 

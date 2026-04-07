@@ -30,7 +30,7 @@
     FuncDef ::= FuncSignature Body
 
     FuncSignature ::= GenericFunc | RegularFunc
-    GenericFunc ::= LinkageSpecifier TypeQualifier Generic [ DeclPrefix ] IDENT GenericList '(' [ ParamList ] ')'
+    GenericFunc ::= LinkageSpecifier TypeQualifier Generic [ DeclPrefix ] "fn" IDENT GenericList '(' [ ParamList ] ')'
     RegularFunc ::= LinkageSpecifier TypeQualifier Type [ DeclPrefix ] IDENT '(' [ ParamList ] ')'
 
     ParamList ::= ( Param | GenParam ) { ',' ( Param | Genparam ) }
@@ -140,5 +140,4 @@
         Sliteral ::= \" { a-Z | 1-9 | EscapeSequence }  \"
             EscapeSequence ::= ( '\n' | '\t' | '\\' | '\'' | '\"' |  )
         Cliteral :: = \' [ a-Z | 1-9 | EscapeSequence ] \'
-
 ```

@@ -38,6 +38,13 @@ void* AllocateArena(Arena* arena, size_t size)
 
 void ResetArena(Arena* arena)
 {
-    if (arena->next) ResetArena(arena);
+    if (arena->next) ResetArena(arena->next);
     arena->offset = 0;
+}
+
+void DestroyArena(Arena* arena)
+{
+    if (arena->next) DestroyArena(arena->next);
+    free(arena->base);
+    free(arena);
 }
