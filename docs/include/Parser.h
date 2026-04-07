@@ -4,6 +4,7 @@
 #include "ErrorHandler.h"
 #include "ArenaAllocator.h"
 
+#include "AST.h"
 #include "Tokenizer.h"
 
 /*          BrIan Parser
@@ -18,49 +19,25 @@
 
 */
 
-/* ----- AST Logic ----- */
+typedef struct ParserContext {
+      TokenizerContext* tokenizer;
+      Token current;
+      Token buffer[3];  // I don't like this buffer system 
 
-typedef enum NodeType {
-    PROG_NODE, FUNC_NODE, PARAM_LIST_NODE, PARAM_NODE,
-    BODY_NODE, STMT_LIST_NODE, STMT_NODE, 
-    
-    EXPR_STMT_NODE, CTRL_STMT_NODE, RETURN_STMT_NODE,
-    VAR_DECL_NODE, STRUCT_DECL_NODE, ENUM_DECL_NODE, TYPEDEF_DECL_NODE,
-    STRUCT_BODY_NODE, ENUM_BODY_NODE, TYPEDEF_POSTFIX_PTR, TYPEDEF_POSTFIX_ARR,
+      Error error;
 
-    IF_STMT_NODE, SWITCH_STMT_NODE, WHILE_STMT_NODE, DO_WHILE_STMT_NODE, FOR_STMT_NODE,
-    IF_NODE, ELIF_NODE, ELSE_NODE, CASE_NODE, DEFAULT_NODE,
-
-    VAR_EXPR_LIST_NODE, EXPR_LIST_NODE, EXPR_NODE,
-
-    TYPE_NODE, ARG_LIST_NODE, VAR_LIST_NODE, VAR_NODE,
-    IDENT_NODE, LITERAL_NODE, EMPTY_NODE, 
-    ASGN_EXPR_NODE, BINARY_EXPR_NODE, UNARY_EXPR_NODE, CALL_FUNC_NODE, ARR_DECL_NODE, ARR_INDEX_NODE, ARR_INIT_NODE, STRUCT_INIT_NODE,
-    MEMBER_ACCESS_NODE, SAFE_MEMBER_ACCESS_NODE
-} NodeType;
-
-typedef struct {
-      struct ASTNode** children;
-      size_t childCount;
-
-      NodeType type;
-      Token tok;
-} ASTNode;
-
-typedef struct {
-      ASTNode* root;
-} AST;
-
-/* ----- Parser Logic ----- */
-
-typedef struct {
       Arena* arena;
       AST* ast;
 } ParserContext;
 
+ParserContext* InitalizeParserContext(TokenizerContext* tokenizer, size_t fileSize);
+void DestroyParserContext(ParserContext* ctx);
+
 /* ----- Recursive Descent ----- */
 
 void Program(ParserContext* ctx);
+
+ASTNode* DeclQualifiers(ParserContext* ctx);
 
 ASTNode* Function(ParserContext* ctx);
 ASTNode* FuncDecl(ParserContext* ctx);
@@ -68,7 +45,6 @@ ASTNode* FuncDef(ParserContext* ctx);
 
 ASTNode* FuncSignature(ParserContext* ctx);
 ASTNode* GenericFunc(ParserContext* ctx);
-ASTNode* GenericList(ParserContext* ctx);
 ASTNode* RegularFunc(ParserContext* ctx);
 
 ASTNode* ParamList(ParserContext* ctx);

@@ -44,6 +44,7 @@
 | enum | ENUM | Enum Type Keyword |
 | struct | STRUCT | Struct Type Keyword |
 | typedef | TYPEDEF | Typdef Type Keyword |
+| fn | FUNCTION | Function Type Keyword |
 | interface | INTERFACE | Struct Interface Keyword |
 | operator | OPERATOR | Operator Overload Keyword |
 | lambda | LAMBDA | Anonymous Function Keyword |

@@ -129,6 +129,54 @@ compiler/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/build
 .PHONY : compiler/fast
 
+src/AST.o: src/AST.c.o
+.PHONY : src/AST.o
+
+# target to build an object file
+src/AST.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/AST.c.o
+.PHONY : src/AST.c.o
+
+src/AST.i: src/AST.c.i
+.PHONY : src/AST.i
+
+# target to preprocess a source file
+src/AST.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/AST.c.i
+.PHONY : src/AST.c.i
+
+src/AST.s: src/AST.c.s
+.PHONY : src/AST.s
+
+# target to generate assembly for a file
+src/AST.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/AST.c.s
+.PHONY : src/AST.c.s
+
+src/ArenaAllocator.o: src/ArenaAllocator.c.o
+.PHONY : src/ArenaAllocator.o
+
+# target to build an object file
+src/ArenaAllocator.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/ArenaAllocator.c.o
+.PHONY : src/ArenaAllocator.c.o
+
+src/ArenaAllocator.i: src/ArenaAllocator.c.i
+.PHONY : src/ArenaAllocator.i
+
+# target to preprocess a source file
+src/ArenaAllocator.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/ArenaAllocator.c.i
+.PHONY : src/ArenaAllocator.c.i
+
+src/ArenaAllocator.s: src/ArenaAllocator.c.s
+.PHONY : src/ArenaAllocator.s
+
+# target to generate assembly for a file
+src/ArenaAllocator.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/ArenaAllocator.c.s
+.PHONY : src/ArenaAllocator.c.s
+
 src/Compiler.o: src/Compiler.c.o
 .PHONY : src/Compiler.o
 
@@ -282,6 +330,12 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... compiler"
+	@echo "... src/AST.o"
+	@echo "... src/AST.i"
+	@echo "... src/AST.s"
+	@echo "... src/ArenaAllocator.o"
+	@echo "... src/ArenaAllocator.i"
+	@echo "... src/ArenaAllocator.s"
 	@echo "... src/Compiler.o"
 	@echo "... src/Compiler.i"
 	@echo "... src/Compiler.s"

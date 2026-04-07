@@ -37,6 +37,7 @@ string
 enum
 struct
 typedef
+fn
 interface
 operator
 lambda

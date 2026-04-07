@@ -1,5 +1,9 @@
 file(REMOVE_RECURSE
   "CMakeFiles/compiler.dir/link.d"
+  "CMakeFiles/compiler.dir/src/AST.c.o"
+  "CMakeFiles/compiler.dir/src/AST.c.o.d"
+  "CMakeFiles/compiler.dir/src/ArenaAllocator.c.o"
+  "CMakeFiles/compiler.dir/src/ArenaAllocator.c.o.d"
   "CMakeFiles/compiler.dir/src/Compiler.c.o"
   "CMakeFiles/compiler.dir/src/Compiler.c.o.d"
   "CMakeFiles/compiler.dir/src/ErrorHandler.c.o"

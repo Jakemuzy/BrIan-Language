@@ -1,11 +1,12 @@
-#ifndef _BRIAN_COMPILER_H_
-#define _BRIAN_COMPILER_H_
+#ifndef _BRIAN_ARENA_H_
+#define _BRIAN_ARENA_H_
 
 #include "ErrorHandler.h"
 
 // Probably should be system dependent
 // ie.) check storage capacity, 32/64bit system, etc
-#define ARENA_MAX__CAPACITY_BYTES 1000000
+#define ARENA_MAX_CAPACITY_BYTES 1000000
+#define ARENA_CAPACITY_MULTIPLIER_FROM_FILESIZE 5
 
 /*      BrIan Arena Allocator
     ----------------------------
@@ -19,18 +20,19 @@
 
 */
 
-typedef struct {
-    void* base;
-    size_t offset;
-    size_t capacity;
+typedef struct Arena {
+   void* base;
+   size_t offset;
+   size_t capacity;
 
-    struct Arena* next;
+   struct Arena* next;
 } Arena;
 
 Arena* CreateArena(size_t capacity);
 void* AllocateArena(Arena* arena, size_t size);
 void ResetArena(Arena* arena);
-
-unsigned int EstimateArenaSize(FILE* fptr);
+void DestroyArena(Arena* arena);
 
 // Separate functions for permanent / temporary arenas
+
+#endif
