@@ -28,12 +28,17 @@ u8
 u16
 u32
 u64
+mat
+vec
+chan
 mutex
 semaphore
 task
-chan
 void
 string
+as
+let 
+gen
 enum
 struct
 typedef
@@ -113,6 +118,8 @@ IDENTIFIER
 3.01e-2
 751.17e0
 10
+0xF17
+0xaBc71
 // hello bro
 /* 
     Comment

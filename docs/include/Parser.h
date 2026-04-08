@@ -22,9 +22,10 @@
 typedef struct ParserContext {
       TokenizerContext* tokenizer;
       Token current;
-      Token buffer[3];  // I don't like this buffer system 
 
+      /* Add tokenizer lookahead */
       Error error;
+      bool failure;
 
       Arena* arena;
       AST* ast;
@@ -33,94 +34,106 @@ typedef struct ParserContext {
 ParserContext* InitalizeParserContext(TokenizerContext* tokenizer, size_t fileSize);
 void DestroyParserContext(ParserContext* ctx);
 
+typedef enum ParseFlag {
+    PARSE_VALID,
+    PARSE_NOT_APPLICABLE,
+    PARSE_ERROR
+} ParseFlag;
+
+typedef struct ParseResult {
+    ParseFlag flag;
+    ASTNode*  node;
+} ParseResult;
+
+void SyncRecovery(ParserContext* ctx, TokenType tt);
+
 /* ----- Recursive Descent ----- */
 
 void Program(ParserContext* ctx);
 
-ASTNode* DeclQualifiers(ParserContext* ctx);
+ParseResult Function(ParserContext* ctx);
+ParseResult FuncDecl(ParserContext* ctx);
+ParseResult FuncDef(ParserContext* ctx);
 
-ASTNode* Function(ParserContext* ctx);
-ASTNode* FuncDecl(ParserContext* ctx);
-ASTNode* FuncDef(ParserContext* ctx);
+ParseResult FuncSignature(ParserContext* ctx);
+ParseResult GenericFunc(ParserContext* ctx);
+ParseResult RegularFunc(ParserContext* ctx);
 
-ASTNode* FuncSignature(ParserContext* ctx);
-ASTNode* GenericFunc(ParserContext* ctx);
-ASTNode* RegularFunc(ParserContext* ctx);
+ParseResult ParamList(ParserContext* ctx);
+ParseResult Param(ParserContext* ctx);
+ParseResult GenParam(ParserContext* ctx);
 
-ASTNode* ParamList(ParserContext* ctx);
-ASTNode* Param(ParserContext* ctx);
-ASTNode* GenParam(ParserContext* ctx);
+ParseResult Lamba(ParserContext* ctx);
+ParseResult Body(ParserContext* ctx);
+ParseResult StmtList(ParserContext* ctx);
+ParseResult Stmt(ParserContext* ctx);
 
-ASTNode* Lamba(ParserContext* ctx);
-ASTNode* Body(ParserContext* ctx);
-ASTNode* StmtList(ParserContext* ctx);
-ASTNode* Stmt(ParserContext* ctx);
+ParseResult ExprStmt(ParserContext* ctx);
+ParseResult DeclStmt(ParserContext* ctx);
 
-ASTNode* ExprStmt(ParserContext* ctx);
-ASTNode* DeclStmt(ParserContext* ctx);
-
-ASTNode* VarDecl(ParserContext* ctx);
-ASTNode* GenDecl(ParserContext* ctx);
-ASTNode* StructDecl(ParserContext* ctx);
-ASTNode* GenericStruct(ParserContext* ctx);
-      ASTNode* GenStructBody(ParserContext* ctx);
-ASTNode* RegularStruct(ParserContext* ctx);
-      ASTNode* StructBody(ParserContext* ctx);
-      ASTNode* OperatorOverload(ParserContext* ctx);
+ParseResult VarDecl(ParserContext* ctx);
+ParseResult GenDecl(ParserContext* ctx);
+ParseResult StructDecl(ParserContext* ctx);
+ParseResult GenericStruct(ParserContext* ctx);
+      ParseResult GenStructBody(ParserContext* ctx);
+ParseResult RegularStruct(ParserContext* ctx);
+      ParseResult StructBody(ParserContext* ctx);
+      ParseResult OperatorOverload(ParserContext* ctx);
       // Overloadable op 
-ASTNode* InterfaceDecl(ParserContext* ctx);
-      ASTNode* InterfaceBody(ParserContext* ctx);
+ParseResult InterfaceDecl(ParserContext* ctx);
+      ParseResult InterfaceBody(ParserContext* ctx);
 
-ASTNode* EnumDecl(ParserContext* ctx);
-      ASTNode* EnumBody(ParserContext* ctx);
-ASTNode* TypedefDecl(ParserContext* ctx);
-      ASTNode* TypeSpec(ParserContext* ctx);
-      ASTNode* TypedefPostfix(ParserContext* ctx);
+ParseResult EnumDecl(ParserContext* ctx);
+      ParseResult EnumBody(ParserContext* ctx);
+ParseResult TypedefDecl(ParserContext* ctx);
+      ParseResult TypeSpec(ParserContext* ctx);
+      ParseResult TypedefPostfix(ParserContext* ctx);
 
-ASTNode* ConcurrencyStmt(ParserContext* ctx);
-      ASTNode* LockStmt(ParserContext* ctx);
-      ASTNode* CriticalStmt(ParserContext* ctx);
+ParseResult ConcurrencyStmt(ParserContext* ctx);
+      ParseResult LockStmt(ParserContext* ctx);
+      ParseResult CriticalStmt(ParserContext* ctx);
 
-ASTNode* IfStmt(ParserContext* ctx);
-ASTNode* SwitchStmt(ParserContext* ctx);
-      ASTNode* Case(ParserContext* ctx);
-      ASTNode* Default(ParserContext* ctx);
-ASTNode* WhileStmt(ParserContext* ctx);
-ASTNode* DoWhlieStmt(ParserContext* ctx);
-ASTNode* ForStmt(ParserContext* ctx);
-ASTNode* ExprList(ParserContext* ctx);
+ParseResult IfStmt(ParserContext* ctx);
+ParseResult SwitchStmt(ParserContext* ctx);
+      ParseResult Case(ParserContext* ctx);
+      ParseResult Default(ParserContext* ctx);
+ParseResult WhileStmt(ParserContext* ctx);
+ParseResult DoWhlieStmt(ParserContext* ctx);
+ParseResult ForStmt(ParserContext* ctx);
+ParseResult ExprList(ParserContext* ctx);
 
-ASTNode* Expr(ParserContext* ctx);
-ASTNode* TernaryExpr(ParserContext* ctx);
-ASTNode* AsgnExpr(ParserContext* ctx);
-ASTNode* BinaryExpr(ParserContext* ctx);
-ASTNode* UnaryExpr(ParserContext* ctx); // Prefix / postfix
-ASTNode* Primary(ParserContext* ctx);
+ParseResult Expr(ParserContext* ctx);
+ParseResult TernaryExpr(ParserContext* ctx);
+ParseResult AsgnExpr(ParserContext* ctx);
+ParseResult BinaryExpr(ParserContext* ctx);
+ParseResult UnaryExpr(ParserContext* ctx); // Prefix / postfix
+ParseResult Primary(ParserContext* ctx);
 
-ASTNode* Type(ParserContext* ctx);
-ASTNode* Channel(ParserContext* ctx);
-ASTNode* Matrix(ParserContext* ctx);
-ASTNode* Vector(ParserContext* ctx);
-ASTNode* DeclPrefix(ParserContext* ctx);
-ASTNode* GenericList(ParserContext* ctx);
-      ASTNode* Generic(ParserContext* ctx);
-ASTNode* TypeQualifier(ParserContext* ctx);
-ASTNode* LinkageSpecifier(ParserContext* ctx);
+ParseResult Type(ParserContext* ctx);
+ParseResult Channel(ParserContext* ctx);
+ParseResult Matrix(ParserContext* ctx);
+ParseResult Vector(ParserContext* ctx);
+ParseResult DeclPrefix(ParserContext* ctx);
+ParseResult GenericList(ParserContext* ctx);
+      ParseResult Generic(ParserContext* ctx);
+ParseResult TypeQualifierList(ParserContext* ctx);
+ParseResult TypeQualifier(ParserContext* ctx);
+ParseResult LinkageSpecifier(ParserContext* ctx);
 
 // Idk if this here 
-ASTNode* Sizeof(ParserContext* ctx);
+ParseResult Sizeof(ParserContext* ctx);
 
-ASTNode* Reg(ParserContext* ctx);
-ASTNode* Hex(ParserContext* ctx);
-ASTNode* PredefVars(ParserContext* ctx);
+ParseResult Reg(ParserContext* ctx);
+ParseResult Hex(ParserContext* ctx);
+ParseResult PredefVars(ParserContext* ctx);
 
-ASTNode* ArgList(ParserContext* ctx);
+ParseResult ArgList(ParserContext* ctx);
 
-ASTNode* VarList(ParserContext* ctx);
-ASTNode* Var(ParserContext* ctx);
+ParseResult VarList(ParserContext* ctx);
+ParseResult Var(ParserContext* ctx);
 
-ASTNode* ArrDecl(ParserContext* ctx);
-ASTNode* ArrInitList(ParserContext* ctx);
-ASTNode* Literal(ParserContext* ctx);
+ParseResult ArrDecl(ParserContext* ctx);
+ParseResult ArrInitList(ParserContext* ctx);
+ParseResult Literal(ParserContext* ctx);
 
 #endif

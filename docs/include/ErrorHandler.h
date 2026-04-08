@@ -13,9 +13,7 @@
 */
 
 typedef enum ErrorRecovery {
-    ERR_FLAG_PROPOGATE, ERR_FLAG_IGNORE, 
-    ERR_FLAG_CONTINUE,  ERR_FLAG_ABORT,
-    ERR_FLAG_EXIT
+    ERR_FLAG_ABORT, ERR_FLAG_EXIT, ERR_FLAG_CONTINUE
 } ErrorRecovery;
 
 typedef enum ErrorCategory {
@@ -24,14 +22,8 @@ typedef enum ErrorCategory {
     LLVM_ERR, COMPILER_ERR, 
 } ErrorCategory;
 
-typedef struct ErrorContext {
-    char* msg;
-    void* context;
-} ErrorContext;
-
 typedef struct Error {
     void* returnVal;
-    ErrorRecovery recovery;
     ErrorCategory cat;
 } Error;
 
