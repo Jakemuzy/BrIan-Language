@@ -66,7 +66,7 @@ typedef enum TokenType {
     LPAREN, RPAREN, LBRACK, RBRACK, LBRACE, RBRACE, 
 
     /* Idenifiers and Literals */
-    IDENT, SLITERAL, CLITERAL, REAL, INTEGRAL,
+    IDENT, SLITERAL, CLITERAL, REAL, INTEGRAL, HEX,
 
     /* Others */
     DIRECTIVE, COMMENT, NA, ERR, END

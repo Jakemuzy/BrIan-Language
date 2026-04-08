@@ -143,6 +143,7 @@
 | { a-Z | 0-9 | _ } | IDENT | Identifier |
 | { 0-9 } | INTEGRAL | Integral Number | 
 | { 0-9 } [ '.' { 0-9 } ] [ 'e' [ '+' | '-' ] { 0 - 9 } ] | REAL | Real Number |
+| 0x{ [0-9] | [a-f] | [A-F] } | HEX | Hexadecimal |
 | \' . \' | CLITERAL | Character Literal |
 | \" { . } \" | SLITERAL | String Literal |
 |---|---|---|

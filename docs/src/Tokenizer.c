@@ -193,6 +193,23 @@ Token ScanNumber(TokenizerContext* ctx)
     int c = AdvanceBuffer(ctx);
     bool isReal = false;
 
+    if (c == '0') {
+        c = AdvanceBuffer(ctx);
+        if (c == 'x') {
+            c = AdvanceBuffer(ctx);
+            if (!isxdigit(c)) {
+                RetractBuffer(ctx, ctx->forward - 1); Token t = ExtractTokenFromBuffer(ctx);
+                ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Expected hex digit after '0x' in token '%s' on line %d row %d\n", t.lexeme, t.row, t.col);
+            }
+            while (isxdigit(c)) c = AdvanceBuffer(ctx);
+            RetractBuffer(ctx, ctx->forward - 1);
+            Token tok = ExtractTokenFromBuffer(ctx);
+            tok.type = HEX;
+            ctx->col += tok.lexLength;
+            return tok;
+        }
+    }
+
     while (isdigit(c)) c = AdvanceBuffer(ctx);
 
     if (c == '.') {

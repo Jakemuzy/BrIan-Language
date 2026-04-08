@@ -118,6 +118,8 @@ IDENTIFIER
 3.01e-2
 751.17e0
 10
+0xF17
+0xaBc71
 // hello bro
 /* 
     Comment

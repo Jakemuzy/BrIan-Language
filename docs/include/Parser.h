@@ -116,6 +116,7 @@ ParseResult Vector(ParserContext* ctx);
 ParseResult DeclPrefix(ParserContext* ctx);
 ParseResult GenericList(ParserContext* ctx);
       ParseResult Generic(ParserContext* ctx);
+ParseResult TypeQualifierList(ParserContext* ctx);
 ParseResult TypeQualifier(ParserContext* ctx);
 ParseResult LinkageSpecifier(ParserContext* ctx);
 

@@ -133,7 +133,7 @@
     ArgList = Expr { ',' Expr }
 
 	VarList ::= Var { ',' Var }
-    Var ::=  IDENT { ArrDecl } [ '=' ( Expr | ArrInitList ) | Reg ] 
+    Var ::=  IDENT { ArrDecl } [ '=' ( Expr | ArrInitList | PredefVars | Reg ) ] 
     
     ArrDecl ::= '[' [ Expr ] ']'
     ArrInitList ::= '{' ( IDENT | Literal | ArrInitList ) { ',' ( IDENT | Literal | ArrInitList ) } '}' 
