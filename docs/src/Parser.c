@@ -159,11 +159,12 @@ ASTNode* GenericFunc(ParserContext* ctx)
 	Advance(ctx);
 
 	// Generic paramaters are optional
-	if (Match(ctx, LESS)) {
+	if (ctx->current.type == LESS) {
 		ASTNode* genricParams = GenericList(ctx);
 		if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
 		else AddChildASTNode(ctx->arena, funcNode, genricParams);
 	}
+
 
 	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' after function name.");
 
@@ -180,7 +181,7 @@ ASTNode* GenericFunc(ParserContext* ctx)
 
 	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' after function paramaters.");
 
-	return NULL;
+	return funcNode;
 }
 
 ASTNode* RegularFunc(ParserContext* ctx)
@@ -237,13 +238,6 @@ ASTNode* ParamList(ParserContext* ctx)
 				// TODO: Ideal to go to comma THEN rparen, but for later
 				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 				else AddChildASTNode(ctx->arena, paramListNode, paramNode);
-				break;
-			case LESS:  	
-				ASTNode* genParamNode = GenParam(ctx);
-				if (qualifierNode) PrependChildASTNode(ctx->arena, genParamNode, qualifierNode);
-
-				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
-				else AddChildASTNode(ctx->arena, paramListNode, genParamNode);
 				break;
 			case RPAREN: return paramListNode;
 			default: return ParseERROR(ctx, "Expected paramaters inside function signature.");
@@ -731,12 +725,34 @@ ASTNode* DeclPrefix(ParserContext* ctx)
 
 ASTNode* GenericList(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+	ASTNode* genericListNode = InitalizeASTNode(ctx->arena, GENERIC_LIST_NODE, DUMMY_TOKEN);
+
+	while (true) {
+		// At least one required
+		if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected valid identifier for generic ie.) <IDENTIFIER>.");
+		AddChildASTNode(ctx->arena, genericListNode, (InitalizeASTNode(ctx->arena, GENERIC_NODE, ctx->current)));
+		Advance(ctx);
+
+
+		if (Match(ctx, COMMA)) continue;
+		else if (Match(ctx, GREAT)) break; 
+		else return ParseERROR(ctx, "Expected '>' to close generic.");
+	}
+
+	return genericListNode;
 }
 
 ASTNode* Generic(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected valid identifier for generic ie.) <IDENTIFIER>.");
+	ASTNode* genNode = InitalizeASTNode(ctx->arena, GENERIC_NODE, ctx->current);
+	Advance(ctx);
+
+	if (!Match(ctx, GREAT)) return ParseERROR(ctx, "Expected '>' to close generic.");
+	return genNode;
 }
 
 ASTNode* TypeQualifierList(ParserContext* ctx)

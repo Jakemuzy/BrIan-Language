@@ -17,6 +17,6 @@ let char boo = 'b';
 
 */
 
-fn gen<T> GenFunc gen<T, T2>(T one, T2 two) {
+fn <T> GenFunc <T, T2>(T one, T2 two) {
     return one + two;
 }

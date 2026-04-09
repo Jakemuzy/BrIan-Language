@@ -35,9 +35,8 @@
     GenericFunc ::= "fn" LinkageSpecifier TypeQualifier Generic IDENT GenericList '(' [ ParamList ] ')'
     RegularFunc ::= "fn" LinkageSpecifier TypeQualifier ( Type | IDENT ) [ DeclPrefix ] IDENT '(' [ ParamList ] ')'
 
-    ParamList ::= ( Param | GenParam ) { ',' ( Param | Genparam ) }
+    ParamList ::= Param  { ',' Param }
     Param ::= TypeQualifier ( Type | IDENT ) [ DeclPrefix ] IDENT
-    GenParam ::= TypeQualifier Generic [ DeclPrefix ] IDENT 
 
     Lambda ::= "lambda" '(' [ParamList ] ')' Body     
 	Body ::= '{' StmtList '}'
@@ -52,7 +51,7 @@
     GenDecl ::= "let" LinkageSpecifier TypeQualifier Generic VarList
     StructDecl ::= GenericStruct | RegularStruct
     GenericStruct ::= "struct" IDENT GenericList '{' GenStructBody '}'
-        GenStructBody :: { GenDecl | GenericFunc | OperatorOverload }
+        GenStructBody ::= { GenDecl | GenericFunc | OperatorOverload }
     RegularStruct ::= "struct" IDENT [ ':' IDENT ] '{' StructBody '}' 
         StructBody ::= { DeclStmt | Function | OperatorOverload }
         OperatorOverload ::= "operator" OverloadableOp '(' Param ')' Body
