@@ -6,6 +6,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/compiler.dir/src/ArenaAllocator.c.o.d"
   "CMakeFiles/compiler.dir/src/Compiler.c.o"
   "CMakeFiles/compiler.dir/src/Compiler.c.o.d"
+  "CMakeFiles/compiler.dir/src/DebugTools.c.o"
+  "CMakeFiles/compiler.dir/src/DebugTools.c.o.d"
   "CMakeFiles/compiler.dir/src/ErrorHandler.c.o"
   "CMakeFiles/compiler.dir/src/ErrorHandler.c.o.d"
   "CMakeFiles/compiler.dir/src/Parser.c.o"

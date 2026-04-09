@@ -201,6 +201,30 @@ src/Compiler.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Compiler.c.s
 .PHONY : src/Compiler.c.s
 
+src/DebugTools.o: src/DebugTools.c.o
+.PHONY : src/DebugTools.o
+
+# target to build an object file
+src/DebugTools.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/DebugTools.c.o
+.PHONY : src/DebugTools.c.o
+
+src/DebugTools.i: src/DebugTools.c.i
+.PHONY : src/DebugTools.i
+
+# target to preprocess a source file
+src/DebugTools.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/DebugTools.c.i
+.PHONY : src/DebugTools.c.i
+
+src/DebugTools.s: src/DebugTools.c.s
+.PHONY : src/DebugTools.s
+
+# target to generate assembly for a file
+src/DebugTools.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/DebugTools.c.s
+.PHONY : src/DebugTools.c.s
+
 src/ErrorHandler.o: src/ErrorHandler.c.o
 .PHONY : src/ErrorHandler.o
 
@@ -339,6 +363,9 @@ help:
 	@echo "... src/Compiler.o"
 	@echo "... src/Compiler.i"
 	@echo "... src/Compiler.s"
+	@echo "... src/DebugTools.o"
+	@echo "... src/DebugTools.i"
+	@echo "... src/DebugTools.s"
 	@echo "... src/ErrorHandler.o"
 	@echo "... src/ErrorHandler.i"
 	@echo "... src/ErrorHandler.s"

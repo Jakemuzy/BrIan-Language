@@ -95,8 +95,8 @@
     OrExpr ::= XorExpr { '|' XorExpr }
     XorExpr ::= AndExpr { '^' AndExpr }
     AndExpr ::= EqqExpr { '&' EqqExpr }
-    EqqExpr ::= RelationExpr [ ('==' | '!=') RelationExpr ]
-    RelationExpr ::= ShiftExpr [ ('>' | '<' | '<=' | '>=') ShiftExpr ]  
+    EqqExpr ::= CompExpr [ ('==' | '!=') CompExpr ]
+    CompExpr ::= ShiftExpr [ ('>' | '<' | '<=' | '>=') ShiftExpr ]  
     ShiftExpr ::= AddExpr { ('<<' | '>>') AddExpr }  
 	AddExpr ::= MultExpr { ( '+' | '-' ) MultExpr }  
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' | '@' ) PowExpr }  

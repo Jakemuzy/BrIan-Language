@@ -174,22 +174,22 @@ ASTNode* DeclQualifiers(ParserContext* ctx)
 ASTNode* Function(ParserContext* ctx)
 {
 	ASTNode* funcNode, *linkageNode, *qualifierNode;
-	ctx->current = GetNextToken(ctx->tokenizer);
+	Advance(ctx);
 
 	/* Optional Specifiers and Qualifiers */
-	if (ctx->current.type == EXTERN) { linkageNode = LinkageSpecifier(ctx); Advance(ctx); }
-	switch(ctx->current.type) { QUALIFIER_CASES  qualifierNode = TypeQualifierList(ctx); Advance(ctx); }
+	if (ctx->current.type == EXTERN) { linkageNode = LinkageSpecifier(ctx); }
+	switch(ctx->current.type) { QUALIFIER_CASES  qualifierNode = TypeQualifierList(ctx); }
 
 	switch (ctx->current.type) {
 		TYPE_CASES
 		case IDENT: funcNode = RegularFunc(ctx); break;
 		case GEN:   funcNode = GenericFunc(ctx); break;
+		default: return ParseERROR(ctx, "Expected function return type or generic.");
 	}
 	if (ctx->panicMode) return NULL;
 
-	// These must be above since they'll be appended to the end instead of beginning 
-	if (linkageNode) AddChildASTNode(ctx->arena, funcNode, linkageNode);
-	if (qualifierNode) AddChildASTNode(ctx->arena, funcNode, qualifierNode);
+	if (linkageNode) PrependChildASTNode(ctx->arena, funcNode, linkageNode);
+	if (qualifierNode) PrependChildASTNode(ctx->arena, funcNode, qualifierNode);
 
 	switch (ctx->current.type) {
 		case SEMI: 
@@ -200,8 +200,8 @@ ASTNode* Function(ParserContext* ctx)
 			printf("Def\n");
 			funcNode->type = FUNC_DEF;
 			ASTNode* bodyNode = Body(ctx);
-			if (ctx->panicMode)
-			AddChildASTNode(ctx->arena, funcNode, bodyNode);
+			if (ctx->panicMode) return NULL;
+			else AddChildASTNode(ctx->arena, funcNode, bodyNode);
 			break;
 		default:
 			return ParseERROR(ctx, "Expected '{' for function definition or ';' for function declaration.");
@@ -218,9 +218,9 @@ ASTNode* GenericFunc(ParserContext* ctx)
 ASTNode* RegularFunc(ParserContext* ctx)
 {
 	ASTNode* funcNode = InitalizeASTNode(ctx->arena, REGULAR_FUNC_NODE, ctx->current);
+	Advance(ctx);
 
 	// Optional DeclPrefix
-	Advance(ctx);
 	if (ctx->current.type == MOD || ctx->current.type == MULT) {
 		AddChildASTNode(ctx->arena, funcNode, InitalizeASTNode(ctx->arena, DECL_PREFIX_NODE, ctx->current));
 		Advance(ctx);
@@ -236,9 +236,9 @@ ASTNode* RegularFunc(ParserContext* ctx)
 	switch (ctx->current.type) {
 		QUALIFIER_CASES
 		TYPE_CASES
-		case IDENT_NODE: 
+		case IDENT: 
 			ASTNode* paramListNode = ParamList(ctx);
-			AddChildASTNode(ctx->arena, funcNode, InitalizeASTNode(ctx->arena, PARAM_LIST_NODE, ctx->current));
+			AddChildASTNode(ctx->arena, funcNode, paramListNode);
 			Advance(ctx);
 			break;
 	}
@@ -252,12 +252,52 @@ ASTNode* RegularFunc(ParserContext* ctx)
 
 ASTNode* ParamList(ParserContext* ctx)
 {
-	return NULL;
+	ASTNode* paramListNode = InitalizeASTNode(ctx->arena, PARAM_LIST_NODE, DUMMY_TOKEN);
+
+	while (true) {
+		ASTNode* qualifierNode = NULL;
+		switch (ctx->current.type) { QUALIFIER_CASES qualifierNode = TypeQualifier; }
+
+		switch (ctx->current.type) {
+			TYPE_CASES
+			case IDENT:
+				ASTNode* paramNode = Param(ctx);
+				if (qualifierNode) PrependChildASTNode(ctx->arena, paramNode, qualifierNode);
+
+				// TODO: Ideal to go to comma THEN rparen, but for later
+				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+				else AddChildASTNode(ctx->arena, paramListNode, paramNode);
+				break;
+			case GEN:  
+				ASTNode* genParamNode = GenParam(ctx);
+				if (qualifierNode) PrependChildASTNode(ctx->arena, paramNode, qualifierNode);
+
+				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+				else AddChildASTNode(ctx->arena, paramListNode, genParamNode);
+			case RPAREN: return paramListNode;
+			default: return ParseERROR(ctx, "Expected paramters OR ')' inside function signature.");
+		}
+	}
 }
 
 ASTNode* Param(ParserContext* ctx)
 {
-	return NULL;
+    ASTNode* paramNode = InitalizeASTNode(ctx->arena, PARAM_NODE, DUMMY_TOKEN);
+
+	AddChildASTNode(ctx->arena, paramNode, InitalizeASTNode(ctx->arena, TYPE_NODE, ctx->current));
+    Advance(ctx);
+
+    if (ctx->current.type == MOD || ctx->current.type == MULT) {
+        ASTNode* declPrefixNode = InitalizeASTNode(ctx->arena, DECL_PREFIX_NODE, ctx->current);
+        Advance(ctx);
+        AddChildASTNode(ctx->arena, paramNode, declPrefixNode);
+    }
+
+    if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected parameter identifier.");
+	AddChildASTNode(ctx->arena, paramNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+    Advance(ctx);
+
+    return paramNode;
 }
 
 ASTNode* GenParam(ParserContext* ctx)
@@ -274,11 +314,11 @@ ASTNode* Lamba(ParserContext* ctx)
 ASTNode* Body(ParserContext* ctx)
 {
 	printf("BODY\n");
-	ASTNode* bodyNode = InitalizeASTNode(ctx->arena, BODY_NODE, ctx->current);
+	ASTNode* bodyNode = InitalizeASTNode(ctx->arena, BODY_NODE, DUMMY_TOKEN);
+	Advance(ctx);
 
 	/* TODO: groupings that follow the grammar, simplifies and makes recursive descent easier */
 	while (true) {
-		Advance(ctx);
 		switch(ctx->current.type) {
 			case IF: 
 				ASTNode* ifNode = IfStmt(ctx);
@@ -309,16 +349,23 @@ ASTNode* Body(ParserContext* ctx)
 				ASTNode* varDeclNode = VarDecl(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, bodyNode, varDeclNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after variable declaration.");
+				printf("%s\n", ctx->current.lexeme);
 				break;
 			case ENUM:
 				ASTNode* enumNode = EnumDecl(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, bodyNode, enumNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after enum declaration.");
 				break;
 			case TYPEDEF: 
 				ASTNode* typedefNode = TypedefDecl(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, bodyNode, typedefNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after typedef declaration.");
 				break;
 			case STRUCT:
 				ASTNode* structNode = StructDecl(ctx);
@@ -329,9 +376,11 @@ ASTNode* Body(ParserContext* ctx)
 			// case SEMI: 
 				// Empty Expr Stmt
 			EXPR_START_CASES
-				ASTNode* exprNode = Expr(ctx);
+				ASTNode* exprNode = Expr(ctx, PREC_NONE);
 				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, bodyNode, exprNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after expression.");
 				break;
 
 				// Don't do anything here use pratt parsing
@@ -343,7 +392,7 @@ ASTNode* Body(ParserContext* ctx)
 			case LOCK: case CRITICAL:
 
 			case RBRACE: return bodyNode;
-			default: return NULL;
+			default: return ParseERROR(ctx, "Unexpected token in body.");
 		}
 	}
 }
@@ -372,12 +421,11 @@ ASTNode* DeclStmt(ParserContext* ctx)
 
 ASTNode* VarDecl(ParserContext* ctx)
 {
-	ASTNode* varDeclNode = InitalizeASTNode(ctx->arena, VAR_DECL_NODE, ctx->current);
+	ASTNode* varDeclNode = InitalizeASTNode(ctx->arena, VAR_DECL_NODE, DUMMY_TOKEN);
+	Advance(ctx);
 
 	if (ctx->current.type == EXTERN) { AddChildASTNode(ctx->arena, varDeclNode, LinkageSpecifier(ctx)); }
 	switch(ctx->current.type) { QUALIFIER_CASES AddChildASTNode(ctx->arena, varDeclNode, TypeQualifierList(ctx)); }
-
-	if (!Match(ctx, LET)) ParseERROR(ctx, "Expected 'let' before variable declaration.");
 
 	switch (ctx->current.type) {
 		TYPE_CASES
@@ -388,7 +436,7 @@ ASTNode* VarDecl(ParserContext* ctx)
 			AddChildASTNode(ctx->arena, varDeclNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
 			Advance(ctx);
 			break;
-		default: ParseERROR(ctx, "Epected specified type for variable declaration.");
+		default: return ParseERROR(ctx, "Expected Type for variable declaration.");
 	}
 
 	ASTNode* varListNode = VarList(ctx);
@@ -436,17 +484,71 @@ ASTNode* OperatorOverload(ParserContext* ctx)
 // Overloadable op 
 ASTNode* InterfaceDecl(ParserContext* ctx)
 {
-	return NULL;
+	ASTNode* interfaceDeclNode = InitalizeASTNode(ctx->arena, INTERFACE_DECL_NODE, DUMMY_TOKEN);
+	Advance(ctx);
+
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected interface name.");
+	AddChildASTNode(ctx->arena, interfaceDeclNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+	Advance(ctx);
+
+	if (!Match(ctx, LBRACE)) ParseERROR(ctx, "Expected '{' to begin interface declaration.");
+
+	ASTNode* interfaceBodyNode = InterfaceBody(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, interfaceDeclNode, interfaceBodyNode);
+
+	if (!Match(ctx, RBRACE)) ParseERROR(ctx, "Expected '}' to end interface declaration.");
+
+	return interfaceDeclNode;
 }
 
 ASTNode* InterfaceBody(ParserContext* ctx)
 {
-	return NULL;
+	ASTNode* interfaceBodyNode = InitalizeASTNode(ctx->arena, INTERFACE_BODY_NODE, DUMMY_TOKEN);
+
+	while (true) {
+		switch (ctx->current.type) {
+			case LET: 
+				ASTNode* varDeclNode = VarDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, interfaceBodyNode, varDeclNode); 
+				break;
+			case FUNCTION:
+				ASTNode* funcNode = Function(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, interfaceBodyNode, funcNode); 
+				break;
+			case RBRACE:
+				return interfaceBodyNode;
+			default:
+				return ParseERROR(ctx, "Expected Variable or Function declaration inside of interface.");
+		}
+	}
 }
 
 
 ASTNode* EnumDecl(ParserContext* ctx)
 {
+	ASTNode* enumNode = InitalizeASTNode(ctx->arena, ENUM_DECL_NODE, DUMMY_TOKEN);
+	Advance(ctx);
+
+	if (ctx->current.type != IDENT) ParseERROR(ctx, "Expected Identifier for enum.");
+	AddChildASTNode(ctx->arena, enumNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+
+	// Probably an easier way to do this loop 
+	ASTNode* enumBodyNode = InitalizeASTNode(ctx->arena, ENUM_BODY_NODE, ctx->current);
+	while (true) {
+		Advance(ctx);
+		if (ctx->current.type == IDENT) {
+			AddChildASTNode(ctx->arena, enumBodyNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+			if (Match(ctx, COMMA))  continue;
+			else if (Match(ctx, RBRACE)) break;
+			else return ParseERROR(ctx, "Expected Identifier in enum.");
+		} 
+		else if (Match(ctx, RBRACE)) break;
+		return ParseERROR(ctx, "Expected Identifier in enum.");
+	}
+
 	return NULL;
 }
 
@@ -528,25 +630,104 @@ ASTNode* ExprList(ParserContext* ctx)
 }
 
 
-// Distinguish between pre / postfix
-ASTNode* Expr(ParserContext* ctx)
+// TODO: Distinguish between pre / postfix in the actual ASTNode
+ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec)
 {
-	// Pratt Parsing 
-	TokenType prefix = ctx->current.type;
+	ASTNode* left = NULL;
+	switch (ctx->current.type) {
+		// Literals
+		case REAL: case INTEGRAL:
+		case CLITERAL: case SLITERAL: 
+		case HEX: case NILL: case FALSE: 
+		case TRUE: 
+			left = InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current);
+			Advance(ctx);
+			break;
+		case LAMBDA:
+			break;
+		case SIZEOF:
+			break;
+		case LPAREN:
+			Advance(ctx);
+			left = Expr(ctx, PREC_NONE);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected closing ')' for parenthesized expression.");
+			break;
+		default:
+			// Prefix
+			ParseRule prefixRule = PRECEDENCE_TABLE[ctx->current.type];
+			if (!prefixRule.prefix) return ParseERROR(ctx, "Expected expression.");
+            left = prefixRule.prefix(ctx, prec);
+	}
 
-	printf("%s\n", ctx->current.lexeme);
-	return NULL;
+	// Infix
+	ParseRule rule = PRECEDENCE_TABLE[ctx->current.type];
+	while (rule.prec > prec && rule.infix != NULL) {
+		left = rule.infix(ctx, rule.rightAssoc ? rule.prec - 1 : rule.prec, left);
+		rule = PRECEDENCE_TABLE[ctx->current.type];
+	}
+
+	return left;
 }
 
-ASTNode* Primary(ParserContext* ctx)
+ASTNode* UnaryExpr(ParserContext* ctx, PRECEDENCE prec)
 {
-	return NULL;
+	printf("UNARY\n");
+	ASTNode* unaryNode = InitalizeASTNode(ctx->arena, UNARY_EXPR_NODE, ctx->current);
+	Advance(ctx);
+
+	ASTNode* exprNode = Expr(ctx, PREC_PRE - 1);
+	if (ctx->panicMode) return NULL;
+	else AddChildASTNode(ctx->arena, unaryNode, exprNode);
+
+	return unaryNode;
 }
 
-
-ASTNode* Type(ParserContext* ctx)
+ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 {
-	return NULL;
+	printf("BINARY\n");
+	ASTNode* binaryNode = InitalizeASTNode(ctx->arena, BINARY_EXPR_NODE, ctx->current);
+	Advance(ctx);	
+
+	AddChildASTNode(ctx->arena, binaryNode, left);
+	ASTNode* right = Expr(ctx, prec);
+	if (ctx->panicMode) return NULL;	// Main expr handles errors
+	else AddChildASTNode(ctx->arena, binaryNode, right);
+
+	return binaryNode;
+}
+
+ASTNode* AsgnExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
+{
+	printf("ASGN\n");
+	ASTNode* asgnNode = InitalizeASTNode(ctx->arena, ASGN_EXPR_NODE, ctx->current);
+	Advance(ctx);	
+
+	AddChildASTNode(ctx->arena, asgnNode, left);
+	ASTNode* right = Expr(ctx, prec);
+	if (ctx->panicMode) return NULL;	
+	else AddChildASTNode(ctx->arena, asgnNode, right);
+
+	return asgnNode;
+}
+
+ASTNode* TernaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
+{
+    ASTNode* ternaryNode = InitalizeASTNode(ctx->arena, TERNARY_EXPR_NODE, ctx->current);
+    Advance(ctx); 
+    AddChildASTNode(ctx->arena, ternaryNode, left); 
+
+    ASTNode* then = Expr(ctx, PREC_NONE);
+    if (ctx->panicMode) return NULL;
+    else AddChildASTNode(ctx->arena, ternaryNode, then);
+
+    if (!Match(ctx, COLON)) return ParseERROR(ctx, "Expected ':' in ternary expression.");
+
+    ASTNode* els = Expr(ctx, prec); 
+    if (ctx->panicMode) return NULL;
+    else AddChildASTNode(ctx->arena, ternaryNode, els);
+
+    return ternaryNode;
 }
 
 ASTNode* Channel(ParserContext* ctx)
@@ -582,7 +763,7 @@ ASTNode* Generic(ParserContext* ctx)
 ASTNode* TypeQualifierList(ParserContext* ctx)
 {
 	printf("Type Qualifier\n");
-	ASTNode* qualifierListNode = InitalizeASTNode(ctx->arena, QUALIFIER_LIST_NODE, ctx->current);
+	ASTNode* qualifierListNode = InitalizeASTNode(ctx->arena, QUALIFIER_LIST_NODE, DUMMY_TOKEN);
 	while (true) {
 		switch (ctx->current.type) {
 			QUALIFIER_CASES
@@ -636,7 +817,7 @@ ASTNode* ArgList(ParserContext* ctx)
 
 ASTNode* VarList(ParserContext* ctx)
 {
-	ASTNode* varListNode = InitalizeASTNode(ctx->arena, VAR_LIST_NODE, ctx->current);
+	ASTNode* varListNode = InitalizeASTNode(ctx->arena, VAR_LIST_NODE, DUMMY_TOKEN);
 
 	while (true) {
 		ASTNode* varNode = Var(ctx);
@@ -652,12 +833,11 @@ ASTNode* Var(ParserContext* ctx)
 {
 	printf("Var\n");
 	if (ctx->current.type != IDENT) ParseERROR(ctx, "Expected identifier name for variable declaration.");
-
-	ASTNode* varNode = InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current);
+	ASTNode* varNode = InitalizeASTNode(ctx->arena, VAR_NODE, ctx->current);
     Advance(ctx);
 
 	while (Match(ctx, LBRACK)) {
-		ASTNode* exprNode = Expr(ctx);
+		ASTNode* exprNode = Expr(ctx, PREC_NONE);
 		if (ctx->panicMode) SyncRecovery(ctx, RBRACK);
 		if (!Match(ctx, RBRACK)) ParseERROR(ctx, "Epexted ']' for array initalization.");
 	}
@@ -670,7 +850,7 @@ ASTNode* Var(ParserContext* ctx)
 				else AddChildASTNode(ctx->arena, varNode, arrListNode);
 				break;
 			EXPR_START_CASES // Expr k
-				ASTNode* exprNode = Expr(ctx);
+				ASTNode* exprNode = Expr(ctx, PREC_NONE);
 				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, varNode, exprNode);
 				break;

@@ -1,0 +1,50 @@
+#include "DebugTools.h"
+
+static const char* NodeTypeStr[] = {
+    [PROG_NODE] = "PROG", [FUNC_NODE] = "FUNC", [FUNC_DECL] = "FUNC_DECL", [FUNC_DEF] = "FUNC_DEF",
+    [GEN_FUNC_NODE] = "GEN_FUNC", [REGULAR_FUNC_NODE] = "REGULAR_FUNC",
+    [PARAM_LIST_NODE] = "PARAM_LIST", [PARAM_NODE] = "PARAM", [GEN_PARAM_NODE] = "GEN_PARAM",
+    [LAMBDA_NODE] = "LAMBDA", [BODY_NODE] = "BODY", [STMT_LIST_NODE] = "STMT_LIST",
+    [EXPR_STMT_NODE] = "EXPR_STMT", [RETURN_STMT_NODE] = "RETURN", [JUMP_STMT_NODE] = "JUMP",
+    [CONCURRENCY_STMT_NODE] = "CONCURRENCY", [LOCK_STMT_NODE] = "LOCK", [CRITICAL_STMT_NODE] = "CRITICAL",
+    [VAR_DECL_NODE] = "VAR_DECL", [GEN_DECL_NODE] = "GEN_DECL",
+    [STRUCT_DECL_NODE] = "STRUCT_DECL", [GEN_STRUCT_DECL_NODE] = "GEN_STRUCT_DECL",
+    [GEN_STRUCT_BODY_NODE] = "GEN_STRUCT_BODY", [REGULAR_STRUCT_NODE] = "REGULAR_STRUCT",
+    [STRUCT_BODY_NODE] = "STRUCT_BODY", [OPERATOR_OVERLOAD_NODE] = "OPERATOR_OVERLOAD",
+    [INTERFACE_DECL_NODE] = "INTERFACE_DECL", [INTERFACE_BODY_NODE] = "INTERFACE_BODY",
+    [ENUM_DECL_NODE] = "ENUM_DECL", [ENUM_BODY_NODE] = "ENUM_BODY",
+    [TYPEDEF_DECL_NODE] = "TYPEDEF_DECL", [TYPESPEC_NODE] = "TYPESPEC", [TYPEDEF_POSTFIX_NODE] = "TYPEDEF_POSTFIX",
+    [IF_STMT_NODE] = "IF", [ELIF_NODE] = "ELIF", [ELSE_NODE] = "ELSE",
+    [SWITCH_STMT_NODE] = "SWITCH", [CASE_STMT_NODE] = "CASE", [DEFAULT_STMT_NODE] = "DEFAULT",
+    [WHILE_STMT_NODE] = "WHILE", [DO_WHILE_STMT_NODE] = "DO_WHILE", [FOR_STMT_NODE] = "FOR",
+    [TERNARY_EXPR_NODE] = "TERNARY", [ASGN_EXPR_NODE] = "ASGN", [BINARY_EXPR_NODE] = "BINARY",
+    [UNARY_EXPR_NODE] = "UNARY", [CAST_NODE] = "CAST", [INDEX_NODE] = "INDEX",
+    [CALL_FUNC_NODE] = "CALL", [MEMBER_NODE] = "MEMBER", [REF_NODE] = "REF",
+    [SREF_NODE] = "SREF", [SMEMBER_NODE] = "SMEMBER", [EXPR_LIST_NODE] = "EXPR_LIST",
+    [TYPE_NODE] = "TYPE", [CHANNEL_NODE] = "CHANNEL", [MATRIX_NODE] = "MATRIX", [VECTOR_NODE] = "VECTOR",
+    [DECL_PREFIX_NODE] = "DECL_PREFIX", [GENERIC_LIST_NODE] = "GENERIC_LIST", [GENERIC_NODE] = "GENERIC",
+    [TYPE_QUALIFIER_NODE] = "TYPE_QUALIFIER", [QUALIFIER_LIST_NODE] = "QUALIFIER_LIST",
+    [LINKAGE_SPECIFIER_NODE] = "LINKAGE_SPEC", [REGISTER_NODE] = "REGISTER",
+    [SIZEOF_NODE] = "SIZEOF", [HEX_NODE] = "HEX", [PREDEFINED_VAR_NODE] = "PREDEFINED_VAR",
+    [ARG_LIST_NODE] = "ARG_LIST", [VAR_LIST_NODE] = "VAR_LIST", [VAR_NODE] = "VAR",
+    [ARR_DECL_NODE] = "ARR_DECL", [ARR_INIT_LIST_NODE] = "ARR_INIT_LIST",
+    [LITERAL_NODE] = "LITERAL", [IDENT_NODE] = "IDENT",
+};
+
+static void DEBUG_PRINT_NODE(ASTNode* node, int depth) {
+    if (!node) return;
+    for (int i = 0; i < depth; i++) printf(i == depth - 1 ? "├── " : "│   ");
+    const char* lexeme = node->token.lexeme;
+    // printf("%s (%s) [children: %zu]\n", NodeTypeStr[node->type], lexeme, node->childCount);
+    if (lexeme && lexeme[0] != '\0')
+        printf("%s (%s)\n", NodeTypeStr[node->type], lexeme);
+    else
+        printf("%s\n", NodeTypeStr[node->type]);
+    for (size_t i = 0; i < node->childCount; i++)
+        DEBUG_PRINT_NODE(node->children[i], depth + 1);
+}
+
+void DEBUG_PRINT_AST(AST* ast) {
+    if (!ast || !ast->root) { printf("<empty AST>\n"); return; }
+    DEBUG_PRINT_NODE(ast->root, 0);
+}

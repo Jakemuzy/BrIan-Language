@@ -50,6 +50,8 @@ The way the compiler interacts with the Parser is also of note. CompilationState
 
 Brian handles all its compilation needs in the CompileBrian function. This function takes the command line arguments of the brian compiler and executes different code paths depending on what was provided. The following flags are provided for your conveinence.
 
+NOTE: Debug flags require you to pass -DDEBUG to the cli
+
 | Flag | Purpose | Category | Additional |
 |---|---|---|---|
 | tok | Executes BrIan up until tokenization | Debug Info |-|

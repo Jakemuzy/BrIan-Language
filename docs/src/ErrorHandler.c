@@ -7,10 +7,9 @@ The function will also have a section called Cleanup() where is frees all the me
 and upon an abort or exit error that function will be called.
 */
 
-Error ERROR(ErrorRecovery recovery, ErrorCategory cat, const char* format, ...)
+void ERROR(ErrorRecovery recovery, ErrorCategory cat, const char* format, ...)
 {
     char* catStr;
-
     switch (cat) {
         case TOKENIZER_ERR: catStr = "TOKENIZER"; break;
         case PARSER_ERR: catStr = "SYNTAX"; break;
@@ -21,7 +20,6 @@ Error ERROR(ErrorRecovery recovery, ErrorCategory cat, const char* format, ...)
         case COMPILER_ERR: catStr = "COMPILER"; break;
         default: catStr = "UNKNOWN";
     }
-
     fprintf(stderr, "\n%s ERROR: ", catStr);
 
     va_list args;
@@ -31,33 +29,8 @@ Error ERROR(ErrorRecovery recovery, ErrorCategory cat, const char* format, ...)
 
     switch (recovery) {
         case (ERR_FLAG_ABORT): abort();
-
         case (ERR_FLAG_EXIT): exit(1);
-
-        /* 
-        Delay programs end until the end of the program 
-        or until a critical failure occurs. Allowing
-        other errors to show.
-        */
-        case (ERR_FLAG_CONTINUE): 
-            return (Error) { NULL, cat };
-
-        /*
-        Pretends like the instruction was never
-        excuted, program passes normally 
-        */ 
+        case (ERR_FLAG_CONTINUE): return;
     }
 
-    /* 
-    I think return a propogation flag based on the category
-    and this propogation flag is unique to each phase, specifying
-    specific behavior 
-    */ 
-
-    /* 
-    Maybe return casted as the type its supposed to be? 
-    That way can just cast to error again? But then won't know
-    if it is an error.
-    */
-    return (Error) { NULL, cat };
 }

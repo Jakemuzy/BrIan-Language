@@ -81,7 +81,7 @@ typedef struct Token {
     size_t lexLength;
 } Token;
 
-void DestroyToken(Token* token);
+#define DUMMY_TOKEN (Token){0}
 
 /* ----- Keyword Map ----- */
 
