@@ -134,6 +134,7 @@ int SkipWhitespace(TokenizerContext* ctx)
     int c = AdvanceBuffer(ctx);
     if (c == EOF) return EOF;
 
+    // TODO: Something is wrong here
     while (isspace(c)) {
         ctx->col++;
         if (c == '\n') { ctx->row++; ctx->col = 0; }

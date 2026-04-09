@@ -21,11 +21,10 @@
 
 typedef struct ParserContext {
       TokenizerContext* tokenizer;
-      Token current;
+      Token current, previous;
 
       /* Add tokenizer lookahead */
-      Error error;
-      bool failure;
+      bool failure, panicMode;
 
       Arena* arena;
       AST* ast;
@@ -34,106 +33,146 @@ typedef struct ParserContext {
 ParserContext* InitalizeParserContext(TokenizerContext* tokenizer, size_t fileSize);
 void DestroyParserContext(ParserContext* ctx);
 
-typedef enum ParseFlag {
-    PARSE_VALID,
-    PARSE_NOT_APPLICABLE,
-    PARSE_ERROR
-} ParseFlag;
+/* ----- Operator Precedence Order ----- */
 
-typedef struct ParseResult {
-    ParseFlag flag;
-    ASTNode*  node;
-} ParseResult;
-
-void SyncRecovery(ParserContext* ctx, TokenType tt);
+typedef enum PRECEDENCE {
+      PREC_NONE, PREC_TERNARY, PREC_ASGN,
+      PREC_ORL, PREC_ANDL, PREC_OR, PREC_XOR,
+      PREC_AND, PREC_EQQ, PREC_COMP, PREC_SHIFT,
+      PREC_ADD, PREC_MULT, PREC_POW, PREC_PRE,
+      PREC_POST
+} PRECEDENCE;
 
 /* ----- Recursive Descent ----- */
 
 void Program(ParserContext* ctx);
 
-ParseResult Function(ParserContext* ctx);
-ParseResult FuncDecl(ParserContext* ctx);
-ParseResult FuncDef(ParserContext* ctx);
+ASTNode* Function(ParserContext* ctx);
+ASTNode* FuncDecl(ParserContext* ctx);
+ASTNode* FuncDef(ParserContext* ctx);
 
-ParseResult FuncSignature(ParserContext* ctx);
-ParseResult GenericFunc(ParserContext* ctx);
-ParseResult RegularFunc(ParserContext* ctx);
+ASTNode* FuncSignature(ParserContext* ctx);
+ASTNode* GenericFunc(ParserContext* ctx);
+ASTNode* RegularFunc(ParserContext* ctx);
 
-ParseResult ParamList(ParserContext* ctx);
-ParseResult Param(ParserContext* ctx);
-ParseResult GenParam(ParserContext* ctx);
+ASTNode* ParamList(ParserContext* ctx);
+ASTNode* Param(ParserContext* ctx);
+ASTNode* GenParam(ParserContext* ctx);
 
-ParseResult Lamba(ParserContext* ctx);
-ParseResult Body(ParserContext* ctx);
-ParseResult StmtList(ParserContext* ctx);
-ParseResult Stmt(ParserContext* ctx);
+ASTNode* Lamba(ParserContext* ctx);
+ASTNode* Body(ParserContext* ctx);
+ASTNode* StmtList(ParserContext* ctx);
+ASTNode* Stmt(ParserContext* ctx);
 
-ParseResult ExprStmt(ParserContext* ctx);
-ParseResult DeclStmt(ParserContext* ctx);
+ASTNode* ExprStmt(ParserContext* ctx);
+ASTNode* DeclStmt(ParserContext* ctx);
 
-ParseResult VarDecl(ParserContext* ctx);
-ParseResult GenDecl(ParserContext* ctx);
-ParseResult StructDecl(ParserContext* ctx);
-ParseResult GenericStruct(ParserContext* ctx);
-      ParseResult GenStructBody(ParserContext* ctx);
-ParseResult RegularStruct(ParserContext* ctx);
-      ParseResult StructBody(ParserContext* ctx);
-      ParseResult OperatorOverload(ParserContext* ctx);
+ASTNode* VarDecl(ParserContext* ctx);
+ASTNode* GenDecl(ParserContext* ctx);
+ASTNode* StructDecl(ParserContext* ctx);
+ASTNode* GenericStruct(ParserContext* ctx);
+      ASTNode* GenStructBody(ParserContext* ctx);
+ASTNode* RegularStruct(ParserContext* ctx);
+      ASTNode* StructBody(ParserContext* ctx);
+      ASTNode* OperatorOverload(ParserContext* ctx);
       // Overloadable op 
-ParseResult InterfaceDecl(ParserContext* ctx);
-      ParseResult InterfaceBody(ParserContext* ctx);
+ASTNode* InterfaceDecl(ParserContext* ctx);
+      ASTNode* InterfaceBody(ParserContext* ctx);
 
-ParseResult EnumDecl(ParserContext* ctx);
-      ParseResult EnumBody(ParserContext* ctx);
-ParseResult TypedefDecl(ParserContext* ctx);
-      ParseResult TypeSpec(ParserContext* ctx);
-      ParseResult TypedefPostfix(ParserContext* ctx);
+ASTNode* EnumDecl(ParserContext* ctx);
+      ASTNode* EnumBody(ParserContext* ctx);
+ASTNode* TypedefDecl(ParserContext* ctx);
+      ASTNode* TypeSpec(ParserContext* ctx);
+      ASTNode* TypedefPostfix(ParserContext* ctx);
 
-ParseResult ConcurrencyStmt(ParserContext* ctx);
-      ParseResult LockStmt(ParserContext* ctx);
-      ParseResult CriticalStmt(ParserContext* ctx);
+ASTNode* ConcurrencyStmt(ParserContext* ctx);
+      ASTNode* LockStmt(ParserContext* ctx);
+      ASTNode* CriticalStmt(ParserContext* ctx);
 
-ParseResult IfStmt(ParserContext* ctx);
-ParseResult SwitchStmt(ParserContext* ctx);
-      ParseResult Case(ParserContext* ctx);
-      ParseResult Default(ParserContext* ctx);
-ParseResult WhileStmt(ParserContext* ctx);
-ParseResult DoWhlieStmt(ParserContext* ctx);
-ParseResult ForStmt(ParserContext* ctx);
-ParseResult ExprList(ParserContext* ctx);
+ASTNode* IfStmt(ParserContext* ctx);
+ASTNode* SwitchStmt(ParserContext* ctx);
+      ASTNode* Case(ParserContext* ctx);
+      ASTNode* Default(ParserContext* ctx);
+ASTNode* WhileStmt(ParserContext* ctx);
+ASTNode* DoWhlieStmt(ParserContext* ctx);
+ASTNode* ForStmt(ParserContext* ctx);
+ASTNode* ExprList(ParserContext* ctx);
 
-ParseResult Expr(ParserContext* ctx);
-ParseResult TernaryExpr(ParserContext* ctx);
-ParseResult AsgnExpr(ParserContext* ctx);
-ParseResult BinaryExpr(ParserContext* ctx);
-ParseResult UnaryExpr(ParserContext* ctx); // Prefix / postfix
-ParseResult Primary(ParserContext* ctx);
+ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec);
+ASTNode* AsgnExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left);
+ASTNode* UnaryExpr(ParserContext* ctx, PRECEDENCE prec);
+ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left);
+ASTNode* TernaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left);
 
-ParseResult Type(ParserContext* ctx);
-ParseResult Channel(ParserContext* ctx);
-ParseResult Matrix(ParserContext* ctx);
-ParseResult Vector(ParserContext* ctx);
-ParseResult DeclPrefix(ParserContext* ctx);
-ParseResult GenericList(ParserContext* ctx);
-      ParseResult Generic(ParserContext* ctx);
-ParseResult TypeQualifierList(ParserContext* ctx);
-ParseResult TypeQualifier(ParserContext* ctx);
-ParseResult LinkageSpecifier(ParserContext* ctx);
+ASTNode* Channel(ParserContext* ctx);
+ASTNode* Matrix(ParserContext* ctx);
+ASTNode* Vector(ParserContext* ctx);
+ASTNode* DeclPrefix(ParserContext* ctx);
+ASTNode* GenericList(ParserContext* ctx);
+      ASTNode* Generic(ParserContext* ctx);
+ASTNode* TypeQualifierList(ParserContext* ctx);
+ASTNode* TypeQualifier(ParserContext* ctx);
+ASTNode* LinkageSpecifier(ParserContext* ctx);
 
 // Idk if this here 
-ParseResult Sizeof(ParserContext* ctx);
+ASTNode* Sizeof(ParserContext* ctx);
 
-ParseResult Reg(ParserContext* ctx);
-ParseResult Hex(ParserContext* ctx);
-ParseResult PredefVars(ParserContext* ctx);
+ASTNode* Reg(ParserContext* ctx);
+ASTNode* Hex(ParserContext* ctx);
+ASTNode* PredefVars(ParserContext* ctx);
 
-ParseResult ArgList(ParserContext* ctx);
+ASTNode* ArgList(ParserContext* ctx);
 
-ParseResult VarList(ParserContext* ctx);
-ParseResult Var(ParserContext* ctx);
+ASTNode* VarList(ParserContext* ctx);
+ASTNode* Var(ParserContext* ctx);
 
-ParseResult ArrDecl(ParserContext* ctx);
-ParseResult ArrInitList(ParserContext* ctx);
-ParseResult Literal(ParserContext* ctx);
+ASTNode* ArrDecl(ParserContext* ctx);
+ASTNode* ArrInitList(ParserContext* ctx);
+ASTNode* Literal(ParserContext* ctx);
+
+/* ----- Pratt Parsing ----- */
+
+typedef struct ParseRule {
+      ASTNode* (*prefix)(ParserContext* ctx, PRECEDENCE prec);
+      ASTNode* (*infix)(ParserContext* ctx, PRECEDENCE prec, ASTNode* left);
+      PRECEDENCE prec;
+      
+      bool rightAssoc;
+} ParseRule;
+
+static ParseRule PRECEDENCE_TABLE[] = {
+      { NULL, NULL, PREC_NONE, false },
+      [EQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [PEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, 
+      [SEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [MEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, 
+      [DEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [MODEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, 
+      [LEFTEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [RIGHTEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, 
+      [ANDEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [XOREQ] = { NULL, AsgnExpr, PREC_ASGN, true }, 
+      [OREQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [ANDLEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, 
+      [ORLEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [SEND] = { UnaryExpr, AsgnExpr, PREC_ASGN, true }, 
+
+      [ORL] = { NULL, BinaryExpr, PREC_ORL, false },
+      [ANDL] = { NULL, BinaryExpr, PREC_ANDL, false },
+      [OR] = { NULL, BinaryExpr, PREC_OR, false },
+      [XOR] = { NULL, BinaryExpr, PREC_XOR, false },
+      [AND] = { UnaryExpr, BinaryExpr, PREC_AND, false },
+
+      [EQQ] = { NULL, BinaryExpr, PREC_EQQ, false }, [NEQQ] = { NULL, BinaryExpr, PREC_EQQ, false },
+
+      [LESS] = { NULL, BinaryExpr, PREC_COMP, false }, [GREAT] = { NULL, BinaryExpr, PREC_COMP, false },
+      [LEQQ] = { NULL, BinaryExpr, PREC_COMP, false }, [GEQQ] = { NULL, BinaryExpr, PREC_COMP, false },
+
+      [LSHIFT] = { NULL, BinaryExpr, PREC_SHIFT, false }, [RSHIFT] = { NULL, BinaryExpr, PREC_SHIFT, false },
+
+      [PLUS] = { UnaryExpr, BinaryExpr, PREC_ADD, false }, [MINUS] = { UnaryExpr, BinaryExpr, PREC_ADD, false }, 
+
+      [MULT] = { UnaryExpr, BinaryExpr, PREC_MULT, false }, [DIV] = { NULL, BinaryExpr, PREC_MULT, false }, 
+      [MOD] = { NULL, BinaryExpr, PREC_MULT, false }, [DOTPROD] = { NULL, BinaryExpr, PREC_MULT, false }, 
+
+      [POW] = { NULL, BinaryExpr, PREC_POW, true }, 
+
+      [INC] = { UnaryExpr, NULL, PREC_PRE, false }, [DEC] = { UnaryExpr, NULL, PREC_PRE, false }, 
+      [NEG] = { UnaryExpr, NULL, PREC_PRE, false }, [NOT] = { UnaryExpr, NULL, PREC_PRE, false }, 
+      [SPAWN] = { UnaryExpr, NULL, PREC_PRE, false }, [AWAIT] = { UnaryExpr, NULL, PREC_PRE, false }, 
+};
 
 #endif

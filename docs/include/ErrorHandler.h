@@ -22,13 +22,7 @@ typedef enum ErrorCategory {
     LLVM_ERR, COMPILER_ERR, 
 } ErrorCategory;
 
-typedef struct Error {
-    void* returnVal;
-    ErrorCategory cat;
-} Error;
-
-// Probably want it to return null or something as well
-Error ERROR(ErrorRecovery recovery, ErrorCategory cat, const char* format, ...);
+void ERROR(ErrorRecovery recovery, ErrorCategory cat, const char* format, ...);
 void WARN(ErrorCategory cat, const char* format, ...);
 
 #endif 

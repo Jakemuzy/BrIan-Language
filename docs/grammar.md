@@ -95,8 +95,8 @@
     OrExpr ::= XorExpr { '|' XorExpr }
     XorExpr ::= AndExpr { '^' AndExpr }
     AndExpr ::= EqqExpr { '&' EqqExpr }
-    EqqExpr ::= RelationExpr [ ('==' | '!=') RelationExpr ]
-    RelationExpr ::= ShiftExpr [ ('>' | '<' | '<=' | '>=') ShiftExpr ]  
+    EqqExpr ::= CompExpr [ ('==' | '!=') CompExpr ]
+    CompExpr ::= ShiftExpr [ ('>' | '<' | '<=' | '>=') ShiftExpr ]  
     ShiftExpr ::= AddExpr { ('<<' | '>>') AddExpr }  
 	AddExpr ::= MultExpr { ( '+' | '-' ) MultExpr }  
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' | '@' ) PowExpr }  
@@ -133,7 +133,7 @@
     ArgList = Expr { ',' Expr }
 
 	VarList ::= Var { ',' Var }
-    Var ::=  IDENT { ArrDecl } [ '=' ( Expr | ArrInitList | PredefVars | Reg ) ] 
+    Var ::=  IDENT { ArrDecl } [ '=' ( Expr | ArrInitList ) ] 
     
     ArrDecl ::= '[' [ Expr ] ']'
     ArrInitList ::= '{' ( IDENT | Literal | ArrInitList ) { ',' ( IDENT | Literal | ArrInitList ) } '}' 

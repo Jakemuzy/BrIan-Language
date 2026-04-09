@@ -1,6 +1,11 @@
 #ifndef _BRIAN_COMPILER_H_
 #define _BRIAN_COMPILER_H_
 
+#define DEBUG
+#ifdef DEBUG
+    #include "DebugTools.h"
+#endif
+
 #include "ErrorHandler.h"
 
 #include "Tokenizer.h"
@@ -29,13 +34,8 @@ typedef struct CompilerFlags {
 typedef struct CompilationState {
     CompilerFlags flags;
 
-    /* 
-    Store actual state as well like the ast, 
-    or the symbol table, for passing down to 
-    next pipeline stages
-    */
     FILE* fptr;
-    size_t fileSize; /* In bytes useful for estimating arena size */
+    size_t fileSize; /* In bytes. Useful for estimating arena size */
 
     AST* ast;
 
@@ -48,7 +48,10 @@ typedef struct CompilationState {
 
 /* Handle Flags, and Cleanup */
 void CompileBrian(int argc, char* argv[]);
+void CleanupBrian(CompilationState* cs);
 static CompilationState* ParseFlagsBrian(int argc, char* argv[]);
+
+void OpenFile(CompilationState* cs, int argc, char* argv[]);
 
 /* ----- Running Each Phase ------ */
 

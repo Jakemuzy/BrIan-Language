@@ -32,3 +32,19 @@ void AddChildASTNode(Arena* arena, ASTNode* parent, ASTNode* child)
     }
     parent->children[parent->childCount++] = child;
 }
+
+void PrependChildASTNode(Arena* arena, ASTNode* parent, ASTNode* child)
+{
+    if (parent->childCount >= parent->childCapacity) {
+        size_t newCapacity = parent->childCapacity == 0 ? 4 : parent->childCapacity * 2;
+        ASTNode** newChildren = AllocateArena(arena, sizeof(ASTNode*) * newCapacity);
+        if (parent->children)
+            memcpy(newChildren + 1, parent->children, sizeof(ASTNode*) * parent->childCount);
+        parent->children = newChildren;
+        parent->childCapacity = newCapacity;
+    } else {
+        memmove(parent->children + 1, parent->children, sizeof(ASTNode*) * parent->childCount);
+    }
+    parent->children[0] = child;
+    parent->childCount++;
+}

@@ -17,43 +17,31 @@ void CompileBrian(int argc, char* argv[])
 {
     CompilationState* cs = ParseFlagsBrian(argc, argv);
 
-    /* 
-    Pass cs to each phase explicitly as well, that way
-    upon an error occuring, errors can cleanup any remaining
-    compilation artifcts. Free symbol tables, asts, etc. 
-    
-    Could potentially store this as a function pointer
-    */
     RunTokenizer(cs);
-    if (cs->flags.stopAfter == TOKENIZE) return;
+    if (cs->flags.stopAfter == TOKENIZE) { 
+        CleanupBrian(cs); return; 
+    }
 
     RunParser(cs);
-    if (cs->flags.stopAfter == PARSE) return;
+    if (cs->flags.stopAfter == PARSE) { 
+        DEBUG_PRINT_AST(cs->parser->ast); 
+        CleanupBrian(cs); return; 
+    }
     // .. Other phases get implemented 
 
-    //BrianCleanup: 
-
-    // .. cleaup here, called by EXIT errors to allow cleanup
+    CleanupBrian(cs);
 }
 
+void CleanupBrian(CompilationState* cs)
+{
+    if (cs->tokenizer) DestroyTokenizerContext(cs->tokenizer);
+    if (cs->parser) DestroyParserContext(cs->parser);
+}
 
 static CompilationState* ParseFlagsBrian(int argc, char* argv[])
 {
     CompilationState* cs = malloc(sizeof(CompilationState));
-
-    if (argc <= 1) ERROR(ERR_FLAG_ABORT, COMPILER_ERR, "No filename specified\n");
-
-    /* Filesize */
-    FILE *fp = fopen(argv[1], "rb"); 
-    if (!fp) ERROR(ERR_FLAG_ABORT, COMPILER_ERR, "Unable to open file '%s'\n", argv[1]);
-    /* "native" target should be default */
-
-    /* Store file pointer */
-    fseek(fp, 0L, SEEK_END);      
-    long fsize = ftell(fp);         
-    rewind(fp);
-    cs->fileSize = fsize;
-    cs->fptr = fp;
+    OpenFile(cs, argc, argv);
 
     /* Tokenizer */
     for (int i = 2; i < argc; i++) {
@@ -71,6 +59,23 @@ static CompilationState* ParseFlagsBrian(int argc, char* argv[])
     }
 
     return cs;
+}
+
+void OpenFile(CompilationState* cs, int argc, char* argv[]) 
+{
+    if (argc <= 1) ERROR(ERR_FLAG_EXIT, COMPILER_ERR, "No filename specified\n");
+
+    /* Filesize */
+    FILE *fp = fopen(argv[1], "rb"); 
+    if (!fp) ERROR(ERR_FLAG_EXIT, COMPILER_ERR, "Unable to open file '%s'\n", argv[1]);
+    /* "native" target should be default */
+
+    /* Store file pointer */
+    fseek(fp, 0L, SEEK_END);      
+    long fsize = ftell(fp);         
+    rewind(fp);
+    cs->fileSize = fsize;
+    cs->fptr = fp;
 }
 
 /* ----- Running Each Phase ------ */
