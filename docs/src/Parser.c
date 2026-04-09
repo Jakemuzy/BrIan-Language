@@ -1,5 +1,7 @@
 #include "Parser.h"
 
+/* ----- Small Helpers ----- */
+
 #define TYPE_CASES \
     case CHAR: case BOOL: case INT: case LONG: case DOUBLE: case FLOAT: \
     case VOID: case STRING: case I8: case I16: case I32: case I64: \
@@ -26,6 +28,13 @@ static inline bool Match(ParserContext* ctx, TokenType t) {
     return true;
 }
 
+static inline void SyncRecovery(ParserContext* ctx, TokenType tt) 
+{
+    while (ctx->current.type != tt && ctx->current.type != END) 
+        Advance(ctx);
+	ctx->panicMode = false;
+}
+
 static inline ASTNode* ParseERROR(ParserContext* ctx, char* format) {
     ctx->failure = true; ctx->panicMode = true;
     char buf[256];
@@ -35,78 +44,9 @@ static inline ASTNode* ParseERROR(ParserContext* ctx, char* format) {
     return NULL;
 }
 
-static inline void SyncRecovery(ParserContext* ctx, TokenType tt) 
-{
-    while (ctx->current.type != tt && ctx->current.type != END) 
-        Advance(ctx);
-	ctx->panicMode = false;
-}
 
-/* 
-Could implement a predictive parsing table (similar to dfa table)
-*/
+/* ----- Recursive Descent ----- */
 
-/* 
-Error Recovery - want to recover from error, so other syntax
-errors can be found.
-
-Can delete, replace or insert tokens to recover. Can pretend that
-a valid token was there, print a messsage nad return normally.
-
-Insertion is dangerous since it could cascade and loop infinite.
-Deletion is safer, since EOF will cause loop to terminate.
-
-Delection - skip tokens until token in follow set is reached 
-*/
-
-
-/* 
-LL(k) must predict which production to use. Better to us LR(k)
-R means rightmost derivation. Parser has a stack nad an input, the first
-k tokens of the input are the lookahead. Based on the contents of the stack and the lookahead
-the parser performs two kinds of actions
-
-Shift: move the first input token to the top of the stack
-Reduce: Choose a grammar rule X -> A B C; pop C, B, A from the top of the stack,
-        push X onto the stack
-
-This is what I used in the past
-*/
-
-/* 
-LLR konw when to shift / reduce by using a DFA, applied to the stack
-probably overkill for my grammar since only 2 cases of LL3
-*/
-
-
-/*
-typedef struct {
-    TokenizerContext* tokenizer;
-    Token currenet;
-    Token buffer[3];
-    TypeTable* typeTable;
-} ParserContext;
-*/
-
-
-/* 
-Shouldn't pass the check down to the next function
-should check the first set inside of the function, to avoid
-unnecesary descent. Check first set before entering.
-This also allows for better error messaging since nesting
-wont propagte up. 
-*/
-
-
-/* 
-Optimizations: 
-
-Pratt parsing YES
-Packrat parsing PROBABLY NOT 
-Arena Allocator to reduce malloc YES
-
-
-*/
 
 ParserContext* InitalizeParserContext(TokenizerContext* tokenizer)
 {
@@ -131,12 +71,12 @@ void DestroyParserContext(ParserContext* ctx)
 void Program(ParserContext* ctx) 
 {
     //printf("Program\n");
-   
+
+	// Advance one to start, every other instance the child function Advances first before returning
+	Advance(ctx);	
     while (true) {
-		Advance(ctx);
         switch (ctx->current.type) {
             case FUNCTION: 
-                //printf("Func\n");
                 ASTNode* funcNode = Function(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
                 AddChildASTNode(ctx->arena, ctx->ast->root, funcNode);
@@ -145,13 +85,15 @@ void Program(ParserContext* ctx)
 				//printf("Interface\n");
                 ASTNode* interfaceDeclNode = InterfaceDecl(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
-                AddChildASTNode(ctx->arena, ctx->ast->root, interfaceDeclNode);
+                else AddChildASTNode(ctx->arena, ctx->ast->root, interfaceDeclNode);
                 break;
 			case LET:
                 //printf("VarDecl\n");
                 ASTNode* varDeclNode = VarDecl(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
-                AddChildASTNode(ctx->arena, ctx->ast->root, varDeclNode);
+                else AddChildASTNode(ctx->arena, ctx->ast->root, varDeclNode);
+
+				if (!Match(ctx, SEMI)) { ParseERROR(ctx, "Expected semicolon ';' after variable declartion."); return; }
                 break;
             case END:   
                 //printf("End\n");
@@ -180,15 +122,13 @@ ASTNode* Function(ParserContext* ctx)
 	switch (ctx->current.type) {
 		TYPE_CASES
 		case IDENT: funcNode = RegularFunc(ctx); break;
-		case GEN:   funcNode = GenericFunc(ctx); break;
+		case LESS:   funcNode = GenericFunc(ctx); break;
 		default: return ParseERROR(ctx, "Expected function return type or generic return type.");
 	}
 	if (ctx->panicMode) return NULL;
 
-	printf("Child Count: %d\n", funcNode->childCount);
 	if (linkageNode) PrependChildASTNode(ctx->arena, funcNode, linkageNode);
 	if (qualifierNode) PrependChildASTNode(ctx->arena, funcNode, qualifierNode);
-	printf("Child Count: %d\n", funcNode->childCount);
 
 	switch (ctx->current.type) {
 		case SEMI: 
@@ -211,6 +151,35 @@ ASTNode* Function(ParserContext* ctx)
 
 ASTNode* GenericFunc(ParserContext* ctx)
 {
+	ASTNode* genericNode = Generic(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
+
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Function name expected.");
+	ASTNode* funcNode = InitalizeASTNode(ctx->arena, GEN_FUNC_NODE, ctx->current);
+	Advance(ctx);
+
+	// Generic paramaters are optional
+	if (Match(ctx, LESS)) {
+		ASTNode* genricParams = GenericList(ctx);
+		if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
+		else AddChildASTNode(ctx->arena, funcNode, genricParams);
+	}
+
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' after function name.");
+
+	switch (ctx->current.type) {
+		QUALIFIER_CASES
+		TYPE_CASES
+		case IDENT: 
+			ASTNode* paramListNode = ParamList(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, funcNode, paramListNode);
+			break;
+		default: break; // Maybe have this do something? Empty node?
+	}
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' after function paramaters.");
+
 	return NULL;
 }
 
@@ -225,28 +194,27 @@ ASTNode* RegularFunc(ParserContext* ctx)
 		Advance(ctx);
 	}
 
+	// TODO: For custom types this will be the wrong message
 	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Function name expected.");
 	ASTNode* funcNode = InitalizeASTNode(ctx->arena, REGULAR_FUNC_NODE, ctx->current);
 	Advance(ctx);
 
 	AddChildASTNode(ctx->arena, funcNode, typeNode);
 
-	if (ctx->current.type != LPAREN) return ParseERROR(ctx, "Expected '(' after function name.");
-	Advance(ctx);
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' after function name.");
 
 	switch (ctx->current.type) {
 		QUALIFIER_CASES
 		TYPE_CASES
 		case IDENT: 
 			ASTNode* paramListNode = ParamList(ctx);
-			AddChildASTNode(ctx->arena, funcNode, paramListNode);
-			Advance(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, funcNode, paramListNode);
 			break;
 		default: break; // Maybe have this do something? Empty node?
 	}
 
-	if (ctx->current.type != RPAREN) return ParseERROR(ctx, "Epexted ') after funtion name.");
-	Advance(ctx);
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' after function paramaters.");
 
 	return funcNode;
 }
@@ -270,7 +238,7 @@ ASTNode* ParamList(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 				else AddChildASTNode(ctx->arena, paramListNode, paramNode);
 				break;
-			case GEN:  
+			case LESS:  	
 				ASTNode* genParamNode = GenParam(ctx);
 				if (qualifierNode) PrependChildASTNode(ctx->arena, genParamNode, qualifierNode);
 
@@ -278,28 +246,34 @@ ASTNode* ParamList(ParserContext* ctx)
 				else AddChildASTNode(ctx->arena, paramListNode, genParamNode);
 				break;
 			case RPAREN: return paramListNode;
-			default: return ParseERROR(ctx, "Expected paramters OR ')' inside function signature.");
+			default: return ParseERROR(ctx, "Expected paramaters inside function signature.");
+		}
+
+		switch (ctx->current.type) {
+			case COMMA: Advance(ctx); break;
+			case RPAREN: return paramListNode;
+			default: break;
 		}
 	}
 }
 
 ASTNode* Param(ParserContext* ctx)
 {
-    ASTNode* paramNode = InitalizeASTNode(ctx->arena, PARAM_NODE, DUMMY_TOKEN);
-
-	AddChildASTNode(ctx->arena, paramNode, InitalizeASTNode(ctx->arena, TYPE_NODE, ctx->current));
+    ASTNode* typeNode = InitalizeASTNode(ctx->arena, TYPE_NODE, ctx->current);
     Advance(ctx);
 
+	ASTNode* declPrefixNode = NULL;
     if (ctx->current.type == MOD || ctx->current.type == MULT) {
-        ASTNode* declPrefixNode = InitalizeASTNode(ctx->arena, DECL_PREFIX_NODE, ctx->current);
+        declPrefixNode = InitalizeASTNode(ctx->arena, DECL_PREFIX_NODE, ctx->current);
+		AddChildASTNode(ctx->arena, typeNode, declPrefixNode);
         Advance(ctx);
-        AddChildASTNode(ctx->arena, paramNode, declPrefixNode);
     }
 
     if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected parameter identifier.");
-	AddChildASTNode(ctx->arena, paramNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+	ASTNode* paramNode = InitalizeASTNode(ctx->arena, PARAM_NODE, ctx->current);
     Advance(ctx);
 
+	AddChildASTNode(ctx->arena, paramNode, typeNode);
     return paramNode;
 }
 
@@ -319,7 +293,6 @@ ASTNode* Body(ParserContext* ctx)
 	//printf("BODY\n");
 	ASTNode* bodyNode = InitalizeASTNode(ctx->arena, BODY_NODE, DUMMY_TOKEN);
 	Advance(ctx);
-
 
 	/* TODO: groupings that follow the grammar, simplifies and makes recursive descent easier */
 	while (true) {
@@ -394,7 +367,7 @@ ASTNode* Body(ParserContext* ctx)
 
 			case LOCK: case CRITICAL:
 
-			case RBRACE: return bodyNode;
+			case RBRACE: Advance(ctx); return bodyNode;
 			default: return ParseERROR(ctx, "Unexpected token in body.");
 		}
 	}
@@ -487,11 +460,10 @@ ASTNode* OperatorOverload(ParserContext* ctx)
 // Overloadable op 
 ASTNode* InterfaceDecl(ParserContext* ctx)
 {
-	ASTNode* interfaceDeclNode = InitalizeASTNode(ctx->arena, INTERFACE_DECL_NODE, DUMMY_TOKEN);
 	Advance(ctx);
 
 	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected interface name.");
-	AddChildASTNode(ctx->arena, interfaceDeclNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+	ASTNode* interfaceDeclNode = InitalizeASTNode(ctx->arena, INTERFACE_DECL_NODE, ctx->current);
 	Advance(ctx);
 
 	if (!Match(ctx, LBRACE)) ParseERROR(ctx, "Expected '{' to begin interface declaration.");
@@ -515,16 +487,20 @@ ASTNode* InterfaceBody(ParserContext* ctx)
 				ASTNode* varDeclNode = VarDecl(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, interfaceBodyNode, varDeclNode); 
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expect semicolon ';' after variable declartion.");
 				break;
 			case FUNCTION:
 				ASTNode* funcNode = Function(ctx);
-				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, interfaceBodyNode, funcNode); 
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expect semicolon ';' after function declartion.");
 				break;
 			case RBRACE:
 				return interfaceBodyNode;
 			default:
-				return ParseERROR(ctx, "Expected Variable or Function declaration inside of interface.");
+				return ParseERROR(ctx, "Only FUNCTIONS or VARAIBLES allowed inside of interface's body.");
 		}
 	}
 }

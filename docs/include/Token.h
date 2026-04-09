@@ -116,7 +116,7 @@ static const KeywordTypePair KEYWORD_MAP[378] = {
     [348] = {"atomic", ATOMIC}, [95]  = {"extern", EXTERN},
     [339]  = {"fn", FUNCTION}, [335] = {"mat", MAT},
     [109] = {"vec", VEC},      [325] = {"as", AS}, 
-    [164] = {"let", LET},      [157] = {"gen", GEN}
+    [164] = {"let", LET},      
 };
 
 int KeywordHash(const char* word);

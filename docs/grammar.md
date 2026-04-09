@@ -32,7 +32,7 @@
     FuncDef ::= FuncSignature Body
 
     FuncSignature ::= GenericFunc | RegularFunc
-    GenericFunc ::= "fn" LinkageSpecifier TypeQualifier Generic [ DeclPrefix ] IDENT GenericList '(' [ ParamList ] ')'
+    GenericFunc ::= "fn" LinkageSpecifier TypeQualifier Generic IDENT GenericList '(' [ ParamList ] ')'
     RegularFunc ::= "fn" LinkageSpecifier TypeQualifier ( Type | IDENT ) [ DeclPrefix ] IDENT '(' [ ParamList ] ')'
 
     ParamList ::= ( Param | GenParam ) { ',' ( Param | Genparam ) }
@@ -61,7 +61,7 @@
                         | '<<' | '>>' | '&' | '|' | '^' | '~'
                         | "[]"
     InterfaceDecl ::= "interface" IDENT '{' InterfaceBody '}'
-        InterfaceBody ::= { VarDecl | FuncDecl }
+        InterfaceBody ::= { ( VarDecl | FuncDecl ) ';' }
 
     EnumDecl ::= "enum" IDENT EnumBody 
         EnumBody ::= '{' IDENT [ = INTEGRAL ] { ',' IDENT [ = INTEGRAL ] } '}'
@@ -117,8 +117,8 @@
         Matrix ::= "mat" '<' {1-9} 'x' {1-9} '>'
         Vector ::= "vec" '<' {1-9} '>'
     DeclPrefix ::= ( '*' | '%' )          
-    GenericList ::= "gen" '<' IDENT { ',' IDENT } '>'
-        Generic ::= "gen" '<' IDENT '>'
+    GenericList ::= '<' IDENT { ',' IDENT } '>'
+        Generic ::= '<' IDENT '>'
     TypeQualifier ::= { TypeQualifierItem }
     TypeQualifierItem ::= "static" | "inline" | "const" | "volatile" | "atomic"
     LinkageSpecifier ::= [ extern ]
