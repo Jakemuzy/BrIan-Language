@@ -31,7 +31,7 @@ void* AllocateArena(Arena* arena, size_t size)
         return AllocateArena(arena->next, size);
     }
 
-    void* ptr = (char*)(arena->base + alignedOffset);
+    void* ptr = (char*)arena->base + alignedOffset;
     arena->offset = alignedOffset + size;
     return ptr;
 }

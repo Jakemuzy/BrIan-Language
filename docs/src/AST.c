@@ -3,7 +3,7 @@
 AST* InitalizeAST(Arena* arena)
 {
     AST* ast = AllocateArena(arena, sizeof(AST));
-    ast->root = AllocateArena(arena, sizeof(ASTNode));
+    ast->root = InitalizeASTNode(arena, PROG_NODE, DUMMY_TOKEN);
     return ast;
 }
 
@@ -11,6 +11,7 @@ ASTNode* InitalizeASTNode(Arena* arena, NodeType type, Token token)
 {
     ASTNode* node = AllocateArena(arena, sizeof(ASTNode));
     node->childCount = 0;
+    node->childCapacity = 0;
     node->children = NULL;
     node->type = type;
     node->token = token;
@@ -25,8 +26,9 @@ void AddChildASTNode(Arena* arena, ASTNode* parent, ASTNode* child)
     if (parent->childCount >= parent->childCapacity) {
         size_t newCapacity = parent->childCapacity == 0 ? 4 : parent->childCapacity * 2;
         ASTNode** newChildren = AllocateArena(arena, sizeof(ASTNode*) * newCapacity);
-        if (parent->children)
+        if (parent->children) {
             memcpy(newChildren, parent->children, sizeof(ASTNode*) * parent->childCount);
+        }
         parent->children = newChildren;
         parent->childCapacity = newCapacity;
     }

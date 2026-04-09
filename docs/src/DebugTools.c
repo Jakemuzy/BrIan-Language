@@ -35,7 +35,6 @@ static void DEBUG_PRINT_NODE(ASTNode* node, int depth) {
     if (!node) return;
     for (int i = 0; i < depth; i++) printf(i == depth - 1 ? "├── " : "│   ");
     const char* lexeme = node->token.lexeme;
-    // printf("%s (%s) [children: %zu]\n", NodeTypeStr[node->type], lexeme, node->childCount);
     if (lexeme && lexeme[0] != '\0')
         printf("%s (%s)\n", NodeTypeStr[node->type], lexeme);
     else

@@ -2,7 +2,7 @@
 
 /* ----- Double Buffered Context ----- */
 
-TokenizerContext* InitalizeTokenizerContext(FILE* fptr)
+TokenizerContext* InitalizeTokenizerContext(FILE* fptr, size_t fileSize)
 {
     TokenizerContext* ctx = malloc(sizeof(TokenizerContext));
     ctx->buffer1[TOKENIZER_BUFFER_SIZE -1] = TOKENIZER_SENTINEL;
@@ -15,6 +15,10 @@ TokenizerContext* InitalizeTokenizerContext(FILE* fptr)
     ctx->col = 0;
 
     ctx->fptr = fptr;
+
+    /* Make the constant variable depending on density */
+    size_t arenaSize = fileSize * ARENA_CAPACITY_MULTIPLIER_FROM_FILESIZE;
+    ctx->arena = CreateArena(arenaSize);
 
     LoadBuffer(ctx, 1);
     return ctx;
@@ -63,7 +67,7 @@ char AdvanceBuffer(TokenizerContext* ctx)
 Token ExtractTokenFromBuffer(TokenizerContext* ctx)
 {
     size_t lexLength = ctx->forward - ctx->lexemeBegin;
-    char* lexeme = malloc(lexLength + 1);
+    char* lexeme = AllocateArena(ctx->arena, lexLength + 1); 
     memcpy(lexeme, ctx->lexemeBegin, lexLength);
     lexeme[lexLength] = '\0';
 

@@ -21,7 +21,7 @@
 
 typedef struct ParserContext {
       TokenizerContext* tokenizer;
-      Token current, previous;
+      Token current;
 
       /* Add tokenizer lookahead */
       bool failure, panicMode;
@@ -30,7 +30,7 @@ typedef struct ParserContext {
       AST* ast;
 } ParserContext;
 
-ParserContext* InitalizeParserContext(TokenizerContext* tokenizer, size_t fileSize);
+ParserContext* InitalizeParserContext(TokenizerContext* tokenizer);
 void DestroyParserContext(ParserContext* ctx);
 
 /* ----- Operator Precedence Order ----- */

@@ -8,6 +8,8 @@
 #include <ctype.h>
 
 #include "ErrorHandler.h"
+#include "ArenaAllocator.h"
+
 #include "Token.h"
 
 #define TOKENIZER_BUFFER_SIZE 512
@@ -36,9 +38,10 @@ typedef struct TokenizerContext {
     int row, col;
 
     FILE* fptr;
+    Arena* arena;
 } TokenizerContext;
 
-TokenizerContext* InitalizeTokenizerContext(FILE* fptr);
+TokenizerContext* InitalizeTokenizerContext(FILE* fptr, size_t fileSize);
 void DestroyTokenizerContext(TokenizerContext* ctx);
 
 void LoadBuffer(TokenizerContext* ctx, int bufferNum);
