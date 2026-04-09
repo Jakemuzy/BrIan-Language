@@ -32,8 +32,13 @@ The improvements singlehandedly droped the time to tokenize every token in the g
 
 ## Parser 
 
-The two main benefits over the previous parser system are pratt parsing and using an arena allocator to reduce the overhead of memory allocations.
+The three main benefits over the previous parser system are pratt parsing, utilizing FIRST and FOLLOW sets more efficiently and using an arena allocator to reduce the overhead of memory allocations.
 Pratt parsing simplifies the operator resolution a lot. Instead of deep stack calls due to recursive descent, pratt parsing handles precedence far more elegantly.
+
+Starting with the most simple of fixes; in V1.0 when parsing the file BrIan often relegated checking FIRST sets to the child function. In practice this works, and is actually quite a clean looking design. 
+V2.0, however, aims for higher performance, maintainabilty and scalability, for this reason I've decided to sacrifice a bit of aesthetics and transition this check in the parent function.
+By moving the FIRST set check to the parent function, we can avoid deeply nested recursion that bloats the call stack before a first set is discovered. 
+Although a small change, it should have significant impact on deeply recursive areas of the code such as expressions.
 
 For BrIan, operator parsing is divided into three categories for easier use during future phases: assignment, unary, and binary operators.
 As for arena allocation; it allows AST nodes to be allocated in builk, and having uniform lifetimes, allowing for easier cleanup during error resolation or recovery as well.
@@ -42,7 +47,7 @@ The main drawback with the arena allocator in our scenario is that we don't know
 The first method being; BrIan estimates how much memory will be used during each step based on the file size (this could potentially be explictly specified via a compiler flag as well)
 The second method BrIan enacts is to use a linked list of arena's if the first one fills up. Although this is a viable solution, we again don't know how much space to allocate, and even worse, if paired with our previous estimate, we could grossly misestimate the amount of space we need to allocate for the second arena. For this reason it is extremely important to specify the growth pattern of the next arena (ie double space, half, etc)
 
-The way the compiler interacts with the Parser is also of note. CompilationState* is passed to every phase in order to allow for proper error propagation.
+The way the compiler interacts with the Parser is also of note. CompilationState* passes down key information to every phase in order to allow for proper error propagation and compiler flag information
 
 # ----------
 

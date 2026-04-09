@@ -18,15 +18,7 @@ void CompileBrian(int argc, char* argv[])
     CompilationState* cs = ParseFlagsBrian(argc, argv);
 
     RunTokenizer(cs);
-    if (cs->flags.stopAfter == TOKENIZE) { 
-        CleanupBrian(cs); return; 
-    }
-
     RunParser(cs);
-    if (cs->flags.stopAfter == PARSE) { 
-        DEBUG_PRINT_AST(cs->parser->ast); 
-        CleanupBrian(cs); return; 
-    }
     // .. Other phases get implemented 
 
     CleanupBrian(cs);
@@ -34,6 +26,7 @@ void CompileBrian(int argc, char* argv[])
 
 void CleanupBrian(CompilationState* cs)
 {
+    // TODO: Something double frees here 
     if (cs->tokenizer) DestroyTokenizerContext(cs->tokenizer);
     if (cs->parser) DestroyParserContext(cs->parser);
 }
@@ -82,24 +75,29 @@ void OpenFile(CompilationState* cs, int argc, char* argv[])
 
 void RunTokenizer(CompilationState* cs)
 {
-    TokenizerContext* ctx = InitalizeTokenizerContext(cs->fptr);
+    TokenizerContext* ctx = InitalizeTokenizerContext(cs->fptr, cs->fileSize);
     Token tok;
     if (cs->flags.stopAfter == TOKENIZE) {
         while ( (tok = GetNextToken(ctx)).type != ERR && tok.type != END) {
             printf("Token: %s\tRow: %d\tCol:%d\tTokNum: %d\n", tok.lexeme, tok.row, tok.col, tok.type);
         }
-        DestroyTokenizerContext(ctx);
+        CleanupBrian(cs);
     }
     cs->tokenizer = ctx;
 }
 
 void RunParser(CompilationState* cs)
 {
-    ParserContext* ctx = InitalizeParserContext(cs->tokenizer, cs->fileSize);
+    ParserContext* ctx = InitalizeParserContext(cs->tokenizer);
     Program(ctx);
+    if (ctx->failure) {
+        CleanupBrian(cs);
+        ERROR(ERR_FLAG_EXIT, PARSER_ERR, "Failed to parse file.");
+    }
     if (cs->flags.stopAfter == PARSE) {
         // Print AST Here 
-        DestroyParserContext(ctx);
+        DEBUG_PRINT_AST(ctx->ast); 
+        CleanupBrian(cs);
     }
     cs->parser = ctx;
 }

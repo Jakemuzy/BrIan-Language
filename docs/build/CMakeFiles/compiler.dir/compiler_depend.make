@@ -507,6 +507,7 @@ CMakeFiles/compiler.dir/src/Token.c.o: /home/jmuzy/Programming/C/BrIan-Language/
   /usr/lib/llvm-20/lib/clang/20/include/stddef.h
 
 CMakeFiles/compiler.dir/src/Tokenizer.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c \
+  /home/jmuzy/Programming/C/BrIan-Language/docs/include/ArenaAllocator.h \
   /home/jmuzy/Programming/C/BrIan-Language/docs/include/ErrorHandler.h \
   /home/jmuzy/Programming/C/BrIan-Language/docs/include/Token.h \
   /home/jmuzy/Programming/C/BrIan-Language/docs/include/Tokenizer.h \

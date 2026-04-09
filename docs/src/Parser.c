@@ -18,7 +18,7 @@
     case HEX: case TRUE: case FALSE: case NILL:
 /* Helpers */
 
-static inline void Advance(ParserContext* ctx) { ctx->previous = ctx->current; ctx->current = GetNextToken(ctx->tokenizer); }
+static inline void Advance(ParserContext* ctx) { ctx->current = GetNextToken(ctx->tokenizer); }
 
 static inline bool Match(ParserContext* ctx, TokenType t) {
     if (ctx->current.type != t) return false;
@@ -108,17 +108,15 @@ Arena Allocator to reduce malloc YES
 
 */
 
-ParserContext* InitalizeParserContext(TokenizerContext* tokenizer, size_t fileSize)
+ParserContext* InitalizeParserContext(TokenizerContext* tokenizer)
 {
     ParserContext* parser = malloc(sizeof(ParserContext));
 
-    /* Make the constant variable depending on density */
-    size_t arenaSize = fileSize * ARENA_CAPACITY_MULTIPLIER_FROM_FILESIZE;
-
 	parser->failure = false; parser->panicMode = false;
     parser->tokenizer = tokenizer;
-    parser->arena = CreateArena(arenaSize);
-    parser->ast = NULL;
+	// Share the same arena to avoid token's str copy issues 
+    parser->arena = tokenizer->arena;	
+    parser->ast = InitalizeAST(parser->arena);
     return parser;
 }
 
@@ -132,32 +130,31 @@ void DestroyParserContext(ParserContext* ctx)
 
 void Program(ParserContext* ctx) 
 {
-    printf("Program\n");
-    ctx->ast = InitalizeAST(ctx->arena);
+    //printf("Program\n");
    
     while (true) {
 		Advance(ctx);
         switch (ctx->current.type) {
             case FUNCTION: 
-                printf("Func\n");
+                //printf("Func\n");
                 ASTNode* funcNode = Function(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
                 AddChildASTNode(ctx->arena, ctx->ast->root, funcNode);
                 break;
             case INTERFACE:
-				printf("Interface\n");
+				//printf("Interface\n");
                 ASTNode* interfaceDeclNode = InterfaceDecl(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
                 AddChildASTNode(ctx->arena, ctx->ast->root, interfaceDeclNode);
                 break;
 			case LET:
-                printf("VarDecl\n");
+                //printf("VarDecl\n");
                 ASTNode* varDeclNode = VarDecl(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
                 AddChildASTNode(ctx->arena, ctx->ast->root, varDeclNode);
                 break;
             case END:   
-                printf("End\n");
+                //printf("End\n");
                 return;
 			default: 
 				ERROR(ERR_FLAG_EXIT, PARSER_ERR, "Unexpected token occured in glboal scope: '%s' on line %d, col %d", ctx->current, ctx->current.row, ctx->current.col);
@@ -173,31 +170,33 @@ ASTNode* DeclQualifiers(ParserContext* ctx)
 
 ASTNode* Function(ParserContext* ctx)
 {
-	ASTNode* funcNode, *linkageNode, *qualifierNode;
+	ASTNode* funcNode = NULL, *linkageNode = NULL, *qualifierNode = NULL;
 	Advance(ctx);
 
 	/* Optional Specifiers and Qualifiers */
 	if (ctx->current.type == EXTERN) { linkageNode = LinkageSpecifier(ctx); }
-	switch(ctx->current.type) { QUALIFIER_CASES  qualifierNode = TypeQualifierList(ctx); }
+	switch(ctx->current.type) { QUALIFIER_CASES  qualifierNode = TypeQualifierList(ctx); default: break; }
 
 	switch (ctx->current.type) {
 		TYPE_CASES
 		case IDENT: funcNode = RegularFunc(ctx); break;
 		case GEN:   funcNode = GenericFunc(ctx); break;
-		default: return ParseERROR(ctx, "Expected function return type or generic.");
+		default: return ParseERROR(ctx, "Expected function return type or generic return type.");
 	}
 	if (ctx->panicMode) return NULL;
 
+	printf("Child Count: %d\n", funcNode->childCount);
 	if (linkageNode) PrependChildASTNode(ctx->arena, funcNode, linkageNode);
 	if (qualifierNode) PrependChildASTNode(ctx->arena, funcNode, qualifierNode);
+	printf("Child Count: %d\n", funcNode->childCount);
 
 	switch (ctx->current.type) {
 		case SEMI: 
-			printf("Decl\n");
+			//printf("Decl\n");
 			funcNode->type = FUNC_DECL;
 			break;
 		case LBRACE:
-			printf("Def\n");
+			//printf("Def\n");
 			funcNode->type = FUNC_DEF;
 			ASTNode* bodyNode = Body(ctx);
 			if (ctx->panicMode) return NULL;
@@ -217,18 +216,20 @@ ASTNode* GenericFunc(ParserContext* ctx)
 
 ASTNode* RegularFunc(ParserContext* ctx)
 {
-	ASTNode* funcNode = InitalizeASTNode(ctx->arena, REGULAR_FUNC_NODE, ctx->current);
+	ASTNode* typeNode = InitalizeASTNode(ctx->arena, TYPE_NODE, ctx->current);
 	Advance(ctx);
 
 	// Optional DeclPrefix
 	if (ctx->current.type == MOD || ctx->current.type == MULT) {
-		AddChildASTNode(ctx->arena, funcNode, InitalizeASTNode(ctx->arena, DECL_PREFIX_NODE, ctx->current));
+		AddChildASTNode(ctx->arena, typeNode, InitalizeASTNode(ctx->arena, DECL_PREFIX_NODE, ctx->current));
 		Advance(ctx);
 	}
 
 	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Function name expected.");
-	AddChildASTNode(ctx->arena, funcNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+	ASTNode* funcNode = InitalizeASTNode(ctx->arena, REGULAR_FUNC_NODE, ctx->current);
 	Advance(ctx);
+
+	AddChildASTNode(ctx->arena, funcNode, typeNode);
 
 	if (ctx->current.type != LPAREN) return ParseERROR(ctx, "Expected '(' after function name.");
 	Advance(ctx);
@@ -241,6 +242,7 @@ ASTNode* RegularFunc(ParserContext* ctx)
 			AddChildASTNode(ctx->arena, funcNode, paramListNode);
 			Advance(ctx);
 			break;
+		default: break; // Maybe have this do something? Empty node?
 	}
 
 	if (ctx->current.type != RPAREN) return ParseERROR(ctx, "Epexted ') after funtion name.");
@@ -256,7 +258,7 @@ ASTNode* ParamList(ParserContext* ctx)
 
 	while (true) {
 		ASTNode* qualifierNode = NULL;
-		switch (ctx->current.type) { QUALIFIER_CASES qualifierNode = TypeQualifier; }
+		switch (ctx->current.type) { QUALIFIER_CASES qualifierNode = TypeQualifier(ctx); default: break; }
 
 		switch (ctx->current.type) {
 			TYPE_CASES
@@ -270,10 +272,11 @@ ASTNode* ParamList(ParserContext* ctx)
 				break;
 			case GEN:  
 				ASTNode* genParamNode = GenParam(ctx);
-				if (qualifierNode) PrependChildASTNode(ctx->arena, paramNode, qualifierNode);
+				if (qualifierNode) PrependChildASTNode(ctx->arena, genParamNode, qualifierNode);
 
 				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 				else AddChildASTNode(ctx->arena, paramListNode, genParamNode);
+				break;
 			case RPAREN: return paramListNode;
 			default: return ParseERROR(ctx, "Expected paramters OR ')' inside function signature.");
 		}
@@ -313,9 +316,10 @@ ASTNode* Lamba(ParserContext* ctx)
 
 ASTNode* Body(ParserContext* ctx)
 {
-	printf("BODY\n");
+	//printf("BODY\n");
 	ASTNode* bodyNode = InitalizeASTNode(ctx->arena, BODY_NODE, DUMMY_TOKEN);
 	Advance(ctx);
+
 
 	/* TODO: groupings that follow the grammar, simplifies and makes recursive descent easier */
 	while (true) {
@@ -351,7 +355,6 @@ ASTNode* Body(ParserContext* ctx)
 				else AddChildASTNode(ctx->arena, bodyNode, varDeclNode);
 
 				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after variable declaration.");
-				printf("%s\n", ctx->current.lexeme);
 				break;
 			case ENUM:
 				ASTNode* enumNode = EnumDecl(ctx);
@@ -425,7 +428,7 @@ ASTNode* VarDecl(ParserContext* ctx)
 	Advance(ctx);
 
 	if (ctx->current.type == EXTERN) { AddChildASTNode(ctx->arena, varDeclNode, LinkageSpecifier(ctx)); }
-	switch(ctx->current.type) { QUALIFIER_CASES AddChildASTNode(ctx->arena, varDeclNode, TypeQualifierList(ctx)); }
+	switch(ctx->current.type) { QUALIFIER_CASES AddChildASTNode(ctx->arena, varDeclNode, TypeQualifierList(ctx)); default: break; }
 
 	switch (ctx->current.type) {
 		TYPE_CASES
@@ -672,7 +675,7 @@ ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec)
 
 ASTNode* UnaryExpr(ParserContext* ctx, PRECEDENCE prec)
 {
-	printf("UNARY\n");
+	//printf("UNARY\n");
 	ASTNode* unaryNode = InitalizeASTNode(ctx->arena, UNARY_EXPR_NODE, ctx->current);
 	Advance(ctx);
 
@@ -685,7 +688,7 @@ ASTNode* UnaryExpr(ParserContext* ctx, PRECEDENCE prec)
 
 ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 {
-	printf("BINARY\n");
+	//printf("BINARY\n");
 	ASTNode* binaryNode = InitalizeASTNode(ctx->arena, BINARY_EXPR_NODE, ctx->current);
 	Advance(ctx);	
 
@@ -699,7 +702,7 @@ ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 
 ASTNode* AsgnExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 {
-	printf("ASGN\n");
+	//printf("ASGN\n");
 	ASTNode* asgnNode = InitalizeASTNode(ctx->arena, ASGN_EXPR_NODE, ctx->current);
 	Advance(ctx);	
 
@@ -762,7 +765,7 @@ ASTNode* Generic(ParserContext* ctx)
 
 ASTNode* TypeQualifierList(ParserContext* ctx)
 {
-	printf("Type Qualifier\n");
+	//printf("Type Qualifier\n");
 	ASTNode* qualifierListNode = InitalizeASTNode(ctx->arena, QUALIFIER_LIST_NODE, DUMMY_TOKEN);
 	while (true) {
 		switch (ctx->current.type) {
@@ -831,15 +834,20 @@ ASTNode* VarList(ParserContext* ctx)
 
 ASTNode* Var(ParserContext* ctx)
 {
-	printf("Var\n");
+	//printf("Var\n");
 	if (ctx->current.type != IDENT) ParseERROR(ctx, "Expected identifier name for variable declaration.");
 	ASTNode* varNode = InitalizeASTNode(ctx->arena, VAR_NODE, ctx->current);
     Advance(ctx);
 
 	while (Match(ctx, LBRACK)) {
 		ASTNode* exprNode = Expr(ctx, PREC_NONE);
-		if (ctx->panicMode) SyncRecovery(ctx, RBRACK);
-		if (!Match(ctx, RBRACK)) ParseERROR(ctx, "Epexted ']' for array initalization.");
+		if (ctx->panicMode) { SyncRecovery(ctx, RBRACK); return varNode; }
+		if (!Match(ctx, RBRACK)) return ParseERROR(ctx, "Epexted ']' for array initalization.");
+
+		// TODO: Idk if this is correct
+		ASTNode* arrayInitNode = InitalizeASTNode(ctx->arena, ARR_DECL_NODE, DUMMY_TOKEN);
+		AddChildASTNode(ctx->arena, arrayInitNode, exprNode);
+		AddChildASTNode(ctx->arena, varNode, arrayInitNode);
 	}
 
 	if (Match(ctx, EQ)) {
@@ -854,6 +862,7 @@ ASTNode* Var(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, varNode, exprNode);
 				break;
+			default: return ParseERROR(ctx, "Invalid assignment to variable.");
 		}	
 	}
 
