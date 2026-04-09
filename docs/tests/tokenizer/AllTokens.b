@@ -38,7 +38,6 @@ void
 string
 as
 let 
-gen
 enum
 struct
 typedef

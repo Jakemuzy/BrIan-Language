@@ -32,12 +32,11 @@
     FuncDef ::= FuncSignature Body
 
     FuncSignature ::= GenericFunc | RegularFunc
-    GenericFunc ::= "fn" LinkageSpecifier TypeQualifier Generic [ DeclPrefix ] IDENT GenericList '(' [ ParamList ] ')'
+    GenericFunc ::= "fn" LinkageSpecifier TypeQualifier Generic IDENT GenericList '(' [ ParamList ] ')'
     RegularFunc ::= "fn" LinkageSpecifier TypeQualifier ( Type | IDENT ) [ DeclPrefix ] IDENT '(' [ ParamList ] ')'
 
-    ParamList ::= ( Param | GenParam ) { ',' ( Param | Genparam ) }
+    ParamList ::= Param  { ',' Param }
     Param ::= TypeQualifier ( Type | IDENT ) [ DeclPrefix ] IDENT
-    GenParam ::= TypeQualifier Generic [ DeclPrefix ] IDENT 
 
     Lambda ::= "lambda" '(' [ParamList ] ')' Body     
 	Body ::= '{' StmtList '}'
@@ -52,7 +51,7 @@
     GenDecl ::= "let" LinkageSpecifier TypeQualifier Generic VarList
     StructDecl ::= GenericStruct | RegularStruct
     GenericStruct ::= "struct" IDENT GenericList '{' GenStructBody '}'
-        GenStructBody :: { GenDecl | GenericFunc | OperatorOverload }
+        GenStructBody ::= { GenDecl | GenericFunc | OperatorOverload }
     RegularStruct ::= "struct" IDENT [ ':' IDENT ] '{' StructBody '}' 
         StructBody ::= { DeclStmt | Function | OperatorOverload }
         OperatorOverload ::= "operator" OverloadableOp '(' Param ')' Body
@@ -61,7 +60,7 @@
                         | '<<' | '>>' | '&' | '|' | '^' | '~'
                         | "[]"
     InterfaceDecl ::= "interface" IDENT '{' InterfaceBody '}'
-        InterfaceBody ::= { VarDecl | FuncDecl }
+        InterfaceBody ::= { ( VarDecl | FuncDecl ) ';' }
 
     EnumDecl ::= "enum" IDENT EnumBody 
         EnumBody ::= '{' IDENT [ = INTEGRAL ] { ',' IDENT [ = INTEGRAL ] } '}'
@@ -117,8 +116,8 @@
         Matrix ::= "mat" '<' {1-9} 'x' {1-9} '>'
         Vector ::= "vec" '<' {1-9} '>'
     DeclPrefix ::= ( '*' | '%' )          
-    GenericList ::= "gen" '<' IDENT { ',' IDENT } '>'
-        Generic ::= "gen" '<' IDENT '>'
+    GenericList ::= '<' IDENT { ',' IDENT } '>'
+        Generic ::= '<' IDENT '>'
     TypeQualifier ::= { TypeQualifierItem }
     TypeQualifierItem ::= "static" | "inline" | "const" | "volatile" | "atomic"
     LinkageSpecifier ::= [ extern ]
