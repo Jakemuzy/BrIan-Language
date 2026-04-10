@@ -57,15 +57,15 @@ ASTNode* RegularFunc(ParserContext* ctx);
 
 ASTNode* ParamList(ParserContext* ctx);
 ASTNode* Param(ParserContext* ctx);
-ASTNode* GenParam(ParserContext* ctx);
 
-ASTNode* Lamba(ParserContext* ctx);
+ASTNode* Lambda(ParserContext* ctx);
 ASTNode* Body(ParserContext* ctx);
 ASTNode* StmtList(ParserContext* ctx);
 ASTNode* Stmt(ParserContext* ctx);
 
 ASTNode* ExprStmt(ParserContext* ctx);
 ASTNode* DeclStmt(ParserContext* ctx);
+ASTNode* ReturnStmt(ParserContext* ctx);
 
 ASTNode* VarDecl(ParserContext* ctx);
 ASTNode* GenDecl(ParserContext* ctx);
