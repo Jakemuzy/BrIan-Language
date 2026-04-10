@@ -15,8 +15,15 @@ let u16 rewind = 4.2;   // Okay since not type checked yet
 let string var = "string here";
 let char boo = 'b';
 
-*/
-
 fn <T> GenFunc <T, T2>(T one, T2 two) {
     return one + two;
+}
+
+*/
+
+fn int lambdaTest() {
+
+    lambda void (int x, int y) {
+        return x + y;
+    };
 }

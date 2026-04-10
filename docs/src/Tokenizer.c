@@ -103,6 +103,7 @@ Token GetNextToken(TokenizerContext* ctx)
 
 Token SkipComment(TokenizerContext* ctx)
 {
+    // TODO: Doesn't iterate col and row 
     // Returns next token AFTER comment is consumed 
     char* past = ctx->forward;
 

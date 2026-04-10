@@ -98,8 +98,8 @@ void Program(ParserContext* ctx)
             case END:   
                 //printf("End\n");
                 return;
-			default: 
-				ERROR(ERR_FLAG_EXIT, PARSER_ERR, "Unexpected token occured in glboal scope: '%s' on line %d, col %d", ctx->current, ctx->current.row, ctx->current.col);
+			default:	
+				ParseERROR(ctx, "Unexpected token occured in global scope."); return;
         }
     }
 }
@@ -141,6 +141,7 @@ ASTNode* Function(ParserContext* ctx)
 			ASTNode* bodyNode = Body(ctx);
 			if (ctx->panicMode) return NULL;
 			else AddChildASTNode(ctx->arena, funcNode, bodyNode);
+printf("%s\n", ctx->current.lexeme);
 			break;
 		default:
 			return ParseERROR(ctx, "Expected '{' for function definition or ';' for function declaration.");
@@ -156,6 +157,7 @@ ASTNode* GenericFunc(ParserContext* ctx)
 
 	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Function name expected.");
 	ASTNode* funcNode = InitalizeASTNode(ctx->arena, GEN_FUNC_NODE, ctx->current);
+	AddChildASTNode(ctx->arena, funcNode, genericNode);
 	Advance(ctx);
 
 	// Generic paramaters are optional
@@ -164,7 +166,6 @@ ASTNode* GenericFunc(ParserContext* ctx)
 		if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
 		else AddChildASTNode(ctx->arena, funcNode, genricParams);
 	}
-
 
 	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' after function name.");
 
@@ -180,7 +181,6 @@ ASTNode* GenericFunc(ParserContext* ctx)
 	}
 
 	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' after function paramaters.");
-
 	return funcNode;
 }
 
@@ -271,15 +271,45 @@ ASTNode* Param(ParserContext* ctx)
     return paramNode;
 }
 
-ASTNode* GenParam(ParserContext* ctx)
+ASTNode* Lambda(ParserContext* ctx)
 {
-	return NULL;
-}
+	Advance(ctx);
+
+	ASTNode* lambdaNode = InitalizeASTNode(ctx->arena, LAMBDA_NODE, DUMMY_TOKEN);
+
+	// Lambda should impelment AnonParamList
+	switch (ctx->current.type) {
+		TYPE_CASES 
+		case IDENT:	
+			ASTNode* typeNode = InitalizeASTNode(ctx->arena, TYPE_NODE, ctx->current);
+			AddChildASTNode(ctx->arena, lambdaNode, typeNode);
+			Advance(ctx);
+			break;
+		default: return ParseERROR(ctx, "Expected lambda to have a valid return type.");
+	}
+
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' after lambda declaration.");
+
+	switch (ctx->current.type) {
+		QUALIFIER_CASES
+		TYPE_CASES
+		case IDENT: 
+			ASTNode* paramListNode = ParamList(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, lambdaNode, paramListNode);
+			break;
+		default: break; // Maybe have this do something? Empty node?
+	}
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' after function paramaters.");
 
 
-ASTNode* Lamba(ParserContext* ctx)
-{
-	return NULL;
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected lambda to have a body.");
+	ASTNode* bodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, lambdaNode, bodyNode);
+
+	return lambdaNode;
 }
 
 ASTNode* Body(ParserContext* ctx)
@@ -352,11 +382,13 @@ ASTNode* Body(ParserContext* ctx)
 
 				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after expression.");
 				break;
-
-				// Don't do anything here use pratt parsing
-
 			case RETURN:
+				ASTNode* returnNode = ReturnStmt(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, bodyNode, returnNode);
 
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after return expression.");
+				break;
 			case BREAK: case CONTINUE:
 
 			case LOCK: case CRITICAL:
@@ -388,6 +420,24 @@ ASTNode* DeclStmt(ParserContext* ctx)
 	return NULL;
 }
 
+ASTNode* ReturnStmt(ParserContext* ctx)
+{
+	Advance(ctx);
+
+	// Typically if there is nothing in a node, we omit the parent node, however, 
+	// In this case we still need to type check that there is no return in the function
+	ASTNode* returnStmtNode = InitalizeASTNode(ctx->arena, RETURN_STMT_NODE, DUMMY_TOKEN);
+	switch (ctx->current.type) {
+		EXPR_START_CASES	
+			ASTNode* exprNode = Expr(ctx, PREC_NONE);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, returnStmtNode, exprNode);
+			break;
+		case SEMI: break;
+		default: return ParseERROR(ctx, "Expected a return value.");
+	}
+	return returnStmtNode;
+}
 
 ASTNode* VarDecl(ParserContext* ctx)
 {
@@ -614,9 +664,13 @@ ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec)
 		case HEX: case NILL: case FALSE: 
 		case TRUE: 
 			left = InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current);
-			Advance(ctx);
-			break;
+			Advance(ctx); break;
+		case IDENT:
+			left = InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current);
+			Advance(ctx); break;
 		case LAMBDA:
+			left = Lambda(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 			break;
 		case SIZEOF:
 			break;
@@ -624,6 +678,7 @@ ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec)
 			Advance(ctx);
 			left = Expr(ctx, PREC_NONE);
 			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+
 			if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected closing ')' for parenthesized expression.");
 			break;
 		default:

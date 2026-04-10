@@ -92,7 +92,7 @@ void RunParser(CompilationState* cs)
     Program(ctx);
     if (ctx->failure) {
         CleanupBrian(cs);
-        ERROR(ERR_FLAG_EXIT, PARSER_ERR, "Failed to parse file.");
+        ERROR(ERR_FLAG_EXIT, PARSER_ERR, "Failed to parse file.\n");
     }
     if (cs->flags.stopAfter == PARSE) {
         // Print AST Here 
