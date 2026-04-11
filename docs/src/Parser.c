@@ -6,7 +6,8 @@
     case CHAR: case BOOL: case INT: case LONG: case DOUBLE: case FLOAT: \
     case VOID: case STRING: case I8: case I16: case I32: case I64: \
     case U8: case U16: case U32: case U64: case MAT: case VEC: \
-    case MUTEX: case SEMAPHORE: case TASK: case CHANNEL:
+    case MUTEX: case SEMAPHORE: case TASK: case CHANNEL: case FUNCPTR: \
+	case CLOSURE: case IDENT:
 
 #define QUALIFIER_CASES \
 	case STATIC: case INLINE: case CONST: case VOLATILE: case ATOMIC:
@@ -128,8 +129,7 @@ ASTNode* Function(ParserContext* ctx)
 
 	switch (ctx->current.type) {
 		TYPE_CASES
-		case IDENT:
-		case FUNCPTR: funcNode = RegularFunc(ctx); break;
+			funcNode = RegularFunc(ctx); break;
 		case LESS:   funcNode = GenericFunc(ctx); break;
 		default: return ParseERROR(ctx, "Expected function return type or generic return type.");
 	}
@@ -179,7 +179,6 @@ ASTNode* GenericFunc(ParserContext* ctx)
 	switch (ctx->current.type) {
 		QUALIFIER_CASES
 		TYPE_CASES
-		case IDENT: 
 			ASTNode* paramListNode = ParamList(ctx);
 			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 			else AddChildASTNode(ctx->arena, funcNode, paramListNode);
@@ -210,7 +209,6 @@ ASTNode* RegularFunc(ParserContext* ctx)
 	switch (ctx->current.type) {
 		QUALIFIER_CASES
 		TYPE_CASES
-		case IDENT: 
 			ASTNode* paramListNode = ParamList(ctx);
 			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 			else AddChildASTNode(ctx->arena, funcNode, paramListNode);
@@ -234,7 +232,6 @@ ASTNode* ParamList(ParserContext* ctx)
 
 		switch (ctx->current.type) {
 			TYPE_CASES
-			case IDENT:
 				ASTNode* paramNode = Param(ctx);
 				if (qualifierNode) PrependChildASTNode(ctx->arena, paramNode, qualifierNode);
 
@@ -276,7 +273,6 @@ ASTNode* Lambda(ParserContext* ctx)
 	// Function Pointer should impelment AnonParamList
 	switch (ctx->current.type) {
 		TYPE_CASES 
-		case IDENT:	
 			// TODO: Types are ambigous with lambda paramater list 	
 			ASTNode* typeNode = Type(ctx);
 			if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
@@ -291,7 +287,6 @@ ASTNode* Lambda(ParserContext* ctx)
 	switch (ctx->current.type) {
 		QUALIFIER_CASES
 		TYPE_CASES
-		case IDENT: 
 			ASTNode* paramListNode = ParamList(ctx);
 			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 			else AddChildASTNode(ctx->arena, lambdaNode, paramListNode);
@@ -470,7 +465,6 @@ ASTNode* VarDecl(ParserContext* ctx)
 
 	switch (ctx->current.type) {
 		TYPE_CASES
-		case IDENT:
 			ASTNode* typeNode = Type(ctx);
 			if (ctx->panicMode) SyncRecovery(ctx, IDENT);
 			else AddChildASTNode(ctx->arena, varDeclNode, typeNode);
@@ -982,7 +976,7 @@ ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 			Advance(ctx);
 			switch (ctx->current.type) {
 				TYPE_CASES
-				case IDENT: break;	
+					break;
 				default: return ParseERROR(ctx, "Invalid type for casting.");
 			}
 			binaryNode = InitalizeASTNode(ctx->arena, CAST_NODE, ctx->current);
@@ -1039,8 +1033,10 @@ ASTNode* TernaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 
 ASTNode* Type(ParserContext* ctx)
 {
-	// TODO: Function pointers require special cases, this isn't good enough 
-	if (ctx->current.type == FUNCPTR) Advance(ctx);
+	// Function pointers and closures are special types 
+	if (ctx->current.type == FUNCPTR || ctx->current.type == CLOSURE) {
+        return FuncPointerType(ctx);
+    }
 
 	ASTNode* typeNode = InitalizeASTNode(ctx->arena, TYPE_NODE, ctx->current);
 	Advance(ctx);
@@ -1050,26 +1046,6 @@ ASTNode* Type(ParserContext* ctx)
 		Advance(ctx);
 	}
 
-	// This is a peek to determine if Func Pointer
-	if (!Match(ctx, LPAREN)) return typeNode;
-
-	while (true) {
-
-		switch (ctx->current.type) {
-			TYPE_CASES
-			case IDENT: 
-				ASTNode* anonParam = Type(ctx);
-				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
-				else AddChildASTNode(ctx->arena, typeNode, anonParam);
-				break;
-			case RPAREN:
-				Advance(ctx); return typeNode;
-			default: return ParseERROR(ctx, "Expected anonymous paramater inside of function pointer.")	;
-		}
-
-		if (Match(ctx, COMMA)) continue;
-		else if (Match(ctx, RPAREN)) break;
-	}
 	return typeNode;
 }
 
@@ -1086,6 +1062,39 @@ ASTNode* Matrix(ParserContext* ctx)
 ASTNode* Vector(ParserContext* ctx)
 {
 	return NULL;
+}
+
+ASTNode* FuncPointerType(ParserContext* ctx)
+{
+    ASTNode* fpNode = InitalizeASTNode(ctx->arena, ctx->current.type == FUNCPTR ? FUNC_POINTER_NODE : CLOSURE_NODE, ctx->current);
+    Advance(ctx);
+
+	switch (ctx->current.type) { 
+		TYPE_CASES 
+			ASTNode* returnTypeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
+			else AddChildASTNode(ctx->arena, fpNode, returnTypeNode);
+			break;
+		default: return ParseERROR(ctx, "Expected function pointer to return a valid type.");
+	}
+
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected function pointer / closure to have '(' to begin paramaters.") ;
+	if (Match(ctx, RPAREN)) return fpNode;
+
+	while (true) {
+		switch (ctx->current.type) {
+			TYPE_CASES
+				ASTNode* anonParam = Type(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+				else AddChildASTNode(ctx->arena, fpNode, anonParam);
+				break;
+			default: return ParseERROR(ctx, "Expected anonymous paramater inside of function pointer.")	;
+		}
+
+		if (Match(ctx, COMMA)) continue;
+		else if (Match(ctx, RPAREN)) { Advance(ctx); return fpNode; }
+		else return ParseERROR(ctx, "Expected ',' or ')' in function pointer params.");
+	}
 }
 
 ASTNode* DeclPrefix(ParserContext* ctx)

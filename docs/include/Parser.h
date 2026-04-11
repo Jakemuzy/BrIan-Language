@@ -111,7 +111,7 @@ ASTNode* Type(ParserContext* ctx);
 ASTNode* Channel(ParserContext* ctx);
 ASTNode* Matrix(ParserContext* ctx);
 ASTNode* Vector(ParserContext* ctx);
-ASTNode* FuncPointer(ParserContext* ctx);
+ASTNode* FuncPointerType(ParserContext* ctx);
 ASTNode* DeclPrefix(ParserContext* ctx);
 ASTNode* GenericList(ParserContext* ctx);
       ASTNode* Generic(ParserContext* ctx);

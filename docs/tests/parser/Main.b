@@ -39,18 +39,19 @@ struct Manager : IEmployee, IManager {
     }
 }
 
-fn fp void(int, int)(int) funcTest(int x) {
+fn fp void(int, int) fpReturn(int i) {
+    for (i = 0, b += 23; i < 4; i++) {
+        ;
+    }
+}
+
+*/
+
+fn fp fp void(int, int)(int) funcTest(int x) {
 
     let closure int(int, int) funcPointer = lambda int(int x, int y) captures x {
         return x + y;
     }
 
     return fpReturn;
-}
-*/
-
-fn fp void(int, int) fpReturn(int i) {
-    for (i = 0, b += 23; i < 4; i++) {
-        ;
-    }
 }
