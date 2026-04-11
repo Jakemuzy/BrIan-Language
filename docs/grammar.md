@@ -37,7 +37,7 @@
 
     ParamList ::= Param  { ',' Param }
     Param ::= TypeQualifier ( Type | IDENT ) [ DeclPrefix ] IDENT
-    AnonParamList ::= ( Type | IDENT ) { ',' ( Type | Ident ) }
+    AnonParamList ::= ( Type | IDENT ) { ',' ( Type | Ident ) }   
 
     Lambda ::= "lambda" ( Type | IDENT ) '(' [ParamList ] ')' Body     
 	Body ::= '{' StmtList '}'
@@ -53,9 +53,10 @@
     StructDecl ::= GenericStruct | RegularStruct
     GenericStruct ::= "struct" IDENT GenericList '{' GenStructBody '}'
         GenStructBody ::= { GenDecl | GenericFunc | OperatorOverload }
-    RegularStruct ::= "struct" IDENT [ ':' IDENT ] '{' StructBody '}' 
+    RegularStruct ::= "struct" IDENT [ Implements ] '{' StructBody '}' 
         StructBody ::= { DeclStmt | Function | OperatorOverload }
-        OperatorOverload ::= "operator" OverloadableOp '(' Param ')' Body
+        Implements ::= ':' IDENT { IDENT { ',' IDENT } }
+        OperatorOverload ::= "operator" OverloadableOp '(' Param [ ',' Param ] ')' Body
         OverloadableOp   ::= '+' | '-' | '*' | '/' | '%' | '@'
                         | '==' | '!=' | '<' | '>' | '<=' | '>='
                         | '<<' | '>>' | '&' | '|' | '^' | '~'
@@ -112,11 +113,13 @@
         SafeRef ::= '->?' IDENT
     Primary ::= IDENT | Literal | PredefVars | SizeOf | '(' Expr ')' | Lambda
 
-    Type ::= ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" | "I8" | "I16" | "I32" | "I64" | "U8" | "U16" | "U32" | "U64" | Matrix | Vector | "mutex" | "semaphore" | "task" | Channel | FuncPointer ) 
-        Channel ::= "chan" '<' Type '>'
+    Type ::= ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" | "I8" | "I16" | "I32" | "I64" | "U8" | "U16" | "U32" | "U64" | Matrix | Vector | "mutex" | "semaphore" | "task" | Channel | FuncPointer | Closure ) 
+        Channel ::= "chan" '<' ( Type | IDENT ) '>'
         Matrix ::= "mat" '<' {1-9} 'x' {1-9} '>'
         Vector ::= "vec" '<' {1-9} '>'
-        FuncPointer ::= "fn" ( Type | IDENT ) '(' AnonParamList ')'
+        FuncPointer ::= "fp" FuncPointerSignature
+        Closure ::= "closure" FuncPointerSignature
+        FuncPointerSignature ::= ( Type | IDENT ) '(' [ AnonParamList ] ')' 
     DeclPrefix ::= ( '*' | '%' )          
     GenericList ::= '<' IDENT { ',' IDENT } '>'
         Generic ::= '<' IDENT '>'

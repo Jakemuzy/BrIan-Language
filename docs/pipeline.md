@@ -49,6 +49,12 @@ The second method BrIan enacts is to use a linked list of arena's if the first o
 
 The way the compiler interacts with the Parser is also of note. CompilationState* passes down key information to every phase in order to allow for proper error propagation and compiler flag information
 
+## Name Resolution
+
+## Type Checking 
+
+The main decision I had to make was whether or not to allow implicit casting for safety. I decided to go with a hybrid approach: whereas C may warn you if you're cast narrows, BrIan makes this an outright error. If one desires to cast down they must use the 'as' keyword following the variable they wish to cast. This not only allows for casting to be LL(1), but it also makes casting inheriently deterministic. Although we can't get away from potential issues with narrowing conventions, we can mitigate the damage ahead of time by making the user aware.
+
 # ----------
 
 ## Compilation 

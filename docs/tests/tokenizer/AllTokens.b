@@ -42,6 +42,8 @@ enum
 struct
 typedef
 fn
+fp 
+closure
 interface
 operator
 lambda
