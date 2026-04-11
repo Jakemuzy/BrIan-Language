@@ -78,6 +78,7 @@ ASTNode* RegularStruct(ParserContext* ctx);
       // Overloadable op 
 ASTNode* InterfaceDecl(ParserContext* ctx);
       ASTNode* InterfaceBody(ParserContext* ctx);
+      ASTNode* Implements(ParserContext* ctx);
 
 ASTNode* EnumDecl(ParserContext* ctx);
       ASTNode* EnumBody(ParserContext* ctx);
@@ -104,9 +105,11 @@ ASTNode* UnaryExpr(ParserContext* ctx, PRECEDENCE prec);
 ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left);
 ASTNode* TernaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left);
 
+ASTNode* Type(ParserContext* ctx);
 ASTNode* Channel(ParserContext* ctx);
 ASTNode* Matrix(ParserContext* ctx);
 ASTNode* Vector(ParserContext* ctx);
+ASTNode* FuncPointer(ParserContext* ctx);
 ASTNode* DeclPrefix(ParserContext* ctx);
 ASTNode* GenericList(ParserContext* ctx);
       ASTNode* Generic(ParserContext* ctx);
