@@ -59,6 +59,7 @@ ASTNode* ParamList(ParserContext* ctx);
 ASTNode* Param(ParserContext* ctx);
 
 ASTNode* Lambda(ParserContext* ctx);
+ASTNode* Captures(ParserContext* ctx);
 ASTNode* Body(ParserContext* ctx);
 ASTNode* StmtList(ParserContext* ctx);
 ASTNode* Stmt(ParserContext* ctx);
@@ -172,6 +173,10 @@ static ParseRule PRECEDENCE_TABLE[] = {
       [MOD] = { NULL, BinaryExpr, PREC_MULT, false }, [DOTPROD] = { NULL, BinaryExpr, PREC_MULT, false }, 
 
       [POW] = { NULL, BinaryExpr, PREC_POW, true }, 
+
+      [MEM] = { NULL, BinaryExpr, PREC_POST, false }, [SMEM] = { NULL, BinaryExpr, PREC_POST, false }, 
+      [AS] = { NULL, BinaryExpr, PREC_POST, false }, [REF] = { NULL, BinaryExpr, PREC_POST, false }, 
+      [SREF] = { NULL, BinaryExpr, PREC_POST, false }, [LBRACK] = { NULL, BinaryExpr, PREC_POST, false }, 
 
       [INC] = { UnaryExpr, NULL, PREC_PRE, false }, [DEC] = { UnaryExpr, NULL, PREC_PRE, false }, 
       [NEG] = { UnaryExpr, NULL, PREC_PRE, false }, [NOT] = { UnaryExpr, NULL, PREC_PRE, false }, 

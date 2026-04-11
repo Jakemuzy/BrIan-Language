@@ -35,7 +35,7 @@ typedef enum TokenType {
 
     /* Custom Types Keywords */
     ENUM, STRUCT, TYPEDEF, FUNCTION, FUNCPTR, 
-    CLOSURE, INTERFACE, OPERATOR, LAMBDA, 
+    CLOSURE, INTERFACE, OPERATOR, LAMBDA, CAPTURES,
 
     /* Predefined Types */
     TRUE, FALSE, NILL,
@@ -118,7 +118,7 @@ static const KeywordTypePair KEYWORD_MAP[378] = {
     [339]  = {"fn", FUNCTION}, [335] = {"mat", MAT},
     [109] = {"vec", VEC},      [325] = {"as", AS}, 
     [164] = {"let", LET},      [227] = {"fp", FUNCPTR},
-    [298] = {"closure", CLOSURE} 
+    [298] = {"closure", CLOSURE}, [186] = {"captures", CAPTURES}
 };
 
 int KeywordHash(const char* word);

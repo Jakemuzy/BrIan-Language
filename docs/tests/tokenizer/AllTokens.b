@@ -47,6 +47,7 @@ closure
 interface
 operator
 lambda
+captures
 true
 false
 null

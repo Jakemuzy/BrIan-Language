@@ -80,6 +80,7 @@ void RunTokenizer(CompilationState* cs)
     if (cs->flags.stopAfter == TOKENIZE) {
         while ( (tok = GetNextToken(ctx)).type != ERR && tok.type != END) {
             printf("Token: %s\tRow: %d\tCol:%d\tTokNum: %d\n", tok.lexeme, tok.row, tok.col, tok.type);
+            // printf("%d\n", KeywordHash(tok.lexeme));
         }
         CleanupBrian(cs);
     }
