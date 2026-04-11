@@ -50,7 +50,7 @@ fn fp void(int, int)(int) funcTest(int x) {
 */
 
 fn fp void(int, int) fpReturn(int i) {
-    for (let int i = 0; i < 4; i++) {
-
+    for (i = 0, b += 23; i < 4; i++) {
+        ;
     }
 }

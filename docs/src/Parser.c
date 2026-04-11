@@ -320,21 +320,16 @@ ASTNode* Captures(ParserContext* ctx)
 	Advance(ctx);
 	ASTNode* capturesNode = InitalizeASTNode(ctx->arena, CAPTURES, DUMMY_TOKEN);
 
-	while (true) {
-		switch (ctx->current.type) {
-			// TODO: Allows trailing commas 
-			case IDENT:
-				AddChildASTNode(ctx->arena, implementsNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
-				Advance(ctx);
-				break;
-			case LBRACE: break;
-			default: return ParseERROR(ctx, "Expected Identifier for interface implementation.");
-		}
+    while (true) {
+        if (ctx->current.type != IDENT)
+            return ParseERROR(ctx, "Expected variable to capture.");
+        
+        AddChildASTNode(ctx->arena, capturesNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+        Advance(ctx);
 
-		if (Match(ctx, COMMA)) continue;
-		else if (ctx->current.type == LBRACE) return implementsNode;
-		else return ParseERROR(ctx, "Expected ',' or { after interface implementation. ");
-	}
+        if (ctx->current.type == LBRACE) return capturesNode;
+        if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Expected ',' or '{' after specified captures.");
+    }
 }
 
 ASTNode* Body(ParserContext* ctx)
@@ -701,24 +696,18 @@ ASTNode* InterfaceBody(ParserContext* ctx)
 
 ASTNode* Implements(ParserContext* ctx)
 {
-	Advance(ctx);
-	ASTNode* implementsNode = InitalizeASTNode(ctx->arena, IMPLEMENTS_NODE, DUMMY_TOKEN);
+    Advance(ctx);
+    ASTNode* implementsNode = InitalizeASTNode(ctx->arena, IMPLEMENTS_NODE, DUMMY_TOKEN);
 
-	while (true) {
-		switch (ctx->current.type) {
-			// TODO: Allows trailing commas 
-			case IDENT:
-				AddChildASTNode(ctx->arena, implementsNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
-				Advance(ctx);
-				break;
-			case LBRACE: break;
-			default: return ParseERROR(ctx, "Expected Identifier for interface implementation.");
-		}
+    while (true) {
+        if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected identifier for interface implementation.");
+        
+        AddChildASTNode(ctx->arena, implementsNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+        Advance(ctx);
 
-		if (Match(ctx, COMMA)) continue;
-		else if (ctx->current.type == LBRACE) return implementsNode;
-		else return ParseERROR(ctx, "Expected ',' or { after interface implementation. ");
-	}
+        if (ctx->current.type == LBRACE) return implementsNode;
+        if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Expected ',' or '{' after interface implementation.");
+    }
 }
 
 ASTNode* EnumDecl(ParserContext* ctx)
@@ -835,6 +824,8 @@ ASTNode* ForStmt(ParserContext* ctx)
 		default: return ParseERROR(ctx, "Expected initalizer section of for statement.");
 	}
 
+	if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' between initializer and conditional sections of for statement.");
+
 	switch (ctx->current.type) {
 		EXPR_START_CASES
 			ASTNode* conditionNode = Expr(ctx, PREC_NONE);
@@ -844,6 +835,8 @@ ASTNode* ForStmt(ParserContext* ctx)
 		case SEMI: break;
 		default: return ParseERROR(ctx, "Expected conditional section of for statement.");
 	}
+
+	if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' between conditional and incremental sections of for statement.");
 
 	switch (ctx->current.type) {
 		EXPR_START_CASES
@@ -855,7 +848,7 @@ ASTNode* ForStmt(ParserContext* ctx)
 		default: return ParseERROR(ctx, "Expected incremental section of for statement.");
 	}
 
-	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected ')' to end for statement.");
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to end for statement.");
 
 
 	if (!Match(ctx, LBRACE)) return ParseERROR(ctx, "Expected '{' to begin for statement's body.");
@@ -868,20 +861,25 @@ ASTNode* ForStmt(ParserContext* ctx)
 
 ASTNode* ExprList(ParserContext* ctx)
 {
-	ASTNode* exprListNode = InitalizeASTNode(ctx->arena, EXPR_LIST_NODE, DUMMY_TOKEN);
+    ASTNode* exprListNode = InitalizeASTNode(ctx->arena, EXPR_LIST_NODE, DUMMY_TOKEN);
 
-	// First one always guaranteed by predictive parsing
-	ASTNode* exprNode = Expr(ctx, PREC_NONE);
-	if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
-	else AddChildASTNode(ctx->arena, exprListNode, exprNode);
+    // First always guaranteed by predictive parsing
+    ASTNode* exprNode = Expr(ctx, PREC_NONE);
+    if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+    else AddChildASTNode(ctx->arena, exprListNode, exprNode);
 
-	while (true) {
+    // Rest only if comma follows
+    while (Match(ctx, COMMA)) {
+        exprNode = Expr(ctx, PREC_NONE);
+        if (ctx->panicMode) {
+            SyncRecovery(ctx, RPAREN);
+            return exprListNode;
+        }
+        AddChildASTNode(ctx->arena, exprListNode, exprNode);
+    }
 
-	}
-
-	return exprListNode;
+    return exprListNode;
 }
-
 
 // TODO: Distinguish between pre / postfix in the actual ASTNode
 ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec)
@@ -928,10 +926,9 @@ ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec)
 	return left;
 }
 
-ASTNode* UnaryExpr(ParserContext* ctx, PRECEDENCE prec)
+ASTNode* PrefixExpr(ParserContext* ctx, PRECEDENCE prec)
 {
-	//printf("UNARY\n");
-	ASTNode* unaryNode = InitalizeASTNode(ctx->arena, UNARY_EXPR_NODE, ctx->current);
+	ASTNode* unaryNode = InitalizeASTNode(ctx->arena, PREFIX_EXPR_NODE, ctx->current);
 	Advance(ctx);
 
 	ASTNode* exprNode = Expr(ctx, PREC_PRE - 1);
@@ -939,6 +936,13 @@ ASTNode* UnaryExpr(ParserContext* ctx, PRECEDENCE prec)
 	else AddChildASTNode(ctx->arena, unaryNode, exprNode);
 
 	return unaryNode;
+}
+
+ASTNode* PostfixExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left) {
+    ASTNode* node = InitalizeASTNode(ctx->arena, POSTFIX_EXPR_NODE, ctx->current);
+    AddChildASTNode(ctx->arena, node, left);
+    Advance(ctx);
+    return node;
 }
 
 ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)

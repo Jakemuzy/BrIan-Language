@@ -102,7 +102,8 @@ ASTNode* ExprList(ParserContext* ctx);
 
 ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec);
 ASTNode* AsgnExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left);
-ASTNode* UnaryExpr(ParserContext* ctx, PRECEDENCE prec);
+ASTNode* PrefixExpr(ParserContext* ctx, PRECEDENCE prec);
+ASTNode* PostfixExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left);
 ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left);
 ASTNode* TernaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left);
 
@@ -152,13 +153,13 @@ static ParseRule PRECEDENCE_TABLE[] = {
       [LEFTEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [RIGHTEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, 
       [ANDEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [XOREQ] = { NULL, AsgnExpr, PREC_ASGN, true }, 
       [OREQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [ANDLEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, 
-      [ORLEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [SEND] = { UnaryExpr, AsgnExpr, PREC_ASGN, true }, 
+      [ORLEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [SEND] = { PrefixExpr, AsgnExpr, PREC_ASGN, true }, 
 
       [ORL] = { NULL, BinaryExpr, PREC_ORL, false },
       [ANDL] = { NULL, BinaryExpr, PREC_ANDL, false },
       [OR] = { NULL, BinaryExpr, PREC_OR, false },
       [XOR] = { NULL, BinaryExpr, PREC_XOR, false },
-      [AND] = { UnaryExpr, BinaryExpr, PREC_AND, false },
+      [AND] = { PrefixExpr, BinaryExpr, PREC_AND, false },
 
       [EQQ] = { NULL, BinaryExpr, PREC_EQQ, false }, [NEQQ] = { NULL, BinaryExpr, PREC_EQQ, false },
 
@@ -167,9 +168,9 @@ static ParseRule PRECEDENCE_TABLE[] = {
 
       [LSHIFT] = { NULL, BinaryExpr, PREC_SHIFT, false }, [RSHIFT] = { NULL, BinaryExpr, PREC_SHIFT, false },
 
-      [PLUS] = { UnaryExpr, BinaryExpr, PREC_ADD, false }, [MINUS] = { UnaryExpr, BinaryExpr, PREC_ADD, false }, 
+      [PLUS] = { PrefixExpr, BinaryExpr, PREC_ADD, false }, [MINUS] = { PrefixExpr, BinaryExpr, PREC_ADD, false }, 
 
-      [MULT] = { UnaryExpr, BinaryExpr, PREC_MULT, false }, [DIV] = { NULL, BinaryExpr, PREC_MULT, false }, 
+      [MULT] = { PrefixExpr, BinaryExpr, PREC_MULT, false }, [DIV] = { NULL, BinaryExpr, PREC_MULT, false }, 
       [MOD] = { NULL, BinaryExpr, PREC_MULT, false }, [DOTPROD] = { NULL, BinaryExpr, PREC_MULT, false }, 
 
       [POW] = { NULL, BinaryExpr, PREC_POW, true }, 
@@ -178,9 +179,9 @@ static ParseRule PRECEDENCE_TABLE[] = {
       [AS] = { NULL, BinaryExpr, PREC_POST, false }, [REF] = { NULL, BinaryExpr, PREC_POST, false }, 
       [SREF] = { NULL, BinaryExpr, PREC_POST, false }, [LBRACK] = { NULL, BinaryExpr, PREC_POST, false }, 
 
-      [INC] = { UnaryExpr, NULL, PREC_PRE, false }, [DEC] = { UnaryExpr, NULL, PREC_PRE, false }, 
-      [NEG] = { UnaryExpr, NULL, PREC_PRE, false }, [NOT] = { UnaryExpr, NULL, PREC_PRE, false }, 
-      [SPAWN] = { UnaryExpr, NULL, PREC_PRE, false }, [AWAIT] = { UnaryExpr, NULL, PREC_PRE, false }, 
+      [INC] = { PrefixExpr, PostfixExpr, PREC_POST, false }, [DEC] = { PrefixExpr, PostfixExpr, PREC_POST, false }, 
+      [NEG] = { PrefixExpr, NULL, PREC_PRE, false }, [NOT] = { PrefixExpr, NULL, PREC_PRE, false }, 
+      [SPAWN] = { PrefixExpr, NULL, PREC_PRE, false }, [AWAIT] = { PrefixExpr, NULL, PREC_PRE, false }, 
 };
 
 #endif
