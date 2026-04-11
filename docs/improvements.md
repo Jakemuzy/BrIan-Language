@@ -130,6 +130,7 @@ and upon an abort or exit error that function will be called.
 * Should check compound literals based on type of struct / enum and what members it has
 * Return type should check type of current function ( can't just recursively pass down TYPE* of function since that would mean writing new TypeCheck functions for every type )
     * SOLUTOIN: Use a scope stack, check the top of the scope stack, similar to a call stack
+* When using lambdas user usually should specify "captures" for what they want the environment to capture
 
 ## Desugarizer
 * SHOULD BE PLACED BEFORE TYPE CHECKER, after name res, could reorder type checking, also simplifies type checking  

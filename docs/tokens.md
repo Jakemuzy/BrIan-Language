@@ -56,6 +56,7 @@
 | interface | INTERFACE | Struct Interface Keyword |
 | operator | OPERATOR | Operator Overload Keyword |
 | lambda | LAMBDA | Anonymous Function Keyword |
+| captures | CAPTURES | Environmental Capture Keyword |
 |---|---|---|
 | true | TRUE | True Predefined Var |
 | false | FALSE | False Predefined Var |

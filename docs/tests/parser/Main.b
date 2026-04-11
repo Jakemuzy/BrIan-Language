@@ -19,36 +19,38 @@ fn <T> GenFunc <T, T2>(T one, T2 two) {
     return one + two;
 }
 
-
-fn int lambdaTest() {
-
-    void(int, int) funcPointer = main;
-
+fn int funcPointerTest() {
+    let void(int, int) funcPointer = main;
 }
 
-fn fp void(int, int) fpReturn(int) {
-
+struct Employee : IEmployee {
+    let int hourly_salary, hours;
+    let Employee* boss;
 }
 
-fn fp void(int, int)(int) funcTest() {
 
-    let closure int(int, int) funcPointer = lambda int(int x, int y) {
+struct Manager : IEmployee, IManager {
+    operator +(Employee i, Employee f) {
+         
+        i->?boss != f->boss;    // Make this a condition statement
+
+        
+        return ( i.?hours + f.hours ) as float;
+    }
+}
+
+fn fp void(int, int)(int) funcTest(int x) {
+
+    let closure int(int, int) funcPointer = lambda int(int x, int y) captures x {
         return x + y;
     }
 
     return fpReturn;
 }
-
-struct Employee : IEmployee {
-    int hourly_salary, hours;
-}
-
 */
 
-struct Manager : IEmployee, IManager {
+fn fp void(int, int) fpReturn(int i) {
+    for (let int i = 0; i < 4; i++) {
 
-    operator +(Employee i, Employee f) {
-        return i.hours + f.hours;
     }
-    
 }

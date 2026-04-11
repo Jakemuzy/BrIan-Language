@@ -39,7 +39,8 @@
     Param ::= TypeQualifier ( Type | IDENT ) [ DeclPrefix ] IDENT
     AnonParamList ::= ( Type | IDENT ) { ',' ( Type | Ident ) }   
 
-    Lambda ::= "lambda" ( Type | IDENT ) '(' [ParamList ] ')' Body     
+    Lambda ::= "lambda" ( Type | IDENT ) '(' [ParamList ] ')' Captures Body     
+        Captures ::= "captures" IDENT { IDENT { ',' IDENT } }
 	Body ::= '{' StmtList '}'
     StmtList ::= { Stmt }
 	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt | JumpStmt | ConcurrencyStmt
