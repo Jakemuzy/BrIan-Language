@@ -58,9 +58,8 @@ enum BARK {
       IDENTFIIER, ONER,  
 };
 
-*/
 
-fn void ConditionalsTest() {
+fn void ForTest() {
     if (i < 4) {
 
     } elif (b++) {
@@ -71,5 +70,19 @@ fn void ConditionalsTest() {
 
     else {
         k += a**b;
+    }
+}
+*/
+
+fn void SwitchTest() {
+    switch (x->b) {     // This should be allowed
+        case b {
+
+        }
+        case 3 {
+            
+        } default {
+            x++;
+        }
     }
 }

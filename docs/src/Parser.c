@@ -19,16 +19,18 @@
     case INC: case DEC: \
     case SPAWN: case AWAIT: case SEND: \
     case HEX: case TRUE: case FALSE: case NILL:
+
+#define LITERAL_CASES \
+	case REAL: case INTEGRAL: case CLITERAL: case SLITERAL: \
+	case HEX: case NILL: case FALSE: case TRUE: 
+
 /* Helpers */
-
 static inline void Advance(ParserContext* ctx) { ctx->current = GetNextToken(ctx->tokenizer); }
-
 static inline bool Match(ParserContext* ctx, TokenType t) {
     if (ctx->current.type != t) return false;
     Advance(ctx);
     return true;
 }
-
 static inline void SyncRecovery(ParserContext* ctx, TokenType tt) 
 {
     while (ctx->current.type != tt && ctx->current.type != END) 
@@ -332,8 +334,8 @@ ASTNode* Captures(ParserContext* ctx)
 
 ASTNode* Body(ParserContext* ctx)
 {
-	ASTNode* bodyNode = InitalizeASTNode(ctx->arena, BODY_NODE, DUMMY_TOKEN);
 	Advance(ctx);
+	ASTNode* bodyNode = InitalizeASTNode(ctx->arena, BODY_NODE, DUMMY_TOKEN);
 
 	while (true) {
 		switch(ctx->current.type) {
@@ -619,7 +621,7 @@ ASTNode* InterfaceDecl(ParserContext* ctx)
 	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 	else AddChildASTNode(ctx->arena, interfaceDeclNode, interfaceBodyNode);
 
-	if (!Match(ctx, RBRACE)) ParseERROR(ctx, "Expected '}' to end interface declaration.");
+	if (!Match(ctx, RBRACE)) ParseERROR(ctx, "Expected '}' to terminate interface declaration.");
 
 	return interfaceDeclNode;
 }
@@ -692,7 +694,7 @@ ASTNode* EnumDecl(ParserContext* ctx)
 	}
 
 	printf("%s\n",ctx->current.lexeme);
-	if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected '}' to end Enum body.");
+	if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected '}' to terminate Enum body.");
 
 	AddChildASTNode(ctx->arena, enumNode, enumBodyNode);
 	return enumNode;
@@ -748,7 +750,7 @@ ASTNode* IfStmt(ParserContext* ctx)
 		default: return ParseERROR(ctx, "Expected expression in If Statements condition.");
 	}
 
-	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to end If Statment's condition.");
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate If Statment's condition.");
 
 	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin If Statements body");
 	ASTNode* ifBodyNode = Body(ctx);
@@ -770,7 +772,7 @@ ASTNode* IfStmt(ParserContext* ctx)
 			case RPAREN: break;
 		}
 
-		if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to end Else If Statment's condition.");
+		if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate Else If Statment's condition.");
 			
 		if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin Else If Statements body");
 		ASTNode* elifBodyNode = Body(ctx);
@@ -794,17 +796,76 @@ ASTNode* IfStmt(ParserContext* ctx)
 
 ASTNode* SwitchStmt(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+	ASTNode* switchStmtNode = InitalizeASTNode(ctx->arena, SWITCH_STMT_NODE, DUMMY_TOKEN);
+
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expecteed '(' to begin switch statement's comparison.");
+
+	switch (ctx->current.type) {
+		EXPR_START_CASES
+			ASTNode* exprNode = Expr(ctx, PREC_NONE);
+			printf("%ld\n",exprNode->type);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, switchStmtNode, exprNode);
+			break;
+		default: return ParseERROR(ctx, "Switch statement expected an Expression or ')'.");
+	}
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expecteed ')' to terminate switch statement's comparison.");
+
+	if (!Match(ctx, LBRACE)) return ParseERROR(ctx, "Expected '{' to begin switch statement's body.");
+	while(true) {
+		switch (ctx->current.type) {
+			case CASE:	
+				ASTNode* caseNode = Case(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, switchStmtNode, caseNode);
+				break;
+			case DEFAULT:
+				ASTNode* defaultNode = Default(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, switchStmtNode, defaultNode);
+
+				if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected ')' to terminate switch statement's body.");
+				return switchStmtNode;
+			case RBRACE: break;
+			default: return ParseERROR(ctx, "Expected CASE or DEFAULT within Switch Statement body.");
+		}
+
+		if (Match(ctx, RBRACE)) return switchStmtNode;
+	}
 }
 
 ASTNode* Case(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+	switch (ctx->current.type) { 
+		LITERAL_CASES 
+		case IDENT: break; 
+		default: return ParseERROR(ctx, "Switch case only allows compile time constants.");
+	}
+	ASTNode* caseNode = InitalizeASTNode(ctx->arena, CASE_STMT_NODE, ctx->current);
+	Advance(ctx);
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Switch case requires '{' to begin.");
+	ASTNode* bodyNode = Body(ctx);
+	if(ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, caseNode, bodyNode);
+
+	return caseNode;
 }
 
 ASTNode* Default(ParserContext* ctx)
 {
-	return NULL;
+	ASTNode* defaultNode = InitalizeASTNode(ctx->arena, DEFAULT_STMT_NODE, DUMMY_TOKEN);
+	Advance(ctx);
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Switch default requires '{' to begin.");
+	ASTNode* bodyNode = Body(ctx);
+	if(ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, defaultNode, bodyNode);
+
+	return defaultNode;
 }
 
 ASTNode* WhileStmt(ParserContext* ctx)
@@ -863,7 +924,7 @@ ASTNode* ForStmt(ParserContext* ctx)
 		default: return ParseERROR(ctx, "Expected incremental section of for statement.");
 	}
 
-	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to end for statement.");
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate for statement.");
 
 
 	if (!Match(ctx, LBRACE)) return ParseERROR(ctx, "Expected '{' to begin for statement's body.");
@@ -920,11 +981,7 @@ ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec)
 {
 	ASTNode* left = NULL;
 	switch (ctx->current.type) {
-		// Literals
-		case REAL: case INTEGRAL:
-		case CLITERAL: case SLITERAL: 
-		case HEX: case NILL: case FALSE: 
-		case TRUE: 
+		LITERAL_CASES
 			left = InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current);
 			Advance(ctx); break;
 		case IDENT:
@@ -1001,14 +1058,14 @@ ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 		case REF:
 			Advance(ctx);
 			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid struct member pointer access.");
-			binaryNode = InitalizeASTNode(ctx->arena, REF, ctx->current);
+			binaryNode = InitalizeASTNode(ctx->arena, REF_NODE, ctx->current);
 			AddChildASTNode(ctx->arena, binaryNode, left);
 			Advance(ctx);  
 			return binaryNode;  
 		case SREF:
 			Advance(ctx);
 			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid safe struct member pointer access.");
-			binaryNode = InitalizeASTNode(ctx->arena, SREF, ctx->current);
+			binaryNode = InitalizeASTNode(ctx->arena, SREF_NODE, ctx->current);
 			AddChildASTNode(ctx->arena, binaryNode, left);
 			Advance(ctx);  
 			return binaryNode;  
