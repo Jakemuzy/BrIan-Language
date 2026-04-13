@@ -74,7 +74,7 @@ Token ExtractTokenFromBuffer(TokenizerContext* ctx)
     ctx->lexemeBegin = ctx->forward;
 
     if (lexLength >= TOKEN_MAX_LENGTH) 
-        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Identifier is limited to %d", TOKEN_MAX_LENGTH);
+        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Identifier is limited to %d characters.\n", TOKEN_MAX_LENGTH);
 
     /* Caller fills TokenType */
     return (Token) {ERR, ctx->row, ctx->col, lexeme, lexLength};

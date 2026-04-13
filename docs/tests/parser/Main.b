@@ -20,7 +20,7 @@ fn <T> GenFunc <T, T2>(T one, T2 two) {
 }
 
 fn int funcPointerTest() {
-    let void(int, int) funcPointer = main;
+    let fp void(int, int) funcPointer = main;
 }
 
 struct Employee : IEmployee {
@@ -45,8 +45,6 @@ fn fp void(int, int) fpReturn(int i) {
     }
 }
 
-*/
-
 fn fp fp void(int, int)(int) funcTest(int x) {
 
     let closure int(int, int) funcPointer = lambda fp int(int, char) (float x, int y) captures x {
@@ -54,4 +52,24 @@ fn fp fp void(int, int)(int) funcTest(int x) {
     };
 
     return fpReturn;
+}
+
+enum BARK {
+      IDENTFIIER, ONER,  
+};
+
+*/
+
+fn void ConditionalsTest() {
+    if (i < 4) {
+
+    } elif (b++) {
+        x += 2;
+    } elif (c --) {
+        y == 2;
+    }
+
+    else {
+        k += a**b;
+    }
 }
