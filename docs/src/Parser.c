@@ -228,6 +228,7 @@ ASTNode* ParamList(ParserContext* ctx)
 
 	while (true) {
 		ASTNode* qualifierNode = NULL;
+		/* TODO: SEPARATE FUNC QUALIFIERS ? */
 		switch (ctx->current.type) { QUALIFIER_CASES qualifierNode = TypeQualifier(ctx); default: break; }
 
 		switch (ctx->current.type) {
@@ -267,7 +268,6 @@ ASTNode* Param(ParserContext* ctx)
 ASTNode* Lambda(ParserContext* ctx)
 {
 	Advance(ctx);
-
 	ASTNode* lambdaNode = InitalizeASTNode(ctx->arena, LAMBDA_NODE, DUMMY_TOKEN);
 
 	// Function Pointer should impelment AnonParamList
@@ -276,8 +276,7 @@ ASTNode* Lambda(ParserContext* ctx)
 			// TODO: Types are ambigous with lambda paramater list 	
 			ASTNode* typeNode = Type(ctx);
 			if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
-			AddChildASTNode(ctx->arena, lambdaNode, typeNode);
-			Advance(ctx);
+			else AddChildASTNode(ctx->arena, lambdaNode, typeNode);
 			break;
 		default: return ParseERROR(ctx, "Expected lambda to have a valid return type.");
 	}
@@ -287,7 +286,7 @@ ASTNode* Lambda(ParserContext* ctx)
 	switch (ctx->current.type) {
 		QUALIFIER_CASES
 		TYPE_CASES
-			ASTNode* paramListNode = ParamList(ctx);
+			ASTNode* paramListNode = ParamList(ctx);	
 			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 			else AddChildASTNode(ctx->arena, lambdaNode, paramListNode);
 			break;
@@ -313,12 +312,10 @@ ASTNode* Lambda(ParserContext* ctx)
 ASTNode* Captures(ParserContext* ctx)
 {
 	Advance(ctx);
-	ASTNode* capturesNode = InitalizeASTNode(ctx->arena, CAPTURES, DUMMY_TOKEN);
+	ASTNode* capturesNode = InitalizeASTNode(ctx->arena, CAPTURES_NODE, DUMMY_TOKEN);
 
     while (true) {
-        if (ctx->current.type != IDENT)
-            return ParseERROR(ctx, "Expected variable to capture.");
-        
+        if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected variable to capture.");
         AddChildASTNode(ctx->arena, capturesNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
         Advance(ctx);
 
@@ -1069,6 +1066,8 @@ ASTNode* FuncPointerType(ParserContext* ctx)
     ASTNode* fpNode = InitalizeASTNode(ctx->arena, ctx->current.type == FUNCPTR ? FUNC_POINTER_NODE : CLOSURE_NODE, ctx->current);
     Advance(ctx);
 
+	/* TODO: ALLOW FUNC POINTER QUALIFIERS */
+
 	switch (ctx->current.type) { 
 		TYPE_CASES 
 			ASTNode* returnTypeNode = Type(ctx);
@@ -1084,6 +1083,7 @@ ASTNode* FuncPointerType(ParserContext* ctx)
 	while (true) {
 		switch (ctx->current.type) {
 			TYPE_CASES
+	printf("%s\n", ctx->current.lexeme);
 				ASTNode* anonParam = Type(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 				else AddChildASTNode(ctx->arena, fpNode, anonParam);
@@ -1092,8 +1092,8 @@ ASTNode* FuncPointerType(ParserContext* ctx)
 		}
 
 		if (Match(ctx, COMMA)) continue;
-		else if (Match(ctx, RPAREN)) { Advance(ctx); return fpNode; }
-		else return ParseERROR(ctx, "Expected ',' or ')' in function pointer params.");
+		else if (Match(ctx, RPAREN)) return fpNode; 
+		else return ParseERROR(ctx, "Expected anonymous paramaters in function pointer paramaters.");
 	}
 }
 

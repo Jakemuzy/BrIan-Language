@@ -1,13 +1,15 @@
 ### Comments are discarded by tokenizer 
 ### '%' Means a register, allowed only during decl (similar to: int* var; )
 ### Strings are immutable
-### Lambdas capture current scope 
+### Lambdas capture specified variables
 ### malloc, calloc, realloc, inverse and transpose are builtin functions, while sizeof is a keyword
 ### Vector and Matrix initalizers are just 1D and 2D arrays, this is already valid syntax in the language
 ### enum underlying type is i32
 ### Operator overloading is restricted to non assignment operators to prevent weird move semantics
-### An interesting thing about generics, they require gen<> surrounding the generic to signifiy a generic return type
+### Operator overloading is also restriced to user defined types, to prevent compiler overhead and unintended hidden behavior
+### An interesting thing about generics, they require <> surrounding the generic to signifiy a generic return type
 ### <- as a prefix indicates a message will receive, where as a posfix indicates it will send
+### Restrictions on type qualifiers will be analyzed during later semantic analysis steps (ie paramaters, function pointers, etc )
 
 ```
 	Program ::=  { Import | Directive } { Function | DeclStmt | InterfaceDecl }
@@ -39,7 +41,7 @@
     Param ::= TypeQualifier ( Type | IDENT ) [ DeclPrefix ] IDENT
     AnonParamList ::= ( Type | IDENT ) { ',' ( Type | Ident ) }   
 
-    Lambda ::= "lambda" ( Type | IDENT ) '(' [ParamList ] ')' Captures Body     
+    Lambda ::= "lambda" ( Type | IDENT ) '(' [ ParamList ] ')' Captures Body     
         Captures ::= "captures" IDENT { IDENT { ',' IDENT } }
 	Body ::= '{' StmtList '}'
     StmtList ::= { Stmt }
@@ -118,8 +120,8 @@
         Channel ::= "chan" '<' ( Type | IDENT ) '>'
         Matrix ::= "mat" '<' {1-9} 'x' {1-9} '>'
         Vector ::= "vec" '<' {1-9} '>'
-        FuncPointer ::= "fp" FuncPointerSignature
-        Closure ::= "closure" FuncPointerSignature
+        FuncPointer ::= "fp" [ TypeQualifier ] FuncPointerSignature
+        Closure ::= "closure" [ TypeQualifier ] FuncPointerSignature
         FuncPointerSignature ::= ( Type | IDENT ) '(' [ AnonParamList ] ')' 
     DeclPrefix ::= ( '*' | '%' )          
     GenericList ::= '<' IDENT { ',' IDENT } '>'

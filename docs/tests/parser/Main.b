@@ -49,9 +49,9 @@ fn fp void(int, int) fpReturn(int i) {
 
 fn fp fp void(int, int)(int) funcTest(int x) {
 
-    let closure int(int, int) funcPointer = lambda int(int x, int y) captures x {
+    let closure int(int, int) funcPointer = lambda fp int(int, char) (float x, int y) captures x {
         return x + y;
-    }
+    };
 
     return fpReturn;
 }
