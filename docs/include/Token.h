@@ -18,7 +18,7 @@
 
 typedef enum TokenType {
     /* Control Flow Keywords */
-    IF, ELIF, ELSE, DO, WHILE, FOR, SWITCH,
+    IF = 1, ELIF, ELSE, DO, WHILE, FOR, SWITCH,
     CASE, DEFAULT, BREAK, CONTINUE, RETURN,
 
     /* Concurrency Keywords */

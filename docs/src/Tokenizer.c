@@ -11,8 +11,8 @@ TokenizerContext* InitalizeTokenizerContext(FILE* fptr, size_t fileSize)
     ctx->lexemeBegin = ctx->buffer1;
     ctx->forward = ctx->buffer1;
 
-    ctx->row = 0;
-    ctx->col = 0;
+    ctx->row = 1;
+    ctx->col = 1;
 
     ctx->fptr = fptr;
 
@@ -41,7 +41,8 @@ void RetractBuffer(TokenizerContext* ctx, char* pos)
 {
     while (ctx->forward != pos) {
         ctx->forward--;
-        if (*ctx->forward == TOKENIZER_SENTINEL)  
+        if (ctx->forward == &ctx->buffer1[TOKENIZER_BUFFER_SIZE - 1] ||
+            ctx->forward == &ctx->buffer2[TOKENIZER_BUFFER_SIZE - 1])
             ctx->forward--;
     }
 }
@@ -66,15 +67,37 @@ char AdvanceBuffer(TokenizerContext* ctx)
 
 Token ExtractTokenFromBuffer(TokenizerContext* ctx)
 {
-    size_t lexLength = ctx->forward - ctx->lexemeBegin;
-    char* lexeme = AllocateArena(ctx->arena, lexLength + 1); 
-    memcpy(lexeme, ctx->lexemeBegin, lexLength);
-    lexeme[lexLength] = '\0';
+    char* sentinelPos1 = &ctx->buffer1[TOKENIZER_BUFFER_SIZE - 1];
+    char* sentinelPos2 = &ctx->buffer2[TOKENIZER_BUFFER_SIZE - 1];
 
+    size_t lexLength;
+    char* lexeme;
+
+    // Can't just blindly memcpy since cross boundaries would copy an extra \0 
+    bool spansBuffer = (ctx->lexemeBegin <= sentinelPos1 && ctx->forward > sentinelPos1)
+                    || (ctx->lexemeBegin <= sentinelPos2 && ctx->forward > sentinelPos2);
+
+    if (spansBuffer) {
+        char* sentinel = (ctx->lexemeBegin < ctx->buffer2) ? sentinelPos1 : sentinelPos2;
+
+        size_t part1 = sentinel - ctx->lexemeBegin;       // bytes before sentinel
+        size_t part2 = ctx->forward - (sentinel + 1);     // bytes after sentinel
+
+        lexLength = part1 + part2;
+        lexeme = AllocateArena(ctx->arena, lexLength + 1);
+        memcpy(lexeme, ctx->lexemeBegin, part1);
+        memcpy(lexeme + part1, sentinel + 1, part2);
+    } else {
+        lexLength = ctx->forward - ctx->lexemeBegin;
+        lexeme = AllocateArena(ctx->arena, lexLength + 1);
+        memcpy(lexeme, ctx->lexemeBegin, lexLength);
+    }
+
+    lexeme[lexLength] = '\0';
     ctx->lexemeBegin = ctx->forward;
 
     if (lexLength >= TOKEN_MAX_LENGTH) 
-        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Identifier is limited to %d", TOKEN_MAX_LENGTH);
+        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Identifier is limited to %d characters.\n", TOKEN_MAX_LENGTH);
 
     /* Caller fills TokenType */
     return (Token) {ERR, ctx->row, ctx->col, lexeme, lexLength};
@@ -139,16 +162,18 @@ int SkipWhitespace(TokenizerContext* ctx)
     int c = AdvanceBuffer(ctx);
     if (c == EOF) return EOF;
 
-    // TODO: Something is wrong here
     while (isspace(c)) {
-        ctx->col++;
-        if (c == '\n') { ctx->row++; ctx->col = 0; }
-
-        ctx->lexemeBegin = ctx->forward;  
+        if (c == '\n') { ctx->row++; ctx->col = 1; }
+        else ctx->col++;
         c = AdvanceBuffer(ctx);
     }
 
-    RetractBuffer(ctx, ctx->forward - 1);
+    ctx->forward--;
+    if (ctx->forward == &ctx->buffer1[TOKENIZER_BUFFER_SIZE - 1] ||
+        ctx->forward == &ctx->buffer2[TOKENIZER_BUFFER_SIZE - 1])
+        ctx->forward--;
+
+    ctx->lexemeBegin = ctx->forward;
     return c;
 }
 
@@ -172,7 +197,7 @@ Token ScanOperator(TokenizerContext* ctx)
     }
 
     if (lastAccept == DFA_ERROR_STATE) 
-        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Invalid operator discovered %s  on line %d row %d\n", c, ctx->row, ctx->col);
+        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Invalid operator discovered %c on line %d row %d\n", c, ctx->row, ctx->col);
 
     RetractBuffer(ctx, lastAcceptPos);
 

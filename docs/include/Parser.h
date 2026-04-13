@@ -61,12 +61,7 @@ ASTNode* Param(ParserContext* ctx);
 ASTNode* Lambda(ParserContext* ctx);
 ASTNode* Captures(ParserContext* ctx);
 ASTNode* Body(ParserContext* ctx);
-ASTNode* StmtList(ParserContext* ctx);
-ASTNode* Stmt(ParserContext* ctx);
 
-ASTNode* ExprStmt(ParserContext* ctx);
-ASTNode* DeclStmt(ParserContext* ctx);
-ASTNode* ReturnStmt(ParserContext* ctx);
 
 ASTNode* VarDecl(ParserContext* ctx);
 ASTNode* GenDecl(ParserContext* ctx);
@@ -82,7 +77,6 @@ ASTNode* InterfaceDecl(ParserContext* ctx);
       ASTNode* Implements(ParserContext* ctx);
 
 ASTNode* EnumDecl(ParserContext* ctx);
-      ASTNode* EnumBody(ParserContext* ctx);
 ASTNode* TypedefDecl(ParserContext* ctx);
       ASTNode* TypeSpec(ParserContext* ctx);
       ASTNode* TypedefPostfix(ParserContext* ctx);
@@ -96,9 +90,10 @@ ASTNode* SwitchStmt(ParserContext* ctx);
       ASTNode* Case(ParserContext* ctx);
       ASTNode* Default(ParserContext* ctx);
 ASTNode* WhileStmt(ParserContext* ctx);
-ASTNode* DoWhlieStmt(ParserContext* ctx);
+ASTNode* DoWhileStmt(ParserContext* ctx);
 ASTNode* ForStmt(ParserContext* ctx);
-ASTNode* ExprList(ParserContext* ctx);
+      ASTNode* ExprList(ParserContext* ctx);
+ASTNode* ReturnStmt(ParserContext* ctx);
 
 ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec);
 ASTNode* AsgnExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left);
