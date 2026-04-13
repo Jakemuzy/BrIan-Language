@@ -358,6 +358,8 @@ ASTNode* Body(ParserContext* ctx)
 				ASTNode* doNode = DoWhileStmt(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, bodyNode, doNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after DoWhile statement.");
 				break;
 			case FOR: 
 				ASTNode* forNode = ForStmt(ctx);
@@ -870,12 +872,49 @@ ASTNode* Default(ParserContext* ctx)
 
 ASTNode* WhileStmt(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+	ASTNode* whileNode = InitalizeASTNode(ctx->arena, WHILE_STMT_NODE, DUMMY_TOKEN);
+
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' to begin while statement.");
+
+	ASTNode* exprNode = Expr(ctx, PREC_NONE);
+	if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+	else AddChildASTNode(ctx->arena, whileNode, exprNode);
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate while statement.");
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin while statement body.");
+	ASTNode* bodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, whileNode, bodyNode);
+
+
+	return whileNode;
 }
 
 ASTNode* DoWhileStmt(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+	ASTNode* doWhileNode = InitalizeASTNode(ctx->arena, DO_WHILE_STMT_NODE, DUMMY_TOKEN);
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin while statement body.");
+	ASTNode* bodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+
+
+	if (!Match(ctx, WHILE)) return ParseERROR(ctx, "Expected 'while' to begin do while condition.");
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' to begin do while statement.");
+
+	ASTNode* exprNode = Expr(ctx, PREC_NONE);
+	if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+	else AddChildASTNode(ctx->arena, doWhileNode, exprNode);
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate do while statement.");
+
+	// Want it to match the format of condition then body
+	if (bodyNode) AddChildASTNode(ctx->arena, doWhileNode, bodyNode);
+
+	return doWhileNode;
 }
 
 ASTNode* ForStmt(ParserContext* ctx)

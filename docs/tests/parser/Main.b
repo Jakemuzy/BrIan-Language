@@ -72,7 +72,6 @@ fn void ForTest() {
         k += a**b;
     }
 }
-*/
 
 fn void SwitchTest() {
     switch (x->b) {     // This should be allowed
@@ -85,4 +84,17 @@ fn void SwitchTest() {
             x++;
         }
     }
+}
+
+fn void WhileTest() {
+    while (x == 3) {
+        let int x32 = "twa";
+    }
+}
+*/
+
+fn void DoWhileTest() {
+    do {
+
+    } while ( x == 3 );
 }
