@@ -20,15 +20,60 @@ This system proves to be perfect until the token becomes longer than the buffer;
 
 ### Impact 
 
-real    0m0.015s
-user    0m0.004s
-sys     0m0.011s
 
-real    0m0.122s
-user    0m0.015s
-sys     0m0.064s
+        3,459,057      task-clock                       #    0.574 CPUs utilized             
+                1      context-switches                 #  289.096 /sec                      
+                0      cpu-migrations                   #    0.000 /sec                      
+            65      page-faults                      #   18.791 K/sec                     
+    <not counted>      cpu_atom/instructions/                                                  (0.00%)
+        2,103,469      cpu_core/instructions/           #    1.25  insn per cycle            
+    <not counted>      cpu_atom/cycles/                                                        (0.00%)
+        1,678,730      cpu_core/cycles/                 #    0.485 GHz                       
+    <not counted>      cpu_atom/branches/                                                      (0.00%)
+        393,891      cpu_core/branches/               #  113.872 M/sec                     
+    <not counted>      cpu_atom/branch-misses/                                                 (0.00%)
+            8,870      cpu_core/branch-misses/          #    2.25% of all branches           
+    30.1 %  tma_backend_bound      
+                                                #      9.5 %  tma_bad_speculation    
+                                                #     36.6 %  tma_frontend_bound     
+                                                #     23.8 %  tma_retiring           
 
-The improvements singlehandedly droped the time to tokenize every token in the gramm from a tenth of a second to a hundredth of a second. A 10x improvement as well as more cache efficient and in my opion expandable and maintanable. 
+    0.006030643 seconds time elapsed
+
+    0.001813000 seconds user
+    0.004534000 seconds sys
+
+
+The improvements singlehandedly droped the time to tokenize every token. A 6x improvement as well as more cache efficient and in my opion expandable and maintanable. 
+
+
+    19,668,459      task-clock                       #    0.546 CPUs utilized             
+                6      context-switches                 #  305.057 /sec                      
+                3      cpu-migrations                   #  152.528 /sec                      
+            977      page-faults                      #   49.673 K/sec                     
+        5,616,880      cpu_atom/instructions/           #    0.79  insn per cycle              (9.94%)
+    14,935,737      cpu_core/instructions/           #    1.55  insn per cycle              (84.98%)
+        7,154,828      cpu_atom/cycles/                 #    0.364 GHz                         (9.86%)
+        9,628,633      cpu_core/cycles/                 #    0.490 GHz                         (84.98%)
+        1,022,737      cpu_atom/branches/               #   51.999 M/sec                       (13.44%)
+        2,816,323      cpu_core/branches/               #  143.190 M/sec                       (84.98%)
+        47,792      cpu_atom/branch-misses/          #    4.67% of all branches             (15.02%)
+        41,281      cpu_core/branch-misses/          #    1.47% of all branches             (84.98%)
+#     28.6 %  tma_backend_bound      
+                                                #     10.7 %  tma_bad_speculation    
+                                                #     32.4 %  tma_frontend_bound     
+                                                #     28.2 %  tma_retiring             (84.98%)
+#     16.4 %  tma_bad_speculation    
+                                                #     20.6 %  tma_retiring             (15.02%)
+#     20.5 %  tma_backend_bound      
+                                                #     42.5 %  tma_frontend_bound       (15.02%)
+
+    0.036047625 seconds time elapsed
+
+    0.007774000 seconds user
+    0.017492000 seconds sys
+
+
 
 ## Parser 
 
@@ -49,7 +94,60 @@ The second method BrIan enacts is to use a linked list of arena's if the first o
 
 The way the compiler interacts with the Parser is also of note. CompilationState* passes down key information to every phase in order to allow for proper error propagation and compiler flag information
 
+----- Technical Aspects -----
 An interesting observation one might make is that nested channel types are kind of ambiguous; chan<chan<TYPE>>. '>>' Is tehnically a right shift operation, so when parsing, right shift will appear instead of two disctinct '>'. It is for this reason we have a SetEdgeCaseFlag() function that forces the tokenizer to split '>>' into two dinstinct operators. My language handles this ambiguity in a kind of weird way, but since I disallow nested generics this is the only case of the ambiguity in the entire language.
+
+Another thing to note: since I decided to go with a predictive parser architecture, the parent function typically predicts which child function it would go to. This means that the first token of the child output is immediately consumed in most cases. I tried to lean as heavy as I could into the predictive parsing, meaning double checking of node types is rare, at the expensive of a little bit of readability. As my goal for v2.0 of the compiler is performance, I believe this is a worthy sacrafice.
+
+### Impact
+
+Performance counter stats for './builds/TestParser':
+
+    18,577,755      task-clock                       #    0.803 CPUs utilized             
+                0      context-switches                 #    0.000 /sec                      
+                0      cpu-migrations                   #    0.000 /sec                      
+            1,007      page-faults                      #   54.205 K/sec                     
+    <not counted>      cpu_atom/instructions/                                                  (0.00%)
+    15,349,930      cpu_core/instructions/           #    1.66  insn per cycle            
+    <not counted>      cpu_atom/cycles/                                                        (0.00%)
+        9,237,402      cpu_core/cycles/                 #    0.497 GHz                       
+    <not counted>      cpu_atom/branches/                                                      (0.00%)
+        2,919,993      cpu_core/branches/               #  157.177 M/sec                     
+    <not counted>      cpu_atom/branch-misses/                                                 (0.00%)
+        39,562      cpu_core/branch-misses/          #    1.35% of all branches           
+    25.5 %  tma_backend_bound      
+                                                #     10.4 %  tma_bad_speculation    
+                                                #     34.4 %  tma_frontend_bound     
+                                                #     29.8 %  tma_retiring           
+
+    0.023129638 seconds time elapsed
+
+    0.007703000 seconds user
+    0.015406000 seconds sys
+
+
+A minor improvement in parsing time, but this is at a minor scale, small programs. Additionally v2.0 has a much expanded grammar, in very operator heavy programs v2.0 will likely shine due to pratt parsing. Additionally the main improvements for the parser are actually memory usage and stack depth rather than execution speed.
+
+Performance counter stats for './build/compiler ./tests/parser/Main.b -parse':
+
+        6,182,023      task-clock                       #    0.682 CPUs utilized             
+                1      context-switches                 #  161.759 /sec                      
+                1      cpu-migrations                   #  161.759 /sec                      
+            75      page-faults                      #   12.132 K/sec                     
+    <not counted>      cpu_atom/instructions/                                                  (0.00%)
+        4,069,015      cpu_core/instructions/           #    1.34  insn per cycle            
+    <not counted>      cpu_atom/cycles/                                                        (0.00%)
+        3,028,327      cpu_core/cycles/                 #    0.490 GHz                       
+    <not counted>      cpu_atom/branches/                                                      (0.00%)
+        816,604      cpu_core/branches/               #  132.093 M/sec                     
+    <not counted>      cpu_atom/branch-misses/                                                 (0.00%)
+        15,111      cpu_core/branch-misses/          #    1.85% of all branches           
+    23.7 %  tma_backend_bound      
+                                                #     10.5 %  tma_bad_speculation    
+                                                #     37.4 %  tma_frontend_bound     
+                                                #     28.5 %  tma_retiring           
+
+    0.009066598 seconds time elapsed
 
 ## Name Resolution
 

@@ -38,7 +38,7 @@ typedef struct TokenizerContext {
     int row, col;
 
     /* Weird Edge Case Flags */
-    bool nestedChan;
+    bool nestedChan;  // Channels, chan<chan<...>>, where >> tokenizes as rshift
 
     FILE* fptr;
     Arena* arena;

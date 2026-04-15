@@ -64,26 +64,18 @@ ASTNode* Body(ParserContext* ctx);
 
 
 ASTNode* VarDecl(ParserContext* ctx);
-ASTNode* GenDecl(ParserContext* ctx);
 ASTNode* StructDecl(ParserContext* ctx);
-ASTNode* GenericStruct(ParserContext* ctx);
-      ASTNode* GenStructBody(ParserContext* ctx);
-ASTNode* RegularStruct(ParserContext* ctx);
+ASTNode* GenStructBody(ParserContext* ctx);
       ASTNode* StructBody(ParserContext* ctx);
       ASTNode* OperatorOverload(ParserContext* ctx);
-      // Overloadable op 
 ASTNode* InterfaceDecl(ParserContext* ctx);
       ASTNode* InterfaceBody(ParserContext* ctx);
       ASTNode* Implements(ParserContext* ctx);
-
 ASTNode* EnumDecl(ParserContext* ctx);
 ASTNode* TypedefDecl(ParserContext* ctx);
-      ASTNode* TypeSpec(ParserContext* ctx);
-      ASTNode* TypedefPostfix(ParserContext* ctx);
 
-ASTNode* ConcurrencyStmt(ParserContext* ctx);
-      ASTNode* LockStmt(ParserContext* ctx);
-      ASTNode* CriticalStmt(ParserContext* ctx);
+ASTNode* LockStmt(ParserContext* ctx);
+ASTNode* CriticalStmt(ParserContext* ctx);
 
 ASTNode* IfStmt(ParserContext* ctx);
 ASTNode* SwitchStmt(ParserContext* ctx);
@@ -107,7 +99,6 @@ ASTNode* Channel(ParserContext* ctx);
 ASTNode* Matrix(ParserContext* ctx);
 ASTNode* Vector(ParserContext* ctx);
 ASTNode* FuncPointerType(ParserContext* ctx);
-ASTNode* DeclPrefix(ParserContext* ctx);
 ASTNode* GenericList(ParserContext* ctx);
       ASTNode* Generic(ParserContext* ctx);
 ASTNode* TypeQualifierList(ParserContext* ctx);

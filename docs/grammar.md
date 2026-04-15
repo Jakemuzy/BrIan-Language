@@ -10,6 +10,8 @@
 ### An interesting thing about generics, they require <> surrounding the generic to signifiy a generic return type
 ### <- as a prefix indicates a message will receive, where as a posfix indicates it will send
 ### Restrictions on type qualifiers will be analyzed during later semantic analysis steps (ie paramaters, function pointers, etc )
+### The IDENT in Type is for user defined types (struct, enum, typedef, etc) this will be handled in the parser, though the grammar doesn't really show this ambiguity being handled
+### Empty statements ie.) ';' are disallowed since they serve no purpose in this language
 
 ```
 	Program ::=  { Import | Directive } { Function | DeclStmt | InterfaceDecl }
@@ -52,10 +54,9 @@
                  | StructDecl        // Semicolon after struct is annoying
 
     VarDecl ::= "let" LinkageSpecifier TypeQualifier ( Type | IDENT ) VarList 
-    GenDecl ::= "let" LinkageSpecifier TypeQualifier Generic VarList
     StructDecl ::= GenericStruct | RegularStruct
     GenericStruct ::= "struct" IDENT GenericList '{' GenStructBody '}'
-        GenStructBody ::= { GenDecl | GenericFunc | OperatorOverload }
+        GenStructBody ::= { VarDecl | Function }
     RegularStruct ::= "struct" IDENT [ Implements ] '{' StructBody '}' 
         StructBody ::= { DeclStmt | Function | OperatorOverload }
         Implements ::= ':' IDENT { IDENT { ',' IDENT } }
@@ -69,9 +70,7 @@
 
     EnumDecl ::= "enum" IDENT EnumBody 
         EnumBody ::= '{' IDENT [ = INTEGRAL ] { ',' IDENT [ = INTEGRAL ] } '}'
-    TypedefDecl ::= "typedef" TypeSpec IDENT
-        TypeSpec ::= ( Type | IDENT ) { TypedefPostfix }
-        TypedefPostfix ::= ( '*' | '[' [ INTEGRAL ] ']' )
+    TypedefDecl ::= "type" IDENT = Type
 
     ConcurrencyStmt ::= LockStmt | CriticalStmt 
         LockStmt     ::= "lock" '(' Expr ')' Body
@@ -116,7 +115,7 @@
         SafeRef ::= '->?' IDENT
     Primary ::= IDENT | Literal | PredefVars | SizeOf | '(' Expr ')' | Lambda
 
-    Type ::= ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" | "I8" | "I16" | "I32" | "I64" | "U8" | "U16" | "U32" | "U64" | Matrix | Vector | "mutex" | "semaphore" | "task" | Channel | FuncPointer | Closure ) 
+    Type ::= ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" | "I8" | "I16" | "I32" | "I64" | "U8" | "U16" | "U32" | "U64" | Matrix | Vector | "mutex" | "semaphore" | "task" | Channel | FuncPointer | Closure | IDENT )   // Ident is user defined type (struct, typedef, etc)
         Channel ::= "chan" '<' ( Type | IDENT ) '>'
         Matrix ::= "mat" '<' {1-9} ',' {1-9} '>'
         Vector ::= "vec" '<' {1-9} '>'

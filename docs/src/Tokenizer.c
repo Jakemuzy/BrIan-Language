@@ -1,5 +1,8 @@
 #include "Tokenizer.h"
 
+// TODO: identifier at EOF is infinite loop
+// this whole thing needs a redesign around the buffer system
+
 /* ----- Double Buffered Context ----- */
 
 TokenizerContext* InitalizeTokenizerContext(FILE* fptr, size_t fileSize)
@@ -81,33 +84,39 @@ Token ExtractTokenFromBuffer(TokenizerContext* ctx)
 
     // Can't just blindly memcpy since cross boundaries would copy an extra \0 
     bool spansBuffer = (ctx->lexemeBegin <= sentinelPos1 && ctx->forward > sentinelPos1)
-                    || (ctx->lexemeBegin <= sentinelPos2 && ctx->forward > sentinelPos2);
+                || (ctx->lexemeBegin <= sentinelPos2 && ctx->forward > sentinelPos2)
+                || (ctx->lexemeBegin >= ctx->buffer2 && ctx->forward < ctx->buffer2); 
 
     if (spansBuffer) {
         char* sentinel = (ctx->lexemeBegin < ctx->buffer2) ? sentinelPos1 : sentinelPos2;
 
-        size_t part1 = sentinel - ctx->lexemeBegin;       // bytes before sentinel
-        size_t part2 = ctx->forward - (sentinel + 1);     // bytes after sentinel
+        size_t part1 = sentinel - ctx->lexemeBegin;       
+        char* secondBufferStart = (ctx->lexemeBegin < ctx->buffer2) ? ctx->buffer2 : ctx->buffer1;
+        char* part2Src = secondBufferStart;
+        size_t part2 = ctx->forward - secondBufferStart;
 
         lexLength = part1 + part2;
+        if (lexLength >= TOKEN_MAX_LENGTH) 
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Identifier is limited to %d characters.\n", TOKEN_MAX_LENGTH);
         lexeme = AllocateArena(ctx->arena, lexLength + 1);
+
         memcpy(lexeme, ctx->lexemeBegin, part1);
-        memcpy(lexeme + part1, sentinel + 1, part2);
+        memcpy(lexeme + part1, part2Src, part2);
     } else {
         lexLength = ctx->forward - ctx->lexemeBegin;
+        if (lexLength >= TOKEN_MAX_LENGTH) 
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Identifier is limited to %d characters.\n", TOKEN_MAX_LENGTH);
         lexeme = AllocateArena(ctx->arena, lexLength + 1);
         memcpy(lexeme, ctx->lexemeBegin, lexLength);
     }
 
     lexeme[lexLength] = '\0';
+    size_t startCol = ctx->col;
     ctx->lexemeBegin = ctx->forward;
     ctx->col += lexLength;
 
-    if (lexLength >= TOKEN_MAX_LENGTH) 
-        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Identifier is limited to %d characters.\n", TOKEN_MAX_LENGTH);
-
     /* Caller fills TokenType */
-    return (Token) {ERR, ctx->row, ctx->col, lexeme, lexLength};
+    return (Token) {ERR, ctx->row, startCol, lexeme, lexLength};
 }
 
 /* ----- Tokenization ----- */
@@ -144,6 +153,7 @@ Token SkipComment(TokenizerContext* ctx)
             while (c != '\n' && c != EOF) 
                 c = AdvanceBuffer(ctx);
             ctx->lexemeBegin = ctx->forward;
+            ctx->row++; ctx->col = 1;
             return GetNextToken(ctx);
         }
         else if (c == '*') {
@@ -176,12 +186,7 @@ int SkipWhitespace(TokenizerContext* ctx)
         else ctx->col++;
         c = AdvanceBuffer(ctx);
     }
-
-    ctx->forward--;
-    if (ctx->forward == &ctx->buffer1[TOKENIZER_BUFFER_SIZE - 1] ||
-        ctx->forward == &ctx->buffer2[TOKENIZER_BUFFER_SIZE - 1])
-        ctx->forward--;
-
+    if (c != EOF) ctx->forward--; // Overconsumption in space check
     ctx->lexemeBegin = ctx->forward;
     return c;
 }
@@ -349,8 +354,8 @@ Token ScanCharacter(TokenizerContext* ctx)
 
 Token ScanIdentOrKeyword(TokenizerContext* ctx)
 {
-    int c = '_';
-    while (isalpha((unsigned int)c) || isdigit((unsigned int)c) || c == '_') 
+    int c = AdvanceBuffer(ctx);
+    while (c != EOF && ( isalpha((unsigned int)c) || isdigit((unsigned int)c) || c == '_' )) 
         c = AdvanceBuffer(ctx);
     RetractBuffer(ctx, ctx->forward - 1);    
 
