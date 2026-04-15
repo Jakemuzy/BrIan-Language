@@ -49,7 +49,7 @@ typedef struct CompilationState {
 /* Handle Flags, and Cleanup */
 void CompileBrian(int argc, char* argv[]);
 void CleanupBrian(CompilationState* cs);
-static CompilationState* ParseFlagsBrian(int argc, char* argv[]);
+CompilationState* ParseFlagsBrian(int argc, char* argv[]);
 
 void OpenFile(CompilationState* cs, int argc, char* argv[]);
 

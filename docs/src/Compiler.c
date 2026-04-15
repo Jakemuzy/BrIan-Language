@@ -29,9 +29,11 @@ void CleanupBrian(CompilationState* cs)
     // TODO: Something double frees here 
     if (cs->tokenizer) DestroyTokenizerContext(cs->tokenizer);
     if (cs->parser) DestroyParserContext(cs->parser);
+
+    exit(0);
 }
 
-static CompilationState* ParseFlagsBrian(int argc, char* argv[])
+CompilationState* ParseFlagsBrian(int argc, char* argv[])
 {
     CompilationState* cs = malloc(sizeof(CompilationState));
     OpenFile(cs, argc, argv);
