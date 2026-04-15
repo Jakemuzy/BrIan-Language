@@ -128,16 +128,10 @@ void Program(ParserContext* ctx)
     }
 }
 
-
-ASTNode* DeclQualifiers(ParserContext* ctx)
-{
-	return NULL;
-}
-
 ASTNode* Function(ParserContext* ctx)
 {
-	ASTNode* funcNode = NULL, *linkageNode = NULL, *qualifierNode = NULL;
 	Advance(ctx);
+	ASTNode* funcNode = NULL, *linkageNode = NULL, *qualifierNode = NULL;
 
 	/* Optional Specifiers and Qualifiers */
 	if (ctx->current.type == EXTERN) { linkageNode = LinkageSpecifier(ctx); }
@@ -178,7 +172,8 @@ ASTNode* GenericFunc(ParserContext* ctx)
 
 	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Function name expected.");
 	ASTNode* funcNode = InitalizeASTNode(ctx->arena, GEN_FUNC_NODE, ctx->current);
-	AddChildASTNode(ctx->arena, funcNode, genericNode);
+	if (genericNode)
+		AddChildASTNode(ctx->arena, funcNode, genericNode);
 	Advance(ctx);
 
 	// Generic paramaters are optional
@@ -413,10 +408,24 @@ ASTNode* Body(ParserContext* ctx)
 
 				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after return expression.");
 				break;
-			case BREAK: case CONTINUE:
-
-			case LOCK: case CRITICAL:
-
+			case BREAK: 
+				AddChildASTNode(ctx->arena, bodyNode, InitalizeASTNode(ctx->arena, BREAK_NODE, ctx->current));
+				Advance(ctx);
+				break;
+			case CONTINUE:
+				AddChildASTNode(ctx->arena, bodyNode, InitalizeASTNode(ctx->arena, CONTINUE_NODE, ctx->current));
+				Advance(ctx);
+				break;
+			case LOCK: 
+				ASTNode* lockNode = LockStmt(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, bodyNode, lockNode);
+				break;
+			case CRITICAL:
+				ASTNode* criticalNode = CriticalStmt(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, bodyNode, criticalNode);
+				break;
 			/* 
 				TODO: I don't like having rbrace check here, gives less clarity on error, return instead
 				but then again if I just return, I do an extra check. Worth the debate.
@@ -429,8 +438,8 @@ ASTNode* Body(ParserContext* ctx)
 
 ASTNode* VarDecl(ParserContext* ctx)
 {
-	ASTNode* varDeclNode = InitalizeASTNode(ctx->arena, VAR_DECL_NODE, DUMMY_TOKEN);
 	Advance(ctx);
+	ASTNode* varDeclNode = InitalizeASTNode(ctx->arena, VAR_DECL_NODE, DUMMY_TOKEN);
 
 	if (ctx->current.type == EXTERN) { AddChildASTNode(ctx->arena, varDeclNode, LinkageSpecifier(ctx)); }
 	switch(ctx->current.type) { QUALIFIER_CASES AddChildASTNode(ctx->arena, varDeclNode, TypeQualifierList(ctx)); default: break; }
@@ -451,11 +460,6 @@ ASTNode* VarDecl(ParserContext* ctx)
 	return varDeclNode;
 }
 
-ASTNode* GenDecl(ParserContext* ctx)
-{
-	return NULL;
-}
-
 ASTNode* StructDecl(ParserContext* ctx)
 {
 	// This function is a little unorthodox compared to the others especially 
@@ -469,6 +473,7 @@ ASTNode* StructDecl(ParserContext* ctx)
 	switch (ctx->current.type) {
 		case LESS: 
 			// Gen Struct
+			structNode->type = GEN_STRUCT_DECL_NODE;
 			ASTNode* genericListNode = GenericList(ctx);
 			if (ctx->panicMode) SyncRecovery(ctx, LBRACE);
 			else AddChildASTNode(ctx->arena, structNode, genericListNode);
@@ -484,6 +489,7 @@ ASTNode* StructDecl(ParserContext* ctx)
 
 			// Can't just fall through, need to check if it has LBRACE, then fall through
 			if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' struct body after implenting interface.");
+			// FALLTHROUGH
 		case LBRACE: 
 			ASTNode* structBodyNode = StructBody(ctx); 
 			if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
@@ -497,19 +503,34 @@ ASTNode* StructDecl(ParserContext* ctx)
 	return structNode;
 }
 
-ASTNode* GenericStruct(ParserContext* ctx)
-{
-	return NULL;
-}
-
 ASTNode* GenStructBody(ParserContext* ctx)
 {
-	return NULL;
-}
+	Advance(ctx);
+	ASTNode* genStructNode = InitalizeASTNode(ctx->arena, GEN_STRUCT_BODY_NODE, DUMMY_TOKEN);
 
-ASTNode* RegularStruct(ParserContext* ctx)
-{
-	return NULL;
+	while (true) {
+		switch (ctx->current.type) {
+			case LET:
+				ASTNode* genDeclNode = VarDecl(ctx);
+				genDeclNode->type = GEN_DECL_NODE;	// Didn't want to write a new function for the same thing
+
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, genStructNode, genDeclNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected ';' after variable declaration in generic struct.");
+				break;
+			case FUNCTION:
+				ASTNode* genFuncNode = Function(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, LBRACE);
+				else AddChildASTNode(ctx->arena, genStructNode, genFuncNode);
+				break;
+			case RBRACE:
+				Advance(ctx);
+				return genStructNode;
+			default: return ParseERROR(ctx, "Expected generic function or variable in generic struct.");
+		}
+	}
+
 }
 
 ASTNode* StructBody(ParserContext* ctx)
@@ -699,7 +720,6 @@ ASTNode* EnumDecl(ParserContext* ctx)
 		else return ParseERROR(ctx, "Expected Identifier in enum.");
 	}
 
-	printf("%s\n",ctx->current.lexeme);
 	if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected '}' to terminate Enum body.");
 
 	AddChildASTNode(ctx->arena, enumNode, enumBodyNode);
@@ -708,33 +728,59 @@ ASTNode* EnumDecl(ParserContext* ctx)
 
 ASTNode* TypedefDecl(ParserContext* ctx)
 {
-	return NULL;
-}
+	Advance(ctx);
 
-ASTNode* TypeSpec(ParserContext* ctx)
-{
-	return NULL;
-}
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected identifier for user defined type.");
+	ASTNode* typedefNode = InitalizeASTNode(ctx->arena, TYPEDEF_DECL_NODE, ctx->current);
+	Advance(ctx);
 
-ASTNode* TypedefPostfix(ParserContext* ctx)
-{
-	return NULL;
-}
+	if (!Match(ctx, EQ)) return ParseERROR(ctx, "User defined type must be equal '=' to something.");
 
+	switch (ctx->current.type) {
+		TYPE_CASES
+			ASTNode* typeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, typedefNode, typeNode);
+			break;
+		default: return ParseERROR(ctx, "Expected valid type declaration for custom type.");
+	}
 
-ASTNode* ConcurrencyStmt(ParserContext* ctx)
-{
-	return NULL;
+	return typedefNode;
 }
 
 ASTNode* LockStmt(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+	ASTNode* lockNode = InitalizeASTNode(ctx->arena, LOCK_STMT_NODE, DUMMY_TOKEN);
+	
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' to begin lock expression.");
+
+	ASTNode* exprNode = Expr(ctx, PREC_NONE);
+	if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+	else AddChildASTNode(ctx->arena, lockNode, exprNode);
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate lock expression.");
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin lock statement body.");
+	ASTNode* bodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, lockNode, bodyNode);
+
+	return lockNode;
 }
 
 ASTNode* CriticalStmt(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+	ASTNode* criticalNode = InitalizeASTNode(ctx->arena, CRITICAL_STMT_NODE, DUMMY_TOKEN);
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin critical section.");
+
+	ASTNode* bodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+	else AddChildASTNode(ctx->arena, criticalNode, bodyNode);
+
+	return criticalNode;
 }
 
 
@@ -763,7 +809,6 @@ ASTNode* IfStmt(ParserContext* ctx)
 	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 	else AddChildASTNode(ctx->arena, ifNode, ifBodyNode);
 	AddChildASTNode(ctx->arena, ifStmtNode, ifNode);
-	printf("%s\n", ctx->current.lexeme);
 
 	while (Match(ctx, ELIF)) {
 		ASTNode* elifNode = InitalizeASTNode(ctx->arena, ELIF_NODE, DUMMY_TOKEN);
@@ -776,6 +821,7 @@ ASTNode* IfStmt(ParserContext* ctx)
 				else AddChildASTNode(ctx->arena, elifNode, conditionalNode);
 				break;
 			case RPAREN: break;
+			default: return ParseERROR(ctx, "Expected expression in elif condition.");
 		}
 
 		if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate Else If Statment's condition.");
@@ -805,12 +851,11 @@ ASTNode* SwitchStmt(ParserContext* ctx)
 	Advance(ctx);
 	ASTNode* switchStmtNode = InitalizeASTNode(ctx->arena, SWITCH_STMT_NODE, DUMMY_TOKEN);
 
-	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expecteed '(' to begin switch statement's comparison.");
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' to begin switch statement's comparison.");
 
 	switch (ctx->current.type) {
 		EXPR_START_CASES
 			ASTNode* exprNode = Expr(ctx, PREC_NONE);
-			printf("%ld\n",exprNode->type);
 			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 			else AddChildASTNode(ctx->arena, switchStmtNode, exprNode);
 			break;
@@ -832,7 +877,7 @@ ASTNode* SwitchStmt(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, switchStmtNode, defaultNode);
 
-				if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected ')' to terminate switch statement's body.");
+				if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected '}' to terminate switch statement's body.");
 				return switchStmtNode;
 			case RBRACE: break;
 			default: return ParseERROR(ctx, "Expected CASE or DEFAULT within Switch Statement body.");
@@ -970,7 +1015,7 @@ ASTNode* ForStmt(ParserContext* ctx)
 	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate for statement.");
 
 
-	if (!Match(ctx, LBRACE)) return ParseERROR(ctx, "Expected '{' to begin for statement's body.");
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin for statement's body.");
 	ASTNode* bodyNode = Body(ctx);
 	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 	else AddChildASTNode(ctx->arena, forStmtNode, bodyNode);
@@ -1062,6 +1107,8 @@ ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec)
 	return left;
 }
 
+
+// Unused prec variable to preserve table structure
 ASTNode* PrefixExpr(ParserContext* ctx, PRECEDENCE prec)
 {
 	ASTNode* unaryNode = InitalizeASTNode(ctx->arena, PREFIX_EXPR_NODE, ctx->current);
@@ -1290,20 +1337,15 @@ ASTNode* FuncPointerType(ParserContext* ctx)
 	}
 }
 
-ASTNode* DeclPrefix(ParserContext* ctx)
-{
-	return NULL;
-}
-
 ASTNode* GenericList(ParserContext* ctx)
 {
 	Advance(ctx);
 	ASTNode* genericListNode = InitalizeASTNode(ctx->arena, GENERIC_LIST_NODE, DUMMY_TOKEN);
 
 	while (true) {
-		// At least one required
-		if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected valid identifier for generic ie.) <IDENTIFIER>.");
-		AddChildASTNode(ctx->arena, genericListNode, (InitalizeASTNode(ctx->arena, GENERIC_NODE, ctx->current)));
+		if (Match(ctx, GREAT)) break;
+		else if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected valid identifier for generic ie.) <IDENTIFIER>.");
+		AddChildASTNode(ctx->arena, genericListNode, (InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current)));
 		Advance(ctx);
 
 		if (Match(ctx, COMMA)) continue;
@@ -1465,7 +1507,6 @@ ASTNode* Var(ParserContext* ctx)
 	if (ctx->current.type != IDENT) ParseERROR(ctx, "Expected identifier name for variable declaration.");
 	ASTNode* varNode = InitalizeASTNode(ctx->arena, VAR_NODE, ctx->current);
     Advance(ctx);
-	printf("IDENT: %s\n", ctx->current.lexeme);
 
 	while (Match(ctx, LBRACK)) {
 		ASTNode* exprNode = Expr(ctx, PREC_NONE);

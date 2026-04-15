@@ -108,7 +108,7 @@ static const KeywordTypePair KEYWORD_MAP[378] = {
     [338] = {"u64", U64},      [262] = {"mutex", MUTEX},
     [269] = {"semaphore", SEMAPHORE}, [284] = {"task", TASK},
     [17]  = {"chan", CHANNEL},  [230] = {"enum", ENUM},
-    [136] = {"struct", STRUCT}, [178] = {"typedef", TYPEDEF},
+    [136] = {"struct", STRUCT}, [297] = {"type", TYPEDEF},
     [90]  = {"interface", INTERFACE}, [375] = {"operator", OPERATOR},
     [200] = {"lambda", LAMBDA}, [9]   = {"true", TRUE},
     [366] = {"false", FALSE},   [2]   = {"null", NILL},

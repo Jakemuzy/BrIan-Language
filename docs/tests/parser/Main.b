@@ -1,5 +1,3 @@
-/* 
-*/
 interface IOperation {
     let int a, b;
 
@@ -42,7 +40,6 @@ struct Manager : IEmployee, IManager {
 
 fn fp void(int, int) fpReturn(int i) {
     for (i = 0, b += 23; i < 4; i++) {
-        ;
     }
 }
 
@@ -110,5 +107,29 @@ let u64 mySize = sizeof(chan<chan<CustomType>>);
 let u32 narrowedSize = mySize as chan<chan<u32>>;
 let int abc = a[2 + 2];
 let fp fp void(int, int)(int) callingFunction = funcTest(3);
-
 let int arr[2][3] = {{1,3,4}, {1,5,8}, {1,2,4,3,6}};
+type JOE = int*;
+
+fn void lockTest() {
+    let int LockedVar = 2;
+    lock (lockedVar) {
+        lockedVar++;
+    }
+}
+
+fn void criticalTest() {
+    let int lockedVar = 2;
+    critical {
+        lockedVar = 1;
+    }
+}
+
+// Uses the structs generics 
+struct GenStruct <T, U> {
+    let T genericVar;                   // No initialization allowed for generic structs
+    
+    fn <G> genFunc <T, U> (T one, U two) {              // Can have nested separate generics
+        return one + two;
+    }
+    // Disallows nested structs, enums, typedefs, etc
+}
