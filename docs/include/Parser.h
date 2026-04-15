@@ -111,24 +111,20 @@ ASTNode* DeclPrefix(ParserContext* ctx);
 ASTNode* GenericList(ParserContext* ctx);
       ASTNode* Generic(ParserContext* ctx);
 ASTNode* TypeQualifierList(ParserContext* ctx);
-ASTNode* TypeQualifier(ParserContext* ctx);
 ASTNode* LinkageSpecifier(ParserContext* ctx);
 
-// Idk if this here 
 ASTNode* Sizeof(ParserContext* ctx);
-
-ASTNode* Reg(ParserContext* ctx);
-ASTNode* Hex(ParserContext* ctx);
-ASTNode* PredefVars(ParserContext* ctx);
+// TODO: Need to provide left to these, so they ident can be in the correct order
+ASTNode* Cast(ParserContext* ctx);
+ASTNode* Index(ParserContext* ctx);
+ASTNode* CallFunc(ParserContext* ctx);
 
 ASTNode* ArgList(ParserContext* ctx);
 
 ASTNode* VarList(ParserContext* ctx);
 ASTNode* Var(ParserContext* ctx);
 
-ASTNode* ArrDecl(ParserContext* ctx);
 ASTNode* ArrInitList(ParserContext* ctx);
-ASTNode* Literal(ParserContext* ctx);
 
 /* ----- Pratt Parsing ----- */
 
@@ -173,6 +169,7 @@ static ParseRule PRECEDENCE_TABLE[] = {
       [MEM] = { NULL, BinaryExpr, PREC_POST, false }, [SMEM] = { NULL, BinaryExpr, PREC_POST, false }, 
       [AS] = { NULL, BinaryExpr, PREC_POST, false }, [REF] = { NULL, BinaryExpr, PREC_POST, false }, 
       [SREF] = { NULL, BinaryExpr, PREC_POST, false }, [LBRACK] = { NULL, BinaryExpr, PREC_POST, false }, 
+      [LPAREN] = { NULL, BinaryExpr, PREC_POST, false },
 
       [INC] = { PrefixExpr, PostfixExpr, PREC_POST, false }, [DEC] = { PrefixExpr, PostfixExpr, PREC_POST, false }, 
       [NEG] = { PrefixExpr, NULL, PREC_PRE, false }, [NOT] = { PrefixExpr, NULL, PREC_PRE, false }, 

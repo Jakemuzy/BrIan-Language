@@ -25,16 +25,21 @@
 	case HEX: case NILL: case FALSE: case TRUE: 
 
 /* Helpers */
-static inline void Advance(ParserContext* ctx) { ctx->current = GetNextToken(ctx->tokenizer); }
+static inline void Advance(ParserContext* ctx) { 
+	ctx->current = GetNextToken(ctx->tokenizer); 
+}
+
 static inline bool Match(ParserContext* ctx, TokenType t) {
     if (ctx->current.type != t) return false;
     Advance(ctx);
     return true;
 }
+
 static inline void SyncRecovery(ParserContext* ctx, TokenType tt) 
 {
-    while (ctx->current.type != tt && ctx->current.type != END) 
+    while (ctx->current.type != tt && ctx->current.type != END) {
         Advance(ctx);
+	}
 	ctx->panicMode = false;
 }
 
@@ -236,8 +241,7 @@ ASTNode* ParamList(ParserContext* ctx)
 
 	while (true) {
 		ASTNode* qualifierNode = NULL;
-		/* TODO: SEPARATE FUNC QUALIFIERS ? */
-		switch (ctx->current.type) { QUALIFIER_CASES qualifierNode = TypeQualifier(ctx); default: break; }
+		switch (ctx->current.type) { QUALIFIER_CASES qualifierNode = TypeQualifierList(ctx); default: break; }
 
 		switch (ctx->current.type) {
 			TYPE_CASES
@@ -1031,6 +1035,8 @@ ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec)
 			if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 			break;
 		case SIZEOF:
+			left = Sizeof(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 			break;
 		case LPAREN:
 			Advance(ctx);
@@ -1077,7 +1083,8 @@ ASTNode* PostfixExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left) {
 
 ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 {
-	ASTNode* binaryNode;
+	/* Could refactor member and references to their own separate functions, but relatively simple, no need */
+	ASTNode* binaryNode = NULL;
 	switch (ctx->current.type) {
 		case MEM:
 			Advance(ctx);
@@ -1093,7 +1100,6 @@ ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 			AddChildASTNode(ctx->arena, binaryNode, left);
 			Advance(ctx);  
 			return binaryNode;  
-		break;
 		case REF:
 			Advance(ctx);
 			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid struct member pointer access.");
@@ -1109,18 +1115,17 @@ ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 			Advance(ctx);  
 			return binaryNode;  
 		case AS:
-			Advance(ctx);
-			switch (ctx->current.type) {
-				TYPE_CASES
-					break;
-				default: return ParseERROR(ctx, "Invalid type for casting.");
-			}
-			binaryNode = InitalizeASTNode(ctx->arena, CAST_NODE, ctx->current);
+			binaryNode = Cast(ctx);
 			AddChildASTNode(ctx->arena, binaryNode, left);
-			Advance(ctx);  
 			return binaryNode;  
-		case LBRACK: // Index
-			break;
+		case LBRACK: 
+			binaryNode = Index(ctx);
+			AddChildASTNode(ctx->arena, binaryNode, left);
+			return binaryNode;  
+		case LPAREN:
+			binaryNode = CallFunc(ctx);
+			AddChildASTNode(ctx->arena, binaryNode, left);
+			return binaryNode;
 		default: binaryNode = InitalizeASTNode(ctx->arena, BINARY_EXPR_NODE, ctx->current);
 
 	}
@@ -1168,10 +1173,18 @@ ASTNode* TernaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 
 ASTNode* Type(ParserContext* ctx)
 {
-	// Function pointers and closures are special types 
-	if (ctx->current.type == FUNCPTR || ctx->current.type == CLOSURE) {
-        return FuncPointerType(ctx);
-    }
+	// Special types handled separately
+	switch (ctx->current.type) {
+		case FUNCPTR: case CLOSURE:
+			return FuncPointerType(ctx);
+		case CHANNEL:
+			return Channel(ctx);
+		case MAT:
+			return Matrix(ctx);
+		case VEC:
+			return Vector(ctx);
+		default: break;
+	}
 
 	ASTNode* typeNode = InitalizeASTNode(ctx->arena, TYPE_NODE, ctx->current);
 	Advance(ctx);
@@ -1186,17 +1199,61 @@ ASTNode* Type(ParserContext* ctx)
 
 ASTNode* Channel(ParserContext* ctx)
 {
-	return NULL;
+	// Channel is a bit interesting
+	Advance(ctx);
+	ASTNode* channelNode = InitalizeASTNode(ctx->arena, CHANNEL_NODE, DUMMY_TOKEN);
+	if (!Match(ctx, LESS)) return ParseERROR(ctx, "Channel requires '<' '>' to surround channel type, expected '<'.");
+
+	switch (ctx->current.type) {
+		TYPE_CASES
+			SetEdgeCaseFlag(ctx->tokenizer, true);
+			ASTNode* typeNode = Type(ctx);
+			SetEdgeCaseFlag(ctx->tokenizer, false);
+			if (ctx->panicMode) SyncRecovery(ctx, GREAT);
+			else AddChildASTNode(ctx->arena, channelNode, typeNode);
+			break;
+		default: return ParseERROR(ctx, "Channel requires type in between '<' '>' to specify message type.");
+	}
+
+	if (!Match(ctx, GREAT)) return ParseERROR(ctx, "Channel requires '<' '>' to surround channel type, expected '>'.");
+	return channelNode;
 }
 
 ASTNode* Matrix(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+	ASTNode* matrixNode = InitalizeASTNode(ctx->arena, MATRIX_NODE, DUMMY_TOKEN);
+
+	if (!Match(ctx, LESS)) return ParseERROR(ctx, "Matrix requires '<' '>' to specify size, expected '<'.");
+
+	if (ctx->current.type != INTEGRAL) return ParseERROR(ctx, "Matrix row size only accepts integral digits.");
+	AddChildASTNode(ctx->arena, matrixNode, InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current));
+	Advance(ctx);	
+
+	if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Comma delimiter required for matrix size.");
+
+	if (ctx->current.type != INTEGRAL) return ParseERROR(ctx, "Matrix col size only accepts integral digits.");
+	AddChildASTNode(ctx->arena, matrixNode, InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current));
+	Advance(ctx);	
+
+	if (!Match(ctx, GREAT)) return ParseERROR(ctx, "Matrix requires '<' '>' to specify size, expected '>'.");
+
+	return matrixNode;
 }
 
 ASTNode* Vector(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+	ASTNode* vectorNode = InitalizeASTNode(ctx->arena, VECTOR_NODE, DUMMY_TOKEN);
+
+	if (!Match(ctx, LESS)) return ParseERROR(ctx, "Vector requires '<' '>' to specify size, expected '<'.");
+
+	if (ctx->current.type != INTEGRAL) return ParseERROR(ctx, "Vector row size only accepts integral digits.");
+	AddChildASTNode(ctx->arena, vectorNode, InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current));
+	Advance(ctx);	
+
+	if (!Match(ctx, GREAT)) return ParseERROR(ctx, "Vector requires '<' '>' to specify size, expected '>'.");
+	return vectorNode;
 }
 
 ASTNode* FuncPointerType(ParserContext* ctx)
@@ -1205,7 +1262,6 @@ ASTNode* FuncPointerType(ParserContext* ctx)
     Advance(ctx);
 
 	/* TODO: ALLOW FUNC POINTER QUALIFIERS */
-
 	switch (ctx->current.type) { 
 		TYPE_CASES 
 			ASTNode* returnTypeNode = Type(ctx);
@@ -1250,7 +1306,6 @@ ASTNode* GenericList(ParserContext* ctx)
 		AddChildASTNode(ctx->arena, genericListNode, (InitalizeASTNode(ctx->arena, GENERIC_NODE, ctx->current)));
 		Advance(ctx);
 
-
 		if (Match(ctx, COMMA)) continue;
 		else if (Match(ctx, GREAT)) break; 
 		else return ParseERROR(ctx, "Expected '>' to close generic.");
@@ -1286,42 +1341,108 @@ ASTNode* TypeQualifierList(ParserContext* ctx)
 	}
 }
 
-ASTNode* TypeQualifier(ParserContext* ctx)
-{
-	return NULL;
-}
-
 ASTNode* LinkageSpecifier(ParserContext* ctx)
 {
-	return NULL;
+	ASTNode* linkageSpecifierNode = InitalizeASTNode(ctx->arena, LINKAGE_SPECIFIER_NODE, ctx->current);
+	Advance(ctx);
+	return linkageSpecifierNode;
 }
 
 
 ASTNode* Sizeof(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+	ASTNode* sizeofNode = InitalizeASTNode(ctx->arena, SIZEOF_NODE, DUMMY_TOKEN);
+
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Sizeof requires surrounding '(' ')', expected '('.");
+
+	switch (ctx->current.type) {
+		TYPE_CASES
+			ASTNode* typeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, sizeofNode, typeNode);
+			break;
+		default: return ParseERROR(ctx, "Sizeof expected predefined or user defined type");
+	}
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Sizeof requires surrounding '(' ')', expected ')'.");
+
+	return sizeofNode;
 }
 
-
-ASTNode* Reg(ParserContext* ctx)
+ASTNode* CallFunc(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+	ASTNode* callFuncNode = InitalizeASTNode(ctx->arena, CALL_FUNC_NODE, DUMMY_TOKEN);
+	switch (ctx->current.type) {
+		EXPR_START_CASES
+			ASTNode* exprNode = ArgList(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, callFuncNode, exprNode);
+			break;
+		case RPAREN: break;
+		default: return ParseERROR(ctx, "Function calling only allows expression arguments.");
+	}
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Function calling requires '(' ')' to surround arguments, expected ')'.");
+	return callFuncNode;
 }
 
-ASTNode* Hex(ParserContext* ctx)
+ASTNode* Index(ParserContext* ctx)
 {
-	return NULL;
+	Advance(ctx);
+	ASTNode* indexNode = InitalizeASTNode(ctx->arena, INDEX_NODE, DUMMY_TOKEN);
+
+	switch (ctx->current.type) {
+		EXPR_START_CASES
+			ASTNode* exprNode = Expr(ctx, PREC_NONE);
+			if (ctx->panicMode) SyncRecovery(ctx, RBRACK);
+			else AddChildASTNode(ctx->arena, indexNode, exprNode);
+			break;
+		default: return ParseERROR(ctx, "Array indexing only allows expressions or integral literals.");
+	}
+	if (!Match(ctx, RBRACK)) return ParseERROR(ctx, "Array index missing closing bracket ']'.");
+	return indexNode;  
 }
 
-ASTNode* PredefVars(ParserContext* ctx)
+ASTNode* Cast(ParserContext* ctx)
 {
-	return NULL;
-}
+	Advance(ctx);
+	ASTNode* castNode = InitalizeASTNode(ctx->arena, CAST_NODE, ctx->current);
 
+	switch (ctx->current.type) {
+		TYPE_CASES
+			ASTNode* typeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, castNode, typeNode);
+			break;
+		default: return ParseERROR(ctx, "Invalid type for casting.");
+	}
+	return castNode;
+}
 
 ASTNode* ArgList(ParserContext* ctx)
 {
-	return NULL;
+	ASTNode* argListNode = InitalizeASTNode(ctx->arena, ARG_LIST_NODE, DUMMY_TOKEN);
+
+	while (true) {
+		switch (ctx->current.type) {
+			EXPR_START_CASES
+				ASTNode* argNode = Expr(ctx, PREC_NONE);
+				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+				else AddChildASTNode(ctx->arena, argListNode, argNode);
+				break;
+			case RPAREN: 
+				return argListNode;
+			default: return ParseERROR(ctx, "Expected arguments inside function call.");
+		}
+
+		switch (ctx->current.type) {
+			case COMMA: Advance(ctx); break;
+			case RPAREN: return argListNode;
+			default: break;
+		}
+	}
 }
 
 
@@ -1344,6 +1465,7 @@ ASTNode* Var(ParserContext* ctx)
 	if (ctx->current.type != IDENT) ParseERROR(ctx, "Expected identifier name for variable declaration.");
 	ASTNode* varNode = InitalizeASTNode(ctx->arena, VAR_NODE, ctx->current);
     Advance(ctx);
+	printf("IDENT: %s\n", ctx->current.lexeme);
 
 	while (Match(ctx, LBRACK)) {
 		ASTNode* exprNode = Expr(ctx, PREC_NONE);
@@ -1375,18 +1497,30 @@ ASTNode* Var(ParserContext* ctx)
 	return varNode;
 }
 
-
-ASTNode* ArrDecl(ParserContext* ctx)
-{
-	return NULL;
-}
-
 ASTNode* ArrInitList(ParserContext* ctx)
 {
-	return NULL;
-}
+	Advance(ctx);
 
-ASTNode* Literal(ParserContext* ctx)
-{
-	return NULL;
+	ASTNode* arrInitList = InitalizeASTNode(ctx->arena, ARR_INIT_LIST_NODE, DUMMY_TOKEN);
+	while (true) {
+		switch (ctx->current.type) {
+			LITERAL_CASES
+			case IDENT:
+				ASTNode* sizeNode = InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current);
+				AddChildASTNode(ctx->arena, arrInitList, sizeNode);
+				Advance(ctx);
+				break;
+			case LBRACE:
+				ASTNode* nestedArrInitNode = ArrInitList(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, arrInitList, nestedArrInitNode);
+				break;
+			case RBRACE: break;
+			default: return ParseERROR(ctx, "Expected array initalization.");
+		}
+
+		if (Match(ctx, COMMA)) continue;
+		else if (Match(ctx, RBRACE)) return arrInitList;
+		return ParseERROR(ctx, "Expected ',' or '}' to end array initalization.");
+	}
 }

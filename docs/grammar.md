@@ -118,7 +118,7 @@
 
     Type ::= ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" | "I8" | "I16" | "I32" | "I64" | "U8" | "U16" | "U32" | "U64" | Matrix | Vector | "mutex" | "semaphore" | "task" | Channel | FuncPointer | Closure ) 
         Channel ::= "chan" '<' ( Type | IDENT ) '>'
-        Matrix ::= "mat" '<' {1-9} 'x' {1-9} '>'
+        Matrix ::= "mat" '<' {1-9} ',' {1-9} '>'
         Vector ::= "vec" '<' {1-9} '>'
         FuncPointer ::= "fp" [ TypeQualifier ] FuncPointerSignature
         Closure ::= "closure" [ TypeQualifier ] FuncPointerSignature

@@ -37,12 +37,16 @@ typedef struct TokenizerContext {
 
     int row, col;
 
+    /* Weird Edge Case Flags */
+    bool nestedChan;
+
     FILE* fptr;
     Arena* arena;
 } TokenizerContext;
 
 TokenizerContext* InitalizeTokenizerContext(FILE* fptr, size_t fileSize);
 void DestroyTokenizerContext(TokenizerContext* ctx);
+void SetEdgeCaseFlag(TokenizerContext* ctx, bool val);
 
 void LoadBuffer(TokenizerContext* ctx, int bufferNum);
 void RetractBuffer(TokenizerContext* ctx, char* pos);

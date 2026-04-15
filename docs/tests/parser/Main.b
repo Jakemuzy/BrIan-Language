@@ -1,4 +1,5 @@
 /* 
+*/
 interface IOperation {
     let int a, b;
 
@@ -91,10 +92,23 @@ fn void WhileTest() {
         let int x32 = "twa";
     }
 }
-*/
 
 fn void DoWhileTest() {
     do {
 
     } while ( x == 3 );
 }
+
+let chan<chan<CustomType>> c1;
+let mat<3, 2> matrix;
+let vec<20> vector;
+
+let bool a = false;
+let bool b = true;
+
+let u64 mySize = sizeof(chan<chan<CustomType>>);
+let u32 narrowedSize = mySize as chan<chan<u32>>;
+let int abc = a[2 + 2];
+let fp fp void(int, int)(int) callingFunction = funcTest(3);
+
+let int arr[2][3] = {{1,3,4}, {1,5,8}, {1,2,4,3,6}};

@@ -49,6 +49,8 @@ The second method BrIan enacts is to use a linked list of arena's if the first o
 
 The way the compiler interacts with the Parser is also of note. CompilationState* passes down key information to every phase in order to allow for proper error propagation and compiler flag information
 
+An interesting observation one might make is that nested channel types are kind of ambiguous; chan<chan<TYPE>>. '>>' Is tehnically a right shift operation, so when parsing, right shift will appear instead of two disctinct '>'. It is for this reason we have a SetEdgeCaseFlag() function that forces the tokenizer to split '>>' into two dinstinct operators. My language handles this ambiguity in a kind of weird way, but since I disallow nested generics this is the only case of the ambiguity in the entire language.
+
 ## Name Resolution
 
 ## Type Checking 

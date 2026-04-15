@@ -30,6 +30,12 @@ void DestroyTokenizerContext(TokenizerContext* ctx)
     free(ctx);
 }
 
+void SetEdgeCaseFlag(TokenizerContext* ctx, bool val)
+{
+    // For now only handles '>>' ambiguity, but could easily make it an enum flag
+    ctx->nestedChan = val;
+}
+
 void LoadBuffer(TokenizerContext* ctx, int bufferNum)
 {
     char* buffer = (bufferNum == 1) ? ctx->buffer1 : ctx->buffer2;
@@ -95,6 +101,7 @@ Token ExtractTokenFromBuffer(TokenizerContext* ctx)
 
     lexeme[lexLength] = '\0';
     ctx->lexemeBegin = ctx->forward;
+    ctx->col += lexLength;
 
     if (lexLength >= TOKEN_MAX_LENGTH) 
         ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Identifier is limited to %d characters.\n", TOKEN_MAX_LENGTH);
@@ -144,8 +151,10 @@ Token SkipComment(TokenizerContext* ctx)
             while (!(c == '/' && last == '*')) {
                 if (c == EOF) 
                     ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "EOF reached before comment end");
+                else if (c == '\n') { ctx->row++; ctx->col = 1; }
                 last = c; 
                 c = AdvanceBuffer(ctx); 
+                ctx->col++;
             }
             ctx->lexemeBegin = ctx->forward;
             return GetNextToken(ctx);
@@ -199,11 +208,12 @@ Token ScanOperator(TokenizerContext* ctx)
     if (lastAccept == DFA_ERROR_STATE) 
         ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Invalid operator discovered %c on line %d row %d\n", c, ctx->row, ctx->col);
 
+    if (ctx->nestedChan && ACCEPT_STATES[lastAccept] == RSHIFT)
+        lastAcceptPos--;  // retract to after first '>' only
     RetractBuffer(ctx, lastAcceptPos);
 
     Token tok = ExtractTokenFromBuffer(ctx);
-    tok.type = ACCEPT_STATES[lastAccept];
-    ctx->col += tok.lexLength;
+    tok.type = (ctx->nestedChan && ACCEPT_STATES[lastAccept] == RSHIFT) ? GREAT : ACCEPT_STATES[lastAccept];
     return tok;
 }
 
@@ -215,7 +225,6 @@ Token ScanDirective(TokenizerContext* ctx)
 
     Token tok = ExtractTokenFromBuffer(ctx);
     tok.type = DIRECTIVE;
-    ctx->col += tok.lexLength;
     return tok;
 }
 
@@ -236,7 +245,6 @@ Token ScanNumber(TokenizerContext* ctx)
             RetractBuffer(ctx, ctx->forward - 1);
             Token tok = ExtractTokenFromBuffer(ctx);
             tok.type = HEX;
-            ctx->col += tok.lexLength;
             return tok;
         }
     }
@@ -267,7 +275,6 @@ Token ScanNumber(TokenizerContext* ctx)
     RetractBuffer(ctx, ctx->forward - 1);
     Token tok = ExtractTokenFromBuffer(ctx);
     tok.type = isReal ? REAL : INTEGRAL;
-    ctx->col += tok.lexLength;
     return tok;
 }
 
@@ -310,7 +317,6 @@ Token ScanString(TokenizerContext* ctx)
 
     Token tok = ExtractTokenFromBuffer(ctx);
     tok.type = SLITERAL;
-    ctx->col += tok.lexLength;
     return tok;
 }
 

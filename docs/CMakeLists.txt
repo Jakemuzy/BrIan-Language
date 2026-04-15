@@ -7,7 +7,7 @@ set(CMAKE_C_COMPILER clang)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -g")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-c23-extensions -Wall -Wextra -Wpedantic -g")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build)
 
 #add_subdirectory(tests)
