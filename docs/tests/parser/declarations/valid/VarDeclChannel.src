@@ -1,0 +1,4 @@
+fn void test() {
+    let chan<int> intChan;
+    let chan<MyMsg> msgChan;
+}

@@ -1,0 +1,4 @@
+interface IContainer {
+    fn <T> get(int index);
+    fn void add(int x);
+}

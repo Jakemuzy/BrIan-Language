@@ -1,0 +1,2 @@
+fn void sendData(chan<int> ch) {
+}

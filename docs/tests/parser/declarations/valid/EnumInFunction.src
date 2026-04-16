@@ -1,0 +1,3 @@
+fn void test() {
+    enum State { Idle, Running, Stopped }
+}

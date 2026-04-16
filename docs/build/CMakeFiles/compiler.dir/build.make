@@ -86,150 +86,23 @@ CMakeFiles/compiler.dir/src/main.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/compiler.dir/src/main.c.s"
 	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/main.c -o CMakeFiles/compiler.dir/src/main.c.s
 
-CMakeFiles/compiler.dir/src/AST.c.o: CMakeFiles/compiler.dir/flags.make
-CMakeFiles/compiler.dir/src/AST.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/AST.c
-CMakeFiles/compiler.dir/src/AST.c.o: CMakeFiles/compiler.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/compiler.dir/src/AST.c.o"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/compiler.dir/src/AST.c.o -MF CMakeFiles/compiler.dir/src/AST.c.o.d -o CMakeFiles/compiler.dir/src/AST.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/AST.c
-
-CMakeFiles/compiler.dir/src/AST.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/compiler.dir/src/AST.c.i"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jmuzy/Programming/C/BrIan-Language/docs/src/AST.c > CMakeFiles/compiler.dir/src/AST.c.i
-
-CMakeFiles/compiler.dir/src/AST.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/compiler.dir/src/AST.c.s"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/AST.c -o CMakeFiles/compiler.dir/src/AST.c.s
-
-CMakeFiles/compiler.dir/src/ArenaAllocator.c.o: CMakeFiles/compiler.dir/flags.make
-CMakeFiles/compiler.dir/src/ArenaAllocator.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/ArenaAllocator.c
-CMakeFiles/compiler.dir/src/ArenaAllocator.c.o: CMakeFiles/compiler.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/compiler.dir/src/ArenaAllocator.c.o"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/compiler.dir/src/ArenaAllocator.c.o -MF CMakeFiles/compiler.dir/src/ArenaAllocator.c.o.d -o CMakeFiles/compiler.dir/src/ArenaAllocator.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/ArenaAllocator.c
-
-CMakeFiles/compiler.dir/src/ArenaAllocator.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/compiler.dir/src/ArenaAllocator.c.i"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jmuzy/Programming/C/BrIan-Language/docs/src/ArenaAllocator.c > CMakeFiles/compiler.dir/src/ArenaAllocator.c.i
-
-CMakeFiles/compiler.dir/src/ArenaAllocator.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/compiler.dir/src/ArenaAllocator.c.s"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/ArenaAllocator.c -o CMakeFiles/compiler.dir/src/ArenaAllocator.c.s
-
-CMakeFiles/compiler.dir/src/Compiler.c.o: CMakeFiles/compiler.dir/flags.make
-CMakeFiles/compiler.dir/src/Compiler.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/Compiler.c
-CMakeFiles/compiler.dir/src/Compiler.c.o: CMakeFiles/compiler.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/compiler.dir/src/Compiler.c.o"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/compiler.dir/src/Compiler.c.o -MF CMakeFiles/compiler.dir/src/Compiler.c.o.d -o CMakeFiles/compiler.dir/src/Compiler.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Compiler.c
-
-CMakeFiles/compiler.dir/src/Compiler.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/compiler.dir/src/Compiler.c.i"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jmuzy/Programming/C/BrIan-Language/docs/src/Compiler.c > CMakeFiles/compiler.dir/src/Compiler.c.i
-
-CMakeFiles/compiler.dir/src/Compiler.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/compiler.dir/src/Compiler.c.s"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/Compiler.c -o CMakeFiles/compiler.dir/src/Compiler.c.s
-
-CMakeFiles/compiler.dir/src/DebugTools.c.o: CMakeFiles/compiler.dir/flags.make
-CMakeFiles/compiler.dir/src/DebugTools.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/DebugTools.c
-CMakeFiles/compiler.dir/src/DebugTools.c.o: CMakeFiles/compiler.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/compiler.dir/src/DebugTools.c.o"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/compiler.dir/src/DebugTools.c.o -MF CMakeFiles/compiler.dir/src/DebugTools.c.o.d -o CMakeFiles/compiler.dir/src/DebugTools.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/DebugTools.c
-
-CMakeFiles/compiler.dir/src/DebugTools.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/compiler.dir/src/DebugTools.c.i"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jmuzy/Programming/C/BrIan-Language/docs/src/DebugTools.c > CMakeFiles/compiler.dir/src/DebugTools.c.i
-
-CMakeFiles/compiler.dir/src/DebugTools.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/compiler.dir/src/DebugTools.c.s"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/DebugTools.c -o CMakeFiles/compiler.dir/src/DebugTools.c.s
-
-CMakeFiles/compiler.dir/src/ErrorHandler.c.o: CMakeFiles/compiler.dir/flags.make
-CMakeFiles/compiler.dir/src/ErrorHandler.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/ErrorHandler.c
-CMakeFiles/compiler.dir/src/ErrorHandler.c.o: CMakeFiles/compiler.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/compiler.dir/src/ErrorHandler.c.o"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/compiler.dir/src/ErrorHandler.c.o -MF CMakeFiles/compiler.dir/src/ErrorHandler.c.o.d -o CMakeFiles/compiler.dir/src/ErrorHandler.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/ErrorHandler.c
-
-CMakeFiles/compiler.dir/src/ErrorHandler.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/compiler.dir/src/ErrorHandler.c.i"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jmuzy/Programming/C/BrIan-Language/docs/src/ErrorHandler.c > CMakeFiles/compiler.dir/src/ErrorHandler.c.i
-
-CMakeFiles/compiler.dir/src/ErrorHandler.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/compiler.dir/src/ErrorHandler.c.s"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/ErrorHandler.c -o CMakeFiles/compiler.dir/src/ErrorHandler.c.s
-
-CMakeFiles/compiler.dir/src/Parser.c.o: CMakeFiles/compiler.dir/flags.make
-CMakeFiles/compiler.dir/src/Parser.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c
-CMakeFiles/compiler.dir/src/Parser.c.o: CMakeFiles/compiler.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/compiler.dir/src/Parser.c.o"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/compiler.dir/src/Parser.c.o -MF CMakeFiles/compiler.dir/src/Parser.c.o.d -o CMakeFiles/compiler.dir/src/Parser.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c
-
-CMakeFiles/compiler.dir/src/Parser.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/compiler.dir/src/Parser.c.i"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c > CMakeFiles/compiler.dir/src/Parser.c.i
-
-CMakeFiles/compiler.dir/src/Parser.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/compiler.dir/src/Parser.c.s"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c -o CMakeFiles/compiler.dir/src/Parser.c.s
-
-CMakeFiles/compiler.dir/src/Token.c.o: CMakeFiles/compiler.dir/flags.make
-CMakeFiles/compiler.dir/src/Token.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/Token.c
-CMakeFiles/compiler.dir/src/Token.c.o: CMakeFiles/compiler.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/compiler.dir/src/Token.c.o"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/compiler.dir/src/Token.c.o -MF CMakeFiles/compiler.dir/src/Token.c.o.d -o CMakeFiles/compiler.dir/src/Token.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Token.c
-
-CMakeFiles/compiler.dir/src/Token.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/compiler.dir/src/Token.c.i"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jmuzy/Programming/C/BrIan-Language/docs/src/Token.c > CMakeFiles/compiler.dir/src/Token.c.i
-
-CMakeFiles/compiler.dir/src/Token.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/compiler.dir/src/Token.c.s"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/Token.c -o CMakeFiles/compiler.dir/src/Token.c.s
-
-CMakeFiles/compiler.dir/src/Tokenizer.c.o: CMakeFiles/compiler.dir/flags.make
-CMakeFiles/compiler.dir/src/Tokenizer.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c
-CMakeFiles/compiler.dir/src/Tokenizer.c.o: CMakeFiles/compiler.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/compiler.dir/src/Tokenizer.c.o"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/compiler.dir/src/Tokenizer.c.o -MF CMakeFiles/compiler.dir/src/Tokenizer.c.o.d -o CMakeFiles/compiler.dir/src/Tokenizer.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c
-
-CMakeFiles/compiler.dir/src/Tokenizer.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/compiler.dir/src/Tokenizer.c.i"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c > CMakeFiles/compiler.dir/src/Tokenizer.c.i
-
-CMakeFiles/compiler.dir/src/Tokenizer.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/compiler.dir/src/Tokenizer.c.s"
-	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c -o CMakeFiles/compiler.dir/src/Tokenizer.c.s
-
 # Object files for target compiler
 compiler_OBJECTS = \
-"CMakeFiles/compiler.dir/src/main.c.o" \
-"CMakeFiles/compiler.dir/src/AST.c.o" \
-"CMakeFiles/compiler.dir/src/ArenaAllocator.c.o" \
-"CMakeFiles/compiler.dir/src/Compiler.c.o" \
-"CMakeFiles/compiler.dir/src/DebugTools.c.o" \
-"CMakeFiles/compiler.dir/src/ErrorHandler.c.o" \
-"CMakeFiles/compiler.dir/src/Parser.c.o" \
-"CMakeFiles/compiler.dir/src/Token.c.o" \
-"CMakeFiles/compiler.dir/src/Tokenizer.c.o"
+"CMakeFiles/compiler.dir/src/main.c.o"
 
 # External object files for target compiler
 compiler_EXTERNAL_OBJECTS =
 
-compiler: CMakeFiles/compiler.dir/src/main.c.o
-compiler: CMakeFiles/compiler.dir/src/AST.c.o
-compiler: CMakeFiles/compiler.dir/src/ArenaAllocator.c.o
-compiler: CMakeFiles/compiler.dir/src/Compiler.c.o
-compiler: CMakeFiles/compiler.dir/src/DebugTools.c.o
-compiler: CMakeFiles/compiler.dir/src/ErrorHandler.c.o
-compiler: CMakeFiles/compiler.dir/src/Parser.c.o
-compiler: CMakeFiles/compiler.dir/src/Token.c.o
-compiler: CMakeFiles/compiler.dir/src/Tokenizer.c.o
-compiler: CMakeFiles/compiler.dir/build.make
-compiler: CMakeFiles/compiler.dir/compiler_depend.ts
-compiler: CMakeFiles/compiler.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Linking C executable compiler"
+bin/compiler: CMakeFiles/compiler.dir/src/main.c.o
+bin/compiler: CMakeFiles/compiler.dir/build.make
+bin/compiler: CMakeFiles/compiler.dir/compiler_depend.ts
+bin/compiler: libblibs.a
+bin/compiler: CMakeFiles/compiler.dir/link.txt
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C executable bin/compiler"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/compiler.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
-CMakeFiles/compiler.dir/build: compiler
+CMakeFiles/compiler.dir/build: bin/compiler
 .PHONY : CMakeFiles/compiler.dir/build
 
 CMakeFiles/compiler.dir/clean:

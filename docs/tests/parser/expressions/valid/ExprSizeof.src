@@ -1,0 +1,6 @@
+fn void test() {
+    let int a = sizeof(int);
+    let int b = sizeof(float);
+    let int c = sizeof(MyStruct);
+    let int d = sizeof(mat<3,3>);
+}

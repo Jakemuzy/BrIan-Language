@@ -1,0 +1,3 @@
+interface {
+    fn void foo();
+}

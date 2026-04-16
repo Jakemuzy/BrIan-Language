@@ -1,0 +1,2 @@
+fn void process(MyStruct s, OtherType t) {
+}

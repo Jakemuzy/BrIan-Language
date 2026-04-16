@@ -1,0 +1,5 @@
+fn void test() {
+    apply(lambda int (int x) captures base {
+        return x + base;
+    });
+}

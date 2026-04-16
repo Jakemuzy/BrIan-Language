@@ -1,0 +1,2 @@
+fn void manyParams(int a, int b, int c, int d, int e, float f, double g, char h) {
+}

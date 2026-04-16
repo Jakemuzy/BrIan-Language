@@ -1,0 +1,8 @@
+fn void test() {
+    let closure void() f = lambda void () captures x {
+        let int y = x + 1;
+        if (y > 10) {
+            y = 0;
+        }
+    };
+}

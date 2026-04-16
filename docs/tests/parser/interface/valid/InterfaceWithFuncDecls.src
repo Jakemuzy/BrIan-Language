@@ -1,0 +1,5 @@
+interface IAnimal {
+    fn void speak();
+    fn int getAge();
+    fn string getName();
+}

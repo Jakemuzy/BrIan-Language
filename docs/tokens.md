@@ -45,11 +45,10 @@
 |---|---|---|
 | as | AS | Cast Type Keyword |
 | let | LET | Let Type Keyword |
-| gen | GEN | Generic Type Keyword |
 |---|---|---|
 | enum | ENUM | Enum Type Keyword |
 | struct | STRUCT | Struct Type Keyword |
-| typedef | TYPEDEF | Typdef Type Keyword |
+| type | TYPEDEF | Typdef Type Keyword |
 | fn | FUNCTION | Function Type Keyword |
 | fp | FUNCPTR | Function Pointer Type Keyword |
 | closure | CLOSURE | Closure Keyword |

@@ -19,11 +19,16 @@
       for details and flags.   
 
 */
+typedef enum PHASE { 
+    TOKENIZE, PARSE, PREPROCESS, 
+    NAMERES, TYPECHECK, IR, 
+    ASSEMBLE, NOT_APPLICABLE 
+} PHASE;
 
 typedef struct CompilerFlags {
     /* Debug Flags */
-    enum { TOKENIZE, PARSE, PREPROCESS, NAMERES, TYPECHECK, IR, ASSEMBLE, NOT_APPLICABLE } stopAfter;
-    
+    PHASE stopAfter;
+
     /* LLVM Flags */
     char* target;
 

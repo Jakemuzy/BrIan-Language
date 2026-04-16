@@ -1,0 +1,6 @@
+fn void test() {
+    let task t1 = spawn worker1();
+    let task t2 = spawn worker2();
+    let int r1 = await t1;
+    let int r2 = await t2;
+}

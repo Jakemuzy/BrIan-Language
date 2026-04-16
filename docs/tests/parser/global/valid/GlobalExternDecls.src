@@ -1,0 +1,3 @@
+fn extern void platformInit();
+fn extern int platformRead(int fd, int* buf, int count);
+let extern int errno;

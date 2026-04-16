@@ -106,24 +106,22 @@ void Program(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, ctx->ast->root, enumNode);
 
-				if (!Match(ctx, SEMI)) ParseERROR(ctx, "Expected semicolon ';' after enum declaration.");
+				if (!Match(ctx, SEMI)) ParseERROR(ctx, "Expected semicolon ';' after global enum declaration.");
 				break;
 			case TYPEDEF: 
 				ASTNode* typedefNode = TypedefDecl(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, ctx->ast->root, typedefNode);
 
-				if (!Match(ctx, SEMI)) ParseERROR(ctx, "Expected semicolon ';' after typedef declaration.");
+				if (!Match(ctx, SEMI)) ParseERROR(ctx, "Expected semicolon ';' after global type declaration.");
 				break;
 			case STRUCT:
 				ASTNode* structNode = StructDecl(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, ctx->ast->root, structNode);
 				break;
-            case END:   
-                return;
-			default:	
-				ParseERROR(ctx, "Unexpected token occured in global scope."); return;
+            case END: return;
+			default: ParseERROR(ctx, "Unexpected token occured in global scope."); return;
         }
     }
 }
@@ -138,28 +136,26 @@ ASTNode* Function(ParserContext* ctx)
 	switch(ctx->current.type) { QUALIFIER_CASES  qualifierNode = TypeQualifierList(ctx); default: break; }
 
 	switch (ctx->current.type) {
-		TYPE_CASES
-			funcNode = RegularFunc(ctx); break;
+		TYPE_CASES   funcNode = RegularFunc(ctx); break;
 		case LESS:   funcNode = GenericFunc(ctx); break;
-		default: return ParseERROR(ctx, "Expected function return type or generic return type.");
+		default: return ParseERROR(ctx, "Expected function to return a valid return type.");
 	}
-	if (ctx->panicMode) return NULL;
+	if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 
 	if (linkageNode) PrependChildASTNode(ctx->arena, funcNode, linkageNode);
 	if (qualifierNode) PrependChildASTNode(ctx->arena, funcNode, qualifierNode);
 
 	switch (ctx->current.type) {
 		case SEMI: 
-			funcNode->type = FUNC_DECL;
+			funcNode->type = funcNode->type == GEN_FUNC_NODE ? GEN_FUNC_DECL : FUNC_DECL;
 			break;
 		case LBRACE:
-			funcNode->type = FUNC_DEF;
+			funcNode->type = funcNode->type == GEN_FUNC_NODE ? GEN_FUNC_DEF : FUNC_DEF;
 			ASTNode* bodyNode = Body(ctx);
-			if (ctx->panicMode) return NULL;
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 			else AddChildASTNode(ctx->arena, funcNode, bodyNode);
 			break;
-		default:
-			return ParseERROR(ctx, "Expected '{' for function definition or ';' for function declaration.");
+		default: return ParseERROR(ctx, "Expected body or ';' after function paramaters.");
 	}
 
 	return funcNode;
@@ -201,11 +197,9 @@ ASTNode* GenericFunc(ParserContext* ctx)
 
 ASTNode* RegularFunc(ParserContext* ctx)
 {
-	// Function pointers need differentiation
 	ASTNode* typeNode = Type(ctx);
 	if (ctx->panicMode) SyncRecovery(ctx, IDENT);
 
-	// TODO: For custom types this will be the wrong message
 	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Function name expected.");
 	ASTNode* funcNode = InitalizeASTNode(ctx->arena, REGULAR_FUNC_NODE, ctx->current);
 	Advance(ctx);
@@ -221,7 +215,7 @@ ASTNode* RegularFunc(ParserContext* ctx)
 			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 			else AddChildASTNode(ctx->arena, funcNode, paramListNode);
 			break;
-		default: break; // Maybe have this do something? Empty node?
+		default: break; 
 	}
 
 	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' after function paramaters.");
@@ -594,7 +588,7 @@ ASTNode* OperatorOverload(ParserContext* ctx)
 		case OR: case XOR: case NEG:
 			break;
 		case LBRACK:
-			if (!Match(ctx, RBRACK)) return ParseERROR(ctx, "Expected matching ']' for operator overloaded index.");
+			if (!Match(ctx, RBRACK)) return ParseERROR(ctx, "Expected matching ']' for overloaded '[]' operator.");
 			break;	
 		default: return ParseERROR(ctx, "Invalid operator for overloading.");
 	}
@@ -633,11 +627,9 @@ ASTNode* OperatorOverload(ParserContext* ctx)
 	return overloadOpNode;
 }
 
-// Overloadable op 
 ASTNode* InterfaceDecl(ParserContext* ctx)
 {
 	Advance(ctx);
-
 	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected interface name.");
 	ASTNode* interfaceDeclNode = InitalizeASTNode(ctx->arena, INTERFACE_DECL_NODE, ctx->current);
 	Advance(ctx);
@@ -673,10 +665,8 @@ ASTNode* InterfaceBody(ParserContext* ctx)
 
 				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expect semicolon ';' after function declartion.");
 				break;
-			case RBRACE:
-				return interfaceBodyNode;
-			default:
-				return ParseERROR(ctx, "Only FUNCTIONS or VARAIBLES allowed inside of interface's body.");
+			case RBRACE: return interfaceBodyNode;
+			default:     return ParseERROR(ctx, "Only FUNCTIONS or VARAIBLES allowed inside of interface's body.");
 		}
 	}
 }
@@ -687,12 +677,12 @@ ASTNode* Implements(ParserContext* ctx)
     ASTNode* implementsNode = InitalizeASTNode(ctx->arena, IMPLEMENTS_NODE, DUMMY_TOKEN);
 
     while (true) {
-        if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected identifier for interface implementation.");
+		if (ctx->current.type == LBRACE) return implementsNode;
+        else if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected identifier for interface implementation.");
         
         AddChildASTNode(ctx->arena, implementsNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
         Advance(ctx);
 
-        if (ctx->current.type == LBRACE) return implementsNode;
         if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Expected ',' or '{' after interface implementation.");
     }
 }

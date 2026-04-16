@@ -1,0 +1,8 @@
+fn void test() {
+    let bool a = 1 == 1;
+    let bool b = 1 != 2;
+    let bool c = 3 < 4;
+    let bool d = 4 > 3;
+    let bool e = 3 <= 3;
+    let bool f = 4 >= 4;
+}

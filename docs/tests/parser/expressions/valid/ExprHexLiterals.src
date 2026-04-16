@@ -1,0 +1,7 @@
+fn void test() {
+    let int a = 0xFF;
+    let int b = 0x00;
+    let int c = 0xDEADBEEF;
+    let int d = 0xABCDEF;
+    let int e = 0x0;
+}

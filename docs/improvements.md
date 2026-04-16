@@ -47,14 +47,14 @@
 
 
 ## Error handling
-* Need to have a centralized area for error handling
-* Error needs to propogate properly
-* Erroring should have a recovery system
+* Need to have a centralized area for error handling X
+* Error needs to propogate properly X
+* Erroring should have a recovery system X
 * Warnings should also be allowed 
-* Maybe have an enum for ERROR_TYPE, and pass that as well as multiple flags casted to void* for variadic error message handling
-* Maybe have the context of the program in a stateful function, and call the function
-The function will also have a section called Cleanup() where is frees all the memory that was allocated
-and upon an abort or exit error that function will be called.
+* Maybe have an enum for ERROR_TYPE, and pass that as well as multiple flags casted to void* for variadic error message handling /
+* Maybe have the context of the program in a stateful function, and call the function X
+The function will also have a section called Cleanup() where is frees all the memory that was allocated X
+and upon an abort or exit error that function will be called. X
 
 ## General Design
 * Need to think of how strings will work for embedded systems (don't want just pointers)
@@ -88,16 +88,16 @@ and upon an abort or exit error that function will be called.
 * Don't want preprocessor to be a monolithic god file for all stages preprocessing, maybe have different multi step phases for differnt stages of the pipeline?
 
 ## Parser
-* Lots of boilder plate for binary operators 
+* Lots of boilder plate for binary operators X
 * Ambiguity resolution is fragile ( 3 token lookahead is done for every function )
-* Put token back is a buffer but can grow unbounded
-* Some AST Nodes are redudnant, dont need list wrapper nodes
-* AST nodes that represent parse tree levels (STMT_LIST_NODE) should be removed
-* AST should include a CAST_NODE, its currently treated as a unary operator (its not)
+* Put token back is a buffer but can grow unbounded X
+* Some AST Nodes are redudnant, dont need list wrapper nodes X
+* AST nodes that represent parse tree levels (STMT_LIST_NODE) should be removed X
+* AST should include a CAST_NODE, its currently treated as a unary operator (its not) X
 * No distinction between prefix and postfix operators 
-* Should only parse Type ( not idents ) since the type checking is relocated to later stages, will verify typedefs in the preprocessor
-* GetNextTokenP (preporcessor is fragile)
-* Needs to be able to read EOF (built into grammar) 
+* Should only parse Type ( not idents ) since the type checking is relocated to later stages, will verify typedefs in the preprocessor X
+* GetNextTokenP (preporcessor is fragile) X
+* Needs to be able to read EOF (built into grammar) X
 
 ## Name Resolver 
 * Shouldn't be doing partial type checking, type checking redoes the work ( given in terms of sym->stype, but I think this is necessary for verifiying names inside of structs )

@@ -1,0 +1,2 @@
+fn void applyFunc(fp int(int, int) callback, int x) {
+}

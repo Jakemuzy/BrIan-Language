@@ -1,0 +1,14 @@
+interface IShape {
+    fn float area();
+}
+struct Circle : IShape {
+    let float radius;
+    enum Type { Small, Medium, Large }
+    type FloatPtr = float*;
+    fn float area() {
+        return radius * radius;
+    }
+    operator ==(Circle a, Circle b) {
+        return a.radius == b.radius;
+    }
+}

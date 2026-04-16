@@ -1,0 +1,9 @@
+fn void test() {
+    let int a = 0xFF & 0x0F;
+    let int b = 0xFF | 0x0F;
+    let int c = 0xFF ^ 0x0F;
+    let int d = ~0xFF;
+    let int e = 1 << 4;
+    let int f = 256 >> 2;
+    let int g = a & b | c ^ d;
+}

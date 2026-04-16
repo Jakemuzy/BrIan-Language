@@ -1,0 +1,4 @@
+fn void test() {
+    while true) {
+    }
+}

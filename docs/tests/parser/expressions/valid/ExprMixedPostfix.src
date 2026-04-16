@@ -1,0 +1,5 @@
+fn void test() {
+    let int x = arr[0].field->ptr->?safe.?member;
+    let int y = obj.method()[index];
+    let int z = getPtr()->value;
+}

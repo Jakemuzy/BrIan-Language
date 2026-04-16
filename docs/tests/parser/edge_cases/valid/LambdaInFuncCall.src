@@ -1,0 +1,5 @@
+fn void test() {
+    let int result = reduce(list, lambda int (int acc, int x) captures base {
+        return acc + x + base;
+    }, 0);
+}

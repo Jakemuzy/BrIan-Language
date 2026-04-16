@@ -117,6 +117,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named blibs
+
+# Build rule for target.
+blibs: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 blibs
+.PHONY : blibs
+
+# fast build rule for target.
+blibs/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/build
+.PHONY : blibs/fast
+
+#=============================================================================
 # Target rules for targets named compiler
 
 # Build rule for target.
@@ -129,12 +142,25 @@ compiler/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/build
 .PHONY : compiler/fast
 
+#=============================================================================
+# Target rules for targets named TestCases
+
+# Build rule for target.
+TestCases: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TestCases
+.PHONY : TestCases
+
+# fast build rule for target.
+TestCases/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/TestCases.dir/build.make tests/CMakeFiles/TestCases.dir/build
+.PHONY : TestCases/fast
+
 src/AST.o: src/AST.c.o
 .PHONY : src/AST.o
 
 # target to build an object file
 src/AST.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/AST.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/AST.c.o
 .PHONY : src/AST.c.o
 
 src/AST.i: src/AST.c.i
@@ -142,7 +168,7 @@ src/AST.i: src/AST.c.i
 
 # target to preprocess a source file
 src/AST.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/AST.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/AST.c.i
 .PHONY : src/AST.c.i
 
 src/AST.s: src/AST.c.s
@@ -150,7 +176,7 @@ src/AST.s: src/AST.c.s
 
 # target to generate assembly for a file
 src/AST.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/AST.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/AST.c.s
 .PHONY : src/AST.c.s
 
 src/ArenaAllocator.o: src/ArenaAllocator.c.o
@@ -158,7 +184,7 @@ src/ArenaAllocator.o: src/ArenaAllocator.c.o
 
 # target to build an object file
 src/ArenaAllocator.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/ArenaAllocator.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/ArenaAllocator.c.o
 .PHONY : src/ArenaAllocator.c.o
 
 src/ArenaAllocator.i: src/ArenaAllocator.c.i
@@ -166,7 +192,7 @@ src/ArenaAllocator.i: src/ArenaAllocator.c.i
 
 # target to preprocess a source file
 src/ArenaAllocator.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/ArenaAllocator.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/ArenaAllocator.c.i
 .PHONY : src/ArenaAllocator.c.i
 
 src/ArenaAllocator.s: src/ArenaAllocator.c.s
@@ -174,7 +200,7 @@ src/ArenaAllocator.s: src/ArenaAllocator.c.s
 
 # target to generate assembly for a file
 src/ArenaAllocator.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/ArenaAllocator.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/ArenaAllocator.c.s
 .PHONY : src/ArenaAllocator.c.s
 
 src/Compiler.o: src/Compiler.c.o
@@ -182,7 +208,7 @@ src/Compiler.o: src/Compiler.c.o
 
 # target to build an object file
 src/Compiler.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Compiler.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Compiler.c.o
 .PHONY : src/Compiler.c.o
 
 src/Compiler.i: src/Compiler.c.i
@@ -190,7 +216,7 @@ src/Compiler.i: src/Compiler.c.i
 
 # target to preprocess a source file
 src/Compiler.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Compiler.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Compiler.c.i
 .PHONY : src/Compiler.c.i
 
 src/Compiler.s: src/Compiler.c.s
@@ -198,7 +224,7 @@ src/Compiler.s: src/Compiler.c.s
 
 # target to generate assembly for a file
 src/Compiler.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Compiler.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Compiler.c.s
 .PHONY : src/Compiler.c.s
 
 src/DebugTools.o: src/DebugTools.c.o
@@ -206,7 +232,7 @@ src/DebugTools.o: src/DebugTools.c.o
 
 # target to build an object file
 src/DebugTools.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/DebugTools.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/DebugTools.c.o
 .PHONY : src/DebugTools.c.o
 
 src/DebugTools.i: src/DebugTools.c.i
@@ -214,7 +240,7 @@ src/DebugTools.i: src/DebugTools.c.i
 
 # target to preprocess a source file
 src/DebugTools.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/DebugTools.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/DebugTools.c.i
 .PHONY : src/DebugTools.c.i
 
 src/DebugTools.s: src/DebugTools.c.s
@@ -222,7 +248,7 @@ src/DebugTools.s: src/DebugTools.c.s
 
 # target to generate assembly for a file
 src/DebugTools.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/DebugTools.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/DebugTools.c.s
 .PHONY : src/DebugTools.c.s
 
 src/ErrorHandler.o: src/ErrorHandler.c.o
@@ -230,7 +256,7 @@ src/ErrorHandler.o: src/ErrorHandler.c.o
 
 # target to build an object file
 src/ErrorHandler.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/ErrorHandler.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/ErrorHandler.c.o
 .PHONY : src/ErrorHandler.c.o
 
 src/ErrorHandler.i: src/ErrorHandler.c.i
@@ -238,7 +264,7 @@ src/ErrorHandler.i: src/ErrorHandler.c.i
 
 # target to preprocess a source file
 src/ErrorHandler.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/ErrorHandler.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/ErrorHandler.c.i
 .PHONY : src/ErrorHandler.c.i
 
 src/ErrorHandler.s: src/ErrorHandler.c.s
@@ -246,7 +272,7 @@ src/ErrorHandler.s: src/ErrorHandler.c.s
 
 # target to generate assembly for a file
 src/ErrorHandler.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/ErrorHandler.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/ErrorHandler.c.s
 .PHONY : src/ErrorHandler.c.s
 
 src/Parser.o: src/Parser.c.o
@@ -254,7 +280,7 @@ src/Parser.o: src/Parser.c.o
 
 # target to build an object file
 src/Parser.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Parser.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Parser.c.o
 .PHONY : src/Parser.c.o
 
 src/Parser.i: src/Parser.c.i
@@ -262,7 +288,7 @@ src/Parser.i: src/Parser.c.i
 
 # target to preprocess a source file
 src/Parser.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Parser.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Parser.c.i
 .PHONY : src/Parser.c.i
 
 src/Parser.s: src/Parser.c.s
@@ -270,7 +296,7 @@ src/Parser.s: src/Parser.c.s
 
 # target to generate assembly for a file
 src/Parser.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Parser.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Parser.c.s
 .PHONY : src/Parser.c.s
 
 src/Token.o: src/Token.c.o
@@ -278,7 +304,7 @@ src/Token.o: src/Token.c.o
 
 # target to build an object file
 src/Token.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Token.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Token.c.o
 .PHONY : src/Token.c.o
 
 src/Token.i: src/Token.c.i
@@ -286,7 +312,7 @@ src/Token.i: src/Token.c.i
 
 # target to preprocess a source file
 src/Token.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Token.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Token.c.i
 .PHONY : src/Token.c.i
 
 src/Token.s: src/Token.c.s
@@ -294,7 +320,7 @@ src/Token.s: src/Token.c.s
 
 # target to generate assembly for a file
 src/Token.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Token.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Token.c.s
 .PHONY : src/Token.c.s
 
 src/Tokenizer.o: src/Tokenizer.c.o
@@ -302,7 +328,7 @@ src/Tokenizer.o: src/Tokenizer.c.o
 
 # target to build an object file
 src/Tokenizer.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Tokenizer.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Tokenizer.c.o
 .PHONY : src/Tokenizer.c.o
 
 src/Tokenizer.i: src/Tokenizer.c.i
@@ -310,7 +336,7 @@ src/Tokenizer.i: src/Tokenizer.c.i
 
 # target to preprocess a source file
 src/Tokenizer.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Tokenizer.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Tokenizer.c.i
 .PHONY : src/Tokenizer.c.i
 
 src/Tokenizer.s: src/Tokenizer.c.s
@@ -318,7 +344,7 @@ src/Tokenizer.s: src/Tokenizer.c.s
 
 # target to generate assembly for a file
 src/Tokenizer.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/src/Tokenizer.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Tokenizer.c.s
 .PHONY : src/Tokenizer.c.s
 
 src/main.o: src/main.c.o
@@ -353,6 +379,8 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... TestCases"
+	@echo "... blibs"
 	@echo "... compiler"
 	@echo "... src/AST.o"
 	@echo "... src/AST.i"

@@ -1,0 +1,7 @@
+fn void test() {
+    lock (mutexA) {
+        lock (mutexB) {
+            x = x + 1;
+        }
+    }
+}

@@ -1,0 +1,6 @@
+fn void test() {
+    let char a = 'A';
+    let char b = '0';
+    let char c = '\n';
+    let char d = '\t';
+}

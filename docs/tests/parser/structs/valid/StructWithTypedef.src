@@ -1,0 +1,4 @@
+struct Wrapper {
+    type MyInt = int;
+    let MyInt value;
+}

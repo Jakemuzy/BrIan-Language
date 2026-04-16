@@ -1,0 +1,9 @@
+struct A {
+    struct B {
+        struct C {
+            let int value;
+        }
+        let float x;
+    }
+    let double y;
+}
