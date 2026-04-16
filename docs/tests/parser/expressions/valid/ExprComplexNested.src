@@ -1,0 +1,5 @@
+fn void test() {
+    let int x = (a + b) * (c - d) / (e % f);
+    let bool cond = (x > 0) && (x < 100) || (x == -1);
+    let float r = foo(a + b, c * d) + bar(e - f);
+}

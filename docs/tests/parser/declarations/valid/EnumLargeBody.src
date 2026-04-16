@@ -1,0 +1,10 @@
+enum HttpStatus {
+    Ok,
+    Created,
+    Accepted,
+    BadRequest,
+    Unauthorized,
+    Forbidden,
+    NotFound,
+    InternalServerError
+}

@@ -1,0 +1,4 @@
+fn void test() {
+    for (let int i = 0; i < 10; i++; j--) {
+    }
+}

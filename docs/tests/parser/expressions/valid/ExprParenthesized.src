@@ -1,0 +1,5 @@
+fn void test() {
+    let int x = ((((1 + 2))));
+    let int y = (1 + (2 * (3 - (4 / 2))));
+    let bool z = ((true && false) || (true && true));
+}

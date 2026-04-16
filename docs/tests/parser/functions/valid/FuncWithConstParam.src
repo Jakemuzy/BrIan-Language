@@ -1,0 +1,3 @@
+fn int readOnly(const int x, const float y) {
+    return x;
+}

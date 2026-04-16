@@ -1,0 +1,4 @@
+fn void test() {
+    let int a, b, c;
+    let float x = 1.0, y = 2.0, z = 3.0;
+}

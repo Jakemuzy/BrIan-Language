@@ -10,6 +10,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/home/jmuzy/Programming/C/BrIan-Language/docs/CMakeLists.txt"
   "CMakeFiles/3.31.6/CMakeCCompiler.cmake"
   "CMakeFiles/3.31.6/CMakeSystem.cmake"
+  "/home/jmuzy/Programming/C/BrIan-Language/docs/tests/CMakeLists.txt"
   "/usr/share/cmake-3.31/Modules/CMakeCInformation.cmake"
   "/usr/share/cmake-3.31/Modules/CMakeCommonLanguageInclude.cmake"
   "/usr/share/cmake-3.31/Modules/CMakeGenericSystem.cmake"
@@ -43,9 +44,12 @@ set(CMAKE_MAKEFILE_OUTPUTS
 # Byproducts of CMake generate step:
 set(CMAKE_MAKEFILE_PRODUCTS
   "CMakeFiles/CMakeDirectoryInformation.cmake"
+  "tests/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
+  "CMakeFiles/blibs.dir/DependInfo.cmake"
   "CMakeFiles/compiler.dir/DependInfo.cmake"
+  "tests/CMakeFiles/TestCases.dir/DependInfo.cmake"
   )

@@ -1,0 +1,4 @@
+fn void test() {
+    a.foo().bar().baz();
+    let int x = obj.method1().method2().getValue();
+}

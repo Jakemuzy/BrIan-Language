@@ -1,0 +1,4 @@
+fn void test() {
+    type LocalType = int;
+    let LocalType x = 5;
+}

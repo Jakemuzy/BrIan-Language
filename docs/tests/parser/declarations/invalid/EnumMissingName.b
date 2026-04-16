@@ -1,0 +1,4 @@
+enum {
+    Red,
+    Green
+}

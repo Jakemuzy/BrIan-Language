@@ -1,0 +1,3 @@
+fn chan<int> makeChannel() {
+    return NULL;
+}

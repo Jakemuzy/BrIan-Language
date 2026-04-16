@@ -1,0 +1,2 @@
+fn void applyFunc(closure int(int) cb) {
+}

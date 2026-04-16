@@ -1,0 +1,5 @@
+fn void test() {
+    let int x;
+    x = (y > 0) ? y : -y;
+    let int z = a ? b ? c : d : e;
+}

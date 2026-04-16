@@ -1,0 +1,6 @@
+fn void test() {
+    let float a = 3.14;
+    let double b = 2.718;
+    let float c = 0.0;
+    let float d = 1.0;
+}

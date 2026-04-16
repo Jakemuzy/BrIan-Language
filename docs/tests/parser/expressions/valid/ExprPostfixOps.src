@@ -1,0 +1,7 @@
+fn void test() {
+    let int x = 5;
+    x++;
+    x--;
+    let int y = x++;
+    let int z = x--;
+}

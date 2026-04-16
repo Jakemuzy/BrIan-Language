@@ -1,0 +1,5 @@
+fn void test() {
+    let MyStruct s;
+    let MyStruct* ptr;
+    let OtherType val;
+}

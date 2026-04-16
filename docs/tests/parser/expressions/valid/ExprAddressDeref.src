@@ -1,0 +1,4 @@
+fn void test() {
+    let int* p = &x;
+    let int val = *p;
+}

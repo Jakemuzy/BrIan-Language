@@ -1,0 +1,23 @@
+struct Vec2 {
+    let float x;
+    let float y;
+    operator +(Vec2 a, Vec2 b) { }
+    operator -(Vec2 a, Vec2 b) { }
+    operator *(Vec2 a, Vec2 b) { }
+    operator /(Vec2 a, Vec2 b) { }
+    operator %(Vec2 a, Vec2 b) { }
+    operator @(Vec2 a, Vec2 b) { }
+    operator ==(Vec2 a, Vec2 b) { }
+    operator !=(Vec2 a, Vec2 b) { }
+    operator <(Vec2 a, Vec2 b) { }
+    operator >(Vec2 a, Vec2 b) { }
+    operator <=(Vec2 a, Vec2 b) { }
+    operator >=(Vec2 a, Vec2 b) { }
+    operator <<(Vec2 a, Vec2 b) { }
+    operator >>(Vec2 a, Vec2 b) { }
+    operator &(Vec2 a, Vec2 b) { }
+    operator |(Vec2 a, Vec2 b) { }
+    operator ^(Vec2 a, Vec2 b) { }
+    operator ~(Vec2 a) { }
+    operator [](Vec2 a, int b) { }
+}

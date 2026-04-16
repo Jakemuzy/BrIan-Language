@@ -1,0 +1,4 @@
+fn void test() {
+    let closure int(int) transform;
+    let closure void(string) printer;
+}

@@ -1,0 +1,4 @@
+fn void test() {
+    let int x = p->x;
+    let int y = p->next->value;
+}

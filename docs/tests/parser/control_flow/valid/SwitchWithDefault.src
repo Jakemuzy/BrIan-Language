@@ -1,0 +1,9 @@
+fn void test() {
+    switch (x) {
+        case 1 {
+            break;
+        }
+        default {
+        }
+    }
+}

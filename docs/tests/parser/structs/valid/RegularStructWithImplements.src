@@ -1,0 +1,5 @@
+struct Dog : IAnimal {
+    let string name;
+    fn void speak() {
+    }
+}

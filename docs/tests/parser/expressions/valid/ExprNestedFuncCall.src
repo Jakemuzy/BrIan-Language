@@ -1,0 +1,4 @@
+fn void test() {
+    let int x = foo(bar(1), baz(2, 3));
+    let int y = a(b(c(d(1))));
+}

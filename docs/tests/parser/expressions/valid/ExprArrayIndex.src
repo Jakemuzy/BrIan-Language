@@ -1,0 +1,6 @@
+fn void test() {
+    let int x = a[0];
+    let int y = a[5];
+    let int z = a[i + 1];
+    let int w = matrix[i][j];
+}

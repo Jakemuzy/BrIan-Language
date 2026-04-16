@@ -1,0 +1,7 @@
+fn void test() {
+    critical {
+        critical {
+            x++;
+        }
+    }
+}

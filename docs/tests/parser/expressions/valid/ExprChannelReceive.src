@@ -1,0 +1,4 @@
+fn void test() {
+    let chan<int> ch;
+    let int val = <- ch;
+}

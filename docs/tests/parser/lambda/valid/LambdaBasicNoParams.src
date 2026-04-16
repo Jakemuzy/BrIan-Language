@@ -1,0 +1,4 @@
+fn void test() {
+    let closure void() action = lambda void () captures x {
+    };
+}

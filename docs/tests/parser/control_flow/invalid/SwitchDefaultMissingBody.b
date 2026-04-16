@@ -1,0 +1,5 @@
+fn void test() {
+    switch (x) {
+        default;
+    }
+}

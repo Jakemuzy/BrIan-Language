@@ -11,7 +11,7 @@
 ### <- as a prefix indicates a message will receive, where as a posfix indicates it will send
 ### Restrictions on type qualifiers will be analyzed during later semantic analysis steps (ie paramaters, function pointers, etc )
 ### The IDENT in Type is for user defined types (struct, enum, typedef, etc) this will be handled in the parser, though the grammar doesn't really show this ambiguity being handled
-### Empty statements ie.) ';' are disallowed since they serve no purpose in this language
+### Empty statements ie. ';' are disallowed since they serve no purpose in this language
 
 ```
 	Program ::=  { Import | Directive } { Function | DeclStmt | InterfaceDecl }
@@ -49,7 +49,7 @@
     StmtList ::= { Stmt }
 	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt | JumpStmt | ConcurrencyStmt
 
-    ExprStmt ::= ';' | Expr ';'  
+    ExprStmt ::= Expr ';'  
 	DeclStmt ::= ( VarDecl  | EnumDecl | TypedefDecl ) ';'
                  | StructDecl        // Semicolon after struct is annoying
 
@@ -66,7 +66,7 @@
                         | '<<' | '>>' | '&' | '|' | '^' | '~'
                         | "[]"
     InterfaceDecl ::= "interface" IDENT '{' InterfaceBody '}'
-        InterfaceBody ::= { ( VarDecl | FuncDecl ) ';' }
+        InterfaceBody ::= { ( VarDecl | FuncDecl ) }
 
     EnumDecl ::= "enum" IDENT EnumBody 
         EnumBody ::= '{' IDENT [ = INTEGRAL ] { ',' IDENT [ = INTEGRAL ] } '}'

@@ -1,0 +1,3 @@
+fn fp int(int) getAdder() {
+    return NULL;
+}

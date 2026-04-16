@@ -1,0 +1,3 @@
+fn void foo();
+fn int bar(int x);
+fn double baz(float a, float b);

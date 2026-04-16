@@ -136,6 +136,7 @@ static ParseRule PRECEDENCE_TABLE[] = {
       [ANDEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [XOREQ] = { NULL, AsgnExpr, PREC_ASGN, true }, 
       [OREQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [ANDLEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, 
       [ORLEQ] = { NULL, AsgnExpr, PREC_ASGN, true }, [SEND] = { PrefixExpr, AsgnExpr, PREC_ASGN, true }, 
+      [NEGEQ] = { NULL, AsgnExpr, PREC_ASGN, true },
 
       [ORL] = { NULL, BinaryExpr, PREC_ORL, false },
       [ANDL] = { NULL, BinaryExpr, PREC_ANDL, false },

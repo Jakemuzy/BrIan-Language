@@ -1,0 +1,3 @@
+struct Robot : IMovable, IChargeable, ISpeakable {
+    let int battery;
+}

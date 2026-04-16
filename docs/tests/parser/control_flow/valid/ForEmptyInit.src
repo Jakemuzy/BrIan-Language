@@ -1,0 +1,4 @@
+fn void test() {
+    for (; i < 10; i++) {
+    }
+}

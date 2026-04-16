@@ -1,0 +1,9 @@
+fn void test() {
+    if (x == 1) {
+    } elif (x == 2) {
+    } elif (x == 3) {
+    } elif (x == 4) {
+    } elif (x == 5) {
+    } else {
+    }
+}
