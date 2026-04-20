@@ -101,8 +101,6 @@ Another thing to note: since I decided to go with a predictive parser architectu
 
 ### Impact
 
-Performance counter stats for './builds/TestParser':
-
     18,577,755      task-clock                       #    0.803 CPUs utilized             
                 0      context-switches                 #    0.000 /sec                      
                 0      cpu-migrations                   #    0.000 /sec                      
@@ -182,3 +180,17 @@ NOTE: Debug flags require you to pass -DDEBUG to the cli
 
 Handles errors, error messages, what should happen upon errors, etc. Calls a label in Compiler.c to cleanup if flags allow it, in order to cleanup program
 before failure.
+
+## Testing 
+
+Testing is completely done via golden tests. I implemented a complete golden tester pipeline from scratch. All tests aer located in ./tests/ under their respective phase of the pipeline. For example if you wanted to unit test all of the parser files to ensure your code didn't break anything you would reference ./tests/parser/ and if you wanted to reference a specific file or directory you would do ./tests/parser/functions/xxx/xxx.b. That being said there are a couple of flags you can pass directly to the golden tester. 
+
+
+| Flag | Purpose |
+|---|---|---|---|
+| --regenerate | Regenerates Golden Files |
+| --file | Specifies Directory or File to Test | 
+| OTHER | Any Other Flag is Passed Directly to the Compiler |
+
+As the table shows, any additional flags passed to the tester will be forwarded to the compiler. So if I wanted to test the entire parser I would do something like this. ./bin/tester --file ./tests/parser/ -parse
+Where the -parse flag is the flag for the compiler to execute only up to the parsing stage of the pipeline. This allows each for different testing on dedicated phase tests.

@@ -6,5 +6,5 @@ C_DEFINES =
 
 C_INCLUDES = -I/home/jmuzy/Programming/C/BrIan-Language/docs/include
 
-C_FLAGS =  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -std=gnu99
+C_FLAGS =  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99
 

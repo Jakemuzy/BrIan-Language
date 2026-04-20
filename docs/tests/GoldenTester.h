@@ -1,6 +1,7 @@
 #ifndef _BRIAN_TESTER_H_
 #define _BRIAN_TESTER_H_
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>

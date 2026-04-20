@@ -85,7 +85,7 @@ void Program(ParserContext* ctx)
             case FUNCTION: 
                 ASTNode* funcNode = Function(ctx);
 				if (ctx->panicMode) { SyncRecovery(ctx, RBRACE); Advance(ctx); }
-                AddChildASTNode(ctx->arena, ctx->ast->root, funcNode);
+                else AddChildASTNode(ctx->arena, ctx->ast->root, funcNode);
 
 				// TODO: func decls SHOULD require semi after in global scope
                 break;
@@ -314,6 +314,7 @@ ASTNode* Captures(ParserContext* ctx)
 {
 	Advance(ctx);
 	ASTNode* capturesNode = InitalizeASTNode(ctx->arena, CAPTURES_NODE, DUMMY_TOKEN);
+    if (ctx->current.type == LBRACE) return capturesNode;
 
     while (true) {
         if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected variable to capture.");
@@ -405,10 +406,14 @@ ASTNode* Body(ParserContext* ctx)
 			case BREAK: 
 				AddChildASTNode(ctx->arena, bodyNode, InitalizeASTNode(ctx->arena, BREAK_NODE, ctx->current));
 				Advance(ctx);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after break expression.");
 				break;
 			case CONTINUE:
 				AddChildASTNode(ctx->arena, bodyNode, InitalizeASTNode(ctx->arena, CONTINUE_NODE, ctx->current));
 				Advance(ctx);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after continue expression.");
 				break;
 			case LOCK: 
 				ASTNode* lockNode = LockStmt(ctx);
@@ -488,8 +493,6 @@ ASTNode* StructDecl(ParserContext* ctx)
 			ASTNode* structBodyNode = StructBody(ctx); 
 			if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 			else AddChildASTNode(ctx->arena, structNode, structBodyNode);
-
-			if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected '}' after struct body.");
 			break;
 		default: return ParseERROR(ctx, "Invalid token after struct identifier.");
 	}
@@ -569,7 +572,7 @@ ASTNode* StructBody(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, structBodyNode, structNode);
 				break;
-			case RBRACE: return structBodyNode;
+			case RBRACE: Advance(ctx); return structBodyNode;
 			default: return ParseERROR(ctx, "Unexpected struct member.");
 		}
 
@@ -634,13 +637,13 @@ ASTNode* InterfaceDecl(ParserContext* ctx)
 	ASTNode* interfaceDeclNode = InitalizeASTNode(ctx->arena, INTERFACE_DECL_NODE, ctx->current);
 	Advance(ctx);
 
-	if (!Match(ctx, LBRACE)) ParseERROR(ctx, "Expected '{' to begin interface declaration.");
+	if (!Match(ctx, LBRACE)) return ParseERROR(ctx, "Expected '{' to begin interface declaration.");
 
 	ASTNode* interfaceBodyNode = InterfaceBody(ctx);
 	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 	else AddChildASTNode(ctx->arena, interfaceDeclNode, interfaceBodyNode);
 
-	if (!Match(ctx, RBRACE)) ParseERROR(ctx, "Expected '}' to terminate interface declaration.");
+	if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected '}' to terminate interface declaration.");
 
 	return interfaceDeclNode;
 }
@@ -683,7 +686,8 @@ ASTNode* Implements(ParserContext* ctx)
         AddChildASTNode(ctx->arena, implementsNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
         Advance(ctx);
 
-        if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Expected ',' or '{' after interface implementation.");
+		if (ctx->current.type == LBRACE) return implementsNode;
+        else if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Expected ',' or '{' after interface implementation.");
     }
 }
 
@@ -691,7 +695,7 @@ ASTNode* EnumDecl(ParserContext* ctx)
 {
 	Advance(ctx);
 
-	if (ctx->current.type != IDENT) ParseERROR(ctx, "Expected Identifier for enum.");
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected Identifier for enum.");
 	ASTNode* enumNode = InitalizeASTNode(ctx->arena, ENUM_DECL_NODE, ctx->current);
 	Advance(ctx);
 
@@ -869,11 +873,10 @@ ASTNode* SwitchStmt(ParserContext* ctx)
 
 				if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected '}' to terminate switch statement's body.");
 				return switchStmtNode;
-			case RBRACE: break;
+			case RBRACE: Advance(ctx); return switchStmtNode;
 			default: return ParseERROR(ctx, "Expected CASE or DEFAULT within Switch Statement body.");
 		}
 
-		if (Match(ctx, RBRACE)) return switchStmtNode;
 	}
 }
 
@@ -939,7 +942,6 @@ ASTNode* DoWhileStmt(ParserContext* ctx)
 	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin while statement body.");
 	ASTNode* bodyNode = Body(ctx);
 	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
-
 
 	if (!Match(ctx, WHILE)) return ParseERROR(ctx, "Expected 'while' to begin do while condition.");
 	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' to begin do while statement.");
@@ -1494,7 +1496,7 @@ ASTNode* VarList(ParserContext* ctx)
 
 ASTNode* Var(ParserContext* ctx)
 {
-	if (ctx->current.type != IDENT) ParseERROR(ctx, "Expected identifier name for variable declaration.");
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected identifier name for variable declaration.");
 	ASTNode* varNode = InitalizeASTNode(ctx->arena, VAR_NODE, ctx->current);
     Advance(ctx);
 
@@ -1536,6 +1538,10 @@ ASTNode* ArrInitList(ParserContext* ctx)
 	while (true) {
 		switch (ctx->current.type) {
 			LITERAL_CASES
+				ASTNode* literalSizeNode = InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current);
+				AddChildASTNode(ctx->arena, arrInitList, literalSizeNode);
+				Advance(ctx);
+				break;
 			case IDENT:
 				ASTNode* sizeNode = InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current);
 				AddChildASTNode(ctx->arena, arrInitList, sizeNode);

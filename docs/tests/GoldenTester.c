@@ -31,7 +31,14 @@ void ReadFile(TestRun* run, DIR* dp, char* currentPath)
             ReadFile(run, nextDP, path);
         } else {
             char* type = (run->regenerate) ? "REGENERATING" : "TESTING";
-            printf("%s: %s\n", type, entry->d_name);
+
+            char file[1024];
+            snprintf(file, sizeof(file), "%s/%s", currentPath, entry->d_name);
+            int output = system(file);
+            char* result = (output == 1) ? "FAIL" : "PASS";
+
+            printf("%s: %s\t%s\n", type, entry->d_name, result);
+
         }
     }
     closedir(dp);
