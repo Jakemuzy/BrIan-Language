@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
+#include <sys/stat.h>
 
 #include "Compiler.h"
 #include "Tokenizer.h"
@@ -21,15 +22,23 @@
 
 typedef struct TestRun {
     char* directory;
-    bool regenerate;
+    bool regenerate, suppressOutput;
 
     char* compilerFlag;
     size_t passCount, failCount;
 } TestRun;
 
-void ReadFile(TestRun* run, DIR* dp, char* currentPath);
-void Compare(TestRun* run);
-void Generate(TestRun* run);
+/* ----- Helpers ----- */
+char* GetParentDirPath(char* currentPath);
+char* CaptureOutput(char* sysCommand);
+void CompareOutputs(char* runOutput, char* goldenOutput);
+
+/* ----- Comparison ----- */
+void RecurseDirectories(TestRun* run, char* currentPath);
+void CompareFile(TestRun* run, char* directoryPath, char* fileName);
+//void RegenerateGolden(TestRun* run, DIR* dp, char* currentPath, char* fileName);
+
+/* ----- Flag Parsing ----- */
 TestRun* ParseFlags(int argc, char* argv[]);
 
 #endif

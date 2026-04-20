@@ -117,25 +117,25 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-tests/CMakeFiles/TestCases.dir/rule:
-	cd /home/jmuzy/Programming/C/BrIan-Language/docs/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/TestCases.dir/rule
-.PHONY : tests/CMakeFiles/TestCases.dir/rule
+tests/CMakeFiles/tester.dir/rule:
+	cd /home/jmuzy/Programming/C/BrIan-Language/docs/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/tester.dir/rule
+.PHONY : tests/CMakeFiles/tester.dir/rule
 
 # Convenience name for target.
-TestCases: tests/CMakeFiles/TestCases.dir/rule
-.PHONY : TestCases
+tester: tests/CMakeFiles/tester.dir/rule
+.PHONY : tester
 
 # fast build rule for target.
-TestCases/fast:
-	cd /home/jmuzy/Programming/C/BrIan-Language/docs/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/TestCases.dir/build.make tests/CMakeFiles/TestCases.dir/build
-.PHONY : TestCases/fast
+tester/fast:
+	cd /home/jmuzy/Programming/C/BrIan-Language/docs/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/tester.dir/build.make tests/CMakeFiles/tester.dir/build
+.PHONY : tester/fast
 
 GoldenTester.o: GoldenTester.c.o
 .PHONY : GoldenTester.o
 
 # target to build an object file
 GoldenTester.c.o:
-	cd /home/jmuzy/Programming/C/BrIan-Language/docs/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/TestCases.dir/build.make tests/CMakeFiles/TestCases.dir/GoldenTester.c.o
+	cd /home/jmuzy/Programming/C/BrIan-Language/docs/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/tester.dir/build.make tests/CMakeFiles/tester.dir/GoldenTester.c.o
 .PHONY : GoldenTester.c.o
 
 GoldenTester.i: GoldenTester.c.i
@@ -143,7 +143,7 @@ GoldenTester.i: GoldenTester.c.i
 
 # target to preprocess a source file
 GoldenTester.c.i:
-	cd /home/jmuzy/Programming/C/BrIan-Language/docs/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/TestCases.dir/build.make tests/CMakeFiles/TestCases.dir/GoldenTester.c.i
+	cd /home/jmuzy/Programming/C/BrIan-Language/docs/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/tester.dir/build.make tests/CMakeFiles/tester.dir/GoldenTester.c.i
 .PHONY : GoldenTester.c.i
 
 GoldenTester.s: GoldenTester.c.s
@@ -151,7 +151,7 @@ GoldenTester.s: GoldenTester.c.s
 
 # target to generate assembly for a file
 GoldenTester.c.s:
-	cd /home/jmuzy/Programming/C/BrIan-Language/docs/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/TestCases.dir/build.make tests/CMakeFiles/TestCases.dir/GoldenTester.c.s
+	cd /home/jmuzy/Programming/C/BrIan-Language/docs/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/tester.dir/build.make tests/CMakeFiles/tester.dir/GoldenTester.c.s
 .PHONY : GoldenTester.c.s
 
 # Help Target
@@ -162,7 +162,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... TestCases"
+	@echo "... tester"
 	@echo "... GoldenTester.o"
 	@echo "... GoldenTester.i"
 	@echo "... GoldenTester.s"

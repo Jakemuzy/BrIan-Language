@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "tests/TestCases"
+			"path" : "/home/jmuzy/Programming/C/BrIan-Language/docs/bin/tester"
 		}
 	],
 	"backtrace" : 1,
@@ -74,7 +74,7 @@
 			"id" : "blibs::@6890427a1f51a3e7e1df"
 		}
 	],
-	"id" : "TestCases::@a44f0ac069e85531cdee",
+	"id" : "tester::@a44f0ac069e85531cdee",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -95,8 +95,8 @@
 		],
 		"language" : "C"
 	},
-	"name" : "TestCases",
-	"nameOnDisk" : "TestCases",
+	"name" : "tester",
+	"nameOnDisk" : "tester",
 	"paths" : 
 	{
 		"build" : "tests",

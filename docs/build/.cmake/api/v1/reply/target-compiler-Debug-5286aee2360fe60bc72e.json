@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "bin/compiler"
+			"path" : "/home/jmuzy/Programming/C/BrIan-Language/docs/bin/compiler"
 		}
 	],
 	"backtrace" : 1,

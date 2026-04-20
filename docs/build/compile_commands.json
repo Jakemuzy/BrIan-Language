@@ -55,8 +55,8 @@
 },
 {
   "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build/tests",
-  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/TestCases.dir/GoldenTester.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/tests/GoldenTester.c",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/tester.dir/GoldenTester.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/tests/GoldenTester.c",
   "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/tests/GoldenTester.c",
-  "output": "tests/CMakeFiles/TestCases.dir/GoldenTester.c.o"
+  "output": "tests/CMakeFiles/tester.dir/GoldenTester.c.o"
 }
 ]
