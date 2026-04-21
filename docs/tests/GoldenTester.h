@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <dirent.h>
+#include <libgen.h>
 #include <sys/stat.h>
 
 #include "Compiler.h"
@@ -30,6 +31,7 @@ typedef struct TestRun {
 
 /* ----- Helpers ----- */
 char* GetParentDirPath(char* currentPath);
+char* GetGoldenFileName(char* fileName);
 char* CaptureOutput(char* sysCommand);
 void CompareOutputs(char* runOutput, char* goldenOutput);
 

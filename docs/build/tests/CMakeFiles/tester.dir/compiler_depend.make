@@ -32,6 +32,7 @@ tests/CMakeFiles/tester.dir/GoldenTester.c.o: /home/jmuzy/Programming/C/BrIan-La
   /usr/include/endian.h \
   /usr/include/features-time64.h \
   /usr/include/features.h \
+  /usr/include/libgen.h \
   /usr/include/linux/limits.h \
   /usr/include/stdc-predef.h \
   /usr/include/stdio.h \
@@ -120,8 +121,6 @@ tests/CMakeFiles/tester.dir/GoldenTester.c.o: /home/jmuzy/Programming/C/BrIan-La
 
 /usr/lib/llvm-20/lib/clang/20/include/__stdarg___gnuc_va_list.h:
 
-/usr/include/x86_64-linux-gnu/sys/types.h:
-
 /usr/include/x86_64-linux-gnu/sys/select.h:
 
 /usr/include/x86_64-linux-gnu/gnu/stubs.h:
@@ -159,6 +158,8 @@ tests/CMakeFiles/tester.dir/GoldenTester.c.o: /home/jmuzy/Programming/C/BrIan-La
 /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_stat.h:
+
+/usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
 
 /usr/include/x86_64-linux-gnu/bits/uintn-identity.h:
 
@@ -240,11 +241,13 @@ libblibs.a:
 
 /usr/lib/gcc/x86_64-linux-gnu/15/libgcc_s.so:
 
-/usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
-
 /lib/x86_64-linux-gnu/crti.o:
 
 tests/CMakeFiles/tester.dir/GoldenTester.c.o:
+
+/usr/include/x86_64-linux-gnu/sys/types.h:
+
+/usr/include/libgen.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/clock_t.h:
 
