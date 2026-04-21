@@ -1,0 +1,6 @@
+
+SYNTAX ERROR: Expected Identifier in enum. Instead encountered '42' on line 3, col 5
+
+SYNTAX ERROR: Expected semicolon ';' after global enum declaration. Instead encountered '}' on line 5, col 1
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 5, col 1

@@ -1,0 +1,6 @@
+
+SYNTAX ERROR: Vector row size only accepts integral digits. Instead encountered 'x' on line 2, col 13
+
+SYNTAX ERROR: Expected semicolon ';' after variable declaration. Instead encountered '>' on line 2, col 14
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered ';' on line 2, col 17

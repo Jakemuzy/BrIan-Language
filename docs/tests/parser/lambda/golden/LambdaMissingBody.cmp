@@ -1,0 +1,6 @@
+
+SYNTAX ERROR: Expected ',' or '{' after specified captures. Instead encountered ';' on line 2, col 53
+
+SYNTAX ERROR: Expected lambda to have a body. Instead encountered '' on line 4, col 1
+
+SYNTAX ERROR: Expected semicolon ';' after variable declaration. Instead encountered '' on line 4, col 1

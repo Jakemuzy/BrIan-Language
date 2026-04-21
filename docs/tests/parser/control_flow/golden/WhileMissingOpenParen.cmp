@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: Expected '(' to begin while statement. Instead encountered 'true' on line 2, col 11
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 4, col 1

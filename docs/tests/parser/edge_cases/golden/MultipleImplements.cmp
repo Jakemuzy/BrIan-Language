@@ -1,0 +1,28 @@
+PROG
+├── INTERFACE_DECL (IA)
+│   ├── INTERFACE_BODY
+│   │   ├── FUNC_DECL (a)
+│   │   │   ├── TYPE (void)
+├── INTERFACE_DECL (IB)
+│   ├── INTERFACE_BODY
+│   │   ├── FUNC_DECL (b)
+│   │   │   ├── TYPE (void)
+├── INTERFACE_DECL (IC)
+│   ├── INTERFACE_BODY
+│   │   ├── FUNC_DECL (c)
+│   │   │   ├── TYPE (void)
+├── STRUCT_DECL (Multi)
+│   ├── IMPLEMENTS
+│   │   ├── IDENT (IA)
+│   │   ├── IDENT (IB)
+│   │   ├── IDENT (IC)
+│   ├── STRUCT_BODY
+│   │   ├── FUNC_DEF (a)
+│   │   │   ├── TYPE (void)
+│   │   │   ├── BODY
+│   │   ├── FUNC_DEF (b)
+│   │   │   ├── TYPE (void)
+│   │   │   ├── BODY
+│   │   ├── FUNC_DEF (c)
+│   │   │   ├── TYPE (void)
+│   │   │   ├── BODY

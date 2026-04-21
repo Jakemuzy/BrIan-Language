@@ -1,0 +1,3 @@
+
+SYNTAX ERROR: Function calling only allows expression arguments. Instead encountered ',' on line 2, col 9
+Segmentation fault (core dumped)

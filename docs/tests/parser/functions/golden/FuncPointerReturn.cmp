@@ -1,0 +1,7 @@
+PROG
+├── FUNC_DEF (getPtr)
+│   ├── TYPE (int)
+│   │   ├── DECL_PREFIX (*)
+│   ├── BODY
+│   │   ├── RETURN
+│   │   │   ├── IDENT (NULL)

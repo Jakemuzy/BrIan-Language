@@ -1,0 +1,7 @@
+PROG
+├── ENUM_DECL (Direction)
+│   ├── ENUM_BODY
+│   │   ├── IDENT (North)
+│   │   ├── IDENT (South)
+│   │   ├── IDENT (East)
+│   │   ├── IDENT (West)

@@ -1,0 +1,5 @@
+PROG
+├── TYPEDEF_DECL (Transform)
+│   ├── CLOSURE (closure)
+│   │   ├── TYPE (int)
+│   │   ├── TYPE (int)

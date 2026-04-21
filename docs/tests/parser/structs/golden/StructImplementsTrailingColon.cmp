@@ -1,0 +1,4 @@
+PROG
+├── STRUCT_DECL (Foo)
+│   ├── IMPLEMENTS
+│   ├── STRUCT_BODY

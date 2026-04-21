@@ -1,0 +1,13 @@
+PROG
+├── INTERFACE_DECL (IContainer)
+│   ├── INTERFACE_BODY
+│   │   ├── (null) (get)
+│   │   │   ├── GENERIC (T)
+│   │   │   ├── PARAM_LIST
+│   │   │   │   ├── PARAM (index)
+│   │   │   │   │   ├── TYPE (int)
+│   │   ├── FUNC_DECL (add)
+│   │   │   ├── TYPE (void)
+│   │   │   ├── PARAM_LIST
+│   │   │   │   ├── PARAM (x)
+│   │   │   │   │   ├── TYPE (int)

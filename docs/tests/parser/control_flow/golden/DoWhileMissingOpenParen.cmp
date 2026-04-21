@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: Expected '(' to begin do while statement. Instead encountered 'true' on line 3, col 13
+
+SYNTAX ERROR: Expected semicolon ';' after DoWhile statement. Instead encountered '}' on line 4, col 1

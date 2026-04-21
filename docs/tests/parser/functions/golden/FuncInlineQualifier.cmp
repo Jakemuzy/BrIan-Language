@@ -1,0 +1,11 @@
+PROG
+├── FUNC_DEF (inlined)
+│   ├── QUALIFIER_LIST
+│   │   ├── TYPE_QUALIFIER (inline)
+│   ├── TYPE (int)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (x)
+│   │   │   ├── TYPE (int)
+│   ├── BODY
+│   │   ├── RETURN
+│   │   │   ├── IDENT (x)

@@ -1,0 +1,16 @@
+PROG
+├── INTERFACE_DECL (IShape)
+│   ├── INTERFACE_BODY
+│   │   ├── FUNC_DECL (area)
+│   │   │   ├── TYPE (float)
+│   │   ├── FUNC_DECL (perimeter)
+│   │   │   ├── TYPE (float)
+│   │   ├── FUNC_DECL (draw)
+│   │   │   ├── TYPE (void)
+│   │   ├── FUNC_DECL (contains)
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── PARAM_LIST
+│   │   │   │   ├── PARAM (x)
+│   │   │   │   │   ├── TYPE (float)
+│   │   │   │   ├── PARAM (y)
+│   │   │   │   │   ├── TYPE (float)

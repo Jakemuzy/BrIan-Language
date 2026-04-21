@@ -1,0 +1,2 @@
+
+SYNTAX ERROR: Channel requires '<' '>' to surround channel type, expected '<'. Instead encountered 'int' on line 2, col 14
