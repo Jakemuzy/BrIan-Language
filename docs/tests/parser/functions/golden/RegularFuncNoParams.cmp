@@ -1,0 +1,4 @@
+PROG
+├── FUNC_DEF (doNothing)
+│   ├── TYPE (void)
+│   ├── BODY

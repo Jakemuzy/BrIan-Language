@@ -1,0 +1,7 @@
+PROG
+├── FUNC_DEF (lockWith)
+│   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (m)
+│   │   │   ├── TYPE (mutex)
+│   ├── BODY

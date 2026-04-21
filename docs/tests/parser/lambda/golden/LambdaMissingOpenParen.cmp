@@ -1,0 +1,6 @@
+
+SYNTAX ERROR: Expected '(' after lambda declaration. Instead encountered 'int' on line 2, col 40
+
+SYNTAX ERROR: Expected semicolon ';' after variable declaration. Instead encountered '}' on line 3, col 5
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered ';' on line 3, col 6

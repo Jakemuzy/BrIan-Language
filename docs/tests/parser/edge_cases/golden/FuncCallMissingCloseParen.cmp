@@ -1,0 +1,5 @@
+
+SYNTAX ERROR: Expected arguments inside function call. Instead encountered ';' on line 2, col 16
+
+SYNTAX ERROR: Function calling requires '(' ')' to surround arguments, expected ')'. Instead encountered '' on line 4, col 1
+Segmentation fault (core dumped)

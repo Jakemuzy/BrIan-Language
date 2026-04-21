@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: User defined type must be equal '=' to something. Instead encountered 'int' on line 1, col 12
+
+SYNTAX ERROR: Expected semicolon ';' after global type declaration. Instead encountered '' on line 2, col 1

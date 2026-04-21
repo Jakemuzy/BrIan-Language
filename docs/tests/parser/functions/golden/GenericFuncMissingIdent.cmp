@@ -1,0 +1,6 @@
+
+SYNTAX ERROR: Expected valid identifier for generic ie.) <IDENTIFIER>. Instead encountered '>' on line 1, col 5
+
+SYNTAX ERROR: Function name expected. Instead encountered '(' on line 1, col 15
+
+SYNTAX ERROR: Expected body or ';' after function paramaters. Instead encountered '' on line 3, col 1

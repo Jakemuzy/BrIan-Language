@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: Expected semicolon ';' between initializer and conditional sections of for statement. Instead encountered 'i' on line 2, col 24
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 4, col 1

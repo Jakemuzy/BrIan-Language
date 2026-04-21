@@ -1,0 +1,6 @@
+
+SYNTAX ERROR: Expected '{' to begin critical section. Instead encountered 'x' on line 3, col 9
+
+SYNTAX ERROR: Unexpected token in body. Instead encountered ';' on line 3, col 14
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered ';' on line 3, col 14

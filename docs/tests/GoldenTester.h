@@ -33,7 +33,8 @@ typedef struct TestRun {
 char* GetParentDirPath(char* currentPath);
 char* GetGoldenFileName(char* fileName);
 char* CaptureOutput(char* sysCommand);
-void CompareOutputs(char* runOutput, char* goldenOutput);
+char* ReadGolden(char* goldenPath);
+int CompareOutputs(char* runOutput, char* goldenOutput);
 
 /* ----- Comparison ----- */
 void RecurseDirectories(TestRun* run, char* currentPath);

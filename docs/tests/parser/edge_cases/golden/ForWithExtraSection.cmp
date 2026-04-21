@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: Expected ')' to terminate for statement. Instead encountered ';' on line 2, col 36
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 4, col 1

@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: Expected ')' after function paramaters. Instead encountered '(' on line 1, col 12
+
+SYNTAX ERROR: Expected body or ';' after function paramaters. Instead encountered '' on line 3, col 1

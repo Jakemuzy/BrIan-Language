@@ -1,0 +1,6 @@
+
+SYNTAX ERROR: Matrix col size only accepts integral digits. Instead encountered 'y' on line 2, col 15
+
+SYNTAX ERROR: Expected semicolon ';' after variable declaration. Instead encountered '>' on line 2, col 16
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered ';' on line 2, col 19

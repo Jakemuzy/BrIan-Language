@@ -1,0 +1,18 @@
+PROG
+├── VAR_DECL
+│   ├── TYPE (int)
+│   ├── VAR_LIST
+│   │   ├── VAR (x)
+│   │   │   ├── LITERAL (0)
+├── VAR_DECL
+│   ├── QUALIFIER_LIST
+│   │   ├── TYPE_QUALIFIER (const)
+│   ├── TYPE (float)
+│   ├── VAR_LIST
+│   │   ├── VAR (PI)
+│   │   │   ├── LITERAL (3.14159)
+├── VAR_DECL
+│   ├── TYPE (string)
+│   ├── VAR_LIST
+│   │   ├── VAR (name)
+│   │   │   ├── LITERAL ("world")
