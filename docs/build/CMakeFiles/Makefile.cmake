@@ -51,5 +51,5 @@ set(CMAKE_MAKEFILE_PRODUCTS
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/blibs.dir/DependInfo.cmake"
   "CMakeFiles/compiler.dir/DependInfo.cmake"
-  "tests/CMakeFiles/TestCases.dir/DependInfo.cmake"
+  "tests/CMakeFiles/tester.dir/DependInfo.cmake"
   )

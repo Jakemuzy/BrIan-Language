@@ -1,1 +1,1 @@
-clang  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -Wl,--dependency-file=CMakeFiles/compiler.dir/link.d CMakeFiles/compiler.dir/src/main.c.o -o bin/compiler  libblibs.a
+clang  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -Wl,--dependency-file=CMakeFiles/compiler.dir/link.d CMakeFiles/compiler.dir/src/main.c.o -o /home/jmuzy/Programming/C/BrIan-Language/docs/bin/compiler  libblibs.a

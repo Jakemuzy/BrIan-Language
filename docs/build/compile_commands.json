@@ -1,0 +1,62 @@
+[
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/blibs.dir/src/AST.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/AST.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/AST.c",
+  "output": "CMakeFiles/blibs.dir/src/AST.c.o"
+},
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/blibs.dir/src/ArenaAllocator.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/ArenaAllocator.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/ArenaAllocator.c",
+  "output": "CMakeFiles/blibs.dir/src/ArenaAllocator.c.o"
+},
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/blibs.dir/src/Compiler.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Compiler.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Compiler.c",
+  "output": "CMakeFiles/blibs.dir/src/Compiler.c.o"
+},
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/blibs.dir/src/DebugTools.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/DebugTools.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/DebugTools.c",
+  "output": "CMakeFiles/blibs.dir/src/DebugTools.c.o"
+},
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/blibs.dir/src/ErrorHandler.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/ErrorHandler.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/ErrorHandler.c",
+  "output": "CMakeFiles/blibs.dir/src/ErrorHandler.c.o"
+},
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/blibs.dir/src/Parser.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c",
+  "output": "CMakeFiles/blibs.dir/src/Parser.c.o"
+},
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/blibs.dir/src/Token.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Token.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Token.c",
+  "output": "CMakeFiles/blibs.dir/src/Token.c.o"
+},
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/blibs.dir/src/Tokenizer.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c",
+  "output": "CMakeFiles/blibs.dir/src/Tokenizer.c.o"
+},
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/compiler.dir/src/main.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/main.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/main.c",
+  "output": "CMakeFiles/compiler.dir/src/main.c.o"
+},
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build/tests",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/tester.dir/GoldenTester.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/tests/GoldenTester.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/tests/GoldenTester.c",
+  "output": "tests/CMakeFiles/tester.dir/GoldenTester.c.o"
+}
+]

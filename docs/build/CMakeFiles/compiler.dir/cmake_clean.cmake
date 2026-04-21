@@ -1,9 +1,9 @@
 file(REMOVE_RECURSE
+  "/home/jmuzy/Programming/C/BrIan-Language/docs/bin/compiler"
+  "/home/jmuzy/Programming/C/BrIan-Language/docs/bin/compiler.pdb"
   "CMakeFiles/compiler.dir/link.d"
   "CMakeFiles/compiler.dir/src/main.c.o"
   "CMakeFiles/compiler.dir/src/main.c.o.d"
-  "bin/compiler"
-  "bin/compiler.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

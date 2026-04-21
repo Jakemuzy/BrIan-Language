@@ -143,17 +143,17 @@ compiler/fast:
 .PHONY : compiler/fast
 
 #=============================================================================
-# Target rules for targets named TestCases
+# Target rules for targets named tester
 
 # Build rule for target.
-TestCases: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 TestCases
-.PHONY : TestCases
+tester: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tester
+.PHONY : tester
 
 # fast build rule for target.
-TestCases/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/TestCases.dir/build.make tests/CMakeFiles/TestCases.dir/build
-.PHONY : TestCases/fast
+tester/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/tester.dir/build.make tests/CMakeFiles/tester.dir/build
+.PHONY : tester/fast
 
 src/AST.o: src/AST.c.o
 .PHONY : src/AST.o
@@ -379,9 +379,9 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... TestCases"
 	@echo "... blibs"
 	@echo "... compiler"
+	@echo "... tester"
 	@echo "... src/AST.o"
 	@echo "... src/AST.i"
 	@echo "... src/AST.s"

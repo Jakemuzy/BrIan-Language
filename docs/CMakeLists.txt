@@ -16,7 +16,7 @@ target_include_directories(blibs PUBLIC ${CMAKE_SOURCE_DIR}/include)
 add_executable(compiler src/main.c)
 target_link_libraries(compiler PRIVATE blibs)
 set_target_properties(compiler PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
 )
 
 add_subdirectory(tests)
