@@ -1,5 +1,5 @@
 fn void test() {
-    lock (obj.mutex) {
+    lock (obj.mtx) {
         obj.value = 42;
     }
 }

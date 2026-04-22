@@ -1,2 +1,11 @@
-
-SYNTAX ERROR: Expected semicolon ';' after global enum declaration. Instead encountered 'struct' on line 2, col 1
+PROG
+├── ENUM_DECL (Status)
+│   ├── ENUM_BODY
+│   │   ├── IDENT (Active)
+│   │   ├── IDENT (Inactive)
+├── STRUCT_DECL (StatusWrapper)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (code)

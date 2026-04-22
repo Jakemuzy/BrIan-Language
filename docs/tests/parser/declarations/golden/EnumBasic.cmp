@@ -1,2 +1,6 @@
-
-SYNTAX ERROR: Expected semicolon ';' after global enum declaration. Instead encountered '' on line 6, col 1
+PROG
+├── ENUM_DECL (Color)
+│   ├── ENUM_BODY
+│   │   ├── IDENT (Red)
+│   │   ├── IDENT (Green)
+│   │   ├── IDENT (Blue)

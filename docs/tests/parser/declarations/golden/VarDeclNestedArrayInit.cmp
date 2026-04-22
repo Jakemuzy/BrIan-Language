@@ -1,2 +1,22 @@
-
-SYNTAX ERROR: Expected identifier name for variable declaration. Instead encountered 'mat' on line 2, col 13
+fn
+PROG
+├── FUNC_DEF (test)
+│   ├── TYPE (void)
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (matrix)
+│   │   │   │   │   ├── ARR_DECL
+│   │   │   │   │   │   ├── LITERAL (2)
+│   │   │   │   │   ├── ARR_DECL
+│   │   │   │   │   │   ├── LITERAL (3)
+│   │   │   │   │   ├── ARR_INIT_LIST
+│   │   │   │   │   │   ├── ARR_INIT_LIST
+│   │   │   │   │   │   │   ├── LITERAL (1)
+│   │   │   │   │   │   │   ├── LITERAL (2)
+│   │   │   │   │   │   │   ├── LITERAL (3)
+│   │   │   │   │   │   ├── ARR_INIT_LIST
+│   │   │   │   │   │   │   ├── LITERAL (4)
+│   │   │   │   │   │   │   ├── LITERAL (5)
+│   │   │   │   │   │   │   ├── LITERAL (6)

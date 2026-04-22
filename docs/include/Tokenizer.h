@@ -50,7 +50,7 @@ void SetEdgeCaseFlag(TokenizerContext* ctx, bool val);
 
 void LoadBuffer(TokenizerContext* ctx, int bufferNum);
 void RetractBuffer(TokenizerContext* ctx, char* pos);
-char AdvanceBuffer(TokenizerContext* ctx);
+int AdvanceBuffer(TokenizerContext* ctx);
 Token ExtractTokenFromBuffer(TokenizerContext* ctx);
 
 /* ----- Table Driven DFA ----- */

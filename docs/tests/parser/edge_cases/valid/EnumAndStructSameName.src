@@ -1,4 +1,4 @@
-enum Status { Active, Inactive }
+enum Status { Active, Inactive };
 struct StatusWrapper {
     let int code;
 }

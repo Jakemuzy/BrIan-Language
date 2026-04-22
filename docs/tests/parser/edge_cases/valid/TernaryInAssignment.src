@@ -3,3 +3,5 @@ fn void test() {
     x = (y > 0) ? y : -y;
     let int z = a ? b ? c : d : e;
 }
+
+// BUGGED

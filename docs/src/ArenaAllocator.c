@@ -25,7 +25,15 @@ void* AllocateArena(Arena* arena, size_t size)
 {
     size_t alignedOffset = (arena->offset + 7) & ~7;
     if (alignedOffset + size > arena->capacity) {
-        /* Maybe choose a different growth model? */
+
+        size_t newCapacity = arena->capacity ? arena->capacity * 2 : 64;
+
+        if (newCapacity < size) 
+            newCapacity = size;
+
+        if (!arena->next) 
+            arena->next = CreateArena(newCapacity);
+
         if (!arena->next)
             arena->next = CreateArena(arena->capacity); 
         return AllocateArena(arena->next, size);

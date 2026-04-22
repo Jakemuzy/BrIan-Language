@@ -56,7 +56,7 @@ void RetractBuffer(TokenizerContext* ctx, char* pos)
     }
 }
 
-char AdvanceBuffer(TokenizerContext* ctx)
+int AdvanceBuffer(TokenizerContext* ctx)
 {
     if (*ctx->forward == TOKENIZER_SENTINEL) {
         if (ctx->forward == &ctx->buffer1[TOKENIZER_BUFFER_SIZE - 1]) {
@@ -142,7 +142,6 @@ Token GetNextToken(TokenizerContext* ctx)
 
 Token SkipComment(TokenizerContext* ctx)
 {
-    // TODO: Doesn't iterate col and row 
     // Returns next token AFTER comment is consumed 
     char* past = ctx->forward;
 
@@ -345,7 +344,7 @@ Token ScanCharacter(TokenizerContext* ctx)
     }
 
     c = AdvanceBuffer(ctx);
-    if (c != '\'') { printf("No closing \' found for character\n"); abort(); }
+    if (c != '\'') ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "No closing \' found for character\n"); 
 
     Token tok = ExtractTokenFromBuffer(ctx);
     tok.type = CLITERAL;

@@ -1,4 +1,2 @@
 
-SYNTAX ERROR: Expected '{' to begin while statement body. Instead encountered 'while' on line 2, col 8
-
-SYNTAX ERROR: Expected semicolon ';' after DoWhile statement. Instead encountered '}' on line 3, col 1
+SYNTAX ERROR: Expected '{' to begin  do-while statement body. Instead encountered 'while' on line 2, col 8

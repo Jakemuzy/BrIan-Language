@@ -3,7 +3,7 @@ interface IShape {
 }
 struct Circle : IShape {
     let float radius;
-    enum Type { Small, Medium, Large }
+    enum Type { Small, Medium, Large };
     type FloatPtr = float*;
     fn float area() {
         return radius * radius;
