@@ -1,3 +1,3 @@
 fn void test() {
-    enum State { Idle, Running, Stopped }
+    enum State { Idle, Running, Stopped };
 }

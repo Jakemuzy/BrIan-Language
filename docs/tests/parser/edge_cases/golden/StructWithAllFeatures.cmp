@@ -1,4 +1,40 @@
-
-SYNTAX ERROR: Expected semicolon ';' after enum declaration inside of struct. Instead encountered 'type' on line 7, col 5
-
-SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 10, col 5
+PROG
+├── INTERFACE_DECL (IShape)
+│   ├── INTERFACE_BODY
+│   │   ├── FUNC_DECL (area)
+│   │   │   ├── TYPE (float)
+├── STRUCT_DECL (Circle)
+│   ├── IMPLEMENTS
+│   │   ├── IDENT (IShape)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (float)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (radius)
+│   │   ├── ENUM_DECL (Type)
+│   │   │   ├── ENUM_BODY
+│   │   │   │   ├── IDENT (Small)
+│   │   │   │   ├── IDENT (Medium)
+│   │   │   │   ├── IDENT (Large)
+│   │   ├── TYPEDEF_DECL (FloatPtr)
+│   │   │   ├── TYPE (float)
+│   │   │   │   ├── DECL_PREFIX (*)
+│   │   ├── FUNC_DEF (area)
+│   │   │   ├── TYPE (float)
+│   │   │   ├── BODY
+│   │   │   │   ├── RETURN
+│   │   │   │   │   ├── BINARY (*)
+│   │   │   │   │   │   ├── IDENT (radius)
+│   │   │   │   │   │   ├── IDENT (radius)
+│   │   ├── OPERATOR_OVERLOAD (==)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── TYPE (Circle)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── TYPE (Circle)
+│   │   │   ├── BODY
+│   │   │   │   ├── RETURN
+│   │   │   │   │   ├── BINARY (==)
+│   │   │   │   │   │   ├── MEMBER (radius)
+│   │   │   │   │   │   │   ├── IDENT (a)
+│   │   │   │   │   │   ├── MEMBER (radius)
+│   │   │   │   │   │   │   ├── IDENT (b)

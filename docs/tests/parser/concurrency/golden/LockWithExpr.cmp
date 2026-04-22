@@ -1,2 +1,12 @@
-
-SYNTAX ERROR: Invalid struct member access. Instead encountered 'mutex' on line 2, col 15
+PROG
+├── FUNC_DEF (test)
+│   ├── TYPE (void)
+│   ├── BODY
+│   │   ├── LOCK
+│   │   │   ├── MEMBER (mtx)
+│   │   │   │   ├── IDENT (obj)
+│   │   │   ├── BODY
+│   │   │   │   ├── ASGN (=)
+│   │   │   │   │   ├── MEMBER (value)
+│   │   │   │   │   │   ├── IDENT (obj)
+│   │   │   │   │   ├── LITERAL (42)

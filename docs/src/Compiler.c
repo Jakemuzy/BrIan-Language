@@ -26,9 +26,11 @@ void CompileBrian(int argc, char* argv[])
 
 void CleanupBrian(CompilationState* cs)
 {
-    // TODO: Something double frees here 
     if (cs->tokenizer) DestroyTokenizerContext(cs->tokenizer);
     if (cs->parser) DestroyParserContext(cs->parser);
+
+    // Free the shared arena
+	DestroyArena(cs->tokenizer->arena);
 
     exit(0);
 }
@@ -39,6 +41,7 @@ CompilationState* ParseFlagsBrian(int argc, char* argv[])
     OpenFile(cs, argc, argv);
 
     /* Tokenizer */
+    cs->flags.stopAfter = NOT_APPLICABLE;
     for (int i = 2; i < argc; i++) {
         if (argv[i][0] != '-') ERROR(ERR_FLAG_ABORT, COMPILER_ERR, "BrIan compiler flag '%s' does not start with '-' ", argv[i]);
 
@@ -49,6 +52,12 @@ CompilationState* ParseFlagsBrian(int argc, char* argv[])
         else if (strcmp(argv[i], "-type") == 0) cs->flags.stopAfter = TYPECHECK;
         else if (strcmp(argv[i], "-ir") == 0) cs->flags.stopAfter = IR;
         else if (strcmp(argv[i], "-assemble") == 0) cs->flags.stopAfter = ASSEMBLE;
+        else if (strcmp(argv[i], "-arena") == 0) {
+            //  Set arena size 
+        }
+        else if (strcmp(argv[i], "-target") == 0) {
+            // Specify target machine (LLVM)
+        }
 
         /* Contains arena and target */
     }

@@ -71,6 +71,7 @@ ParserContext* InitalizeParserContext(TokenizerContext* tokenizer)
 void DestroyParserContext(ParserContext* ctx)
 {
     ResetArena(ctx->arena);
+	free(ctx);
 }
 
 
@@ -103,14 +104,14 @@ void Program(ParserContext* ctx)
                 break;
 			case ENUM:
 				ASTNode* enumNode = EnumDecl(ctx);
-				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, ctx->ast->root, enumNode);
 
 				if (!Match(ctx, SEMI)) ParseERROR(ctx, "Expected semicolon ';' after global enum declaration.");
 				break;
 			case TYPEDEF: 
 				ASTNode* typedefNode = TypedefDecl(ctx);
-				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, ctx->ast->root, typedefNode);
 
 				if (!Match(ctx, SEMI)) ParseERROR(ctx, "Expected semicolon ';' after global type declaration.");
@@ -350,7 +351,7 @@ ASTNode* Body(ParserContext* ctx)
 				break;
 			case DO: 
 				ASTNode* doNode = DoWhileStmt(ctx);
-				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, bodyNode, doNode);
 
 				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after DoWhile statement.");
@@ -369,7 +370,7 @@ ASTNode* Body(ParserContext* ctx)
 				break;
 			case ENUM:
 				ASTNode* enumNode = EnumDecl(ctx);
-				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, bodyNode, enumNode);
 
 				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after enum declaration.");
@@ -416,13 +417,16 @@ ASTNode* Body(ParserContext* ctx)
 				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after continue expression.");
 				break;
 			case LOCK: 
+
+				// TODO: Lock and critical shouldn't return on early errors,
+				// sync inside the body so it checks its body as well before returning error
 				ASTNode* lockNode = LockStmt(ctx);
-				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, bodyNode, lockNode);
 				break;
 			case CRITICAL:
 				ASTNode* criticalNode = CriticalStmt(ctx);
-				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, bodyNode, criticalNode);
 				break;
 			/* 
@@ -518,7 +522,7 @@ ASTNode* GenStructBody(ParserContext* ctx)
 				break;
 			case FUNCTION:
 				ASTNode* genFuncNode = Function(ctx);
-				if (ctx->panicMode) SyncRecovery(ctx, LBRACE);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, genStructNode, genFuncNode);
 				break;
 			case RBRACE:
@@ -555,7 +559,7 @@ ASTNode* StructBody(ParserContext* ctx)
 				break;
 			case ENUM:
 				ASTNode* enumNode = EnumDecl(ctx);
-				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, structBodyNode, enumNode);
 
 				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after enum declaration inside of struct.");
@@ -703,6 +707,7 @@ ASTNode* EnumDecl(ParserContext* ctx)
 
 	ASTNode* enumBodyNode = InitalizeASTNode(ctx->arena, ENUM_BODY_NODE, DUMMY_TOKEN);
 	while (true) {
+		// TODO: Trailing commas not handled
 		if (ctx->current.type == IDENT) {
 			AddChildASTNode(ctx->arena, enumBodyNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
 			Advance(ctx); 
@@ -768,7 +773,7 @@ ASTNode* CriticalStmt(ParserContext* ctx)
 	Advance(ctx);
 	ASTNode* criticalNode = InitalizeASTNode(ctx->arena, CRITICAL_STMT_NODE, DUMMY_TOKEN);
 
-	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin critical section.");
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Missing '{' to begin critical section body.");
 
 	ASTNode* bodyNode = Body(ctx);
 	if (ctx->panicMode) SyncRecovery(ctx, SEMI);
@@ -792,7 +797,6 @@ ASTNode* IfStmt(ParserContext* ctx)
 			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 			else AddChildASTNode(ctx->arena, ifNode, conditionalNode);
 			break;
-		case RPAREN: break;
 		default: return ParseERROR(ctx, "Expected expression in If Statements condition.");
 	}
 
@@ -891,7 +895,7 @@ ASTNode* Case(ParserContext* ctx)
 	ASTNode* caseNode = InitalizeASTNode(ctx->arena, CASE_STMT_NODE, ctx->current);
 	Advance(ctx);
 
-	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Switch case requires '{' to begin.");
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Switch case only allows literals. Expected '{' to begin body.");
 	ASTNode* bodyNode = Body(ctx);
 	if(ctx->panicMode) SyncRecovery(ctx, RBRACE);
 	else AddChildASTNode(ctx->arena, caseNode, bodyNode);
@@ -939,7 +943,7 @@ ASTNode* DoWhileStmt(ParserContext* ctx)
 	Advance(ctx);
 	ASTNode* doWhileNode = InitalizeASTNode(ctx->arena, DO_WHILE_STMT_NODE, DUMMY_TOKEN);
 
-	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin while statement body.");
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin  do-while statement body.");
 	ASTNode* bodyNode = Body(ctx);
 	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 
@@ -950,7 +954,7 @@ ASTNode* DoWhileStmt(ParserContext* ctx)
 	if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 	else AddChildASTNode(ctx->arena, doWhileNode, exprNode);
 
-	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate do while statement.");
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate do-while statement.");
 
 	// Want it to match the format of condition then body
 	if (bodyNode) AddChildASTNode(ctx->arena, doWhileNode, bodyNode);
@@ -980,7 +984,8 @@ ASTNode* ForStmt(ParserContext* ctx)
 		default: return ParseERROR(ctx, "Expected initalizer section of for statement.");
 	}
 
-	if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' between initializer and conditional sections of for statement.");
+	// TODO: don't return here allow to continue
+	if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' between initalizer and conditional sections of for statement.");
 
 	switch (ctx->current.type) {
 		EXPR_START_CASES
@@ -1155,15 +1160,18 @@ ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 			return binaryNode;  
 		case AS:
 			binaryNode = Cast(ctx);
-			AddChildASTNode(ctx->arena, binaryNode, left);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, binaryNode, left);
 			return binaryNode;  
 		case LBRACK: 
 			binaryNode = Index(ctx);
-			AddChildASTNode(ctx->arena, binaryNode, left);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, binaryNode, left);
 			return binaryNode;  
 		case LPAREN:
 			binaryNode = CallFunc(ctx);
-			AddChildASTNode(ctx->arena, binaryNode, left);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, binaryNode, left);
 			return binaryNode;
 		default: binaryNode = InitalizeASTNode(ctx->arena, BINARY_EXPR_NODE, ctx->current);
 
@@ -1193,6 +1201,7 @@ ASTNode* AsgnExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 
 ASTNode* TernaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 {
+	// TODO: These are broken
     ASTNode* ternaryNode = InitalizeASTNode(ctx->arena, TERNARY_EXPR_NODE, ctx->current);
     Advance(ctx); 
     AddChildASTNode(ctx->arena, ternaryNode, left); 
@@ -1406,6 +1415,7 @@ ASTNode* Sizeof(ParserContext* ctx)
 
 ASTNode* CallFunc(ParserContext* ctx)
 {
+	// TOOD: a little annoying arglist comes before IDENT
 	Advance(ctx);
 	ASTNode* callFuncNode = InitalizeASTNode(ctx->arena, CALL_FUNC_NODE, DUMMY_TOKEN);
 	switch (ctx->current.type) {
