@@ -13,9 +13,13 @@ temporary, however bump allocator works best for AST
 Arena* CreateArena(size_t capacity)
 {
     Arena* arena = malloc(sizeof(Arena));
+    if (!arena) ERROR(ERR_FLAG_ABORT, COMPILER_ERR, "Arena allocation failed\n");
+
     arena->offset = 0;
     arena->capacity = capacity;
     arena->base = malloc(capacity);
+    if (!arena->base) ERROR(ERR_FLAG_ABORT, COMPILER_ERR, "Arena allocation failed\n");
+
     arena->next = NULL;
 
     return arena;
