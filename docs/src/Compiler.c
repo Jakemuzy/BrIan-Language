@@ -19,6 +19,7 @@ void CompileBrian(int argc, char* argv[])
 
     RunTokenizer(cs);
     RunParser(cs);
+    RunNameResolver(cs);
     // .. Other phases get implemented 
 
     CleanupBrian(cs);
@@ -28,6 +29,7 @@ void CleanupBrian(CompilationState* cs)
 {
     if (cs->tokenizer) DestroyTokenizerContext(cs->tokenizer);
     if (cs->parser) DestroyParserContext(cs->parser);
+    if (cs->nameres) DestroyNameResolverContext(cs->nameres);
 
     // Free the shared arena
 	DestroyArena(cs->tokenizer->arena);
@@ -121,7 +123,19 @@ void RunPreprocessor(CompilationState* cs)
 
 void RunNameResolver(CompilationState* cs)
 {
-    cs->nameres = NULL;
+    // 4 times less allocation than ast
+    size_t arenaSize = cs->fileSize * ARENA_CAPACITY_MULTIPLIER_FROM_FILESIZE / 4;
+    NameResolverContext* ctx = InitalizeNameResolverContext(cs->ast, arenaSize);
+    NameResolve(ctx);
+
+    if (ctx->failure) {
+        CleanupBrian(cs);
+        ERROR(ERR_FLAG_EXIT, PARSER_ERR, "Failed to name resolve.\n");
+    }
+    if (cs->flags.stopAfter == PARSE) 
+        CleanupBrian(cs);
+
+    cs->nameres = ctx;
 }
 
 void RunTypeChecker(CompilationState* cs)

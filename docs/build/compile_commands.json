@@ -31,9 +31,21 @@
 },
 {
   "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/blibs.dir/src/NameResolver.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/NameResolver.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/NameResolver.c",
+  "output": "CMakeFiles/blibs.dir/src/NameResolver.c.o"
+},
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
   "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/blibs.dir/src/Parser.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c",
   "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c",
   "output": "CMakeFiles/blibs.dir/src/Parser.c.o"
+},
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/blibs.dir/src/Symbol.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Symbol.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Symbol.c",
+  "output": "CMakeFiles/blibs.dir/src/Symbol.c.o"
 },
 {
   "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",

@@ -149,6 +149,16 @@ Performance counter stats for './build/compiler ./tests/parser/Main.b -parse':
 
 ## Name Resolution
 
+Originally v1.0 of BrIan updated the enviornment in a hybrid imperative/functional style: that being a destructive update where we store a call stack, yet also have a linked list of symbol tables. Not very efficient at all and let to a lot of complications in later passes. Version 2 aims to keep this more in line with a imperative pass, where $\sigma$<sub>1</sub> is kept in pristine condition prior to entering a scope. A new scope is simply a new symbol table, storing a pointer to the previous one.
+
+I chose not to use a persistent red black tree data structure for symbol resolution as this effictively baloons the complexity of the functional pass. This is exactly why I chose the imperative pass as well. Although providing O(logn) instead of O(n) that imperative offers: imperative is much easier to implement, and symbol resolution is often never the bottleneck in performance.
+
+Additionally, each symbol is again allocated inside of an arena, similar to our parser and tokenizer. This comes with a caveat however: remember the issue we had where whenever we wanted to realloc, we would ditch the old memory? To avoid this the symbol table cannot be a dynamic size. Dynamic sized symbol tables are extremely useful to have, however. This means that we must malloc the buckets manually. 
+
+Another thing to note: namespaces. Each time a scope is entered, a new environment is created for each namespace. This intuitively makes sense: a new namespace should have completely new bindings, yet still be able to access previous information. This, however, can exponentially increase the amount of unused symbols being initalized. Think of an example where we enter a scope, yet only the variable namespace is used. This means we initalized an entire type namespace for no reason. We can solve this by binding scopes as we please, however, for BrIan in particular, only 2 namespaces are used at the moment: type and name. Additionally when declaring a new variable we would have to check if the namespace even exists first, adding another operationg to symbol table additon. This is something to consider if BrIan ever decides to move towards user defined namespaces, though, as dynamic namespace bindings are required anyways in that case.
+
+A couple more considerations: because symbol tables are a linked list based on scope, as soon as we exit a scope, this symbol informatoin is discarded. For this reason we store a Symbol* inside of each ASTNode* as well for furrther traversal. 
+
 ## Type Checking 
 
 The main decision I had to make was whether or not to allow implicit casting for safety. I decided to go with a hybrid approach: whereas C may warn you if you're cast narrows, BrIan makes this an outright error. If one desires to cast down they must use the 'as' keyword following the variable they wish to cast. This not only allows for casting to be LL(1), but it also makes casting inheriently deterministic. Although we can't get away from potential issues with narrowing conventions, we can mitigate the damage ahead of time by making the user aware.
