@@ -101,7 +101,7 @@ and upon an abort or exit error that function will be called. X
 
 ## Name Resolver 
 * Shouldn't be doing partial type checking, type checking redoes the work ( given in terms of sym->stype, but I think this is necessary for verifiying names inside of structs )
-* Scope context is kind of weird, especially with multiple namespaces
+* Scope context is kind of weird, especially with multiple namespaces X
 * Check return name exists
 * Enum fields should be validated, need a defined way to access them 
 * Function overloading should be allowed, need to change name based on the type, but unsure how to implement this without type checking, could defer, but then name resolution is messed up. Maybe a preprocessor check? 

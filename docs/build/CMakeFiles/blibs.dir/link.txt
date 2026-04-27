@@ -1,2 +1,2 @@
-/usr/bin/ar qc libblibs.a CMakeFiles/blibs.dir/src/AST.c.o CMakeFiles/blibs.dir/src/ArenaAllocator.c.o CMakeFiles/blibs.dir/src/Compiler.c.o CMakeFiles/blibs.dir/src/DebugTools.c.o CMakeFiles/blibs.dir/src/ErrorHandler.c.o CMakeFiles/blibs.dir/src/Parser.c.o CMakeFiles/blibs.dir/src/Token.c.o CMakeFiles/blibs.dir/src/Tokenizer.c.o
+/usr/bin/ar qc libblibs.a CMakeFiles/blibs.dir/src/AST.c.o CMakeFiles/blibs.dir/src/ArenaAllocator.c.o CMakeFiles/blibs.dir/src/Compiler.c.o CMakeFiles/blibs.dir/src/DebugTools.c.o CMakeFiles/blibs.dir/src/ErrorHandler.c.o CMakeFiles/blibs.dir/src/NameResolver.c.o CMakeFiles/blibs.dir/src/Parser.c.o CMakeFiles/blibs.dir/src/Symbol.c.o CMakeFiles/blibs.dir/src/Token.c.o CMakeFiles/blibs.dir/src/Tokenizer.c.o
 /usr/bin/ranlib libblibs.a

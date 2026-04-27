@@ -142,10 +142,24 @@ CMakeFiles/blibs.dir/src/ErrorHandler.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blibs.dir/src/ErrorHandler.c.s"
 	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/ErrorHandler.c -o CMakeFiles/blibs.dir/src/ErrorHandler.c.s
 
+CMakeFiles/blibs.dir/src/NameResolver.c.o: CMakeFiles/blibs.dir/flags.make
+CMakeFiles/blibs.dir/src/NameResolver.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/NameResolver.c
+CMakeFiles/blibs.dir/src/NameResolver.c.o: CMakeFiles/blibs.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/blibs.dir/src/NameResolver.c.o"
+	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blibs.dir/src/NameResolver.c.o -MF CMakeFiles/blibs.dir/src/NameResolver.c.o.d -o CMakeFiles/blibs.dir/src/NameResolver.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/NameResolver.c
+
+CMakeFiles/blibs.dir/src/NameResolver.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blibs.dir/src/NameResolver.c.i"
+	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jmuzy/Programming/C/BrIan-Language/docs/src/NameResolver.c > CMakeFiles/blibs.dir/src/NameResolver.c.i
+
+CMakeFiles/blibs.dir/src/NameResolver.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blibs.dir/src/NameResolver.c.s"
+	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/NameResolver.c -o CMakeFiles/blibs.dir/src/NameResolver.c.s
+
 CMakeFiles/blibs.dir/src/Parser.c.o: CMakeFiles/blibs.dir/flags.make
 CMakeFiles/blibs.dir/src/Parser.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c
 CMakeFiles/blibs.dir/src/Parser.c.o: CMakeFiles/blibs.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/blibs.dir/src/Parser.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/blibs.dir/src/Parser.c.o"
 	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blibs.dir/src/Parser.c.o -MF CMakeFiles/blibs.dir/src/Parser.c.o.d -o CMakeFiles/blibs.dir/src/Parser.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c
 
 CMakeFiles/blibs.dir/src/Parser.c.i: cmake_force
@@ -156,10 +170,24 @@ CMakeFiles/blibs.dir/src/Parser.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blibs.dir/src/Parser.c.s"
 	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c -o CMakeFiles/blibs.dir/src/Parser.c.s
 
+CMakeFiles/blibs.dir/src/Symbol.c.o: CMakeFiles/blibs.dir/flags.make
+CMakeFiles/blibs.dir/src/Symbol.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/Symbol.c
+CMakeFiles/blibs.dir/src/Symbol.c.o: CMakeFiles/blibs.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/blibs.dir/src/Symbol.c.o"
+	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blibs.dir/src/Symbol.c.o -MF CMakeFiles/blibs.dir/src/Symbol.c.o.d -o CMakeFiles/blibs.dir/src/Symbol.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Symbol.c
+
+CMakeFiles/blibs.dir/src/Symbol.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blibs.dir/src/Symbol.c.i"
+	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jmuzy/Programming/C/BrIan-Language/docs/src/Symbol.c > CMakeFiles/blibs.dir/src/Symbol.c.i
+
+CMakeFiles/blibs.dir/src/Symbol.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blibs.dir/src/Symbol.c.s"
+	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/Symbol.c -o CMakeFiles/blibs.dir/src/Symbol.c.s
+
 CMakeFiles/blibs.dir/src/Token.c.o: CMakeFiles/blibs.dir/flags.make
 CMakeFiles/blibs.dir/src/Token.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/Token.c
 CMakeFiles/blibs.dir/src/Token.c.o: CMakeFiles/blibs.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/blibs.dir/src/Token.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building C object CMakeFiles/blibs.dir/src/Token.c.o"
 	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blibs.dir/src/Token.c.o -MF CMakeFiles/blibs.dir/src/Token.c.o.d -o CMakeFiles/blibs.dir/src/Token.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Token.c
 
 CMakeFiles/blibs.dir/src/Token.c.i: cmake_force
@@ -173,7 +201,7 @@ CMakeFiles/blibs.dir/src/Token.c.s: cmake_force
 CMakeFiles/blibs.dir/src/Tokenizer.c.o: CMakeFiles/blibs.dir/flags.make
 CMakeFiles/blibs.dir/src/Tokenizer.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c
 CMakeFiles/blibs.dir/src/Tokenizer.c.o: CMakeFiles/blibs.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building C object CMakeFiles/blibs.dir/src/Tokenizer.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/blibs.dir/src/Tokenizer.c.o"
 	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blibs.dir/src/Tokenizer.c.o -MF CMakeFiles/blibs.dir/src/Tokenizer.c.o.d -o CMakeFiles/blibs.dir/src/Tokenizer.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c
 
 CMakeFiles/blibs.dir/src/Tokenizer.c.i: cmake_force
@@ -191,7 +219,9 @@ blibs_OBJECTS = \
 "CMakeFiles/blibs.dir/src/Compiler.c.o" \
 "CMakeFiles/blibs.dir/src/DebugTools.c.o" \
 "CMakeFiles/blibs.dir/src/ErrorHandler.c.o" \
+"CMakeFiles/blibs.dir/src/NameResolver.c.o" \
 "CMakeFiles/blibs.dir/src/Parser.c.o" \
+"CMakeFiles/blibs.dir/src/Symbol.c.o" \
 "CMakeFiles/blibs.dir/src/Token.c.o" \
 "CMakeFiles/blibs.dir/src/Tokenizer.c.o"
 
@@ -203,12 +233,14 @@ libblibs.a: CMakeFiles/blibs.dir/src/ArenaAllocator.c.o
 libblibs.a: CMakeFiles/blibs.dir/src/Compiler.c.o
 libblibs.a: CMakeFiles/blibs.dir/src/DebugTools.c.o
 libblibs.a: CMakeFiles/blibs.dir/src/ErrorHandler.c.o
+libblibs.a: CMakeFiles/blibs.dir/src/NameResolver.c.o
 libblibs.a: CMakeFiles/blibs.dir/src/Parser.c.o
+libblibs.a: CMakeFiles/blibs.dir/src/Symbol.c.o
 libblibs.a: CMakeFiles/blibs.dir/src/Token.c.o
 libblibs.a: CMakeFiles/blibs.dir/src/Tokenizer.c.o
 libblibs.a: CMakeFiles/blibs.dir/build.make
 libblibs.a: CMakeFiles/blibs.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking C static library libblibs.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking C static library libblibs.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/blibs.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/blibs.dir/link.txt --verbose=$(VERBOSE)
 

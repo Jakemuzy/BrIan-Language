@@ -10,6 +10,7 @@
 
 #include "Tokenizer.h"
 #include "Parser.h"
+#include "NameResolver.h"
 
 /*      BrIan Compiler Entry
     ----------------------------

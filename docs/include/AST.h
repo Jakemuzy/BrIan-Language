@@ -12,6 +12,10 @@
 
 */
 
+// Forward Declarations
+typedef struct Symbol Symbol;
+typedef struct Type Type;
+
 typedef enum NodeType {
     // Program Structure
     PROG_NODE, FUNC_NODE, FUNC_DECL, FUNC_DEF, 
@@ -64,6 +68,10 @@ typedef struct ASTNode {
 
     NodeType type;
     Token token;
+
+    // For future passes
+    Symbol* sym;
+    Type* type;
 } ASTNode;
 
 typedef struct AST {

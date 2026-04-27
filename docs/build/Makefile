@@ -275,6 +275,30 @@ src/ErrorHandler.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/ErrorHandler.c.s
 .PHONY : src/ErrorHandler.c.s
 
+src/NameResolver.o: src/NameResolver.c.o
+.PHONY : src/NameResolver.o
+
+# target to build an object file
+src/NameResolver.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/NameResolver.c.o
+.PHONY : src/NameResolver.c.o
+
+src/NameResolver.i: src/NameResolver.c.i
+.PHONY : src/NameResolver.i
+
+# target to preprocess a source file
+src/NameResolver.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/NameResolver.c.i
+.PHONY : src/NameResolver.c.i
+
+src/NameResolver.s: src/NameResolver.c.s
+.PHONY : src/NameResolver.s
+
+# target to generate assembly for a file
+src/NameResolver.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/NameResolver.c.s
+.PHONY : src/NameResolver.c.s
+
 src/Parser.o: src/Parser.c.o
 .PHONY : src/Parser.o
 
@@ -298,6 +322,30 @@ src/Parser.s: src/Parser.c.s
 src/Parser.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Parser.c.s
 .PHONY : src/Parser.c.s
+
+src/Symbol.o: src/Symbol.c.o
+.PHONY : src/Symbol.o
+
+# target to build an object file
+src/Symbol.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Symbol.c.o
+.PHONY : src/Symbol.c.o
+
+src/Symbol.i: src/Symbol.c.i
+.PHONY : src/Symbol.i
+
+# target to preprocess a source file
+src/Symbol.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Symbol.c.i
+.PHONY : src/Symbol.c.i
+
+src/Symbol.s: src/Symbol.c.s
+.PHONY : src/Symbol.s
+
+# target to generate assembly for a file
+src/Symbol.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Symbol.c.s
+.PHONY : src/Symbol.c.s
 
 src/Token.o: src/Token.c.o
 .PHONY : src/Token.o
@@ -397,9 +445,15 @@ help:
 	@echo "... src/ErrorHandler.o"
 	@echo "... src/ErrorHandler.i"
 	@echo "... src/ErrorHandler.s"
+	@echo "... src/NameResolver.o"
+	@echo "... src/NameResolver.i"
+	@echo "... src/NameResolver.s"
 	@echo "... src/Parser.o"
 	@echo "... src/Parser.i"
 	@echo "... src/Parser.s"
+	@echo "... src/Symbol.o"
+	@echo "... src/Symbol.i"
+	@echo "... src/Symbol.s"
 	@echo "... src/Token.o"
 	@echo "... src/Token.i"
 	@echo "... src/Token.s"
