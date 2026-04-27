@@ -11,6 +11,15 @@ Namespaces* InitalizeNamespaces(Arena* arena)
    return nss;
 }
 
+Environment* GetNamespace(Namespaces* nss, NamespaceKind nskind)
+{
+   for (int i = 0; i < NS_COUNT; i++) {
+      if (nss->ns[i]->nskind == nskind) 
+         return nss->ns[i];
+   }
+   return NULL;
+}
+
 /* ----- Scopes ----- */
 
 void EnterScope(Arena* arena, Namespaces* nss)

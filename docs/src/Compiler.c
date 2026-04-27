@@ -113,6 +113,8 @@ void RunParser(CompilationState* cs)
         DEBUG_PRINT_AST(ctx->ast); 
         CleanupBrian(cs);
     }
+
+    cs->ast = ctx->ast;
     cs->parser = ctx;
 }
 

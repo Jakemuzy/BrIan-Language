@@ -4,7 +4,7 @@ static const char* NodeTypeStr[] = {
     [PROG_NODE] = "PROG", [FUNC_NODE] = "FUNC", [FUNC_DECL] = "FUNC_DECL", [FUNC_DEF] = "FUNC_DEF",
     [GEN_FUNC_NODE] = "GEN_FUNC", [REGULAR_FUNC_NODE] = "REGULAR_FUNC",
     [PARAM_LIST_NODE] = "PARAM_LIST", [PARAM_NODE] = "PARAM", [GEN_PARAM_NODE] = "GEN_PARAM",
-    [LAMBDA_NODE] = "LAMBDA", [BODY_NODE] = "BODY", [STMT_LIST_NODE] = "STMT_LIST",
+    [LAMBDA_NODE] = "LAMBDA", [BODY_NODE] = "BODY", 
     [EXPR_STMT_NODE] = "EXPR_STMT", [RETURN_STMT_NODE] = "RETURN", [JUMP_STMT_NODE] = "JUMP",
     [CONCURRENCY_STMT_NODE] = "CONCURRENCY", [LOCK_STMT_NODE] = "LOCK", [CRITICAL_STMT_NODE] = "CRITICAL",
     [VAR_DECL_NODE] = "VAR_DECL", [GEN_DECL_NODE] = "GEN_DECL",
@@ -38,9 +38,9 @@ static void DEBUG_PRINT_NODE(ASTNode* node, int depth) {
     for (int i = 0; i < depth; i++) printf(i == depth - 1 ? "├── " : "│   ");
     const char* lexeme = node->token.lexeme;
     if (lexeme && lexeme[0] != '\0')
-        printf("%s (%s)\n", NodeTypeStr[node->type], lexeme);
+        printf("%s (%s)\n", NodeTypeStr[node->ntype], lexeme);
     else
-        printf("%s\n", NodeTypeStr[node->type]);
+        printf("%s\n", NodeTypeStr[node->ntype]);
     for (size_t i = 0; i < node->childCount; i++)
         DEBUG_PRINT_NODE(node->children[i], depth + 1);
 }

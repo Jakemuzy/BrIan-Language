@@ -148,10 +148,10 @@ ASTNode* Function(ParserContext* ctx)
 
 	switch (ctx->current.type) {
 		case SEMI: 
-			funcNode->type = funcNode->type == GEN_FUNC_NODE ? GEN_FUNC_DECL : FUNC_DECL;
+			funcNode->ntype = funcNode->ntype == GEN_FUNC_NODE ? GEN_FUNC_DECL : FUNC_DECL;
 			break;
 		case LBRACE:
-			funcNode->type = funcNode->type == GEN_FUNC_NODE ? GEN_FUNC_DEF : FUNC_DEF;
+			funcNode->ntype = funcNode->ntype == GEN_FUNC_NODE ? GEN_FUNC_DEF : FUNC_DEF;
 			ASTNode* bodyNode = Body(ctx);
 			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 			else AddChildASTNode(ctx->arena, funcNode, bodyNode);
@@ -476,7 +476,7 @@ ASTNode* StructDecl(ParserContext* ctx)
 	switch (ctx->current.type) {
 		case LESS: 
 			// Gen Struct
-			structNode->type = GEN_STRUCT_DECL_NODE;
+			structNode->ntype = GEN_STRUCT_DECL_NODE;
 			ASTNode* genericListNode = GenericList(ctx);
 			if (ctx->panicMode) SyncRecovery(ctx, LBRACE);
 			else AddChildASTNode(ctx->arena, structNode, genericListNode);
@@ -513,7 +513,7 @@ ASTNode* GenStructBody(ParserContext* ctx)
 		switch (ctx->current.type) {
 			case LET:
 				ASTNode* genDeclNode = VarDecl(ctx);
-				genDeclNode->type = GEN_DECL_NODE;	// Didn't want to write a new function for the same thing
+				genDeclNode->ntype = GEN_DECL_NODE;	// Didn't want to write a new function for the same thing
 
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, genStructNode, genDeclNode);
@@ -1231,6 +1231,9 @@ ASTNode* Type(ParserContext* ctx)
 			return Matrix(ctx);
 		case VEC:
 			return Vector(ctx);
+		case IDENT:
+			ASTNode* customTypeNode = InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current);
+			Advance(ctx); return customTypeNode;
 		default: break;
 	}
 

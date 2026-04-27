@@ -110,12 +110,12 @@ tests/clean: tests/CMakeFiles/tester.dir/clean
 CMakeFiles/blibs.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11 "Built target blibs"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12 "Built target blibs"
 .PHONY : CMakeFiles/blibs.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/blibs.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles 11
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles 12
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/blibs.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles 0
 .PHONY : CMakeFiles/blibs.dir/rule
@@ -127,7 +127,7 @@ blibs: CMakeFiles/blibs.dir/rule
 # codegen rule for target.
 CMakeFiles/blibs.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11 "Finished codegen for target blibs"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12 "Finished codegen for target blibs"
 .PHONY : CMakeFiles/blibs.dir/codegen
 
 # clean rule for target.
@@ -142,12 +142,12 @@ CMakeFiles/blibs.dir/clean:
 CMakeFiles/compiler.dir/all: CMakeFiles/blibs.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=12,13 "Built target compiler"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=13,14 "Built target compiler"
 .PHONY : CMakeFiles/compiler.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/compiler.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles 13
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles 14
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/compiler.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles 0
 .PHONY : CMakeFiles/compiler.dir/rule
@@ -159,7 +159,7 @@ compiler: CMakeFiles/compiler.dir/rule
 # codegen rule for target.
 CMakeFiles/compiler.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/compiler.dir/build.make CMakeFiles/compiler.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=12,13 "Finished codegen for target compiler"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=13,14 "Finished codegen for target compiler"
 .PHONY : CMakeFiles/compiler.dir/codegen
 
 # clean rule for target.
@@ -174,12 +174,12 @@ CMakeFiles/compiler.dir/clean:
 tests/CMakeFiles/tester.dir/all: CMakeFiles/blibs.dir/all
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/tester.dir/build.make tests/CMakeFiles/tester.dir/depend
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/tester.dir/build.make tests/CMakeFiles/tester.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=14,15 "Built target tester"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=15,16 "Built target tester"
 .PHONY : tests/CMakeFiles/tester.dir/all
 
 # Build rule for subdir invocation for target.
 tests/CMakeFiles/tester.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles 13
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles 14
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/tester.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles 0
 .PHONY : tests/CMakeFiles/tester.dir/rule
@@ -191,7 +191,7 @@ tester: tests/CMakeFiles/tester.dir/rule
 # codegen rule for target.
 tests/CMakeFiles/tester.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/tester.dir/build.make tests/CMakeFiles/tester.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=14,15 "Finished codegen for target tester"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=15,16 "Finished codegen for target tester"
 .PHONY : tests/CMakeFiles/tester.dir/codegen
 
 # clean rule for target.

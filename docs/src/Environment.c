@@ -5,7 +5,7 @@
 int SymbolHash(char* key)
 {
     int h = 0;
-    for (char* c = key; *key; c++) 
+    for (char* c = key; *c; c++) 
         h = h * 65599 + *c;
     return h;
 }
@@ -43,7 +43,7 @@ Symbol* PushEnvironment(Arena* arena, Environment* env, ASTNode* key, SymbolType
         int secondCol = key->token.col, secondRow = key->token.row;
         ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, "Symbol '%s' on line %d, col %d, is already defined. First defined on line %d, col %d.", name, secondRow, secondCol, firstRow, firstCol);
         
-        return sym;
+        return SYM_ALREADY_EXISTS;
     }
 
     // Resizing 
@@ -60,7 +60,9 @@ Symbol* PushEnvironment(Arena* arena, Environment* env, ASTNode* key, SymbolType
     sym->name = name;
 
     env->buckets[bucket] = sym;
-    env->maxSize++;
+    env->currSize++;
+
+    key->sym = sym;
     return sym;
 }
 
