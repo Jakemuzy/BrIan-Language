@@ -13,8 +13,11 @@ ASTNode* InitalizeASTNode(Arena* arena, NodeType type, Token token)
     node->childCount = 0;
     node->childCapacity = 0;
     node->children = NULL;
-    node->type = type;
+    node->ntype = type;
     node->token = token;
+
+    node->sym = NULL;
+    node->type = NULL;
 
     return node;
 }

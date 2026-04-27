@@ -13,8 +13,8 @@
 */
 
 // Forward Declarations
-typedef struct Symbol Symbol;
-typedef struct Type Type;
+struct Symbol;
+struct Type;
 
 typedef enum NodeType {
     // Program Structure
@@ -66,12 +66,12 @@ typedef struct ASTNode {
     struct ASTNode** children;
     size_t childCount, childCapacity;
 
-    NodeType type;
+    NodeType ntype;
     Token token;
 
     // For future passes
-    Symbol* sym;
-    Type* type;
+    struct Symbol* sym;
+    struct Type* type;
 } ASTNode;
 
 typedef struct AST {

@@ -24,6 +24,7 @@ typedef struct Namespaces {
 } Namespaces;
 
 Namespaces* InitalizeNamespaces(Arena* arena);
+Environment* GetNamespace(Namespaces* nss, NamespaceKind nskind);
 
 /* ----- Scopes ----- */
 

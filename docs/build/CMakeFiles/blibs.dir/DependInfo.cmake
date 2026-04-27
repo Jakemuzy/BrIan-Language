@@ -12,10 +12,11 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/ArenaAllocator.c" "CMakeFiles/blibs.dir/src/ArenaAllocator.c.o" "gcc" "CMakeFiles/blibs.dir/src/ArenaAllocator.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Compiler.c" "CMakeFiles/blibs.dir/src/Compiler.c.o" "gcc" "CMakeFiles/blibs.dir/src/Compiler.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/DebugTools.c" "CMakeFiles/blibs.dir/src/DebugTools.c.o" "gcc" "CMakeFiles/blibs.dir/src/DebugTools.c.o.d"
+  "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Environment.c" "CMakeFiles/blibs.dir/src/Environment.c.o" "gcc" "CMakeFiles/blibs.dir/src/Environment.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/ErrorHandler.c" "CMakeFiles/blibs.dir/src/ErrorHandler.c.o" "gcc" "CMakeFiles/blibs.dir/src/ErrorHandler.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/NameResolver.c" "CMakeFiles/blibs.dir/src/NameResolver.c.o" "gcc" "CMakeFiles/blibs.dir/src/NameResolver.c.o.d"
+  "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Namespace.c" "CMakeFiles/blibs.dir/src/Namespace.c.o" "gcc" "CMakeFiles/blibs.dir/src/Namespace.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c" "CMakeFiles/blibs.dir/src/Parser.c.o" "gcc" "CMakeFiles/blibs.dir/src/Parser.c.o.d"
-  "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Symbol.c" "CMakeFiles/blibs.dir/src/Symbol.c.o" "gcc" "CMakeFiles/blibs.dir/src/Symbol.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Token.c" "CMakeFiles/blibs.dir/src/Token.c.o" "gcc" "CMakeFiles/blibs.dir/src/Token.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c" "CMakeFiles/blibs.dir/src/Tokenizer.c.o" "gcc" "CMakeFiles/blibs.dir/src/Tokenizer.c.o.d"
   )

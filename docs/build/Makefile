@@ -251,6 +251,30 @@ src/DebugTools.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/DebugTools.c.s
 .PHONY : src/DebugTools.c.s
 
+src/Environment.o: src/Environment.c.o
+.PHONY : src/Environment.o
+
+# target to build an object file
+src/Environment.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Environment.c.o
+.PHONY : src/Environment.c.o
+
+src/Environment.i: src/Environment.c.i
+.PHONY : src/Environment.i
+
+# target to preprocess a source file
+src/Environment.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Environment.c.i
+.PHONY : src/Environment.c.i
+
+src/Environment.s: src/Environment.c.s
+.PHONY : src/Environment.s
+
+# target to generate assembly for a file
+src/Environment.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Environment.c.s
+.PHONY : src/Environment.c.s
+
 src/ErrorHandler.o: src/ErrorHandler.c.o
 .PHONY : src/ErrorHandler.o
 
@@ -299,6 +323,30 @@ src/NameResolver.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/NameResolver.c.s
 .PHONY : src/NameResolver.c.s
 
+src/Namespace.o: src/Namespace.c.o
+.PHONY : src/Namespace.o
+
+# target to build an object file
+src/Namespace.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Namespace.c.o
+.PHONY : src/Namespace.c.o
+
+src/Namespace.i: src/Namespace.c.i
+.PHONY : src/Namespace.i
+
+# target to preprocess a source file
+src/Namespace.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Namespace.c.i
+.PHONY : src/Namespace.c.i
+
+src/Namespace.s: src/Namespace.c.s
+.PHONY : src/Namespace.s
+
+# target to generate assembly for a file
+src/Namespace.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Namespace.c.s
+.PHONY : src/Namespace.c.s
+
 src/Parser.o: src/Parser.c.o
 .PHONY : src/Parser.o
 
@@ -322,30 +370,6 @@ src/Parser.s: src/Parser.c.s
 src/Parser.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Parser.c.s
 .PHONY : src/Parser.c.s
-
-src/Symbol.o: src/Symbol.c.o
-.PHONY : src/Symbol.o
-
-# target to build an object file
-src/Symbol.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Symbol.c.o
-.PHONY : src/Symbol.c.o
-
-src/Symbol.i: src/Symbol.c.i
-.PHONY : src/Symbol.i
-
-# target to preprocess a source file
-src/Symbol.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Symbol.c.i
-.PHONY : src/Symbol.c.i
-
-src/Symbol.s: src/Symbol.c.s
-.PHONY : src/Symbol.s
-
-# target to generate assembly for a file
-src/Symbol.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Symbol.c.s
-.PHONY : src/Symbol.c.s
 
 src/Token.o: src/Token.c.o
 .PHONY : src/Token.o
@@ -442,18 +466,21 @@ help:
 	@echo "... src/DebugTools.o"
 	@echo "... src/DebugTools.i"
 	@echo "... src/DebugTools.s"
+	@echo "... src/Environment.o"
+	@echo "... src/Environment.i"
+	@echo "... src/Environment.s"
 	@echo "... src/ErrorHandler.o"
 	@echo "... src/ErrorHandler.i"
 	@echo "... src/ErrorHandler.s"
 	@echo "... src/NameResolver.o"
 	@echo "... src/NameResolver.i"
 	@echo "... src/NameResolver.s"
+	@echo "... src/Namespace.o"
+	@echo "... src/Namespace.i"
+	@echo "... src/Namespace.s"
 	@echo "... src/Parser.o"
 	@echo "... src/Parser.i"
 	@echo "... src/Parser.s"
-	@echo "... src/Symbol.o"
-	@echo "... src/Symbol.i"
-	@echo "... src/Symbol.s"
 	@echo "... src/Token.o"
 	@echo "... src/Token.i"
 	@echo "... src/Token.s"

@@ -33,4 +33,11 @@ void DestroyNameResolverContext(NameResolverContext* ctx);
 
 void NameResolve(NameResolverContext* ctx);
 
+void ResolveFuncDecl(NameResolverContext* ctx, ASTNode* current);
+void ResolveFuncDef(NameResolverContext* ctx, ASTNode* current);
+void ResolveGenFuncDecl(NameResolverContext* ctx, ASTNode* current);
+void ResolveGenFuncDef(NameResolverContext* ctx, ASTNode* current);
+
+void ResolveType(NameResolverContext* ctx, ASTNode* current);
+
 #endif 

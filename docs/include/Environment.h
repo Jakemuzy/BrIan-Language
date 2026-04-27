@@ -18,8 +18,7 @@
 */
 
 // Forward Declarations
-typedef struct Type Type;
-
+struct Type;
 
 /* ----- Symbol ----- */
 
@@ -32,10 +31,12 @@ typedef struct Symbol {
     ASTNode* node;
 
     SymbolType stype;
-    Type* type;
+    struct Type* type;
 } Symbol;
 
 int SymbolHash(char* key);
+
+static Symbol* POISON_SYM = (Symbol*){"<poison>", NULL, S_ERROR, NULL};
 
 /* ----- Symbol Table ----- */
 
@@ -56,6 +57,9 @@ typedef struct Environment {
     struct Environment* prev;
     NamespaceKind nskind;
 } Environment;
+
+#define SYM_ALREADY_EXISTS NULL
+#define SYM_DOESNT_EXIST NULL
 
 Environment* InitalizeEnvironment(Arena* arena, NamespaceKind nskind);
 Symbol* LookupEnvironment(Environment* env, char* key);
