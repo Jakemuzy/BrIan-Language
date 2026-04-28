@@ -157,7 +157,7 @@ Additionally, each symbol is again allocated inside of an arena, similar to our 
 
 Another thing to note: namespaces. Each time a scope is entered, a new environment is created for each namespace. This intuitively makes sense: a new namespace should have completely new bindings, yet still be able to access previous information. This, however, can exponentially increase the amount of unused symbols being initalized. Think of an example where we enter a scope, yet only the variable namespace is used. This means we initalized an entire type namespace for no reason. We can solve this by binding scopes as we please, however, for BrIan in particular, only 2 namespaces are used at the moment: type and name. Additionally when declaring a new variable we would have to check if the namespace even exists first, adding another operationg to symbol table additon. This is something to consider if BrIan ever decides to move towards user defined namespaces, though, as dynamic namespace bindings are required anyways in that case.
 
-A couple more considerations: because symbol tables are a linked list based on scope, as soon as we exit a scope, this symbol informatoin is discarded. For this reason we store a Symbol* inside of each ASTNode* as well for furrther traversal. 
+A couple more considerations: because symbol tables are a linked list based on scope, as soon as we exit a scope, this symbol informatoin is discarded. For this reason we store a Symbol* inside of each ASTNode* as well for further traversal. 
 
 ## Type Checking 
 

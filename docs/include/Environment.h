@@ -63,6 +63,7 @@ typedef struct Environment {
 
 Environment* InitalizeEnvironment(Arena* arena, NamespaceKind nskind);
 Symbol* LookupEnvironment(Environment* env, char* key);
+Symbol* LookupEnvironmentCurrentScope(Environment* env, char* key) ;
 Symbol* PushEnvironment(Arena* arena, Environment* env, ASTNode* key, SymbolType stype);
 void DestroyEnvironment(Environment* env);
 

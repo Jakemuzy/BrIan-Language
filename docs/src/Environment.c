@@ -4,10 +4,10 @@
 
 int SymbolHash(char* key)
 {
-    int h = 0;
+    unsigned int h = 0;
     for (char* c = key; *c; c++) 
         h = h * 65599 + *c;
-    return h;
+    return (int)h;
 }
 
 /* ----- Symbol Table ----- */
@@ -28,7 +28,21 @@ Environment* InitalizeEnvironment(Arena* arena, NamespaceKind nskind)
 Symbol* LookupEnvironment(Environment* env, char* key)
 {
     int bucket = SymbolHash(key) % env->maxSize;
-    return env->buckets[bucket];
+    Symbol* sym = env->buckets[bucket];
+    if (sym && strcmp(sym->name, key) == 0)
+        return sym;
+    if (env->prev)
+        return LookupEnvironment(env->prev, key);
+    return NULL;
+}
+
+Symbol* LookupEnvironmentCurrentScope(Environment* env, char* key)
+{
+    int bucket = SymbolHash(key) % env->maxSize;
+    Symbol* sym = env->buckets[bucket];
+    if (sym && strcmp(sym->name, key) == 0)
+        return sym;
+    return NULL;
 }
 
 Symbol* PushEnvironment(Arena* arena, Environment* env, ASTNode* key, SymbolType stype)
