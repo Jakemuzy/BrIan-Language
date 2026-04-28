@@ -1,2 +1,17 @@
-fn Foo func(int a, int b) {
+fn int func(int a, int b) {
+    /*type Foo = int;
+    let int a = 4;
+    let u32 b = 23;
+
+    (a + b)++;
+    a += 2; 
+    */
+    let u32 secretThree = 1;
+    let closure void(int, int) adder = 
+        lambda void (int one, int two) captures secretThree {
+            return one + two + secretThree;
+        };
+
+    adder(1, 2);
+    //let int arrTest[1][scretThree] = {{1}};
 }
