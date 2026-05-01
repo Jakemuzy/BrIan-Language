@@ -6,6 +6,8 @@ fn int func(int a, int b) {
     (a + b)++;
     a += 2; 
     */
+
+/*
     let u32 secretThree = 1;
     let closure void(int, int) adder = 
         lambda void (int one, int two) captures secretThree {
@@ -13,5 +15,53 @@ fn int func(int a, int b) {
         };
 
     adder(1, 2);
+*/
+
+    // subber(1, 2);  Func call doesn't exist
+    // adder(one, two); Func call params don't exist
+
+/*
+    if (true) {
+        let int i = 0;  // Valid
+    }
+*/
+/*
+    if (true) {
+        i = 0;  // Invalid, var doesn't exist
+    }
+*/
+
+/* 
+    for (let int i = 0; i < 13; i++) {
+        let char c = 'b';
+    }
+*/
+
+/*
+    while (true) {
+
+    }
+*/
+
+/*
+    do {
+
+    } while (true);
+*/
+
+    let int i;
+
+    switch (i) {
+        case 1 {
+
+        }
+        case 2 {
+
+        }
+        default {
+            
+        }
+    }
+
     //let int arrTest[1][scretThree] = {{1}};
 }
