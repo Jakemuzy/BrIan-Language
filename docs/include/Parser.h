@@ -108,7 +108,7 @@ ASTNode* Sizeof(ParserContext* ctx);
 // TODO: Need to provide left to these, so they ident can be in the correct order
 ASTNode* Cast(ParserContext* ctx);
 ASTNode* Index(ParserContext* ctx);
-ASTNode* CallFunc(ParserContext* ctx);
+ASTNode* CallFunc(ParserContext* ctx, ASTNode* left);
 
 ASTNode* ArgList(ParserContext* ctx);
 

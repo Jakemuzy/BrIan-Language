@@ -1169,9 +1169,8 @@ ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 			else AddChildASTNode(ctx->arena, binaryNode, left);
 			return binaryNode;  
 		case LPAREN:
-			binaryNode = CallFunc(ctx);
+			binaryNode = CallFunc(ctx, left);
 			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
-			else AddChildASTNode(ctx->arena, binaryNode, left);
 			return binaryNode;
 		default: binaryNode = InitalizeASTNode(ctx->arena, BINARY_EXPR_NODE, ctx->current);
 
@@ -1416,11 +1415,11 @@ ASTNode* Sizeof(ParserContext* ctx)
 	return sizeofNode;
 }
 
-ASTNode* CallFunc(ParserContext* ctx)
+ASTNode* CallFunc(ParserContext* ctx, ASTNode* left)
 {
-	// TOOD: a little annoying arglist comes before IDENT
 	Advance(ctx);
-	ASTNode* callFuncNode = InitalizeASTNode(ctx->arena, CALL_FUNC_NODE, DUMMY_TOKEN);
+	left->ntype = CALL_FUNC_NODE;
+	ASTNode* callFuncNode = left;
 	switch (ctx->current.type) {
 		EXPR_START_CASES
 			ASTNode* exprNode = ArgList(ctx);

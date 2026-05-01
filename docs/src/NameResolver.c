@@ -95,18 +95,6 @@ void ResolveGenFuncDef(NameResolverContext* ctx, ASTNode* current)
     Debug("GenFuncDef");
 }
 
-
-void ResolveParamList(NameResolverContext* ctx, ASTNode* current)
-{
-    Debug("ParamList");
-    Environment* env = GetNamespace(ctx->nss, N_VAR);
-
-    for (size_t i = 0; i < current->childCount; i++) {
-        ASTNode* param = current->children[i];
-        PushEnvironment(ctx->arena, env, param, S_FIELD);
-    }
-}
-
 void ResolveBody(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("Body");
@@ -185,27 +173,74 @@ void ResolveBody(NameResolverContext* ctx, ASTNode* current)
 /* Ctrl Stmts */
 void ResolveIfStmt(NameResolverContext* ctx, ASTNode* current)
 {
-
+    Debug("IfStmt");
+    for (size_t i = 0; i < current->childCount; i++) {
+        ASTNode* ifElifElse = current->children[i];
+        switch (ifElifElse->ntype) {
+            case IF_NODE:   // Fallthrough, same structure
+            case ELIF_NODE:
+                ResolveExpr(ctx, ifElifElse->children[0]);
+                ResolveBody(ctx, ifElifElse->children[1]);
+                break;
+            case ELSE_NODE:
+                ResolveBody(ctx, ifElifElse->children[0]);
+                break;    
+            default: break;
+        }
+    }
 }
 
 void ResolveSwitchStmt(NameResolverContext* ctx, ASTNode* current)
 {
+    Debug("SwitchStmt");
+    char* identName = current->children[0]->token.lexeme;
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    Symbol* sym = LookupEnvironment(env, identName);
 
+    if (sym == SYM_DOESNT_EXIST) 
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "Switch statement variable '%s' doesn't exist within current scope on line %d, col %d.\n",
+            identName, current->token.row, current->token.col
+        );
+
+    for (size_t i = 1; i < current->childCount; i++) {
+        ASTNode* caseNode = current->children[i]; 
+
+        // Default also has body on children[0], fall through
+        if (caseNode->ntype == CASE_STMT_NODE) 
+            ResolveExpr(ctx, caseNode);
+        ResolveBody(ctx, caseNode->children[0]); 
+    }
 }
 
 void ResolveWhileStmt(NameResolverContext* ctx, ASTNode* current)
 {
-
+    Debug("WhileStmt");
+    ResolveExpr(ctx, current->children[0]);
+    ResolveBody(ctx, current->children[1]);
 }
 
 void ResolveDoWhileStmt(NameResolverContext* ctx, ASTNode* current)
 {
-
+    Debug("DoWhileStmt");
+    ResolveExpr(ctx, current->children[0]);
+    ResolveBody(ctx, current->children[1]);
 }
 
 void ResolveForStmt(NameResolverContext* ctx, ASTNode* current)
 {
+    Debug("ForStmt");
+    ASTNode* initNode = current->children[0];
+    if (initNode->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, initNode);
+    else ResolveExpr(ctx, initNode);
 
+    ResolveExpr(ctx, current->children[1]);
+
+    ASTNode* exprListNode = current->children[2];
+    for (size_t i = 0; i < exprListNode->childCount; i++) 
+        ResolveExpr(ctx, exprListNode->children[i]);
+
+    ResolveBody(ctx, current->children[3]);
 }
 
 void ResolveReturnStmt(NameResolverContext* ctx, ASTNode* current)
@@ -267,10 +302,11 @@ void ResolveExpr(NameResolverContext* ctx, ASTNode* current)
             if (sym == SYM_DOESNT_EXIST) 
                 ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
                     "Variable '%s' doesn't exist within current scope on line %d, col %d.\n",
-                    sym, current->token.row, current->token.col
+                    identName, current->token.row, current->token.col
                 );
             break;
         case LITERAL_NODE:
+            Debug("Literal");
             // Do Nothing
             break;
         case SIZEOF_NODE:
@@ -333,7 +369,16 @@ void ResolveIndex(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveFuncCall(NameResolverContext* ctx, ASTNode* current)
 {
+    char* funcName = current->token.lexeme;
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    Symbol* funcSym = LookupEnvironment(env, funcName);
 
+    if (funcSym == SYM_DOESNT_EXIST) 
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "User defined function '%s' doesn't exist within current scope on line %d, col %d.\n",
+            funcName, current->token.row, current->token.col
+        );
+    ResolveArgList(ctx, current->children[0]);
 }
 
 void ResolveMember(NameResolverContext* ctx, ASTNode* current)
@@ -436,22 +481,37 @@ void ResolveCaptures(NameResolverContext* ctx, ASTNode* current)
     }
 }
 
+/* Lists */
+
+void ResolveParamList(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("ParamList");
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+
+    for (size_t i = 0; i < current->childCount; i++) {
+        ASTNode* param = current->children[i];
+        PushEnvironment(ctx->arena, env, param, S_FIELD);
+    }
+}
+
+void ResolveArgList(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Arglist");
+    for (size_t i = 0; i < current->childCount; i++) 
+        ResolveExpr(ctx, current->children[i]);
+}
 
 /* Types */
 
 void ResolveType(NameResolverContext* ctx, ASTNode* current)
 {
-    // Predefined types 
-
     switch (current->ntype) {
         case TYPE_NODE: return; // Predefined types
         case CLOSURE_NODE: ResolveClosure(ctx, current); return;
         default: break;
     }
 
-    // Check custom types like closure, chan, etc
-
-    // Ident means user defined
+    // Ident -> user defined
     char* typeName = current->token.lexeme;
     Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
     Symbol* typeSym = LookupEnvironment(typeEnv, typeName);
