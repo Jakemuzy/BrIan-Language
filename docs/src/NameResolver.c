@@ -245,7 +245,9 @@ void ResolveForStmt(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveReturnStmt(NameResolverContext* ctx, ASTNode* current)
 {
-
+    Debug("ReturnStmt");
+    if (current->childCount == 0) return;
+    ResolveExpr(ctx, current->children[0]);
 }
 
 /* Decls */
@@ -383,12 +385,31 @@ void ResolveFuncCall(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveMember(NameResolverContext* ctx, ASTNode* current)
 {
+    // Struct member technically a part of the type. Type Checkers responsibility
+    Debug("Member");
+    char* memName = current->token.lexeme;
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    Symbol* sym = LookupEnvironment(env, memName);
 
+    if (sym == SYM_DOESNT_EXIST) 
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "No struct '%s' exists within current scope on line %d, col %d.\n",
+            memName, current->token.row, current->token.col
+        );
 }
 
 void ResolveReference(NameResolverContext* ctx, ASTNode* current)
 {
+    Debug("Reference");
+    char* refName = current->token.lexeme;
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    Symbol* sym = LookupEnvironment(env, refName);
 
+    if (sym == SYM_DOESNT_EXIST) 
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "No struct '%s' exists within current scope on line %d, col %d.\n",
+            refName, current->token.row, current->token.col
+        );
 }
 
 /* Others */
@@ -397,6 +418,9 @@ void ResolveVar(NameResolverContext* ctx, ASTNode* current)
 {
     Environment* env = GetNamespace(ctx->nss, N_VAR);
     PushEnvironment(ctx->arena, env, current, S_VAR);
+
+    // Declaration not definition
+    if (current->childCount == 0) return;
 
     // Check for k ArrDecls
     size_t i = 0;

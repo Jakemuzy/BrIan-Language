@@ -1133,29 +1133,29 @@ ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 		case MEM:
 			Advance(ctx);
 			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid struct member access.");
-			binaryNode = InitalizeASTNode(ctx->arena, MEMBER_NODE, ctx->current);
-			AddChildASTNode(ctx->arena, binaryNode, left);
+			binaryNode = left; binaryNode->ntype = MEMBER_NODE;
+			AddChildASTNode(ctx->arena, binaryNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
 			Advance(ctx);  
 			return binaryNode;  
 		case SMEM:
 			Advance(ctx);
 			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid safe struct member access.");
-			binaryNode = InitalizeASTNode(ctx->arena, SMEMBER_NODE, ctx->current);
-			AddChildASTNode(ctx->arena, binaryNode, left);
+			binaryNode = left; binaryNode->ntype = SMEMBER_NODE;
+			AddChildASTNode(ctx->arena, binaryNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
 			Advance(ctx);  
 			return binaryNode;  
 		case REF:
 			Advance(ctx);
 			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid struct member pointer access.");
-			binaryNode = InitalizeASTNode(ctx->arena, REF_NODE, ctx->current);
-			AddChildASTNode(ctx->arena, binaryNode, left);
+			binaryNode = left; binaryNode->ntype = REF_NODE;
+			AddChildASTNode(ctx->arena, binaryNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
 			Advance(ctx);  
 			return binaryNode;  
 		case SREF:
 			Advance(ctx);
 			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid safe struct member pointer access.");
-			binaryNode = InitalizeASTNode(ctx->arena, SREF_NODE, ctx->current);
-			AddChildASTNode(ctx->arena, binaryNode, left);
+			binaryNode = left; binaryNode->ntype = SREF_NODE;
+			AddChildASTNode(ctx->arena, binaryNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
 			Advance(ctx);  
 			return binaryNode;  
 		case AS:
