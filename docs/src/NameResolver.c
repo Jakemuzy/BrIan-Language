@@ -43,21 +43,22 @@ void NameResolve(NameResolverContext* ctx)
 
         switch (current->ntype) {
             case FUNC_DECL:
+                ResolveFuncDecl(ctx, current);
                 break;
             case FUNC_DEF:
                 ResolveFuncDef(ctx, current);
                 break;
             case GEN_FUNC_DECL:
-                printf("Gen func decl\n");
+                ResolveGenFuncDecl(ctx, current);
                 break;
             case GEN_FUNC_DEF:
-                printf("Gen func def\n");
+                ResolveGenFuncDef(ctx, current);
                 break;
             case VAR_DECL_NODE:
-                printf("Decl\n");
+                ResolveVarDecl(ctx, current);
                 break;
             case INTERFACE_DECL_NODE:
-                printf("Interface\n");
+                ResolveInterfaceDecl(ctx, current);
                 break;
             default:
                 printf("Unexpected node type %d\n", current->ntype);
@@ -69,6 +70,14 @@ void NameResolve(NameResolverContext* ctx)
 void ResolveFuncDecl(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("FuncDecl");
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    PushEnvironment(ctx->arena, env, current, S_FUNC);
+
+    ResolveType(ctx, current->children[0]);
+
+    EnterScope(ctx->arena, ctx->nss);
+    ResolveParamList(ctx, current->children[1]);
+    ExitScope(ctx->nss);
 }
 
 void ResolveFuncDef(NameResolverContext* ctx, ASTNode* current)
@@ -272,6 +281,11 @@ void ResolveTypedefDecl(NameResolverContext* ctx, ASTNode* current)
 }
 
 void ResolveStructDecl(NameResolverContext* ctx, ASTNode* current)
+{
+
+}
+
+void ResolveInterfaceDecl(NameResolverContext* ctx, ASTNode* current)
 {
 
 }

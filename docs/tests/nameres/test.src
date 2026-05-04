@@ -103,4 +103,6 @@ fn int func(int a, int b) {
 
 }
 
-fn void f2(int a, int b);
+// fn void f2(int a, int b);
+
+fn <X> f3<T, C>(T a, C b);

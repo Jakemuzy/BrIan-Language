@@ -13,10 +13,11 @@ This is precisely why BrIan takes a hybrid approach: using table based resolutio
 
 Just like the DFAs buffering is not as simple as it might originally seem. 
 A simple character buffer can be thought of as a single character slot of memory that stores a character. If we acccidentally consume too many characters in search of a token, we simply put the character back into the buffer.
-This might seem fine at first glance, however, once you realize each character read is a system call. Even if just for this reason, having a larger buffer could provide beneficial, leading to less system calls. 
+This might seem fine at first glance, however, once you realize each character read is a system call, things become less optimal. Even if just for this reason, having a larger buffer could prove beneficial, leading to less system calls. 
 This isn't the end of the story though; if instead of one buffer, we have two buffers, we can trivially solve the problem of tokens being split between buffers. 
-Upon the sentinel which is placed at the end of the buffer (typically EOF or \0) is found the next buffer is loaded.
+Upon the sentinel which is placed at the end of the buffer (typically EOF or \0) is found; the next buffer is loaded.
 This system proves to be perfect until the token becomes longer than the buffer; hence we restrict identifiers length.
+Strings with many characters can easily become longer than the length of both buffers, and hence are a problem. For now BrIan makes no attempt to allow these types of strings, however, in the future a technique will have to be devised to solve this problem.
 
 ### Impact 
 
@@ -44,8 +45,7 @@ This system proves to be perfect until the token becomes longer than the buffer;
     0.004534000 seconds sys
 
 
-The improvements singlehandedly droped the time to tokenize every token. A 6x improvement as well as more cache efficient and in my opion expandable and maintanable. 
-
+The improvements noteably droped the time to tokenize every single token in the language by nearly 6x. As well as the improvements of cache efficiency and locality, as well as a more expandable and maintainble codebase. This change proved to be extremely well suited for v2.0. 
 
     19,668,459      task-clock                       #    0.546 CPUs utilized             
                 6      context-switches                 #  305.057 /sec                      
@@ -80,17 +80,18 @@ The improvements singlehandedly droped the time to tokenize every token. A 6x im
 The three main benefits over the previous parser system are pratt parsing, utilizing FIRST and FOLLOW sets more efficiently and using an arena allocator to reduce the overhead of memory allocations.
 Pratt parsing simplifies the operator resolution a lot. Instead of deep stack calls due to recursive descent, pratt parsing handles precedence far more elegantly.
 
-Starting with the most simple of fixes; in V1.0 when parsing the file BrIan often relegated checking FIRST sets to the child function. In practice this works, and is actually quite a clean looking design. 
-V2.0, however, aims for higher performance, maintainabilty and scalability, for this reason I've decided to sacrifice a bit of aesthetics and transition this check in the parent function.
-By moving the FIRST set check to the parent function, we can avoid deeply nested recursion that bloats the call stack before a first set is discovered. 
+Starting with the most simple of fixes; in V1.0 when parsing the file; BrIan often relegated checking FIRST sets to the child function. In practice this works, and is actually quite a clean looking design. 
+v2.0, however, aims for higher performance, maintainabilty and scalability, for this reason I've decided to sacrifice a bit of aesthetics and transition this check in the parent function.
+By moving the FIRST set check to the parent function, we can avoid deeply nested recursion that bloats the call stack before a first set is discovered, effectively converting v2.0 to a predictive parser.
 Although a small change, it should have significant impact on deeply recursive areas of the code such as expressions.
 
-For BrIan, operator parsing is divided into three categories for easier use during future phases: assignment, unary, and binary operators.
-As for arena allocation; it allows AST nodes to be allocated in builk, and having uniform lifetimes, allowing for easier cleanup during error resolation or recovery as well.
+For BrIan, operator parsing is divided into three categories for easier use during future phases: assignment, unary, and binary operators. Pratt parsing is relatively simple in its nature, but simplifies the parsing of expressions greatly. Expressions are one of the most deeply nested recusive areas of a typical recursive descent parser. Pratt parsing splits this up, by assigning each operator a weight, and a precedence. I won't get into the details, but pratt parsing effecitvely allows for easier handling of expressions and less deeply nested call stacks.
+
+As for arena allocation; it allows AST nodes to be allocated in bulk and have uniform lifetimes, allowing for easier cleanup during error resolation or recovery.
 A little note on the arena allocator, it allows for better locality among datatypes during BrIans compilation such as the ASTNodes and the temporary scopes used during name resolution. Although allowing for better locality, less frequent memory allocations and easier memory freeing, it does have a small caveat. 
 The main drawback with the arena allocator in our scenario is that we don't know how much space to allocate at runtime, which can lead to a lot of allocated memory that we don't end up using. For this reason BrIan enacts a couple of different methods.
 The first method being; BrIan estimates how much memory will be used during each step based on the file size (this could potentially be explictly specified via a compiler flag as well)
-The second method BrIan enacts is to use a linked list of arena's if the first one fills up. Although this is a viable solution, we again don't know how much space to allocate, and even worse, if paired with our previous estimate, we could grossly misestimate the amount of space we need to allocate for the second arena. For this reason it is extremely important to specify the growth pattern of the next arena (ie double space, half, etc)
+The second method BrIan enacts is to use a linked list of arenas incase the first one fills up. Although this is a viable solution, we again don't know how much space to allocate, and even worse, if paired with our previous estimate, we could grossly misestimate the amount of space we need to allocate for the second arena. For this reason it is extremely important to specify the growth pattern of the next arena (ie double space, half, etc)
 
 The way the compiler interacts with the Parser is also of note. CompilationState* passes down key information to every phase in order to allow for proper error propagation and compiler flag information
 
@@ -149,13 +150,15 @@ Performance counter stats for './build/compiler ./tests/parser/Main.b -parse':
 
 ## Name Resolution
 
-Originally v1.0 of BrIan updated the enviornment in a hybrid imperative/functional style: that being a destructive update where we store a call stack, yet also have a linked list of symbol tables. Not very efficient at all and let to a lot of complications in later passes. Version 2 aims to keep this more in line with a imperative pass, where $\sigma$<sub>1</sub> is kept in pristine condition prior to entering a scope. A new scope is simply a new symbol table, storing a pointer to the previous one.
+Originally v1.0 of BrIan updated the enviornment in a hybrid imperative/functional style: that being a destructive update where we store a call stack, yet also have a linked list of symbol tables. Not very efficient at all and led to a lot of complications in later passes. v2.0 aims to keep this more in line with a imperative pass, where $\sigma$<sub>1</sub> is kept in pristine condition prior to entering a scope. A new scope is simply a new symbol table, storing a pointer to the previous one.
 
-I chose not to use a persistent red black tree data structure for symbol resolution as this effictively baloons the complexity of the functional pass. This is exactly why I chose the imperative pass as well. Although providing O(logn) instead of O(n) that imperative offers: imperative is much easier to implement, and symbol resolution is often never the bottleneck in performance.
+I chose not to use a persistent red black tree data structure for symbol resolution as this effictively baloons the complexity of the functional pass. This is exactly why I chose the imperative pass as well. Although providing O(logn) instead of O(n) that imperative offers: imperative is much easier to implement, and symbol resolution is often never the bottleneck in performance. This should allow for more maintanable code at the expense of performance. Although v2.0 prides itself on performance, I beleive this is a reasonable sacrifice, especially considering the reasons discussed prior.
 
-Additionally, each symbol is again allocated inside of an arena, similar to our parser and tokenizer. This comes with a caveat however: remember the issue we had where whenever we wanted to realloc, we would ditch the old memory? To avoid this the symbol table cannot be a dynamic size. Dynamic sized symbol tables are extremely useful to have, however. This means that we must malloc the buckets manually. 
+Additionally, each symbol is again allocated inside of an arena, similar to our parser and tokenizer. This comes with a caveat however: remember the issue we had where whenever we wanted to realloc, we would ditch the old memory? To avoid this the symbol table cannot be a dynamic size. Dynamic sized symbol tables are extremely useful to have: what if I wanted to add a new symbol to the current scope? This would be simply impossible without a reallocation method. This is the main area that the Arena Allocator suffers, and reallocation is a simple necessity during scoping; meaning that we must malloc the buckets manually. 
 
-Another thing to note: namespaces. Each time a scope is entered, a new environment is created for each namespace. This intuitively makes sense: a new namespace should have completely new bindings, yet still be able to access previous information. This, however, can exponentially increase the amount of unused symbols being initalized. Think of an example where we enter a scope, yet only the variable namespace is used. This means we initalized an entire type namespace for no reason. We can solve this by binding scopes as we please, however, for BrIan in particular, only 2 namespaces are used at the moment: type and name. Additionally when declaring a new variable we would have to check if the namespace even exists first, adding another operationg to symbol table additon. This is something to consider if BrIan ever decides to move towards user defined namespaces, though, as dynamic namespace bindings are required anyways in that case.
+Another thing to note: namespaces. Each time a scope is entered, a new environment is created for each namespace. This intuitively makes sense: a new namespace should have completely new bindings, yet still be able to access previous information. This, however, can exponentially increase the amount of unused symbols being initalized. Think of an example where we enter a scope, yet only the variable namespace is used. This means we initalized an entire type namespace for no reason. We can solve this by binding scopes as we please, however, for BrIan in particular, only 2 namespaces are used at the moment: type and name. In the future if more namespaces are added, this could become a performance issue, but for now, it is enough to note down.
+
+Additionally when declaring a new variable we would have to check if the namespace even exists first, adding another operationg to symbol table additon. This is something to consider if BrIan ever decides to move towards user defined namespaces, though, as dynamic namespace bindings are required anyways in that case.
 
 A couple more considerations: because symbol tables are a linked list based on scope, as soon as we exit a scope, this symbol informatoin is discarded. For this reason we store a Symbol* inside of each ASTNode* as well for further traversal. 
 
@@ -188,8 +191,7 @@ NOTE: Debug flags require you to pass -DDEBUG to the cli
 
 ## Error Handling
 
-Handles errors, error messages, what should happen upon errors, etc. Calls a label in Compiler.c to cleanup if flags allow it, in order to cleanup program
-before failure.
+Handles errors, error messages, what should happen upon errors, etc. Calls a label in Compiler.c to cleanup if flags allow it, in order to cleanup program before failure.
 
 ## Testing 
 

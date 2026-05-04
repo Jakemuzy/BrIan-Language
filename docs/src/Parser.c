@@ -130,28 +130,29 @@ void Program(ParserContext* ctx)
 ASTNode* Function(ParserContext* ctx)
 {
 	Advance(ctx);
-	ASTNode* funcNode = NULL, *linkageNode = NULL, *qualifierNode = NULL;
+	ASTNode* linkageNode = NULL, *qualifierNode = NULL;
 
 	/* Optional Specifiers and Qualifiers */
 	if (ctx->current.type == EXTERN) { linkageNode = LinkageSpecifier(ctx); }
 	switch(ctx->current.type) { QUALIFIER_CASES  qualifierNode = TypeQualifierList(ctx); default: break; }
 
-	switch (ctx->current.type) {
-		TYPE_CASES   funcNode = RegularFunc(ctx); break;
-		case LESS:   funcNode = GenericFunc(ctx); break;
-		default: return ParseERROR(ctx, "Expected function to return a valid return type.");
-	}
+	ASTNode* retTypeNode = ReturnType(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
+
+	ASTNode* funcNode = FuncSignature(ctx);
 	if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 
-	if (linkageNode) PrependChildASTNode(ctx->arena, funcNode, linkageNode);
-	if (qualifierNode) PrependChildASTNode(ctx->arena, funcNode, qualifierNode);
+	// TODO: If panic this derefs 
+	bool retIsGeneric = retTypeNode->children[0]->ntype == GENERIC_NODE;
+	bool paramsAreGeneric = funcNode->ntype == GEN_FUNC_NODE ? true : false;
 
 	switch (ctx->current.type) {
 		case SEMI: 
-			funcNode->ntype = funcNode->ntype == GEN_FUNC_NODE ? GEN_FUNC_DECL : FUNC_DECL;
+			funcNode->ntype = (retIsGeneric || paramsAreGeneric) ? GEN_FUNC_DECL : FUNC_DECL;
+			Advance(ctx);
 			break;
 		case LBRACE:
-			funcNode->ntype = funcNode->ntype == GEN_FUNC_NODE ? GEN_FUNC_DEF : FUNC_DEF;
+			funcNode->ntype = (retIsGeneric || paramsAreGeneric) ? GEN_FUNC_DEF : FUNC_DEF;
 			ASTNode* bodyNode = Body(ctx);
 			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 			else AddChildASTNode(ctx->arena, funcNode, bodyNode);
@@ -159,27 +160,30 @@ ASTNode* Function(ParserContext* ctx)
 		default: return ParseERROR(ctx, "Expected body or ';' after function paramaters.");
 	}
 
+	PrependChildASTNode(ctx->arena, funcNode, retTypeNode);
+	if (linkageNode) PrependChildASTNode(ctx->arena, funcNode, linkageNode);
+	if (qualifierNode) PrependChildASTNode(ctx->arena, funcNode, qualifierNode);
+
 	return funcNode;
 }
 
-ASTNode* GenericFunc(ParserContext* ctx)
+ASTNode* FuncSignature(ParserContext* ctx)
 {
-	ASTNode* genericNode = Generic(ctx);
-	if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
-
 	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Function name expected.");
-	ASTNode* funcNode = InitalizeASTNode(ctx->arena, GEN_FUNC_NODE, ctx->current);
-	if (genericNode)
-		AddChildASTNode(ctx->arena, funcNode, genericNode);
+	ASTNode* funcNode = InitalizeASTNode(ctx->arena, FUNC_NODE, ctx->current);
 	Advance(ctx);
 
-	// Generic paramaters are optional
+	// Optional Generic List
+	ASTNode* genericListNode = NULL;
 	if (ctx->current.type == LESS) {
-		ASTNode* genricParams = GenericList(ctx);
-		if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
-		else AddChildASTNode(ctx->arena, funcNode, genricParams);
+		genericListNode = GenericList(ctx);
+		if (ctx->panicMode) SyncRecovery(ctx, IDENT);
+		else AddChildASTNode(ctx->arena, funcNode, genericListNode);
+
+		funcNode->ntype = GEN_FUNC_NODE;
 	}
 
+	// Paramater list 
 	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' after function name.");
 
 	switch (ctx->current.type) {
@@ -196,34 +200,24 @@ ASTNode* GenericFunc(ParserContext* ctx)
 	return funcNode;
 }
 
-ASTNode* RegularFunc(ParserContext* ctx)
+ASTNode* ReturnType(ParserContext* ctx)
 {
-	ASTNode* typeNode = Type(ctx);
-	if (ctx->panicMode) SyncRecovery(ctx, IDENT);
-
-	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Function name expected.");
-	ASTNode* funcNode = InitalizeASTNode(ctx->arena, REGULAR_FUNC_NODE, ctx->current);
-	Advance(ctx);
-
-	AddChildASTNode(ctx->arena, funcNode, typeNode);
-
-	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' after function name.");
-
+	ASTNode* returnTypeNode = InitalizeASTNode(ctx->arena, RETURN_TYPE_NODE, DUMMY_TOKEN);
 	switch (ctx->current.type) {
-		QUALIFIER_CASES
 		TYPE_CASES
-			ASTNode* paramListNode = ParamList(ctx);
-			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
-			else AddChildASTNode(ctx->arena, funcNode, paramListNode);
+			ASTNode* typeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, IDENT);	// Func name
+			else AddChildASTNode(ctx->arena, returnTypeNode, typeNode);
 			break;
-		default: break; 
+		case LESS: 
+			ASTNode* genNode = Generic(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, IDENT);
+			else AddChildASTNode(ctx->arena, returnTypeNode, genNode);
+			break;
+		default: return ParseERROR(ctx, "Function return type expected valid type.");
 	}
-
-	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' after function paramaters.");
-
-	return funcNode;
+	return returnTypeNode;
 }
-
 
 ASTNode* ParamList(ParserContext* ctx)
 {

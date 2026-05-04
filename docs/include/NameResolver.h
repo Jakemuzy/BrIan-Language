@@ -53,6 +53,8 @@ void ResolveVarDecl(NameResolverContext* ctx, ASTNode* current);
 void ResolveEnumDecl(NameResolverContext* ctx, ASTNode* current);
 void ResolveTypedefDecl(NameResolverContext* ctx, ASTNode* current);
 void ResolveStructDecl(NameResolverContext* ctx, ASTNode* current);
+void ResolveInterfaceDecl(NameResolverContext* ctx, ASTNode* current);
+
 
 /* Exprs */
 void ResolveExpr(NameResolverContext* ctx, ASTNode* current);
