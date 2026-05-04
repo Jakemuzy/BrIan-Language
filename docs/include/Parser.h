@@ -48,12 +48,8 @@ typedef enum PRECEDENCE {
 void Program(ParserContext* ctx);
 
 ASTNode* Function(ParserContext* ctx);
-ASTNode* FuncDecl(ParserContext* ctx);
-ASTNode* FuncDef(ParserContext* ctx);
-
 ASTNode* FuncSignature(ParserContext* ctx);
-ASTNode* GenericFunc(ParserContext* ctx);
-ASTNode* RegularFunc(ParserContext* ctx);
+ASTNode* ReturnType(ParserContext* ctx);
 
 ASTNode* ParamList(ParserContext* ctx);
 ASTNode* Param(ParserContext* ctx);

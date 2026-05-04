@@ -35,9 +35,8 @@
     FuncDecl ::= FuncSignature ';'
     FuncDef ::= FuncSignature Body
 
-    FuncSignature ::= GenericFunc | RegularFunc
-    GenericFunc ::= "fn" LinkageSpecifier TypeQualifier Generic IDENT GenericList '(' [ ParamList ] ')'
-    RegularFunc ::= "fn" LinkageSpecifier TypeQualifier ( Type | IDENT ) [ DeclPrefix ] IDENT '(' [ ParamList ] ')'
+    FuncSignature ::= "fn" LinkageSpecifier TypeQualifier ReturnType IDENT [ GenericList ] '(' [ ParamList ] ')'
+    ReturnType ::= Generic | ( Type | Ident ) [ DeclPrefix ]
 
     ParamList ::= Param  { ',' Param }
     Param ::= TypeQualifier ( Type | IDENT ) [ DeclPrefix ] IDENT
