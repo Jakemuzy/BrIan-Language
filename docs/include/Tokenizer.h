@@ -13,7 +13,7 @@
 #include "Token.h"
 
 #define TOKENIZER_BUFFER_SIZE 512
-#define TOKENIZER_SENTINEL '\0'
+#define TOKENIZER_SENTINEL (-2)
 #define DFA_ERROR_STATE 0
 
 /*         BrIan Tokenizer

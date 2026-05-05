@@ -78,6 +78,9 @@ void NameResolve(NameResolverContext* ctx)
             case INTERFACE_DECL_NODE:
                 ResolveInterfaceDecl(ctx, current);
                 break;
+            case TYPEDEF_DECL_NODE:
+                ResolveTypedefDecl(ctx, current);
+                break;
             default:
                 printf("Unexpected node type %d\n", current->ntype);
                 return;
@@ -325,12 +328,15 @@ void ResolveVarDecl(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveEnumDecl(NameResolverContext* ctx, ASTNode* current)
 {
-
+    Debug("Enum");
 }
 
 void ResolveTypedefDecl(NameResolverContext* ctx, ASTNode* current)
 {
-
+    Debug("Typedef");
+    char* typeName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF);
 }
 
 void ResolveStructDecl(NameResolverContext* ctx, ASTNode* current)
@@ -696,7 +702,6 @@ void ResolveType(NameResolverContext* ctx, ASTNode* current)
             "User defined type '%s' doesn't exist within current scope on line %d, col %d.\n",
             typeName, current->token.row, current->token.col
         );
-    printf("AFTER");
 }
 
 void ResolveClosure(NameResolverContext* ctx, ASTNode* current)

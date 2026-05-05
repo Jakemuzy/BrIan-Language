@@ -48,12 +48,7 @@ void LoadBuffer(TokenizerContext* ctx, int bufferNum)
 
 void RetractBuffer(TokenizerContext* ctx, char* pos) 
 {
-    while (ctx->forward != pos) {
-        ctx->forward--;
-        if (ctx->forward == &ctx->buffer1[TOKENIZER_BUFFER_SIZE - 1] ||
-            ctx->forward == &ctx->buffer2[TOKENIZER_BUFFER_SIZE - 1])
-            ctx->forward--;
-    }
+    ctx->forward = pos;
 }
 
 int AdvanceBuffer(TokenizerContext* ctx)
@@ -127,9 +122,8 @@ Token GetNextToken(TokenizerContext* ctx)
     if (c == EOF) return (Token) { END, ctx->row, ctx->col, "", 0 };
     CharClass class = CHAR_MAP[(unsigned int)c];
 
-
     switch (class) {
-        case (CC_ERROR): ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Unknown character discovered %c on line %d row %d\n", c, ctx->row, ctx->col - 1);
+        case (CC_ERROR): ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Unknown character discovered '%c' on line %d col %d.\n", c, ctx->row, ctx->col);
         case (CC_DIGIT): return ScanNumber(ctx);
         case (CC_ALPHA): return ScanIdentOrKeyword(ctx);
         case (CC_HASH): return ScanDirective(ctx);
@@ -177,15 +171,20 @@ Token SkipComment(TokenizerContext* ctx)
 
 int SkipWhitespace(TokenizerContext* ctx) 
 {
+    char* prev = ctx->forward;
     int c = AdvanceBuffer(ctx);
     if (c == EOF) return EOF;
 
     while (isspace(c)) {
         if (c == '\n') { ctx->row++; ctx->col = 1; }
         else ctx->col++;
+        prev = ctx->forward;
+
         c = AdvanceBuffer(ctx);
+        if (c == EOF) return EOF;
     }
-    if (c != EOF) ctx->forward--; // Overconsumption in space check
+
+    RetractBuffer(ctx, prev); // Overconsumption in space check
     ctx->lexemeBegin = ctx->forward;
     return c;
 }
