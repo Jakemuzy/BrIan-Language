@@ -145,7 +145,6 @@ let t tdtest = 4;
 
 enum COLOR {
     RED, GREEN, BLUE
-}
-
+};
 
 //let bool isTrue = 1 ? true : false;
