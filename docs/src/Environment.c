@@ -91,7 +91,7 @@ void ResizeEnvironment(Environment* env, unsigned int newSize)
     // Unfortunately, resizing requires manual remapping, thus we pick a nice prime inital size (109)
     Symbol** newBuckets = calloc(newSize, sizeof(Symbol*)); 
     
-    for (int i = 0; i < env->maxSize; i++) {
+    for (size_t i = 0; i < env->maxSize; i++) {
         Symbol* sym = env->buckets[i];
         if (sym) {
             int newIdx = SymbolHash(sym->name) % newSize;

@@ -12,6 +12,7 @@
 ### Restrictions on type qualifiers will be analyzed during later semantic analysis steps (ie paramaters, function pointers, etc )
 ### The IDENT in Type is for user defined types (struct, enum, typedef, etc) this will be handled in the parser, though the grammar doesn't really show this ambiguity being handled
 ### Empty statements ie. ';' are disallowed since they serve no purpose in this language
+### Generics are interesting, they allow generic return types without an implicit generic paramater list. This is simple syntactic sugar and is equivalent to defining a generic paramater list AND a generic return type.
 
 ```
 	Program ::=  { Import | Directive } { Function | DeclStmt | InterfaceDecl }

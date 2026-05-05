@@ -38,6 +38,7 @@ void ResolveFuncDecl(NameResolverContext* ctx, ASTNode* current);
 void ResolveFuncDef(NameResolverContext* ctx, ASTNode* current);
 void ResolveGenFuncDecl(NameResolverContext* ctx, ASTNode* current);
 void ResolveGenFuncDef(NameResolverContext* ctx, ASTNode* current);
+void ResolveReturnType(NameResolverContext* ctx, ASTNode* current);
 void ResolveBody(NameResolverContext* ctx, ASTNode* current);
 
 /* Ctrl Stmts */
@@ -83,6 +84,9 @@ void ResolveParamList(NameResolverContext* ctx, ASTNode* current);
 void ResolveArgList(NameResolverContext* ctx, ASTNode* current);
 
 /* Types */
+void ResolveGenericList(NameResolverContext* ctx, ASTNode* current);
+void ResolveGeneric(NameResolverContext* ctx, ASTNode* current);
+void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current);
 void ResolveType(NameResolverContext* ctx, ASTNode* current);
 void ResolveClosure(NameResolverContext* ctx, ASTNode* current);
 

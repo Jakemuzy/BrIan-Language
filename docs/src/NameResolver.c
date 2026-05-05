@@ -1,14 +1,29 @@
 #include "NameResolver.h"
 
+/*
+    Please Note: 
+        PushEnvironment enforces duplicate symbols, 
+        and handles the printing of an error in that case.
+*/
+
+/* ----- Helpers ----- */
+
 #define DEBUG_MODE true
 
 static inline void Debug(char* msg) {
     if (DEBUG_MODE) printf("%s\n", msg);
 }
 
-static inline void NameresERROR(NameResolverContext* ctx, Symbol* original, ASTNode* current) 
-{
+/* 
+TODO: 
+static inline void NameresERROR(char* format, ASTNode* current) {
+    int buf[1028];
+    snprintf(buf, sizeof(buf), "%s, on line %d, col %d.", format);
+    ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, buf);
+
+    ctx->failure = true;
 }
+*/
 
 /* ----- Context ----- */
 
@@ -73,7 +88,7 @@ void ResolveFuncDecl(NameResolverContext* ctx, ASTNode* current)
     Environment* env = GetNamespace(ctx->nss, N_VAR);
     PushEnvironment(ctx->arena, env, current, S_FUNC);
 
-    ResolveType(ctx, current->children[0]);
+    ResolveReturnType(ctx, current->children[0]);
 
     EnterScope(ctx->arena, ctx->nss);
     ResolveParamList(ctx, current->children[1]);
@@ -86,7 +101,7 @@ void ResolveFuncDef(NameResolverContext* ctx, ASTNode* current)
     Environment* env = GetNamespace(ctx->nss, N_VAR);
     PushEnvironment(ctx->arena, env, current, S_FUNC);
 
-    ResolveType(ctx, current->children[0]);
+    ResolveReturnType(ctx, current->children[0]);
 
     EnterScope(ctx->arena, ctx->nss);
     ResolveParamList(ctx, current->children[1]);
@@ -97,11 +112,48 @@ void ResolveFuncDef(NameResolverContext* ctx, ASTNode* current)
 void ResolveGenFuncDecl(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("GenFuncDecl");
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    PushEnvironment(ctx->arena, env, current, S_FUNC);
+
+    // Enter scope earlier, since should resolve from gen param list
+    EnterScope(ctx->arena, ctx->nss);
+
+    size_t i = 1;
+    // Optional generic list 
+    if (current->children[i]->ntype == GENERIC_LIST_NODE) 
+        ResolveGenericList(ctx, current->children[i++]);
+
+    ResolveReturnType(ctx, current->children[0]);
+    ResolveParamList(ctx, current->children[i++]);
+    ExitScope(ctx->nss);
 }
 
 void ResolveGenFuncDef(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("GenFuncDef");
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    PushEnvironment(ctx->arena, env, current, S_FUNC);
+
+    // Enter scope earlier, since should resolve from gen param list
+    EnterScope(ctx->arena, ctx->nss);
+
+    size_t i = 1;
+    // Optional generic list 
+    if (current->children[i]->ntype == GENERIC_LIST_NODE) 
+        ResolveGenericList(ctx, current->children[i++]);
+
+    ResolveReturnType(ctx, current->children[0]);
+    ResolveParamList(ctx, current->children[i++]);
+    ResolveBody(ctx, current->children[i++]);
+    ExitScope(ctx->nss);
+}
+
+void ResolveReturnType(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("ReturnType");
+    ASTNode* returnTypeNode = current->children[0];
+    if (returnTypeNode->ntype == GENERIC_NODE)   ResolveGenericRef(ctx, returnTypeNode);
+    else if (returnTypeNode->ntype == TYPE_NODE) ResolveType(ctx, returnTypeNode);
 }
 
 void ResolveBody(NameResolverContext* ctx, ASTNode* current)
@@ -173,7 +225,11 @@ void ResolveBody(NameResolverContext* ctx, ASTNode* current)
             case SREF_NODE:
                 ResolveReference(ctx, stmt);
                 break;
-            default: ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, "Invalid statement type within body %s.\n", stmt->token.lexeme);
+            default: 
+                ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                    "Invalid statement type within body '%s' on line %d, col %d.\n", 
+                    stmt->token.lexeme, current->token.row, current->token.col
+                );            
         }
     }
 }
@@ -264,6 +320,7 @@ void ResolveVarDecl(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("VarDecl");
     ResolveType(ctx, current->children[0]);
+    printf("OUTSIDE");
 
     ASTNode* varListNode = current->children[1];
     for (size_t i = 0; i < varListNode->childCount; i++) 
@@ -331,6 +388,7 @@ void ResolveExpr(NameResolverContext* ctx, ASTNode* current)
         case LAMBDA_NODE:
             ResolveLambda(ctx, current);
             break;
+        default: break; // ERROR
     } 
 }
 
@@ -430,6 +488,7 @@ void ResolveReference(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveVar(NameResolverContext* ctx, ASTNode* current)
 {
+    Debug("Var");
     Environment* env = GetNamespace(ctx->nss, N_VAR);
     PushEnvironment(ctx->arena, env, current, S_VAR);
 
@@ -528,6 +587,7 @@ void ResolveParamList(NameResolverContext* ctx, ASTNode* current)
 
     for (size_t i = 0; i < current->childCount; i++) {
         ASTNode* param = current->children[i];
+        ResolveType(ctx, param->children[0]);
         PushEnvironment(ctx->arena, env, param, S_FIELD);
     }
 }
@@ -540,6 +600,37 @@ void ResolveArgList(NameResolverContext* ctx, ASTNode* current)
 }
 
 /* Types */
+
+void ResolveGenericList(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("GenericList");
+    for (size_t i = 0; i < current->childCount; i++) 
+        ResolveGeneric(ctx, current->children[i]);
+}
+
+void ResolveGeneric(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Generic");
+    char* typeName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    PushEnvironment(ctx->arena, typeEnv, current, S_GEN);
+}
+
+void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("GenericRef");
+    // For generic returns, need to lookup if defined already
+    char* typeName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    
+    Symbol* found = LookupEnvironment(typeEnv, typeName);
+    if (found == SYM_DOESNT_EXIST || found->stype != S_GEN) {
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "Undefined generic parameter '%s' on line %d, col %d.\n", 
+            typeName, current->token.row, current->token.col
+        );
+    }
+}
 
 void ResolveType(NameResolverContext* ctx, ASTNode* current)
 {
@@ -559,6 +650,7 @@ void ResolveType(NameResolverContext* ctx, ASTNode* current)
             "User defined type '%s' doesn't exist within current scope on line %d, col %d.\n",
             typeName, current->token.row, current->token.col
         );
+    printf("AFTER");
 }
 
 void ResolveClosure(NameResolverContext* ctx, ASTNode* current)
