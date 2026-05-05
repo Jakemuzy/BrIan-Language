@@ -27,12 +27,15 @@ void CompileBrian(int argc, char* argv[])
 
 void CleanupBrian(CompilationState* cs)
 {
+    Arena* arena = NULL;
+    if (cs->tokenizer) arena = cs->tokenizer->arena;
+
     if (cs->tokenizer) DestroyTokenizerContext(cs->tokenizer);
     if (cs->parser) DestroyParserContext(cs->parser);
     if (cs->nameres) DestroyNameResolverContext(cs->nameres);
 
     // Free the shared arena
-	DestroyArena(cs->tokenizer->arena);
+    if (arena) DestroyArena(arena);
 
     exit(0);
 }

@@ -694,6 +694,7 @@ ASTNode* Implements(ParserContext* ctx)
 
 ASTNode* EnumDecl(ParserContext* ctx)
 {
+	// TODO: should allow enum to = a number
 	Advance(ctx);
 
 	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected Identifier for enum.");
@@ -1058,7 +1059,6 @@ ASTNode* ExprList(ParserContext* ctx)
     return exprListNode;
 }
 
-// TODO: Distinguish between pre / postfix in the actual ASTNode
 ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec)
 {
 	ASTNode* left = NULL;

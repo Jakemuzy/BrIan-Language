@@ -43,17 +43,12 @@ void LoadBuffer(TokenizerContext* ctx, int bufferNum)
 {
     char* buffer = (bufferNum == 1) ? ctx->buffer1 : ctx->buffer2;
     size_t n = fread(buffer, sizeof(char), TOKENIZER_BUFFER_SIZE-1, ctx->fptr);
-    if (n < TOKENIZER_BUFFER_SIZE - 1) buffer[n] = TOKENIZER_SENTINEL;
+    buffer[n] = TOKENIZER_SENTINEL;
 }
 
 void RetractBuffer(TokenizerContext* ctx, char* pos) 
 {
-    while (ctx->forward != pos) {
-        ctx->forward--;
-        if (ctx->forward == &ctx->buffer1[TOKENIZER_BUFFER_SIZE - 1] ||
-            ctx->forward == &ctx->buffer2[TOKENIZER_BUFFER_SIZE - 1])
-            ctx->forward--;
-    }
+    ctx->forward = pos;
 }
 
 int AdvanceBuffer(TokenizerContext* ctx)
@@ -71,7 +66,13 @@ int AdvanceBuffer(TokenizerContext* ctx)
             return EOF;
         }
     }
-    return *ctx->forward++;
+
+    char c = *ctx->forward++;
+
+    if (c == TOKENIZER_SENTINEL)
+        return EOF;
+
+    return (unsigned char)c;
 }
 
 Token ExtractTokenFromBuffer(TokenizerContext* ctx)
@@ -127,7 +128,6 @@ Token GetNextToken(TokenizerContext* ctx)
     if (c == EOF) return (Token) { END, ctx->row, ctx->col, "", 0 };
     CharClass class = CHAR_MAP[(unsigned int)c];
 
-
     switch (class) {
         case (CC_ERROR): ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Unknown character discovered %c on line %d row %d\n", c, ctx->row, ctx->col - 1);
         case (CC_DIGIT): return ScanNumber(ctx);
@@ -177,15 +177,21 @@ Token SkipComment(TokenizerContext* ctx)
 
 int SkipWhitespace(TokenizerContext* ctx) 
 {
+    char* prev = ctx->forward;
     int c = AdvanceBuffer(ctx);
+    printf("STUCK\n");
     if (c == EOF) return EOF;
 
     while (isspace(c)) {
         if (c == '\n') { ctx->row++; ctx->col = 1; }
         else ctx->col++;
+
+        prev = ctx->forward;
         c = AdvanceBuffer(ctx);
+        if (c == EOF) return EOF;
     }
-    if (c != EOF) ctx->forward--; // Overconsumption in space check
+
+    RetractBuffer(ctx, prev); // Overconsumption in space check
     ctx->lexemeBegin = ctx->forward;
     return c;
 }
@@ -194,11 +200,17 @@ Token ScanOperator(TokenizerContext* ctx)
 {
     int c;
     int current = 1, lastAccept = DFA_ERROR_STATE;
+    char* prev = ctx->forward;
     char* lastAcceptPos = ctx->forward;
   
     while (current != DFA_ERROR_STATE) {
+        prev = ctx->forward;
         c = AdvanceBuffer(ctx);
-        if (c == EOF) break;
+
+        if (c == EOF) {
+            RetractBuffer(ctx, prev);
+            break;
+        }
 
         CharClass cc = CHAR_MAP[c];
         current = TABLE_DFA[current][(unsigned int)cc];
@@ -213,7 +225,7 @@ Token ScanOperator(TokenizerContext* ctx)
         ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Invalid operator discovered %c on line %d row %d\n", c, ctx->row, ctx->col);
 
     if (ctx->nestedChan && ACCEPT_STATES[lastAccept] == RSHIFT)
-        lastAcceptPos--;  // retract to after first '>' only
+        lastAcceptPos = prev;  // retract to after first '>' only
     RetractBuffer(ctx, lastAcceptPos);
 
     Token tok = ExtractTokenFromBuffer(ctx);
@@ -234,49 +246,65 @@ Token ScanDirective(TokenizerContext* ctx)
 
 Token ScanNumber(TokenizerContext* ctx)
 {
+    char* prev = ctx->forward;
     int c = AdvanceBuffer(ctx);
     bool isReal = false;
 
     if (c == '0') {
         c = AdvanceBuffer(ctx);
         if (c == 'x') {
+            prev = ctx->forward;
             c = AdvanceBuffer(ctx);
             if (!isxdigit(c)) {
-                RetractBuffer(ctx, ctx->forward - 1); Token t = ExtractTokenFromBuffer(ctx);
+                RetractBuffer(ctx, prev); Token t = ExtractTokenFromBuffer(ctx);
                 ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Expected hex digit after '0x' in token '%s' on line %d row %d\n", t.lexeme, t.row, t.col);
             }
-            while (isxdigit(c)) c = AdvanceBuffer(ctx);
-            RetractBuffer(ctx, ctx->forward - 1);
+            while (isxdigit(c)) {
+                prev = ctx->forward;
+                c = AdvanceBuffer(ctx);
+            } 
+            RetractBuffer(ctx, prev);
             Token tok = ExtractTokenFromBuffer(ctx);
             tok.type = HEX;
             return tok;
         }
     }
 
-    while (isdigit(c)) c = AdvanceBuffer(ctx);
+    while (isdigit(c)) {
+        prev = ctx->forward;
+        c = AdvanceBuffer(ctx);
+    }
 
     if (c == '.') {
         isReal = true;
+        prev = ctx->forward;
         c = AdvanceBuffer(ctx);
         if (!isdigit(c)) {
-            RetractBuffer(ctx, ctx->forward - 1); Token t = ExtractTokenFromBuffer(ctx);
+            RetractBuffer(ctx, prev); Token t = ExtractTokenFromBuffer(ctx);
             ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Expected digit after '.' in token '%s' on line %d row %d\n", t.lexeme, t.row, t.col);
         }
-        while (isdigit(c)) c = AdvanceBuffer(ctx);
+        while (isdigit(c)) {
+            prev = ctx->forward;
+            c = AdvanceBuffer(ctx);
+        }
     }
 
     if (c == 'e') {
         isReal = true;
+        prev = ctx->forward;
         c = AdvanceBuffer(ctx);
         if (c == '+' || c == '-') c = AdvanceBuffer(ctx);
         if (!isdigit(c)) { 
-            RetractBuffer(ctx, ctx->forward - 1); Token t = ExtractTokenFromBuffer(ctx);
+            RetractBuffer(ctx, prev); Token t = ExtractTokenFromBuffer(ctx);
             ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Expected digit after exponent in token '%s' on line %d row %d\n", t.lexeme, t.row, t.col);
         }
-        while (isdigit(c)) c = AdvanceBuffer(ctx);
+        while (isdigit(c)) { 
+            prev = ctx->forward;
+            c = AdvanceBuffer(ctx);
+        }
     }
 
-    RetractBuffer(ctx, ctx->forward - 1);
+    RetractBuffer(ctx, prev);
     Token tok = ExtractTokenFromBuffer(ctx);
     tok.type = isReal ? REAL : INTEGRAL;
     return tok;
@@ -284,9 +312,11 @@ Token ScanNumber(TokenizerContext* ctx)
 
 Token ScanString(TokenizerContext* ctx)
 {
+    char* prev = ctx->forward;
     int c = AdvanceBuffer(ctx); 
 
     while (1) {
+        prev = ctx->forward;
         c = AdvanceBuffer(ctx);
 
         if (c == EOF)  {
@@ -294,7 +324,7 @@ Token ScanString(TokenizerContext* ctx)
             ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "EOF discovered before string terminator ' %s ' on line %d row %d\n", t.lexeme, t.row, t.col);
         }
         if (c == '\n') {
-            RetractBuffer(ctx, ctx->forward - 1); Token t = ExtractTokenFromBuffer(ctx);
+            RetractBuffer(ctx, prev); Token t = ExtractTokenFromBuffer(ctx);
             ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Illegal newline in string literal ' %s ' on line %d row %d\n", t.lexeme, t.row, t.col);
         }
         if (c == '\0') { 
@@ -353,10 +383,14 @@ Token ScanCharacter(TokenizerContext* ctx)
 
 Token ScanIdentOrKeyword(TokenizerContext* ctx)
 {
+    char* prev = ctx->forward;
     int c = AdvanceBuffer(ctx);
-    while (c != EOF && ( isalpha((unsigned int)c) || isdigit((unsigned int)c) || c == '_' )) 
+
+    while (c != EOF && ( isalpha((unsigned int)c) || isdigit((unsigned int)c) || c == '_' )) {
+        prev = ctx->forward;
         c = AdvanceBuffer(ctx);
-    RetractBuffer(ctx, ctx->forward - 1);    
+    }
+    RetractBuffer(ctx, prev);    
 
     Token tok = ExtractTokenFromBuffer(ctx);
     tok.type = KeywordLookup(tok.lexeme);

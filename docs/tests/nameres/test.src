@@ -136,3 +136,15 @@ let float b = a as float;
 
 //let int size = sizeof(int);
 //let int size2 = sizeof(WHAT);
+
+/* 
+type t = int;
+type t = float; // Err
+let t tdtest = 4;
+*/
+
+enum COLOR {
+    RED, GREEN, BLUE
+};
+
+//let bool isTrue = 1 ? true : false;
