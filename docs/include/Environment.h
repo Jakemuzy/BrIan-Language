@@ -23,7 +23,8 @@ struct Type;
 /* ----- Symbol ----- */
 
 typedef enum SymbolType {
-    S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD, S_TYPEDEF, S_STRUCT, S_ENUM, S_CTRL, S_ERROR
+    S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD, S_GEN,
+    S_TYPEDEF, S_STRUCT, S_ENUM, S_CTRL, S_ERROR
 } SymbolType;
 
 typedef struct Symbol {
@@ -36,7 +37,8 @@ typedef struct Symbol {
 
 int SymbolHash(char* key);
 
-static Symbol* POISON_SYM = (Symbol*){"<poison>", NULL, S_ERROR, NULL};
+static Symbol POISON_SYM_OBJ = (Symbol){"<poison>", NULL, S_ERROR, NULL};
+static Symbol* POISON_SYM = &POISON_SYM_OBJ;
 
 /* ----- Symbol Table ----- */
 

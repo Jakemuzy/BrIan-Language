@@ -75,7 +75,9 @@ fn int func(int a, int b) {
 /*
     let int arrTest[1][scretThree] = {{1}};
     let int arrTwo[2] = {2, 3, 4};
+    let int testarr[2][3] = {{1, 2, 3}, {3, 2, undefined}}; // Err
 */
+
 
 /*
     let int c = 3;
@@ -105,4 +107,32 @@ fn int func(int a, int b) {
 
 // fn void f2(int a, int b);
 
-fn <X> f3<T, C>(T a, C b);
+//fn <T> f3<T, C>(T a, C b);  // Gen param and return
+//fn <X> f4<T, C>(T a, C b);  // Return type not defined
+//fn <X> f5 (int a, int b);   // Gen return, no gen param, will error for now since we expect to desugar b4 name res
+
+/*
+fn <X> f6 <X>(X a, X b) {
+
+}
+*/
+
+
+//fn <X> f7 (int a, int b) {} // Err
+//fn <X> f8 (X a, X b) {} // Err 
+//fn <X> f9 () { let X a = 3; } // Not error, error for now
+//fn <T> f10 <T, C>(T a, T b) { let T a = 3; }
+
+/*
+let int a = 4; 
+let float b = a as float;
+*/
+
+// b as int; // Err
+
+
+//let int a[2][3] = {{1, 2, 3}, {3, 2, 1}};
+//let int result = a[1][2];
+
+//let int size = sizeof(int);
+//let int size2 = sizeof(WHAT);

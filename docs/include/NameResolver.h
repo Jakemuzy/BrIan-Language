@@ -38,6 +38,7 @@ void ResolveFuncDecl(NameResolverContext* ctx, ASTNode* current);
 void ResolveFuncDef(NameResolverContext* ctx, ASTNode* current);
 void ResolveGenFuncDecl(NameResolverContext* ctx, ASTNode* current);
 void ResolveGenFuncDef(NameResolverContext* ctx, ASTNode* current);
+void ResolveReturnType(NameResolverContext* ctx, ASTNode* current);
 void ResolveBody(NameResolverContext* ctx, ASTNode* current);
 
 /* Ctrl Stmts */
@@ -69,7 +70,8 @@ void ResolveCast(NameResolverContext* ctx, ASTNode* current);
 void ResolveIndex(NameResolverContext* ctx, ASTNode* current);
 void ResolveFuncCall(NameResolverContext* ctx, ASTNode* current);
 void ResolveMember(NameResolverContext* ctx, ASTNode* current);
-void ResolveReference(NameResolverContext* ctx, ASTNode* current);
+void ResolveReference(NameResolverContext* ctx, ASTNode* current); // Bad name, refers to ->
+void ResolveSizeof(NameResolverContext* ctx, ASTNode* current);
 
 /* Others */
 void ResolveVar(NameResolverContext* ctx, ASTNode* current);
@@ -83,6 +85,9 @@ void ResolveParamList(NameResolverContext* ctx, ASTNode* current);
 void ResolveArgList(NameResolverContext* ctx, ASTNode* current);
 
 /* Types */
+void ResolveGenericList(NameResolverContext* ctx, ASTNode* current);
+void ResolveGeneric(NameResolverContext* ctx, ASTNode* current);
+void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current);
 void ResolveType(NameResolverContext* ctx, ASTNode* current);
 void ResolveClosure(NameResolverContext* ctx, ASTNode* current);
 
