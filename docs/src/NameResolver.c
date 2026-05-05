@@ -4,6 +4,9 @@
     Please Note: 
         PushEnvironment enforces duplicate symbols, 
         and handles the printing of an error in that case.
+    
+        I should also make an error helper 
+        I should also make an already defined var helper
 */
 
 /* ----- Helpers ----- */
@@ -208,12 +211,6 @@ void ResolveBody(NameResolverContext* ctx, ASTNode* current)
             case TERNARY_EXPR_NODE:
                 ResolveTernaryExpr(ctx, stmt);
                 break;
-            case CAST_NODE:
-                ResolveCast(ctx, stmt);
-                break;
-            case INDEX_NODE:
-                ResolveIndex(ctx, stmt);
-                break;
             case CALL_FUNC_NODE:
                 ResolveFuncCall(ctx, stmt);
                 break;
@@ -320,7 +317,6 @@ void ResolveVarDecl(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("VarDecl");
     ResolveType(ctx, current->children[0]);
-    printf("OUTSIDE");
 
     ASTNode* varListNode = current->children[1];
     for (size_t i = 0; i < varListNode->childCount; i++) 
@@ -383,7 +379,13 @@ void ResolveExpr(NameResolverContext* ctx, ASTNode* current)
             // Do Nothing
             break;
         case SIZEOF_NODE:
-            // Check if type exists        
+            ResolveSizeof(ctx, current);
+            break;
+        case CAST_NODE:
+            ResolveCast(ctx, current);
+            break;
+        case INDEX_NODE:
+            ResolveIndex(ctx, current);
             break;
         case LAMBDA_NODE:
             ResolveLambda(ctx, current);
@@ -433,12 +435,38 @@ void ResolveTernaryExpr(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveCast(NameResolverContext* ctx, ASTNode* current)
 {
+    Debug("Cast");
+    ResolveType(ctx, current->children[0]);
+    char* varName = current->children[1]->token.lexeme;
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    Symbol* sym = LookupEnvironment(env, varName);
 
+    if (sym == SYM_DOESNT_EXIST)
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "Variable '%s' doesn't exist within current scope on line %d, col %d.\n",
+            varName, current->token.row, current->token.col
+        );
 }
 
 void ResolveIndex(NameResolverContext* ctx, ASTNode* current)
 {
+    Debug("Index");
+    ResolveExpr(ctx, current->children[0]);
 
+    // Handles Nested
+    ASTNode* nestedOrVar = current->children[1];
+    if (nestedOrVar->ntype == INDEX_NODE) ResolveIndex(ctx, nestedOrVar);
+    else if (nestedOrVar->ntype == IDENT_NODE) {
+        char* arrName = nestedOrVar->token.lexeme;
+        Environment* env = GetNamespace(ctx->nss, N_VAR);
+        Symbol* arrSym = LookupEnvironment(env, arrName);
+
+        if (arrSym == SYM_DOESNT_EXIST) 
+            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                "Cannot index array. Array '%s' doesn't exist within current scope on line %d, col %d.\n",
+                arrName, current->token.row, current->token.col
+            );
+    }
 }
 
 void ResolveFuncCall(NameResolverContext* ctx, ASTNode* current)
@@ -482,6 +510,24 @@ void ResolveReference(NameResolverContext* ctx, ASTNode* current)
             "No struct '%s' exists within current scope on line %d, col %d.\n",
             refName, current->token.row, current->token.col
         );
+}
+
+void ResolveSizeof(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Sizeof");
+    ASTNode* typeNode = current->children[0];
+    if (typeNode->ntype == TYPE_NODE) return;   // unambiguous
+
+    char* typeName = typeNode->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    Symbol* typeSym = LookupEnvironment(typeEnv, typeName);
+
+    if (typeSym == SYM_DOESNT_EXIST) {
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "Attempting to get the size of an undefined type '%s' within current scope on line %d, col %d.\n",
+            typeName, current->token.row, current->token.col
+        );
+    }
 }
 
 /* Others */

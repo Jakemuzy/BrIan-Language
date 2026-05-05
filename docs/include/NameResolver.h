@@ -70,7 +70,8 @@ void ResolveCast(NameResolverContext* ctx, ASTNode* current);
 void ResolveIndex(NameResolverContext* ctx, ASTNode* current);
 void ResolveFuncCall(NameResolverContext* ctx, ASTNode* current);
 void ResolveMember(NameResolverContext* ctx, ASTNode* current);
-void ResolveReference(NameResolverContext* ctx, ASTNode* current);
+void ResolveReference(NameResolverContext* ctx, ASTNode* current); // Bad name, refers to ->
+void ResolveSizeof(NameResolverContext* ctx, ASTNode* current);
 
 /* Others */
 void ResolveVar(NameResolverContext* ctx, ASTNode* current);
