@@ -1,0 +1,10 @@
+fn void test() {
+    let I8 a;
+    let I16 b;
+    let I32 c;
+    let I64 d;
+    let U8 e;
+    let U16 f;
+    let U32 g;
+    let U64 h;
+}

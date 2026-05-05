@@ -2,12 +2,13 @@
 #define _TOKENIZER_H__
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdbool.h>
-#include <ctype.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "Token.h"
-#include "Dictionary.h"
+#include "Dict.h"
 
 static unsigned int LINE_NUM = 1;
 
@@ -19,12 +20,13 @@ static unsigned int LINE_NUM = 1;
 /* ---------- Helpers ---------- */
 
 static Dict* KWmap = NULL;
+void KWMapInit(void);
 
 /* Token Logic */
 typedef struct Buffer { Token* toks; size_t tokCount; } Buffer;
 static Buffer Buff = { NULL, 0};
 
-int   GetLineNum();
+int   GetLineNum(void);
 int   CheckBuffer(Token* out);
 Token GetNextToken(FILE* fptr); 
 Token PeekNextToken(FILE* fptr);

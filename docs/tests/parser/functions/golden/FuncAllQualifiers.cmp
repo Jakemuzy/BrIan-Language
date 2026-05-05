@@ -1,0 +1,10 @@
+PROG
+├── FUNC_DEF (allQuals)
+│   ├── QUALIFIER_LIST
+│   │   ├── TYPE_QUALIFIER (static)
+│   │   ├── TYPE_QUALIFIER (inline)
+│   │   ├── TYPE_QUALIFIER (const)
+│   ├── TYPE (int)
+│   ├── BODY
+│   │   ├── RETURN
+│   │   │   ├── LITERAL (0)

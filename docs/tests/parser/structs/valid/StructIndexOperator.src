@@ -1,0 +1,5 @@
+struct Array {
+    operator [](Array a, int idx) {
+        return a;
+    }
+}

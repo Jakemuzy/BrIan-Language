@@ -1,0 +1,4 @@
+PROG
+├── TYPEDEF_DECL (IntChannel)
+│   ├── CHANNEL
+│   │   ├── TYPE (int)

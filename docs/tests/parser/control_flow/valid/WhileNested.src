@@ -1,0 +1,8 @@
+fn void test() {
+    while (i < n) {
+        while (j < m) {
+            j++;
+        }
+        i++;
+    }
+}

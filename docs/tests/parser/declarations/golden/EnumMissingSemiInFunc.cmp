@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: Expected semicolon ';' after enum declaration. Instead encountered 'let' on line 3, col 5
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered ';' on line 3, col 18

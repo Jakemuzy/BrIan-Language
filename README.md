@@ -36,6 +36,8 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
         * BrIan will have safe pointers and safe dereferencing
     - Header files 
     - Macros
+    - Circular Dependencies
+    - Make the compiler itself multithreaded
 
 
 ## BUILDING [WIP]:
@@ -51,25 +53,51 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 
 ## TODO
     -   Allow preprocessor directives anywhere
-    -   Global decl statements shouldn't cause ast to error
     -   Add true/false keywords, that asgn expressions can use **
     -   Make casts work
+    -   Grammar should allow pointer declarations
     -   Allow DeclStmts in ForStmt first paramater
+    -   Generics
+    -   Custom types
+    -   Implement struct functions 
+    -   Allow Function Overloadign in NameResolution
+    -   Allow Structs to be defined via a paramater list
+    -   Allow Structs to define default values
+    -   Preprocess directive that allows switching to allow safe concurrency
+        similar to Rusts system built into the compiler. Otherwise user can use 
+        the standard libraries for faster compile times.
+    -   Lambdas require closures for support
+    -   Compound literals
+    -   Parser allows Ident | Type for anything requiring type
 
 ## GRAMMAR
 
 ```
 	Program ::=  { Function | DeclStmt }
+
     Function ::= Type IDENT '(' [ ParamList ] ')' Body
     ParamList ::= Param { ',' Param }
     Param ::= Type IDENT
+
+
+// NOT IMPLEMENTED YET
+    Lambda ::= "func" '(' [ParamList ] ')' Body     
+
 
 	Body ::= '{' StmtList '}'
 	StmtList ::= { Stmt }  
 	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt 
 
     ExprStmt ::= ';' | Expr ';'  
-	DeclStmt ::= Type Varlist ';'  
+	DeclStmt ::= ( VarDecl | StructDecl | EnumDecl | TypedefDecl ) ';'
+        VarDecl ::= ( Type | IDENT ) Varlist 
+        StructDecl ::= "struct" IDENT '{' StructBody '}' 
+            StructBody ::= { DeclStmt | Function }
+        EnumDecl ::= "enum" IDENT EnumBody 
+            EnumBody ::= '{' IDENT [ = INTEGRAL ] { ',' IDENT [ = INTEGRAL ] } '}'
+        TypedefDecl ::= "typedef" TypeSpec IDENT
+            TypeSpec ::= ( Type | IDENT ) { TypedefPostfix }
+            TypedefPostfix ::= ( '*' | '[' [ INTEGRAL ] ']' )
 	CtrlStmt ::= IfStmt | SwitchStmt | WhileStmt | DoWhileStmt | ForStmt  
     ReturnStmt ::= "return" [Expr] ';'  
 
@@ -78,14 +106,16 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
         Elif ::= "elif" '(' Expr ')' Body 
         Else ::= "else" Body 
     SwitchStmt ::= "switch" '(' Expr ')' '{' {CaseStmt} [DefaultStmt] '}'
-        Case ::= "case" Expr Body
+        Case ::= "case" Expr Body       // ALLOW ONLY LITERALS 
         Default ::= "default" Body
     WhileStmt ::= "while" '(' Expr ')' Body
     DoWhileStmt ::= "do" ( Body ) 
                     "while" '(' Expr ')' ';'  
     ForStmt ::= "for" '(' [ ExprList ]';' [ Expr ] ';' [ ExprList ] ')' Body
 
+    VarExprList ::= ( Expr | VarDecl ) { ',' ( Expr | VarDecl ) }
     ExprList ::= Expr { ',' Expr }
+
     Expr ::= AsgnExpr  
     AsgnExpr ::= OrlExpr [ ( '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '<<=' | '>>=' | '&=' | '^=' | '|=' | '&&=' | '||=') AsgnExpr ]
     OrlExpr ::= AndlExpr { '||' AndlExpr }  
@@ -100,19 +130,23 @@ A Compiled Language built with **concurrency** in mind. Built mainly for embedde
 	MultExpr ::= PowExpr { ( '*' | '/' | '%' ) PowExpr }  
     PowExpr ::= Prefix [ '**' PowExpr ]
     Prefix ::= ( '++' | '--' | '+' | '-' | '!' | '~' | '*' | '&' | Cast ) Prefix | Postfix 
-        Cast ::= '(' Type ')'
-    Postfix ::= Primary { '++' | '--' | '$' | Index | CallFunc }
+        Cast ::= '(' Type | IDENT ')'
+    Postfix ::= Primary { '++' | '--' | '$' | Index | CallFunc | Member }
         Index ::= '[' Expr' ']'
         CallFunc ::= IDENT '(' [ ArgList ] ')'
-    Primary ::= Literal | '(' Expr ')'
+        Member ::= '.' IDENT
+    Primary ::= Literal | PredefinedVars | '(' Expr ')'
 
     Type = ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" )
     ArgList = Expr { ',' Expr }
 
 	VarList ::= Var { ',' Var }
-    Var ::= IDENT [ '=' Expr ] |
-            IDENT '[' [ Expr ] ']' [ '=' ArrInitList ]
-    ArrInitlist ::= '{' Literal { ',' Literal } '}' 
+    Var ::=  IDENT { ArrDecl } [ '=' ( Expr | ArrInitList ) ]
+
+    PredefinedVars ::= ( "true" | "false" | "null" )
+    
+    ArrDecl ::= '[' [ Expr ] ']'
+    ArrInitList ::= '{' ( Literal | ArrInitList ) { ',' Literal | ArrInitList } '}' 
     Literal ::= IDENT | DECIMAL | INTEGRAL | SLITERAL | CLITERAL 
 	...	
 ```
@@ -157,14 +191,19 @@ Similar to C, but simpler.
         - [ ] Bit manipulation tokens
     - [ ] Proper Preprocessor 
     - [x] Parser and AST
-    - [ ] Semanitc Analysis
+    - [/] Semanitc Analysis
         - [/] Name Resolution
             - [x] Variable Shadowing
-            - [X] Symbol Table
-            - [ ] Name Spaces
+            - [x] Symbol Table
+            - [x] Name Spaces
             - [ ] Overloading
-        - [ ] Type Checking
-        - [ ] Desugaring
+        - [/] Type Checking
+            - [x] Implicit Casting
+            - [x] Semantic Rules
+            - [/] Environment
+        - [ ] Control Flow Analysis
+            - [ ] 
+        - [ ] Desugaring (BrIRan)
         - [ ] Concurrency Checking
     - [ ] Conversion to LLVM IR
         - [ ] Assemble to RISC V
@@ -182,9 +221,9 @@ Similar to C, but simpler.
             based off the input file. Returns a syntax error if code is invalid.
     5. Name Resolver -> 
             Determines scope and availability of names by generating
-            a symbol table, goal is to ensure names are consistent and available given scope. Also stores type information for later steps.
+            a symbol table, goal is to ensure names are consistent and available given scope. 
     6. Type Checker  -> 
-            Checks the symbol table for any invalid typings
+            Checks the symbol table for any invalid typings.
     7. Desugarizer   ->
             Removes syntactic "sugar" converting the ast to a form that is easily translated to BrIRan (BrIan Intermediate Language)
     7. IR Generation ->

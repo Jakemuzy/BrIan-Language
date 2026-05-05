@@ -1,0 +1,4 @@
+struct Pair<T, U> {
+    let T first;
+    let U second;
+}

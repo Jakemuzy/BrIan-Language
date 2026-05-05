@@ -1,0 +1,2 @@
+fn void test(const int a, volatile float b, atomic int c, static int d) {
+}

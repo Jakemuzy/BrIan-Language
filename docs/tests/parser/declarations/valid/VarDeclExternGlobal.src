@@ -1,0 +1,2 @@
+let extern int globalVar;
+let extern float globalFloat;

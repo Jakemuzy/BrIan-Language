@@ -1,0 +1,38 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── TYPE (void)
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── QUALIFIER_LIST
+│   │   │   │   ├── TYPE_QUALIFIER (const)
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)
+│   │   │   │   │   ├── LITERAL (42)
+│   │   ├── VAR_DECL
+│   │   │   ├── QUALIFIER_LIST
+│   │   │   │   ├── TYPE_QUALIFIER (volatile)
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (y)
+│   │   ├── VAR_DECL
+│   │   │   ├── QUALIFIER_LIST
+│   │   │   │   ├── TYPE_QUALIFIER (static)
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (z)
+│   │   │   │   │   ├── LITERAL (0)
+│   │   ├── VAR_DECL
+│   │   │   ├── QUALIFIER_LIST
+│   │   │   │   ├── TYPE_QUALIFIER (atomic)
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (counter)
+│   │   │   │   │   ├── LITERAL (0)
+│   │   ├── VAR_DECL
+│   │   │   ├── QUALIFIER_LIST
+│   │   │   │   ├── TYPE_QUALIFIER (inline)
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (w)
+│   │   │   │   │   ├── LITERAL (1)

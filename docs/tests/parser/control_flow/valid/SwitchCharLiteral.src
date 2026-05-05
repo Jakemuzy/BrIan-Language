@@ -1,0 +1,12 @@
+fn void test() {
+    switch (c) {
+        case 'a' {
+            break;
+        }
+        case 'b' {
+            break;
+        }
+        default {
+        }
+    }
+}

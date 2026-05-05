@@ -1,0 +1,9 @@
+fn void test() {
+    let int a;
+    let float b;
+    let double c;
+    let char d;
+    let bool e;
+    let long f;
+    let string g;
+}

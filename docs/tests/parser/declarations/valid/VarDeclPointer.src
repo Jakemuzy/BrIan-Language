@@ -1,0 +1,5 @@
+fn void test() {
+    let int* ptr;
+    let char* str;
+    let void* voidPtr;
+}

@@ -1,0 +1,6 @@
+fn void test() {
+    let int x = 5;
+    let int y = --x;
+    let int z = ++x;
+    let bool b = !!true;
+}

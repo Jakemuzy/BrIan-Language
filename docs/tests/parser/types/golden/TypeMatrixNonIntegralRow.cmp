@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: Matrix row size only accepts integral digits. Instead encountered 'x' on line 2, col 13
+
+SYNTAX ERROR: Expected identifier name for variable declaration. Instead encountered '3' on line 2, col 15

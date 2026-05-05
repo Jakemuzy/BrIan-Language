@@ -1,0 +1,1 @@
+fn extern int externalFunc(int x);

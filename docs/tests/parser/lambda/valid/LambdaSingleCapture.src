@@ -1,0 +1,5 @@
+fn void test() {
+    let closure float(float) scale = lambda float (float x) captures factor {
+        return x * factor;
+    };
+}

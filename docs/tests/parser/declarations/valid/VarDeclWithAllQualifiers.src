@@ -1,0 +1,7 @@
+fn void test() {
+    let const int x = 42;
+    let volatile int y;
+    let static int z = 0;
+    let atomic int counter = 0;
+    let inline int w = 1;
+}

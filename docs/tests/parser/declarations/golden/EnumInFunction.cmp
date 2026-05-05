@@ -1,0 +1,9 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── TYPE (void)
+│   ├── BODY
+│   │   ├── ENUM_DECL (State)
+│   │   │   ├── ENUM_BODY
+│   │   │   │   ├── IDENT (Idle)
+│   │   │   │   ├── IDENT (Running)
+│   │   │   │   ├── IDENT (Stopped)

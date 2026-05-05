@@ -1,0 +1,3 @@
+fn inline int inlined(int x) {
+    return x;
+}

@@ -1,0 +1,5 @@
+fn void test() {
+    do {
+        x++;
+    } while (x < 10);
+}

@@ -1,0 +1,4 @@
+interface IHasValue {
+    let int value;
+    fn int getValue();
+}

@@ -1,0 +1,7 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── TYPE (void)
+│   ├── BODY
+│   │   ├── DO_WHILE
+│   │   │   ├── LITERAL (true)
+│   │   │   ├── BODY

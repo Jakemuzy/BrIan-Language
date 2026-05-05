@@ -1,0 +1,3 @@
+PROG
+├── TYPEDEF_DECL (Alias)
+│   ├── TYPE (MyStruct)

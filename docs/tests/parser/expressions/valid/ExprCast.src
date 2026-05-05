@@ -1,0 +1,6 @@
+fn void test() {
+    let int x = 5;
+    let float y = x as float;
+    let double z = y as double;
+    let I32 w = x as I32;
+}

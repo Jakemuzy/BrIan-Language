@@ -1,0 +1,9 @@
+fn void test() {
+    let int x = 5;
+    let int a = ++x;
+    let int b = --x;
+    let int c = +x;
+    let int d = -x;
+    let bool e = !true;
+    let int f = ~x;
+}

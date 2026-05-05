@@ -1,0 +1,11 @@
+struct A {
+    let int x;
+}
+
+struct B {
+    let float y;
+}
+
+struct C : A, B {
+    let string z;
+}

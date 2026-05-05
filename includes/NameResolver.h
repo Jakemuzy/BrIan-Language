@@ -1,41 +1,84 @@
 #ifndef _NAME_RESOLVER_H__
 #define _NAME_RESOLVER_H__
 
+#define _POSIX_C_SOURCE 200809L
+#include <string.h>
+
 #include "Token.h"
-#include "Symbol.h"
+#include "ScopeContext.h"
 
 /* TODO:
     Make this system more robust
     Allow for function overloading
     Allow for custom type decl / other name spaces
+    Account for break / continue statements
+    Account for return statements
 
+    These files need a lot of cleanup, lets start 
+    once we have everything fully functional
 */
 
 /* ---------- Error Handling ---------- */
 
-#define ERRN false
-#define VALDN true
+#define ERRN 0
+#define VALDN 1
+#define NANN 2  /* Not Applicable */
 
-bool NERROR_NO_IDENT(ASTNode* curr);
-bool NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first);
-bool NERROR_DOESNT_EXIST(char* name, ASTNode* curr);
+int NERROR_NO_IDENT(ASTNode* curr);
+int NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first);
+int NERROR_DOESNT_EXIST(char* name, ASTNode* curr);
 
-/* ---------- Helper ---------- */
+int NERROR(char* msg, char* name, ASTNode* curr);
+
+/* ---------- Resolving ---------- */
+
+Namespaces* ResolveNames(AST* ast);
+int ResolveEverything(ScopeContext* scope, ASTNode* current);
+
+
+int ResolveVars(ScopeContext* scope, ASTNode* current);
+int ResolveVar(ScopeContext* scope, ASTNode* current);
+int ResolveStructVar(ScopeContext* scope, ASTNode* current, Symbol* structSym);
+
+int ResolveFuncs(ScopeContext* scope, ASTNode* current);
+int ResolveParams(ScopeContext* scope, ASTNode* current, size_t* paramCount);   
+int ResolveParam(ScopeContext* scope, ASTNode* current);
+
+int ResolveExprs(ScopeContext* scope, ASTNode* current);
+int ResolveExpr(ScopeContext* scope, ASTNode* current);
+
+int ResolveStmts(ScopeContext* scope, ASTNode* current);
+int ResolveIfStmt(ScopeContext* scope, ASTNode* current);
+int ResolveDoWhileStmt(ScopeContext* scope, ASTNode* current);
+int ResolveWhileStmt(ScopeContext* scope, ASTNode* current);
+int ResolveSwitchStmt(ScopeContext* scope, ASTNode* current);
+int ResolveForStmt(ScopeContext* scope, ASTNode* current);
+int ResolveReturnStmt(ScopeContext* scope, ASTNode* current);
+
+int ResolveStructDecl(ScopeContext* scope, ASTNode* current);
+int ResolveEnums(ScopeContext* scope, ASTNode* current);
+
+int ResolveFuncCall(ScopeContext* scope, ASTNode* current);
+int ResolveFuncArg(ScopeContext* scope, ASTNode* current);
+int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Namespaces** nestedReturn);
+int ResolveArrIndex(ScopeContext* scope, ASTNode* current);
+int ResolveArgList(ScopeContext* scope, ASTNode* current);
+int ResolveTypedefs(ScopeContext* scope, ASTNode* current);
+
+/* TODO: These */
+int ResolveStructInitializer(ScopeContext* scope, ASTNode* current, Symbol* structSym);
+int ResolveArrInitializer(ScopeContext* scope, ASTNode* current, Symbol* arrSym);
+
+int EnterScopeContextIfNeeded(ScopeContext** scope, ASTNode* current);
+
+/* ---------- Helpers ---------- */
+
+SymbolType DetermineSymType(ASTNode* node);
 
 static NodeType CTRL_STMTS[] = { IF_NODE, ELIF_NODE, ELSE_NODE, SWITCH_STMT_NODE,
                                  CASE_NODE, DEFAULT_NODE, WHILE_STMT_NODE, 
                                  DO_WHILE_STMT_NODE, FOR_STMT_NODE };
 static int CTRL_STMTS_SIZE = sizeof(CTRL_STMTS) / sizeof(CTRL_STMTS[0]);
-
-ASTNode* FindIdentChild(ASTNode* node);
-bool IdentIsDecl(ASTNode* decl, ASTNode* parent);
-bool IsCtrlStmt(NodeType type);
-NodeType GetScopeType(ASTNode* node) ;
-
-/* ---------- Resolving ---------- */
-
-Symbol** ResolveNames(AST* ast);
-bool ResolveNamesInNode(ASTNode* node, ASTNode* parent);
 
 /* Alpha Renaming? */
 /* Name Spaces */

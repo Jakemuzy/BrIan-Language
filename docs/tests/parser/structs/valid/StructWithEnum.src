@@ -1,0 +1,4 @@
+struct Flags {
+    enum Mode { Read, Write, Exec }
+    let int value;
+}

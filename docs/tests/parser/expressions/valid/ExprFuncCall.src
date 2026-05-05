@@ -1,0 +1,5 @@
+fn void test() {
+    foo();
+    bar(1, 2, 3);
+    baz(a + b, c * d);
+}

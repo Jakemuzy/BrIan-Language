@@ -1,0 +1,5 @@
+fn void test() {
+    let fp int(int, int) add;
+    let fp void() action;
+    let fp float(float, float) compute;
+}

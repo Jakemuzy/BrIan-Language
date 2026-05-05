@@ -1,0 +1,5 @@
+fn void test() {
+    let vec<2> pos2d;
+    let vec<3> pos3d;
+    let vec<4> pos4d;
+}

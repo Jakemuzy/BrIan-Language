@@ -1,0 +1,18 @@
+let int counter = 0;
+
+enum State { Init, Running, Done };
+
+type Callback = fp void(int);
+
+interface IProcessor {
+    fn void process();
+}
+
+struct Processor : IProcessor {
+    fn void process() {
+    }
+}
+
+fn void run() {
+    let int x = 0;
+}

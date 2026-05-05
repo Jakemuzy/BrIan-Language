@@ -1,0 +1,14 @@
+PROG
+├── GEN_STRUCT_DECL (Pair)
+│   ├── GENERIC_LIST
+│   │   ├── IDENT (T)
+│   │   ├── IDENT (U)
+│   ├── GEN_STRUCT_BODY
+│   │   ├── GEN_DECL
+│   │   │   ├── TYPE (T)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (first)
+│   │   ├── GEN_DECL
+│   │   │   ├── TYPE (U)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (second)

@@ -1,0 +1,17 @@
+fn void test() {
+    let mutex m;
+    let semaphore s;
+    let chan<int> ch;
+
+    lock (m) {
+        let int x = 42;
+    }
+
+    critical {
+        let int y = 0;
+    }
+
+    let task t = spawn doWork();
+    let int r = await t;
+    let int val = <- ch;
+}

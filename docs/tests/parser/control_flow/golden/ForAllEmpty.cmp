@@ -1,0 +1,6 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── TYPE (void)
+│   ├── BODY
+│   │   ├── FOR
+│   │   │   ├── BODY

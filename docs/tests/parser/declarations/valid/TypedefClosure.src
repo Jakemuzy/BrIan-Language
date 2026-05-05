@@ -1,0 +1,1 @@
+type Transform = closure int(int);

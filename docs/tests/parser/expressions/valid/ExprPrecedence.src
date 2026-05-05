@@ -1,0 +1,6 @@
+fn void test() {
+    let int x = 1 + 2 * 3 - 4 / 2 % 3;
+    let bool y = true || false && true;
+    let int z = 1 | 2 ^ 3 & 4;
+    let int w = 1 << 2 + 3 >> 1;
+}

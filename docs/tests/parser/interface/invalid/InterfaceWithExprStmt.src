@@ -1,0 +1,3 @@
+interface IFoo {
+    x + y;
+}

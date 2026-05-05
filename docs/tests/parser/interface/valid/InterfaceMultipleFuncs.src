@@ -1,0 +1,6 @@
+interface IShape {
+    fn float area();
+    fn float perimeter();
+    fn void draw();
+    fn bool contains(float x, float y);
+}

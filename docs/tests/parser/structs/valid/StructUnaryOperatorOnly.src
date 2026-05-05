@@ -1,0 +1,4 @@
+struct Neg {
+    let int val;
+    operator ~(Neg a) { }
+}

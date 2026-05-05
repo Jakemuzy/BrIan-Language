@@ -1,0 +1,4 @@
+fn void test() {
+    let task t = spawn doWork(1, 2);
+    let int result = await t;
+}

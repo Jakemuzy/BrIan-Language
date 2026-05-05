@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: Expecteed ')' to terminate switch statement's comparison. Instead encountered '{' on line 2, col 15
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 4, col 1

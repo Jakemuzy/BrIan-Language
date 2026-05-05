@@ -1,0 +1,7 @@
+fn void test() {
+    switch (x) {
+        case MY_CONST {
+            break;
+        }
+    }
+}

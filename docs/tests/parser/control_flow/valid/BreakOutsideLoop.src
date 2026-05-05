@@ -1,0 +1,6 @@
+fn void test() {
+    // Valid cuz Type checker checks where break / continue occurs
+    // Could make a separate body later, but seems like
+    // lots of overhead for little change
+    break;
+}

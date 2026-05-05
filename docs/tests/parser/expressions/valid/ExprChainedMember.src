@@ -1,0 +1,4 @@
+fn void test() {
+    let int x = a.b.c.d;
+    a.b.c.d = 5;
+}

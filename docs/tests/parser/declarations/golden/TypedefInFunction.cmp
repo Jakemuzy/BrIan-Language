@@ -1,0 +1,11 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── TYPE (void)
+│   ├── BODY
+│   │   ├── TYPEDEF_DECL (LocalType)
+│   │   │   ├── TYPE (int)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (LocalType)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)
+│   │   │   │   │   ├── LITERAL (5)

@@ -1,0 +1,8 @@
+interface IA { fn void a(); }
+interface IB { fn void b(); }
+interface IC { fn void c(); }
+struct Multi : IA, IB, IC {
+    fn void a() { }
+    fn void b() { }
+    fn void c() { }
+}

@@ -1,0 +1,23 @@
+PROG
+├── VAR_DECL
+│   ├── TYPE (int)
+│   ├── VAR_LIST
+│   │   ├── VAR (globalX)
+│   │   │   ├── LITERAL (0)
+├── VAR_DECL
+│   ├── TYPE (float)
+│   ├── VAR_LIST
+│   │   ├── VAR (globalY)
+│   │   │   ├── LITERAL (3.14)
+├── VAR_DECL
+│   ├── QUALIFIER_LIST
+│   │   ├── TYPE_QUALIFIER (const)
+│   ├── TYPE (int)
+│   ├── VAR_LIST
+│   │   ├── VAR (MAX)
+│   │   │   ├── LITERAL (100)
+├── VAR_DECL
+│   ├── TYPE (string)
+│   ├── VAR_LIST
+│   │   ├── VAR (appName)
+│   │   │   ├── LITERAL ("MyApp")

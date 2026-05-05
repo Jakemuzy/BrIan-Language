@@ -1,0 +1,8 @@
+fn void test() {
+    let mutex m;
+    lock (m) {
+        critical {
+            sharedCounter++;
+        }
+    }
+}

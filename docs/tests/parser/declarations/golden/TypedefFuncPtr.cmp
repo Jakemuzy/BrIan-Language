@@ -1,0 +1,6 @@
+PROG
+├── TYPEDEF_DECL (Callback)
+│   ├── FUNC_POINTER (fp)
+│   │   ├── TYPE (void)
+│   │   ├── TYPE (int)
+│   │   ├── TYPE (float)

@@ -1,0 +1,12 @@
+fn void test() {
+    switch (flags) {
+        case 0xFF {
+            break;
+        }
+        case 0x00 {
+            break;
+        }
+        default {
+        }
+    }
+}

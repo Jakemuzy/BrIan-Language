@@ -1,0 +1,7 @@
+fn void test() {
+    let bool a = true && false;
+    let bool b = true || false;
+    let bool c = !true;
+    let bool d = a && b || !c;
+    let bool e = (a && b) || (!c && d);
+}

@@ -1,0 +1,3 @@
+fn double compute(int a, float b, char c, bool d, long e) {
+    return 0.0;
+}

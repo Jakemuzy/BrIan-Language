@@ -1,0 +1,2 @@
+type Size = U64;
+type Handler = fp void(int, int);

@@ -1,0 +1,5 @@
+fn void test() {
+    let mutex m;
+    let semaphore s;
+    let task t;
+}

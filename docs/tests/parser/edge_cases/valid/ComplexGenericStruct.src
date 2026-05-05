@@ -1,0 +1,7 @@
+struct Map<K, V> {
+    let K key;
+    let V value;
+    fn V get(K k) {
+        return value;
+    }
+}

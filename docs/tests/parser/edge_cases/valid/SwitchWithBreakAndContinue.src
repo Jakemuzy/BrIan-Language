@@ -1,0 +1,14 @@
+fn void test() {
+    while (true) {
+        switch (x) {
+            case 0 {
+                continue;
+            }
+            case 1 {
+                break;
+            }
+            default {
+            }
+        }
+    }
+}

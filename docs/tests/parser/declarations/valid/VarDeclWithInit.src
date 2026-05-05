@@ -1,0 +1,7 @@
+fn void test() {
+    let int x = 42;
+    let float y = 3.14;
+    let bool z = true;
+    let char c = 'A';
+    let string s = "hello";
+}

@@ -1,0 +1,6 @@
+
+SYNTAX ERROR: Expected paramaters inside function signature. Instead encountered 'captures' on line 2, col 47
+
+SYNTAX ERROR: Expected ')' after function paramaters. Instead encountered '' on line 5, col 1
+
+SYNTAX ERROR: Expected semicolon ';' after variable declaration. Instead encountered '' on line 5, col 1

@@ -1,0 +1,8 @@
+fn void test() {
+    if (a) {
+        if (b) {
+            if (c) {
+            }
+        }
+    }
+}

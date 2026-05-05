@@ -2,7 +2,6 @@
 #define _PARSER_H__
 
 #include "Preprocessor.h"
-#include "Dictionary.h"
 #include "AST.h"
 
 /* ---------- Error Propogation ----------*/
@@ -28,17 +27,18 @@ typedef struct ParseResult {
         if (DEBUG == true)  { printf("%s", message); } \
     } while(0);
 ParseResult PARSE_VALID(ASTNode* node, NodeType type);
-ParseResult PARSE_NAP();
+ParseResult PARSE_NAP(void);
 ParseResult PARSE_ERRP(char* message, Token tok);
 
 /* ---------- Helpers ---------- */
 
-int ValidTokType(const int types[], int arrSize, int type);
-int FuncNodePossible(FILE* fptr);
+int ValidTokType(const TokenType types[], int arrSize, TokenType type);
+int FuncNodePossible(FILE* fptr);   /* Ambiguity helpers */
+int DeclStmtPossible(FILE* fptr);
 
 ParseResult IdentNode(Token tok);
-ParseResult EmptyNode();
-ParseResult ProgNode();
+ParseResult EmptyNode(void);
+ParseResult ProgNode(void);
 ParseResult ArbitraryNode(Token tok, NodeType type);
 
 /* ---------- Recursive Descent ---------- */
@@ -55,6 +55,13 @@ ParseResult Stmt(FILE* fptr);
 
 ParseResult ExprStmt(FILE* fptr);
 ParseResult DeclStmt(FILE* fptr);
+    ParseResult VarDecl(FILE* fptr);
+    ParseResult StructDecl(FILE* fptr);
+        ParseResult StructBody(FILE* fptr);
+    ParseResult EnumDecl(FILE* fptr);
+        ParseResult EnumBody(FILE* fptr);
+    ParseResult TypedefDecl(FILE* fptr);
+        ParseResult TypedefPostfix(FILE* fptr);
 ParseResult CtrlStmt(FILE* fptr);
 ParseResult ReturnStmt(FILE* fptr);
 
@@ -68,6 +75,7 @@ ParseResult DoWhileStmt(FILE* fptr);
 ParseResult ForStmt(FILE* fptr);
     ParseResult OptionalExpr(FILE* fptr);
 
+ParseResult VarExprList(FILE* fptr);
 ParseResult ExprList(FILE* fptr);
 ParseResult Expr(FILE* fptr);
 ParseResult AsgnExpr(FILE* fptr);
@@ -87,12 +95,15 @@ ParseResult Prefix(FILE* fptr);
 ParseResult Postfix(FILE* fptr);
     ParseResult Index(FILE* fptr, ASTNode* callee);
     ParseResult CallFunc(FILE* fptr, ASTNode* callee);
+    ParseResult Member(FILE* fptr, ASTNode* callee);
 ParseResult Primary(FILE* fptr);
 
-ParseResult Type(FILE* fptr);
+ParseResult StdType(FILE* fptr);
 ParseResult ArgList(FILE* fptr);
+
 ParseResult VarList(FILE* fptr);
 ParseResult Var(FILE* fptr);
+ParseResult ArrDecl(FILE* fptr);
 ParseResult ArrInitList(FILE* fptr);
 
 #endif

@@ -1,0 +1,12 @@
+PROG
+├── FUNC_DEF (applyFunc)
+│   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (callback)
+│   │   │   ├── FUNC_POINTER (fp)
+│   │   │   │   ├── TYPE (int)
+│   │   │   │   ├── TYPE (int)
+│   │   │   │   ├── TYPE (int)
+│   │   ├── PARAM (x)
+│   │   │   ├── TYPE (int)
+│   ├── BODY

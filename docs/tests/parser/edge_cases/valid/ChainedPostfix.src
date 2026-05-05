@@ -1,0 +1,5 @@
+fn void test() {
+    let int x = arr[0].field->value;
+    let int y = obj.method()[1];
+    let int z = getPtr()->member;
+}

@@ -1,0 +1,11 @@
+PROG
+├── STRUCT_DECL (Robot)
+│   ├── IMPLEMENTS
+│   │   ├── IDENT (IMovable)
+│   │   ├── IDENT (IChargeable)
+│   │   ├── IDENT (ISpeakable)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (battery)

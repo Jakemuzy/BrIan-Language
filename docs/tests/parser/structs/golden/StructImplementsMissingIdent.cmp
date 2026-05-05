@@ -1,0 +1,8 @@
+PROG
+├── STRUCT_DECL (Foo)
+│   ├── IMPLEMENTS
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)

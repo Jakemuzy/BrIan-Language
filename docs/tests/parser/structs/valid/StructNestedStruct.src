@@ -1,0 +1,6 @@
+struct Outer {
+    struct Inner {
+        let int val;
+    }
+    let int x;
+}

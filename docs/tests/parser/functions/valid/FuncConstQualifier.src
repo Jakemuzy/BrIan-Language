@@ -1,0 +1,3 @@
+fn const int getConst() {
+    return 1;
+}

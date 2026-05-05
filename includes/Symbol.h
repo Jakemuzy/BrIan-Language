@@ -1,68 +1,62 @@
 #ifndef _SYMBOL_H__
 #define _SYMBOL_H__
 
-/* #include "Dict.h" */
+#include <stdarg.h>
+
+#include "Dict.h" 
 #include "Parser.h"
-#include "Dictionary.h"
 
-#define SIZE 109
+/* 
+    TODO:
+        - One symbol table per namespace (create name spaces / environment )
+        - Have SymbolType assign a type to each identifier, that way
+          type checker can easily decipher the type
+        - Make SymbolTable ues Dictionary for dynamic sizing
+*/
 
-/* One symbol table per namespace */
+/* ---------- Forward Declarations ---------- */
+
+struct TYPE;
+struct Namespaces;
 
 /* ---------- Symbols ---------- */
 
 typedef enum SymbolType {   
-    S_VAR, S_FUNC
+    S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD, S_TYPEDEF, S_STRUCT, S_ENUM, S_CTRL, S_ERROR
 } SymbolType;
 
 typedef struct Symbol {
-    SymbolType stype;
     char* name; 
     ASTNode* decl;
+    struct Symbol* prev;    
 
-    struct Symbol* prev;    /* TODO: Implement a Stack Separately */
+    /* Data Type and actual Symbol Type */
+    struct TYPE* type;
+    SymbolType stype;
+
+    /* Lightweight namespace for paramaters / struct fields / etc */
+    struct Namespaces* fields;  
+    size_t fieldCount;
 } Symbol;
 
-Symbol* InitSymbol(ASTNode* decl, Symbol* prev);
+Symbol* InitSymbol(ASTNode* decl, Symbol* prev, SymbolType stype);
 void    FreeSymbol(Symbol* sym);
 
 /* ---------- Symbol Table ---------- */
 
-/* 
-    Essentially a mapping, wherein each bucket is a linked list ( stack ). 
-    Resolve an IDENT to a bucket via a hash function and depending on the scope 
-    either push to the stack or error
+#define BUCKET_COUNT_INIT 109
 
-    Typedef ST
-    Var Decl ST
-        -> Each unique IDENT 
-            -> Temporal history of ident
-            -> Linked List acting like a stack
-        -> Global Scope
-            -> Stores all viewable vars in current scopeS
-*/
+typedef struct SymbolTable {
+    Symbol** buckets;
 
-static Symbol* SymbolTable[SIZE];
+    size_t maxSize;
+    size_t currSize;
+} SymbolTable;
 
-Symbol* STPop(char* name);
-Symbol* STLookup(char* key);
-Symbol* STPush(ASTNode* key);
-
-/* ---------- Scope Logic ---------- */
-
-typedef enum ScopeType { PROG_SCOPE, FUNC_SCOPE, CTRL_SCOPE, INVALID_SCOPE } ScopeType;
-typedef struct Scope {
-    Symbol** symbols;  
-    size_t symCount;  
-    struct Scope* prev; /* Maybe have ScopeType? For control statements that shouldn't be allowed to have shadowed variables */
-
-    ScopeType stype;
-} Scope;
-
-void BeginScope(Scope** currentScope, ScopeType type);
-void ExitScope(Scope** currentScope);
-void PushScope(Scope** currentScope, Symbol* sym);
-bool LookupCurrentScope(Scope** currentScope, char* name);
-
+SymbolTable* STInit(void);
+Symbol* STPop(SymbolTable* env, char* name);
+Symbol* STLookup(SymbolTable* env, char* key);
+Symbol* STPush(SymbolTable* env, ASTNode* key, SymbolType stype);
+void STResize(SymbolTable* env, unsigned int newSize);
 
 #endif

@@ -2,98 +2,62 @@
 
 /* ---------- Symbols ---------- */
 
-Symbol* InitSymbol(ASTNode* decl, Symbol* prev) 
+Symbol* InitSymbol(ASTNode* decl, Symbol* prev, SymbolType stype) 
 {
     Symbol* sym = malloc(sizeof(Symbol));
     sym->decl = decl;
     sym->name = decl->token.lex.word;
-    sym->stype = (decl->type == DECL_STMT_NODE) ? S_VAR : S_FUNC;
     sym->prev = prev;
+    sym->type = NULL;
+    sym->stype = stype;
 
     return sym;
 }
 
 /* ---------- Symbol Table ---------- */
 
-Symbol* STLookup(char* name)
+SymbolTable* STInit() 
 {
-    int index = HashStr(name) % SIZE;
-    Symbol* sym, *syms = SymbolTable[index];
+    SymbolTable* env = malloc(sizeof(SymbolTable));
+    env->buckets = calloc(INIT_SIZE, sizeof(Symbol*));
+    env->maxSize = INIT_SIZE; env->currSize = 0;
+
+    return env;
+}
+
+Symbol* STLookup(SymbolTable* env, char* name)
+{
+    int index = Hash(name, HASH_STR, env->maxSize);
+    Symbol* sym, *syms = env->buckets[index];
     for (sym=syms; sym; sym=sym->prev)
         if (0 == strcmp(sym->name, name)) return sym;
 
     return sym;
 }
 
-Symbol* STPush(ASTNode* key)
+Symbol* STPush(SymbolTable* env, ASTNode* key, SymbolType stype)
 {
+    /* TODO: Check if currSize >= maxSize, make like a real map */
+
     char* name = key->token.lex.word;
-    int index = HashStr(name) % SIZE;
+    int index = Hash(name, HASH_STR, env->maxSize);
 
-    Symbol* sym, *syms = SymbolTable[index];
-    sym = InitSymbol(key, syms);
+    Symbol* sym, *syms = env->buckets[index];
+    sym = InitSymbol(key, syms, stype);
 
-    SymbolTable[index] = sym;
+    env->buckets[index] = sym;
+    env->currSize++;
     return sym;
 }
 
-Symbol* STPop(char* name)
+Symbol* STPop(SymbolTable* env, char* name)
 {
-    int index = HashStr(name) % SIZE;
-    Symbol* top = SymbolTable[index];
+    int index = Hash(name, HASH_STR, env->maxSize);
+    Symbol* top = env->buckets[index];
     if (!top)
         return NULL;
     
-    SymbolTable[index] = top->prev;
+    env->buckets[index] = top->prev;
+    env->currSize--;
     return top;
-}
-
-/* ---------- Scope ---------- */
-
-void BeginScope(Scope** currentScope, ScopeType type)
-{
-    Scope* newScope = malloc(sizeof(Scope));
-    newScope->prev = *currentScope;
-    newScope->symCount = 0; 
-    newScope->symbols = NULL;
-    newScope->stype = type;
-
-    *currentScope = newScope;
-}
-
-void ExitScope(Scope** currentScope)
-{
-    Scope* scope = *currentScope;
-
-    size_t i;
-    for (i = 0; i < scope->symCount; i++) {
-        Symbol* sym = scope->symbols[i];
-        STPop(sym->name);
-    } 
-
-    *currentScope = scope->prev;
-}
-
-void PushScope(Scope** currentScope, Symbol* sym) 
-{
-    Scope* scope = *currentScope;
-    size_t symCount = scope->symCount;
-
-    scope->symbols = realloc(scope->symbols, (symCount + 1) * sizeof(Symbol*));     /* Incrementing by one is inefficient, we can fix this later by making a vector DS */
-    scope->symbols[symCount] = sym;
-
-    scope->symCount++;
-}
-
-bool LookupCurrentScope(Scope** currentScope, char* name)
-{
-    Scope* scope = *currentScope;
-
-    int i = 0;
-    for (i = 0; i < scope->symCount; i++) {
-        Symbol* sym = scope->symbols[i];
-        if(0 == strcmp(name, sym->name)) 
-            return true;
-    }
-    return false;
 }

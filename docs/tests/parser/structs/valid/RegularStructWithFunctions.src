@@ -1,0 +1,9 @@
+struct Foo {
+    let int value;
+    fn int getValue() {
+        return value;
+    }
+    fn void setValue(int v) {
+        value = v;
+    }
+}

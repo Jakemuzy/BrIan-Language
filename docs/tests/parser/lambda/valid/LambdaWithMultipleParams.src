@@ -1,0 +1,5 @@
+fn void test() {
+    let closure int(int, int) add = lambda int (int a, int b) captures base {
+        return a + b + base;
+    };
+}

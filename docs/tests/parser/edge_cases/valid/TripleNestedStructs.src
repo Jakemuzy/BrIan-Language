@@ -1,0 +1,9 @@
+struct Outer {
+    struct Middle {
+        struct Inner {
+            let int value;
+        }
+        let int x;
+    }
+    let float y;
+}

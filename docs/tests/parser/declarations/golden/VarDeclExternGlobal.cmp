@@ -1,0 +1,11 @@
+PROG
+├── VAR_DECL
+│   ├── LINKAGE_SPEC (extern)
+│   ├── TYPE (int)
+│   ├── VAR_LIST
+│   │   ├── VAR (globalVar)
+├── VAR_DECL
+│   ├── LINKAGE_SPEC (extern)
+│   ├── TYPE (float)
+│   ├── VAR_LIST
+│   │   ├── VAR (globalFloat)

@@ -1,0 +1,20 @@
+fn void test() {
+    switch (x) {
+        case 0 {
+            let int a = 1;
+            if (a > 0) {
+                break;
+            }
+        }
+        case 1 {
+            for (let int i = 0; i < 10; i++) {
+                continue;
+            }
+            break;
+        }
+        default {
+            while (false) {
+            }
+        }
+    }
+}

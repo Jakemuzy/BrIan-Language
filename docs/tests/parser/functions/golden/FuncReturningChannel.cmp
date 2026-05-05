@@ -1,0 +1,7 @@
+PROG
+├── FUNC_DEF (makeChannel)
+│   ├── CHANNEL
+│   │   ├── TYPE (int)
+│   ├── BODY
+│   │   ├── RETURN
+│   │   │   ├── IDENT (NULL)

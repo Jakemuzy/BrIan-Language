@@ -1,0 +1,9 @@
+PROG
+├── INTERFACE_DECL (IAnimal)
+│   ├── INTERFACE_BODY
+│   │   ├── FUNC_DECL (speak)
+│   │   │   ├── TYPE (void)
+│   │   ├── FUNC_DECL (getAge)
+│   │   │   ├── TYPE (int)
+│   │   ├── FUNC_DECL (getName)
+│   │   │   ├── TYPE (string)

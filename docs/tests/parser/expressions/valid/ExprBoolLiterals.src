@@ -1,0 +1,6 @@
+fn void test() {
+    let bool a = true;
+    let bool b = false;
+    let bool c = !true;
+    let bool d = !false;
+}

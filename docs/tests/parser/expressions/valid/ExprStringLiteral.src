@@ -1,0 +1,7 @@
+fn void test() {
+    let string a = "hello";
+    let string b = "world";
+    let string c = "hello\nworld";
+    let string d = "tab\there";
+    let string e = "";
+}

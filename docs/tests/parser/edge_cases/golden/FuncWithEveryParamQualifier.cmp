@@ -1,0 +1,21 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (a)
+│   │   │   ├── QUALIFIER_LIST
+│   │   │   │   ├── TYPE_QUALIFIER (const)
+│   │   │   ├── TYPE (int)
+│   │   ├── PARAM (b)
+│   │   │   ├── QUALIFIER_LIST
+│   │   │   │   ├── TYPE_QUALIFIER (volatile)
+│   │   │   ├── TYPE (float)
+│   │   ├── PARAM (c)
+│   │   │   ├── QUALIFIER_LIST
+│   │   │   │   ├── TYPE_QUALIFIER (atomic)
+│   │   │   ├── TYPE (int)
+│   │   ├── PARAM (d)
+│   │   │   ├── QUALIFIER_LIST
+│   │   │   │   ├── TYPE_QUALIFIER (static)
+│   │   │   ├── TYPE (int)
+│   ├── BODY

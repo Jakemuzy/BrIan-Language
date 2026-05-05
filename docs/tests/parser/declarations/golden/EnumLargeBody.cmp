@@ -1,0 +1,11 @@
+PROG
+├── ENUM_DECL (HttpStatus)
+│   ├── ENUM_BODY
+│   │   ├── IDENT (Ok)
+│   │   ├── IDENT (Created)
+│   │   ├── IDENT (Accepted)
+│   │   ├── IDENT (BadRequest)
+│   │   ├── IDENT (Unauthorized)
+│   │   ├── IDENT (Forbidden)
+│   │   ├── IDENT (NotFound)
+│   │   ├── IDENT (InternalServerError)

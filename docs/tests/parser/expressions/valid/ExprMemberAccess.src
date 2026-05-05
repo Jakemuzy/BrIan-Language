@@ -1,0 +1,5 @@
+fn void test() {
+    let int x = p.x;
+    let int y = p.y;
+    let int z = p.nested.value;
+}

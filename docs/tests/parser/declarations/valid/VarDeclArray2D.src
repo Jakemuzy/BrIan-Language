@@ -1,0 +1,4 @@
+fn void test() {
+    let int matrix[3][4];
+    let float grid[10][10];
+}
