@@ -81,6 +81,9 @@ void NameResolve(NameResolverContext* ctx)
             case TYPEDEF_DECL_NODE:
                 ResolveTypedefDecl(ctx, current);
                 break;
+            case ENUM_DECL_NODE:
+                ResolveEnumDecl(ctx, current);
+                break;
             default:
                 printf("Unexpected node type %d\n", current->ntype);
                 return;
@@ -329,6 +332,15 @@ void ResolveVarDecl(NameResolverContext* ctx, ASTNode* current)
 void ResolveEnumDecl(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("Enum");
+    char* typeName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF);
+
+    // Treated as an identifier in the scope where the enum was defined
+    ASTNode* enumBody = current->children[0];
+    Environment* symEnv = GetNamespace(ctx->nss, N_VAR);
+    for (size_t i = 0; i < enumBody->childCount; i++) 
+        PushEnvironment(ctx->arena, symEnv, enumBody->children[i], S_VAR) ;
 }
 
 void ResolveTypedefDecl(NameResolverContext* ctx, ASTNode* current)

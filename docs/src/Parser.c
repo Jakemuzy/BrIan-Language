@@ -106,7 +106,6 @@ void Program(ParserContext* ctx)
 				ASTNode* enumNode = EnumDecl(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, ctx->ast->root, enumNode);
-				printf("%s\n", ctx->current.lexeme);
 
 				if (!Match(ctx, SEMI)) ParseERROR(ctx, "Expected semicolon ';' after global enum declaration.");
 				break;
