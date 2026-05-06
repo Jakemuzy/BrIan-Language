@@ -3,6 +3,8 @@
 // TODO: identifier at EOF is infinite loop
 // this whole thing needs a redesign around the buffer system
 
+// TODO: might just have a temporary buffer
+
 /* ----- Double Buffered Context ----- */
 
 TokenizerContext* InitalizeTokenizerContext(FILE* fptr, size_t fileSize)
@@ -13,6 +15,7 @@ TokenizerContext* InitalizeTokenizerContext(FILE* fptr, size_t fileSize)
 
     ctx->lexemeBegin = ctx->buffer1;
     ctx->forward = ctx->buffer1;
+    ctx->currentBuffer = 1;
 
     ctx->row = 1;
     ctx->col = 1;
@@ -49,30 +52,40 @@ void LoadBuffer(TokenizerContext* ctx, int bufferNum)
 void RetractBuffer(TokenizerContext* ctx, char* pos) 
 {
     ctx->forward = pos;
+    if (ctx->forward == &ctx->buffer1[TOKENIZER_BUFFER_SIZE - 1]) {
+        ctx->forward = ctx->buffer2;
+        ctx->currentBuffer = 2;
+    } else if (ctx->forward == &ctx->buffer2[TOKENIZER_BUFFER_SIZE - 1]) {
+        ctx->forward = ctx->buffer1;
+        ctx->currentBuffer = 1;
+    }
 }
 
 int AdvanceBuffer(TokenizerContext* ctx)
 {
-    if (*ctx->forward == TOKENIZER_SENTINEL) {
-        if (ctx->forward == &ctx->buffer1[TOKENIZER_BUFFER_SIZE - 1]) {
-            LoadBuffer(ctx, 2);
-            ctx->forward = ctx->buffer2;
+    while (1) {
+        if (*ctx->forward == TOKENIZER_SENTINEL) {
+            if (ctx->currentBuffer == 1) {
+                LoadBuffer(ctx, 2);
+
+                // If new buffer is empty then real EOF
+                if (ctx->buffer2[0] == TOKENIZER_SENTINEL) return EOF;
+                ctx->forward = ctx->buffer2;
+                ctx->currentBuffer = 2;
+                continue;
+            }
+            else {
+                LoadBuffer(ctx, 1);
+
+                if (ctx->buffer1[0] == TOKENIZER_SENTINEL) return EOF;
+                ctx->forward = ctx->buffer1;
+                ctx->currentBuffer = 1;
+                continue;
+            }
         }
-        else if (ctx->forward == &ctx->buffer2[TOKENIZER_BUFFER_SIZE - 1]) {
-            LoadBuffer(ctx, 1);
-            ctx->forward = ctx->buffer1;
-        }
-        else {
-            return EOF;
-        }
+
+        return (unsigned char)*ctx->forward++;
     }
-
-    char c = *ctx->forward++;
-
-    if (c == TOKENIZER_SENTINEL)
-        return EOF;
-
-    return (unsigned char)c;
 }
 
 Token ExtractTokenFromBuffer(TokenizerContext* ctx)
@@ -177,21 +190,18 @@ Token SkipComment(TokenizerContext* ctx)
 
 int SkipWhitespace(TokenizerContext* ctx) 
 {
-    char* prev = ctx->forward;
     int c = AdvanceBuffer(ctx);
-    printf("STUCK\n");
     if (c == EOF) return EOF;
 
     while (isspace(c)) {
         if (c == '\n') { ctx->row++; ctx->col = 1; }
         else ctx->col++;
 
-        prev = ctx->forward;
         c = AdvanceBuffer(ctx);
         if (c == EOF) return EOF;
     }
 
-    RetractBuffer(ctx, prev); // Overconsumption in space check
+    RetractBuffer(ctx, ctx->forward - 1); // Overconsumption in space check
     ctx->lexemeBegin = ctx->forward;
     return c;
 }
@@ -383,14 +393,13 @@ Token ScanCharacter(TokenizerContext* ctx)
 
 Token ScanIdentOrKeyword(TokenizerContext* ctx)
 {
-    char* prev = ctx->forward;
     int c = AdvanceBuffer(ctx);
 
-    while (c != EOF && ( isalpha((unsigned int)c) || isdigit((unsigned int)c) || c == '_' )) {
-        prev = ctx->forward;
+    while (c != EOF && ( isalpha((unsigned int)c) || isdigit((unsigned int)c) || c == '_' )) 
         c = AdvanceBuffer(ctx);
-    }
-    RetractBuffer(ctx, prev);    
+
+    // Always valid, given advanced
+    if (c != EOF) RetractBuffer(ctx, ctx->forward - 1);    
 
     Token tok = ExtractTokenFromBuffer(ctx);
     tok.type = KeywordLookup(tok.lexeme);

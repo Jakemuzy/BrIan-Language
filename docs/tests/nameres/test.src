@@ -143,8 +143,14 @@ type t = float; // Err
 let t tdtest = 4;
 */
 
+/*
+let int RED = true;
 enum COLOR {
-    RED, GREEN, BLUE
+    RED, GREEN, BLUE    // Err red defined
 };
+let int BLUE = true;    // Err blue defined
+*/
+
+
 
 //let bool isTrue = 1 ? true : false;

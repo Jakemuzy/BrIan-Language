@@ -13,7 +13,7 @@
 #include "Token.h"
 
 #define TOKENIZER_BUFFER_SIZE 512
-#define TOKENIZER_SENTINEL (-2)
+#define TOKENIZER_SENTINEL '\0'
 #define DFA_ERROR_STATE 0
 
 /*         BrIan Tokenizer
@@ -34,8 +34,11 @@ typedef struct TokenizerContext {
     char buffer1[TOKENIZER_BUFFER_SIZE];
     char buffer2[TOKENIZER_BUFFER_SIZE];
     char* lexemeBegin, *forward;
+    unsigned int currentBuffer;
 
     int row, col;
+
+    //char temp[TOKENIZER_MAX_LENGTH];
 
     /* Weird Edge Case Flags */
     bool nestedChan;  // Channels, chan<chan<...>>, where >> tokenizes as rshift
