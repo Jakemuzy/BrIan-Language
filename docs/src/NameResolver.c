@@ -75,14 +75,14 @@ void NameResolve(NameResolverContext* ctx)
             case VAR_DECL_NODE:
                 ResolveVarDecl(ctx, current);
                 break;
-            case INTERFACE_DECL_NODE:
-                ResolveInterfaceDecl(ctx, current);
+            case ENUM_DECL_NODE:
+                ResolveEnumDecl(ctx, current);
                 break;
             case TYPEDEF_DECL_NODE:
                 ResolveTypedefDecl(ctx, current);
                 break;
-            case ENUM_DECL_NODE:
-                ResolveEnumDecl(ctx, current);
+            case INTERFACE_DECL_NODE:
+                ResolveInterfaceDecl(ctx, current);
                 break;
             case STRUCT_DECL_NODE:  
                 ResolveStructDecl(ctx, current);
@@ -208,6 +208,9 @@ void ResolveBody(NameResolverContext* ctx, ASTNode* current)
             case STRUCT_DECL_NODE:
                 ResolveStructDecl(ctx, stmt);
                 break;
+            case GEN_STRUCT_DECL_NODE:
+                ResolveGenStructDecl(ctx, stmt);
+                break;
             case BINARY_EXPR_NODE:
                 ResolveBinaryExpr(ctx, stmt);
                 break;
@@ -245,12 +248,29 @@ void ResolveBody(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveStructBody(NameResolverContext* ctx, ASTNode* current)
 {
+    Debug("StructBody");
     for (size_t i = 0; i < current->childCount; i++) {
         ASTNode* bodyElement = current->children[i];
         if (bodyElement->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == ENUM_DECL_NODE) ResolveEnumDecl(ctx, bodyElement);
         else if (bodyElement->ntype == FUNC_DEF) ResolveFuncDef(ctx, bodyElement);
         else if (bodyElement->ntype == FUNC_DECL) ResolveFuncDecl(ctx, bodyElement);
         else if (bodyElement->ntype == OPERATOR_OVERLOAD_NODE) ResolveOperatorOverload(ctx, bodyElement);
+        else 
+            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                "Invalid statement '%s' within struct scope on line %d, col %d.\n",
+                bodyElement->token.lexeme, bodyElement->token.row, bodyElement->token.col
+            );
+    }
+}
+
+void ResolveGenStructBody(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("GenStructBody");
+    for (size_t i = 0; i < current->childCount; i++) {
+        ASTNode* bodyElement = current->children[i];
+        if (bodyElement->ntype == GEN_DECL_NODE) ResolveVarDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == FUNC_DECL) ResolveFuncDecl(ctx, bodyElement);
     }
 }
 
@@ -334,6 +354,18 @@ void ResolveReturnStmt(NameResolverContext* ctx, ASTNode* current)
     ResolveExpr(ctx, current->children[0]);
 }
 
+void ResolveLockStmt(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Lock");
+    ResolveExpr(ctx, current->children[0]);
+    ResolveBody(ctx, current->children[1]);
+}
+
+void ResolveCriticalStmt(NameResolverContext* ctx, ASTNode* current)
+{
+
+}
+
 /* Decls */
 void ResolveVarDecl(NameResolverContext* ctx, ASTNode* current)
 {
@@ -392,7 +424,12 @@ void ResolveStructDecl(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveGenStructDecl(NameResolverContext* ctx, ASTNode* current)
 {
+    Debug("GenStruct");
 
+    EnterScope(ctx->arena, ctx->nss);
+    ResolveGenericList(ctx, current->children[0]);
+    ResolveGenStructBody(ctx, current->children[1]);
+    ExitScope(ctx->nss);
 }
 
 void ResolveImplements(NameResolverContext* ctx, ASTNode* current)
@@ -409,14 +446,28 @@ void ResolveImplements(NameResolverContext* ctx, ASTNode* current)
         if (sym == SYM_DOESNT_EXIST) 
             ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
                 "Interface '%s' doesn't exist within current scope on line %d, col %d.\n",
-                intName, current->token.row, current->token.col
+                intName, interfaceNode->token.row, interfaceNode->token.col
             );
     }
 }
 
 void ResolveInterfaceDecl(NameResolverContext* ctx, ASTNode* current)
 {
+    char* intName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF);
 
+    EnterScope(ctx->arena, ctx->nss);
+
+    ASTNode* interfaceBody = current->children[0];
+    for (size_t i = 0; i < interfaceBody->childCount; i++) {
+        ASTNode* memberNode = interfaceBody->children[i];
+
+        if (memberNode->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, memberNode);
+        else if (memberNode->ntype == FUNC_DECL) ResolveFuncDecl(ctx, memberNode);
+    }
+
+    ExitScope(ctx->nss);
 }
 
 /* Exprs */
@@ -778,6 +829,7 @@ void ResolveType(NameResolverContext* ctx, ASTNode* current)
     switch (current->ntype) {
         case TYPE_NODE: return; // Predefined types
         case CLOSURE_NODE: ResolveClosure(ctx, current); return;
+        case FUNC_POINTER_NODE: ResolveFuncPointer(ctx, current); return;
         default: break;
     }
 
@@ -810,6 +862,14 @@ void ResolveLambda(NameResolverContext* ctx, ASTNode* current)
 void ResolveClosure(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("Closure");
+    for (size_t i = 0; i < current->childCount; i++) 
+        ResolveType(ctx, current->children[i]);
+}
+
+void ResolveFuncPointer(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("FuncPtr");
+
     for (size_t i = 0; i < current->childCount; i++) 
         ResolveType(ctx, current->children[i]);
 }

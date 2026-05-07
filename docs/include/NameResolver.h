@@ -50,6 +50,8 @@ void ResolveWhileStmt(NameResolverContext* ctx, ASTNode* current);
 void ResolveDoWhileStmt(NameResolverContext* ctx, ASTNode* current);
 void ResolveForStmt(NameResolverContext* ctx, ASTNode* current);
 void ResolveReturnStmt(NameResolverContext* ctx, ASTNode* current);
+void ResolveLockStmt(NameResolverContext* ctx, ASTNode* current);
+void ResolveCriticalStmt(NameResolverContext* ctx, ASTNode* current);
 
 /* Decls */
 void ResolveVarDecl(NameResolverContext* ctx, ASTNode* current);
@@ -94,5 +96,6 @@ void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current);
 void ResolveType(NameResolverContext* ctx, ASTNode* current);
 void ResolveLambda(NameResolverContext* ctx, ASTNode* current);
 void ResolveClosure(NameResolverContext* ctx, ASTNode* current);
+void ResolveFuncPointer(NameResolverContext* ctx, ASTNode* current);
 
 #endif 
