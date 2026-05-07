@@ -15,7 +15,7 @@
 ### Generics are interesting, they allow generic return types without an implicit generic paramater list. This is simple syntactic sugar and is equivalent to defining a generic paramater list AND a generic return type.
 
 ```
-	Program ::=  { Import | Directive } { Function | DeclStmt | InterfaceDecl }
+	Program ::=  { Import | Directive } { Function | DeclStmt }
 
     Import ::= '#' "import" [ "device" ] SLITERAL ';'
     Directive ::= '#' ( Ifdir | Elifdir | Elsedir | Endifdir | Pragmadir | Errdir ) ';'
@@ -47,18 +47,18 @@
         Captures ::= "captures" IDENT { IDENT { ',' IDENT } }
 	Body ::= '{' StmtList '}'
     StmtList ::= { Stmt }
-	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt | JumpStmt | ConcurrencyStmt
+	Stmt ::= CtrlStmt | DeclStmt | ExprStmt | ReturnStmt | JumpStmt | ConcurrencyStmt 
 
     ExprStmt ::= Expr ';'  
-	DeclStmt ::= ( VarDecl  | EnumDecl | TypedefDecl ) ';'
+	DeclStmt ::= ( VarDecl  | EnumDecl | TypedefDecl | InterfaceDecl ) ';'
                  | StructDecl        // Semicolon after struct is annoying
 
     VarDecl ::= "let" LinkageSpecifier TypeQualifier ( Type | IDENT ) VarList 
     StructDecl ::= GenericStruct | RegularStruct
     GenericStruct ::= "struct" IDENT GenericList '{' GenStructBody '}'
-        GenStructBody ::= { VarDecl | Function }
+        GenStructBody ::= { EnumDecl | VarDecl | Function }
     RegularStruct ::= "struct" IDENT [ Implements ] '{' StructBody '}' 
-        StructBody ::= { DeclStmt | Function | OperatorOverload }
+        StructBody ::= { EnumDecl | DeclStmt | Function | OperatorOverload }
         Implements ::= ':' IDENT { IDENT { ',' IDENT } }
         OperatorOverload ::= "operator" OverloadableOp '(' Param [ ',' Param ] ')' Body
         OverloadableOp   ::= '+' | '-' | '*' | '/' | '%' | '@'

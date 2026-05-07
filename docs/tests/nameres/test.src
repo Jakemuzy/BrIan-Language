@@ -151,6 +151,12 @@ enum COLOR {
 let int BLUE = true;    // Err blue defined
 */
 
+/*
+enum DUPE {
+    JUAN, Two, JUAN
+};
+*/
+
 /* 
 interface Printable {
     let int print;
@@ -193,9 +199,58 @@ struct Group : Printable {
 */
 
 /*
-struct GenGroup <T> {
-    
+struct GenGroup <T, B> {
+    let T one;
+    let B two;
+
+    fn void ADD(T one, B two);
+}
+fn void ADD(int a, int b);
+*/
+
+/*
+struct GenGroup2 <T, B> {
+    fn void ADD(T one, B two) // Err, decl only
+    {
+
+    }
 }
 */
+
+/*
+struct Nest {
+    struct two {    // Err
+
+    }
+}
+*/
+
+/*
+struct EnumNest {
+    enum NAMES {
+        JOE, BIDEN, KAMALA
+    };
+
+    let int a = JOE;
+}
+*/
+
+/*
+type TEST = int;
+let fp void(int, int) funcPointer;
+let fp void(int, TEST) fptr2;
+*/
+
+fn void CriticalTest() {
+    lock ( i = i++ ) {
+
+    }
+
+    lock () {
+        
+    }
+}
+
+
 
 //let bool isTrue = 1 ? true : false;

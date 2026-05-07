@@ -88,7 +88,8 @@ void Program(ParserContext* ctx)
 				if (ctx->panicMode) { SyncRecovery(ctx, RBRACE); Advance(ctx); }
                 else AddChildASTNode(ctx->arena, ctx->ast->root, funcNode);
 
-				// TODO: func decls SHOULD require semi after in global scope
+				if (funcNode->ntype == FUNC_DECL && !Match(ctx, SEMI)) 
+					ParseERROR(ctx, "Expected ';' after function declaration in generic struct.");
                 break;
             case INTERFACE:
                 ASTNode* interfaceDeclNode = InterfaceDecl(ctx);
@@ -520,6 +521,8 @@ ASTNode* GenStructBody(ParserContext* ctx)
 				ASTNode* genFuncNode = Function(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, genStructNode, genFuncNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected ';' after function declaration in generic struct.");
 				break;
 			case RBRACE:
 				Advance(ctx);
@@ -545,6 +548,9 @@ ASTNode* StructBody(ParserContext* ctx)
 				ASTNode* funcNode = Function(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, structBodyNode, funcNode);
+
+				if (funcNode->ntype == FUNC_DECL && !Match(ctx, SEMI)) 
+					return ParseERROR(ctx, "Expected ';' after function declaration in generic struct.");
 				break;
 			case LET: 
 				ASTNode* varDeclNode = VarDecl(ctx);
