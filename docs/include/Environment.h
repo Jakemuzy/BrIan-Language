@@ -24,7 +24,8 @@ struct Type;
 
 typedef enum SymbolType {
     S_VAR, S_FUNC, S_INDEX, S_CALL, S_FIELD, S_GEN,
-    S_TYPEDEF, S_STRUCT, S_ENUM, S_CTRL, S_ERROR
+    S_TYPEDEF, S_STRUCT, S_ENUM, S_CTRL, S_OPERATOR,
+    S_ERROR
 } SymbolType;
 
 typedef struct Symbol {
@@ -43,10 +44,10 @@ static Symbol* POISON_SYM = &POISON_SYM_OBJ;
 /* ----- Symbol Table ----- */
 
 #define ENV_INIT_SIZE 109
-#define NS_COUNT 2  // 2 for now, only VAR and TYPE implemented
+#define NS_COUNT 3  // 3 for now, only VAR and TYPE, and OPERATOR
 
 typedef enum NamespaceKind {
-    N_VAR, N_TYPE, N_NAMESPACE, N_MACRO, N_LIFETIME, N_LABEL 
+    N_VAR, N_TYPE, N_OPERATOR, N_NAMESPACE, N_MACRO, N_LIFETIME, N_LABEL 
 } NamespaceKind;
 
 typedef struct Environment {

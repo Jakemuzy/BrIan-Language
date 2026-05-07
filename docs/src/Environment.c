@@ -28,9 +28,11 @@ Environment* InitalizeEnvironment(Arena* arena, NamespaceKind nskind)
 Symbol* LookupEnvironment(Environment* env, char* key)
 {
     int bucket = SymbolHash(key) % env->maxSize;
-    Symbol* sym = env->buckets[bucket];
-    if (sym && strcmp(sym->name, key) == 0)
-        return sym;
+    while (env->buckets[bucket] != NULL) {
+        if (strcmp(env->buckets[bucket]->name, key) == 0)
+            return env->buckets[bucket];
+        bucket = (bucket + 1) % env->maxSize;
+    }
     if (env->prev)
         return LookupEnvironment(env->prev, key);
     return NULL;
@@ -39,38 +41,42 @@ Symbol* LookupEnvironment(Environment* env, char* key)
 Symbol* LookupEnvironmentCurrentScope(Environment* env, char* key)
 {
     int bucket = SymbolHash(key) % env->maxSize;
-    Symbol* sym = env->buckets[bucket];
-    if (sym && strcmp(sym->name, key) == 0)
-        return sym;
+    while (env->buckets[bucket] != NULL) {
+        if (strcmp(env->buckets[bucket]->name, key) == 0)
+            return env->buckets[bucket];
+        bucket = (bucket + 1) % env->maxSize;
+    }
     return NULL;
 }
 
 Symbol* PushEnvironment(Arena* arena, Environment* env, ASTNode* key, SymbolType stype)
 {
+    // Half since probing 
+    if (env->currSize + 1 > env->maxSize / 2) 
+        ResizeEnvironment(env, env->maxSize * 2);
+
     char* name = key->token.lexeme;
     int bucket = SymbolHash(name) % env->maxSize;
-    Symbol* sym = env->buckets[bucket];
 
-    // Already Exists
-    if (sym) {
-        int firstCol = sym->node->token.col, firstRow = sym->node->token.row;
-        int secondCol = key->token.col, secondRow = key->token.row;
-        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, "Symbol '%s' on line %d, col %d, is already defined. First defined on line %d, col %d.", name, secondRow, secondCol, firstRow, firstCol);
-        
-        return SYM_ALREADY_EXISTS;
+    while (env->buckets[bucket] != NULL) {
+        if (strcmp(env->buckets[bucket]->name, name) == 0) {
+            int firstCol = env->buckets[bucket]->node->token.col;
+            int firstRow = env->buckets[bucket]->node->token.row;
+            int secondCol = key->token.col, secondRow = key->token.row;
+
+            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR,
+                "Symbol '%s' on line %d, col %d, is already defined. First defined on line %d, col %d.\n",
+                name, secondRow, secondCol, firstRow, firstCol);
+            return SYM_ALREADY_EXISTS;
+        }
+        bucket = (bucket + 1) % env->maxSize;
     }
-
     // Resizing 
-    if (env->currSize + 1 > env->maxSize) {
-        ResizeEnvironment(env, env->maxSize * 2);
-        bucket = SymbolHash(name) % env->maxSize;
-    }
     
-    sym = AllocateArena(arena, sizeof(Symbol));
+    Symbol* sym = AllocateArena(arena, sizeof(Symbol));
     sym->type = NULL;
     sym->node = key;
     sym->stype = stype;
-
     sym->name = name;
 
     env->buckets[bucket] = sym;

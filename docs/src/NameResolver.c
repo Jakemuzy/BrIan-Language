@@ -84,6 +84,12 @@ void NameResolve(NameResolverContext* ctx)
             case ENUM_DECL_NODE:
                 ResolveEnumDecl(ctx, current);
                 break;
+            case STRUCT_DECL_NODE:  
+                ResolveStructDecl(ctx, current);
+                break;
+            case GEN_STRUCT_DECL_NODE:
+                ResolveGenStructDecl(ctx, current);
+                break;
             default:
                 printf("Unexpected node type %d\n", current->ntype);
                 return;
@@ -237,6 +243,16 @@ void ResolveBody(NameResolverContext* ctx, ASTNode* current)
     }
 }
 
+void ResolveStructBody(NameResolverContext* ctx, ASTNode* current)
+{
+    for (size_t i = 0; i < current->childCount; i++) {
+        ASTNode* bodyElement = current->children[i];
+        if (bodyElement->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == FUNC_DEF) ResolveFuncDef(ctx, bodyElement);
+        else if (bodyElement->ntype == FUNC_DECL) ResolveFuncDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == OPERATOR_OVERLOAD_NODE) ResolveOperatorOverload(ctx, bodyElement);
+    }
+}
 
 /* Ctrl Stmts */
 void ResolveIfStmt(NameResolverContext* ctx, ASTNode* current)
@@ -353,7 +369,49 @@ void ResolveTypedefDecl(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveStructDecl(NameResolverContext* ctx, ASTNode* current)
 {
+    Debug("Struct");
 
+    char* typeName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    PushEnvironment(ctx->arena, typeEnv, current, S_STRUCT);
+
+    // Interface implementation
+    int i = 0;
+    ASTNode* implementsNode = current->children[0];
+    if (implementsNode->ntype == IMPLEMENTS_NODE) {
+        ResolveImplements(ctx, implementsNode);
+        i++;
+    }
+
+    ASTNode* structBody = current->children[i];
+
+    EnterScope(ctx->arena, ctx->nss);
+    ResolveStructBody(ctx, structBody);
+    ExitScope(ctx->nss);
+}
+
+void ResolveGenStructDecl(NameResolverContext* ctx, ASTNode* current)
+{
+
+}
+
+void ResolveImplements(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Implements");
+
+    for (size_t j = 0; j < current->childCount; j++) {
+        ASTNode* interfaceNode = current->children[j];
+
+        char* intName = interfaceNode->token.lexeme;
+        Environment* intEnv = GetNamespace(ctx->nss, N_TYPE);
+        Symbol* sym = LookupEnvironment(intEnv, intName); 
+
+        if (sym == SYM_DOESNT_EXIST) 
+            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                "Interface '%s' doesn't exist within current scope on line %d, col %d.\n",
+                intName, current->token.row, current->token.col
+            );
+    }
 }
 
 void ResolveInterfaceDecl(NameResolverContext* ctx, ASTNode* current)
@@ -604,20 +662,6 @@ void ResolveArrInit(NameResolverContext* ctx, ASTNode* current)
     }
 }
 
-void ResolveLambda(NameResolverContext* ctx, ASTNode* current)
-{
-    Debug("Lambda");
-
-    // Must resolve captures first since it checks the current scope
-    ResolveType(ctx, current->children[0]);
-
-    EnterScope(ctx->arena, ctx->nss);
-    ResolveParamList(ctx, current->children[1]);
-    ResolveCaptures(ctx, current->children[2]);
-    ResolveBody(ctx, current->children[3]);
-    ExitScope(ctx->nss);
-}
-
 void ResolveCaptures(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("Captures");
@@ -640,6 +684,37 @@ void ResolveCaptures(NameResolverContext* ctx, ASTNode* current)
         // Push them to current
         PushEnvironment(ctx->arena, env, captureSym->node, S_VAR);
     }
+}
+
+void ResolveOperatorOverload(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Operator");
+    // TODO: Lazy namespace binding in the future
+    // TODO: Allow multiple of the same operator, as long as types are diff
+
+    // Operator
+    char* operatorNode = current->token.lexeme;
+    Environment* opEnv = GetNamespace(ctx->nss, N_OPERATOR);
+    PushEnvironment(ctx->arena, opEnv, current, S_OPERATOR);
+
+    EnterScope(ctx->arena, ctx->nss);
+
+    // Paramaters and body
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+
+    for (size_t i = 0; i < current->childCount; i++) {
+        ASTNode* paramOrBodyNode = current->children[i];
+
+        if (paramOrBodyNode->ntype == PARAM_NODE) {
+            ASTNode* param = paramOrBodyNode;
+
+            ResolveType(ctx, param->children[0]);
+            PushEnvironment(ctx->arena, env, param, S_FIELD);
+        } else if (paramOrBodyNode->ntype == BODY_NODE) 
+            ResolveBody(ctx, paramOrBodyNode);
+    } 
+
+    ExitScope(ctx->nss);
 }
 
 /* Lists */
@@ -698,6 +773,8 @@ void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveType(NameResolverContext* ctx, ASTNode* current)
 {
+    Debug("Type");
+
     switch (current->ntype) {
         case TYPE_NODE: return; // Predefined types
         case CLOSURE_NODE: ResolveClosure(ctx, current); return;
@@ -714,6 +791,20 @@ void ResolveType(NameResolverContext* ctx, ASTNode* current)
             "User defined type '%s' doesn't exist within current scope on line %d, col %d.\n",
             typeName, current->token.row, current->token.col
         );
+}
+
+void ResolveLambda(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Lambda");
+
+    // Must resolve captures first since it checks the current scope
+    ResolveType(ctx, current->children[0]);
+
+    EnterScope(ctx->arena, ctx->nss);
+    ResolveParamList(ctx, current->children[1]);
+    ResolveCaptures(ctx, current->children[2]);
+    ResolveBody(ctx, current->children[3]);
+    ExitScope(ctx->nss);
 }
 
 void ResolveClosure(NameResolverContext* ctx, ASTNode* current)

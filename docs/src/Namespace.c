@@ -7,6 +7,7 @@ Namespaces* InitalizeNamespaces(Arena* arena)
    Namespaces* nss = malloc(sizeof(Namespaces));
    nss->ns[0] = InitalizeEnvironment(arena, N_VAR);
    nss->ns[1] = InitalizeEnvironment(arena, N_TYPE);
+   nss->ns[2] = InitalizeEnvironment(arena, N_OPERATOR);
 
    return nss;
 }

@@ -40,6 +40,8 @@ void ResolveGenFuncDecl(NameResolverContext* ctx, ASTNode* current);
 void ResolveGenFuncDef(NameResolverContext* ctx, ASTNode* current);
 void ResolveReturnType(NameResolverContext* ctx, ASTNode* current);
 void ResolveBody(NameResolverContext* ctx, ASTNode* current);
+void ResolveStructBody(NameResolverContext* ctx, ASTNode* current);
+void ResolveGenStructBody(NameResolverContext* ctx, ASTNode* current);
 
 /* Ctrl Stmts */
 void ResolveIfStmt(NameResolverContext* ctx, ASTNode* current);
@@ -54,8 +56,9 @@ void ResolveVarDecl(NameResolverContext* ctx, ASTNode* current);
 void ResolveEnumDecl(NameResolverContext* ctx, ASTNode* current);
 void ResolveTypedefDecl(NameResolverContext* ctx, ASTNode* current);
 void ResolveStructDecl(NameResolverContext* ctx, ASTNode* current);
+void ResolveGenStructDecl(NameResolverContext* ctx, ASTNode* current);
+void ResolveImplements(NameResolverContext* ctx, ASTNode* current);
 void ResolveInterfaceDecl(NameResolverContext* ctx, ASTNode* current);
-
 
 /* Exprs */
 void ResolveExpr(NameResolverContext* ctx, ASTNode* current);
@@ -77,8 +80,8 @@ void ResolveSizeof(NameResolverContext* ctx, ASTNode* current);
 void ResolveVar(NameResolverContext* ctx, ASTNode* current);
 void ResolveArrDecl(NameResolverContext* ctx, ASTNode* current);
 void ResolveArrInit(NameResolverContext* ctx, ASTNode* current);
-void ResolveLambda(NameResolverContext* ctx, ASTNode* current);
 void ResolveCaptures(NameResolverContext* ctx, ASTNode* current);
+void ResolveOperatorOverload(NameResolverContext* ctx, ASTNode* current);
 
 /* Lists */
 void ResolveParamList(NameResolverContext* ctx, ASTNode* current);
@@ -89,6 +92,7 @@ void ResolveGenericList(NameResolverContext* ctx, ASTNode* current);
 void ResolveGeneric(NameResolverContext* ctx, ASTNode* current);
 void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current);
 void ResolveType(NameResolverContext* ctx, ASTNode* current);
+void ResolveLambda(NameResolverContext* ctx, ASTNode* current);
 void ResolveClosure(NameResolverContext* ctx, ASTNode* current);
 
 #endif 
