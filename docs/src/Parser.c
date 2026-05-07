@@ -149,7 +149,6 @@ ASTNode* Function(ParserContext* ctx)
 	switch (ctx->current.type) {
 		case SEMI: 
 			funcNode->ntype = (retIsGeneric || paramsAreGeneric) ? GEN_FUNC_DECL : FUNC_DECL;
-			Advance(ctx);
 			break;
 		case LBRACE:
 			funcNode->ntype = (retIsGeneric || paramsAreGeneric) ? GEN_FUNC_DEF : FUNC_DEF;

@@ -409,14 +409,28 @@ void ResolveImplements(NameResolverContext* ctx, ASTNode* current)
         if (sym == SYM_DOESNT_EXIST) 
             ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
                 "Interface '%s' doesn't exist within current scope on line %d, col %d.\n",
-                intName, current->token.row, current->token.col
+                intName, interfaceNode->token.row, interfaceNode->token.col
             );
     }
 }
 
 void ResolveInterfaceDecl(NameResolverContext* ctx, ASTNode* current)
 {
+    char* intName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF);
 
+    EnterScope(ctx->arena, ctx->nss);
+
+    ASTNode* interfaceBody = current->children[0];
+    for (size_t i = 0; i < interfaceBody->childCount; i++) {
+        ASTNode* memberNode = interfaceBody->children[i];
+
+        if (memberNode->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, memberNode);
+        else if (memberNode->ntype == FUNC_DECL) ResolveFuncDecl(ctx, memberNode);
+    }
+
+    ExitScope(ctx->nss);
 }
 
 /* Exprs */

@@ -151,14 +151,33 @@ enum COLOR {
 let int BLUE = true;    // Err blue defined
 */
 
-// interface Printable
+/* 
+interface Printable {
+    let int print;
+    fn void print(string msg);  // Already defined
+}
+*/
 
+/*
+let int a;
+interface Printable {
+    let int a;
+    fn void print(string msg);  
+}
+*/
+
+/*
+interface Printable {
+    fn void print(string msg);  
+}
+*/
+
+/*
 enum BUDDY {
     John, Harry, Calvin
 };
 
 let int b = 3;
-
 struct Group : Printable {
     let BUDDY one, two, three = Calvin;
 
@@ -171,6 +190,7 @@ struct Group : Printable {
         return b;
     }
 }
+*/
 
 /*
 struct GenGroup <T> {
