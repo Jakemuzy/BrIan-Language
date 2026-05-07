@@ -160,6 +160,10 @@ Another thing to note: namespaces. Each time a scope is entered, a new environme
 
 Additionally when declaring a new variable we would have to check if the namespace even exists first, adding another operationg to symbol table additon. This is something to consider if BrIan ever decides to move towards user defined namespaces, though, as dynamic namespace bindings are required anyways in that case.
 
+On the discussion of namespaces, I have decided to add a third namespace: N_OPERATOR. This namespace is obviously for operator overloading. Again it brings up the question of whether binding namespaces might be a better design for my language. As the number of namespaces increases, the less efficient it is for all namespaces to be created upon entry of a new scope. This is especially evident in operator overload, which is in itself relatively rare and can only occur within structs. A namespace that is rarely used, yet is required to regenerate upon every new scope is the definition of wasted resources. For now it is acceptable, but again, considerations should be taken in the future to reinforce this namespaces system via bindings. We can work around this system temporary via lazy namespace allocation: only create the namespace when something is pushed to it. This, however, is only a temporary solution for a sufficiently complex language such as BrIan, especially when we consider lambda captures. We already have a mini version of this since we assign symbols to the indivdual ASTNode, but a more fleshed out system is to be thought about.
+
+N_OPERATOR will only allow one of each operator per struct for now. This will be changed in the future, since users should be able to define the behavior of operators on different paramater types, however, it will speed up development to limit to only one for now.
+
 A couple more considerations: because symbol tables are a linked list based on scope, as soon as we exit a scope, this symbol informatoin is discarded. For this reason we store a Symbol* inside of each ASTNode* as well for further traversal. 
 
 ## Type Checking 

@@ -151,6 +151,31 @@ enum COLOR {
 let int BLUE = true;    // Err blue defined
 */
 
+// interface Printable
 
+enum BUDDY {
+    John, Harry, Calvin
+};
+
+let int b = 3;
+
+struct Group : Printable {
+    let BUDDY one, two, three = Calvin;
+
+    fn void print(string msg) {
+        // ...
+        three = two;
+    }
+
+    operator +(Group a, Group b) {
+        return b;
+    }
+}
+
+/*
+struct GenGroup <T> {
+    
+}
+*/
 
 //let bool isTrue = 1 ? true : false;
