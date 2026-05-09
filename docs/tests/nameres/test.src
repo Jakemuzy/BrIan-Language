@@ -242,12 +242,20 @@ let fp void(int, TEST) fptr2;
 */
 
 fn void CriticalTest() {
+    let int i = 0;
+    
     lock ( i = i++ ) {
 
     }
 
-    lock () {
+    /*
+    lock () {   // Err
         
+    }
+    */
+
+    critical {
+
     }
 }
 

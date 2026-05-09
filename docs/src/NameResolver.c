@@ -196,6 +196,12 @@ void ResolveBody(NameResolverContext* ctx, ASTNode* current)
             case RETURN_STMT_NODE:
                 ResolveReturnStmt(ctx, stmt);
                 break;
+            case LOCK_STMT_NODE:
+                ResolveLockStmt(ctx, stmt);
+                break;
+            case CRITICAL_STMT_NODE:
+                ResolveCriticalStmt(ctx, stmt);
+                break;
             case VAR_DECL_NODE:
                 ResolveVarDecl(ctx, stmt);
                 break;
@@ -363,7 +369,8 @@ void ResolveLockStmt(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveCriticalStmt(NameResolverContext* ctx, ASTNode* current)
 {
-
+    Debug("Critical");
+    ResolveBody(ctx, current->children[0]);
 }
 
 /* Decls */
