@@ -835,6 +835,9 @@ void ResolveType(NameResolverContext* ctx, ASTNode* current)
 
     switch (current->ntype) {
         case TYPE_NODE: return; // Predefined types
+        case CHANNEL_NODE: ResolveChannel(ctx, current); return;
+        case MATRIX_NODE: ResolveMatrix(ctx, current); return;
+        case VECTOR_NODE: ResolveVector(ctx, current); return;
         case CLOSURE_NODE: ResolveClosure(ctx, current); return;
         case FUNC_POINTER_NODE: ResolveFuncPointer(ctx, current); return;
         default: break;
@@ -850,6 +853,22 @@ void ResolveType(NameResolverContext* ctx, ASTNode* current)
             "User defined type '%s' doesn't exist within current scope on line %d, col %d.\n",
             typeName, current->token.row, current->token.col
         );
+}
+
+void ResolveChannel(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Channel");
+    ResolveType(ctx, current->children[0]);
+}
+
+void ResolveMatrix(NameResolverContext* ctx, ASTNode* current)
+{
+
+}
+
+void ResolveVector(NameResolverContext* ctx, ASTNode* current)
+{
+
 }
 
 void ResolveLambda(NameResolverContext* ctx, ASTNode* current)

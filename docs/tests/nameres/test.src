@@ -241,6 +241,7 @@ let fp void(int, int) funcPointer;
 let fp void(int, TEST) fptr2;
 */
 
+/*
 fn void CriticalTest() {
     let int i = 0;
     
@@ -248,17 +249,36 @@ fn void CriticalTest() {
 
     }
 
-    /*
     lock () {   // Err
         
     }
-    */
 
     critical {
 
+        break;
+        continue;
     }
 }
+*/
 
+/*
+type ID = int;
+let int testerX = 1;
+let chan<int> intChan = <-(testerX + 1);
+let chan<ID> idChan;
+*/
+
+let int x = 3;
+let int y = 3;
+let mat<x,y> mat1; 
+let mat<1,y> mat2; 
+let mat<x,1> mat3; 
+
+/*
+let int size = 3;
+let vec<1> vec1;
+let vec<size> vec2;
+*/
 
 
 //let bool isTrue = 1 ? true : false;
