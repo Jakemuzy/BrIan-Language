@@ -1,0 +1,9 @@
+// Valid
+
+fn int main() {
+    let int j = 3;
+    let int k = 4;
+    for (j = 3; j < 4; j++) {
+        let int k = 4;
+    }
+}

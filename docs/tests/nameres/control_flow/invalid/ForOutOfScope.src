@@ -1,0 +1,11 @@
+// Invalid
+
+fn void main() {
+    for (; ;) {
+        let int j = 3;
+    }
+
+    for (; ;) {
+        j = 3;
+    }
+}

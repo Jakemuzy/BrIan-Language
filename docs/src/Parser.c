@@ -826,7 +826,6 @@ ASTNode* IfStmt(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 				else AddChildASTNode(ctx->arena, elifNode, conditionalNode);
 				break;
-			case RPAREN: break;
 			default: return ParseERROR(ctx, "Expected expression in elif condition.");
 		}
 
@@ -988,7 +987,9 @@ ASTNode* ForStmt(ParserContext* ctx)
 			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 			else AddChildASTNode(ctx->arena, forStmtNode, exprInitNode);
 			break;
-		case SEMI: break;
+		case SEMI:
+			AddChildASTNode(ctx->arena, forStmtNode, &EMPTYNODE); 
+			break;
 		default: return ParseERROR(ctx, "Expected initalizer section of for statement.");
 	}
 
@@ -1001,7 +1002,9 @@ ASTNode* ForStmt(ParserContext* ctx)
 			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 			else AddChildASTNode(ctx->arena, forStmtNode, conditionNode);
 			break;
-		case SEMI: break;
+		case SEMI: 
+			AddChildASTNode(ctx->arena, forStmtNode, &EMPTYNODE); 
+			break;
 		default: return ParseERROR(ctx, "Expected conditional section of for statement.");
 	}
 
@@ -1013,7 +1016,9 @@ ASTNode* ForStmt(ParserContext* ctx)
 			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 			else AddChildASTNode(ctx->arena, forStmtNode, exprListNode);
 			break;
-		case RPAREN: break;
+		case RPAREN: 
+			AddChildASTNode(ctx->arena, forStmtNode, &EMPTYNODE); 
+			break;
 		default: return ParseERROR(ctx, "Expected incremental section of for statement.");
 	}
 

@@ -1,0 +1,7 @@
+// Valid
+
+fn int main() {
+    for (; ;) {
+        break;
+    }
+}

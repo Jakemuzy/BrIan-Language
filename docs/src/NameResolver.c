@@ -243,6 +243,9 @@ void ResolveBody(NameResolverContext* ctx, ASTNode* current)
             case SREF_NODE:
                 ResolveReference(ctx, stmt);
                 break;
+            case BREAK_NODE:    // Fallthrough, since same format
+            case CONTINUE_NODE: 
+                break;
             default: 
                 ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
                     "Invalid statement type within body '%s' on line %d, col %d.\n", 
@@ -331,7 +334,9 @@ void ResolveWhileStmt(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("WhileStmt");
     ResolveExpr(ctx, current->children[0]);
+    EnterScope(ctx->arena, ctx->nss);
     ResolveBody(ctx, current->children[1]);
+    ExitScope(ctx->nss);
 }
 
 void ResolveDoWhileStmt(NameResolverContext* ctx, ASTNode* current)
@@ -345,16 +350,21 @@ void ResolveForStmt(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("ForStmt");
     ASTNode* initNode = current->children[0];
-    if (initNode->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, initNode);
+    if (initNode == &EMPTYNODE) ; 
+    else if (initNode->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, initNode);
     else ResolveExpr(ctx, initNode);
 
     ResolveExpr(ctx, current->children[1]);
 
     ASTNode* exprListNode = current->children[2];
-    for (size_t i = 0; i < exprListNode->childCount; i++) 
+    for (size_t i = 0; i < exprListNode->childCount; i++)  {
+        if (exprListNode->children[i] == &EMPTYNODE) continue;
         ResolveExpr(ctx, exprListNode->children[i]);
+    }
 
-    ResolveBody(ctx, current->children[3]);
+    EnterScope(ctx->arena, ctx->nss);
+    if (current->children[3] != &EMPTYNODE) ResolveBody(ctx, current->children[3]);
+    ExitScope(ctx->nss);
 }
 
 void ResolveReturnStmt(NameResolverContext* ctx, ASTNode* current)
@@ -575,15 +585,7 @@ void ResolveCast(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("Cast");
     ResolveType(ctx, current->children[0]);
-    char* varName = current->children[1]->token.lexeme;
-    Environment* env = GetNamespace(ctx->nss, N_VAR);
-    Symbol* sym = LookupEnvironment(env, varName);
-
-    if (sym == SYM_DOESNT_EXIST)
-        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
-            "Variable '%s' doesn't exist within current scope on line %d, col %d.\n",
-            varName, current->token.row, current->token.col
-        );
+    ResolveExpr(ctx, current->children[1]);
 }
 
 void ResolveIndex(NameResolverContext* ctx, ASTNode* current)
