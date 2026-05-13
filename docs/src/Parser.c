@@ -38,6 +38,11 @@ static inline bool Match(ParserContext* ctx, TokenType t) {
 static inline void SyncRecovery(ParserContext* ctx, TokenType tt) 
 {
     while (ctx->current.type != tt && ctx->current.type != END) {
+		//printf("%d\n", ctx->current.lexeme[0]);
+		if (ctx->current.lexeme[0] == ctx->tokenizer->buffer1[TOKENIZER_BUFFER_SIZE - 1])
+			printf("SENTINEL");
+		if (ctx->current.lexeme[0] == ctx->tokenizer->buffer2[TOKENIZER_BUFFER_SIZE - 1])
+			printf("SENTINEL");
         Advance(ctx);
 	}
 	ctx->panicMode = false;
@@ -101,7 +106,7 @@ void Program(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
                 else AddChildASTNode(ctx->arena, ctx->ast->root, varDeclNode);
 
-				if (!Match(ctx, SEMI)) { ParseERROR(ctx, "Expected semicolon ';' after variable declartion."); return; }
+				if (!Match(ctx, SEMI)) ParseERROR(ctx, "Expected semicolon ';' after variable declartion."); 
                 break;
 			case ENUM:
 				ASTNode* enumNode = EnumDecl(ctx);
@@ -821,7 +826,6 @@ ASTNode* IfStmt(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 				else AddChildASTNode(ctx->arena, elifNode, conditionalNode);
 				break;
-			case RPAREN: break;
 			default: return ParseERROR(ctx, "Expected expression in elif condition.");
 		}
 
@@ -983,7 +987,9 @@ ASTNode* ForStmt(ParserContext* ctx)
 			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 			else AddChildASTNode(ctx->arena, forStmtNode, exprInitNode);
 			break;
-		case SEMI: break;
+		case SEMI:
+			AddChildASTNode(ctx->arena, forStmtNode, &EMPTYNODE); 
+			break;
 		default: return ParseERROR(ctx, "Expected initalizer section of for statement.");
 	}
 
@@ -996,7 +1002,9 @@ ASTNode* ForStmt(ParserContext* ctx)
 			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 			else AddChildASTNode(ctx->arena, forStmtNode, conditionNode);
 			break;
-		case SEMI: break;
+		case SEMI: 
+			AddChildASTNode(ctx->arena, forStmtNode, &EMPTYNODE); 
+			break;
 		default: return ParseERROR(ctx, "Expected conditional section of for statement.");
 	}
 
@@ -1008,7 +1016,9 @@ ASTNode* ForStmt(ParserContext* ctx)
 			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 			else AddChildASTNode(ctx->arena, forStmtNode, exprListNode);
 			break;
-		case RPAREN: break;
+		case RPAREN: 
+			AddChildASTNode(ctx->arena, forStmtNode, &EMPTYNODE); 
+			break;
 		default: return ParseERROR(ctx, "Expected incremental section of for statement.");
 	}
 

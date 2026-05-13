@@ -119,8 +119,8 @@
         Channel ::= "chan" '<' ( Type | IDENT ) '>'
         Matrix ::= "mat" '<' {1-9} ',' {1-9} '>'
         Vector ::= "vec" '<' {1-9} '>'
-        FuncPointer ::= "fp" [ TypeQualifier ] FuncPointerSignature
         Closure ::= "closure" [ TypeQualifier ] FuncPointerSignature
+        FuncPointer ::= "fp" [ TypeQualifier ] FuncPointerSignature
         FuncPointerSignature ::= ( Type | IDENT ) '(' [ AnonParamList ] ')' 
     DeclPrefix ::= ( '*' | '%' )          
     GenericList ::= '<' IDENT { ',' IDENT } '>'

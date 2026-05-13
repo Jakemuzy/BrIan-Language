@@ -59,7 +59,9 @@ typedef enum NodeType {
     // Misc
     SIZEOF_NODE, HEX_NODE,
     ARG_LIST_NODE, VAR_LIST_NODE, VAR_NODE, ARR_DECL_NODE, ARR_INIT_LIST_NODE,
-    LITERAL_NODE, IDENT_NODE
+    LITERAL_NODE, IDENT_NODE,
+
+    EMPTY_NODE
 } NodeType;
 
 typedef struct ASTNode {
@@ -77,6 +79,8 @@ typedef struct ASTNode {
 typedef struct AST {
     ASTNode* root;
 } AST;
+
+static ASTNode EMPTYNODE = (ASTNode) {NULL, 0, 0, EMPTY_NODE, DUMMY_TOKEN, NULL, NULL};
 
 // Arena handles allocation and destruction
 AST* InitalizeAST(Arena* arena);

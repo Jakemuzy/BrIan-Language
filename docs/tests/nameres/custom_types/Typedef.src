@@ -1,0 +1,4 @@
+// Pass
+
+type foo = int;
+let foo a = 4;

@@ -1,0 +1,9 @@
+// Valid
+
+type TEST = int;
+let fp void(int, int) funcPointer;
+let fp void(int, TEST) fptr2;
+
+fn void TestFunc(int a, int b);
+
+let fp void(int, TEST) funcFP = TestFunc;

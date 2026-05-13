@@ -1,0 +1,9 @@
+// Valid
+
+let int i = 14000;
+
+let chan<int> i2;
+let chan<float> f  = <-i;
+
+type T = int;
+let chan<T> T;  // Fine since diff namespaces

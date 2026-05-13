@@ -1,0 +1,10 @@
+// Valid
+
+let u32 secretThree = 1; let closure void(int, int) adder = 
+    lambda void (int one, int two) captures secretThree {
+        return one + two + secretThree;
+    };
+
+fn void Test() {
+    adder(1, 2);
+}

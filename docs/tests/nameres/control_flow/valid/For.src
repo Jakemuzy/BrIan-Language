@@ -1,0 +1,5 @@
+// Valid
+
+fn int main() {
+    for (let int i = 0; i < 13; i++) { }
+}

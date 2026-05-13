@@ -1,42 +1,13 @@
 fn int func(int a, int b) {
 /*
-    type Foo = int;
-    let int a = 4;
-    let u32 b = 23;
 
     (a + b)++;
     a += 2; 
 */
 
-/*
-    let u32 secretThree = 1;
-    let closure void(int, int) adder = 
-        lambda void (int one, int two) captures secretThree {
-            return one + two + secretThree;
-        };
 
-    adder(1, 2);
-*/
 
-    // subber(1, 2);  Func call doesn't exist
-    // adder(one, two); Func call params don't exist
 
-/*
-    if (true) {
-        let int i = 0;  // Valid
-    }
-*/
-/*
-    if (true) {
-        i = 0;  // Invalid, var doesn't exist
-    }
-*/
-
-/* 
-    for (let int i = 0; i < 13; i++) {
-        let char c = 'b';
-    }
-*/
 
 /*
     while (true) {
@@ -73,9 +44,6 @@ fn int func(int a, int b) {
 */
 
 /*
-    let int arrTest[1][scretThree] = {{1}};
-    let int arrTwo[2] = {2, 3, 4};
-    let int testarr[2][3] = {{1, 2, 3}, {3, 2, undefined}}; // Err
 */
 
 
@@ -235,22 +203,45 @@ struct EnumNest {
 }
 */
 
-/*
-type TEST = int;
-let fp void(int, int) funcPointer;
-let fp void(int, TEST) fptr2;
-*/
 
+/*
 fn void CriticalTest() {
+    let int i = 0;
+    
     lock ( i = i++ ) {
 
     }
 
-    lock () {
+    lock () {   // Err
         
     }
-}
 
+    critical {
+
+        break;
+        continue;
+    }
+}
+*/
+
+/*
+type ID = int;
+let int testerX = 1;
+let chan<int> intChan = <-(testerX + 1);
+let chan<ID> idChan;
+*/
+
+let int x = 3;
+let int y = 3;
+let mat<x,y> mat1; 
+let mat<1,y> mat2; 
+let mat<x,1> mat3; 
+
+/*
+let int size = 3;
+let vec<1> vec1;
+let vec<size> vec2;
+*/
 
 
 //let bool isTrue = 1 ? true : false;

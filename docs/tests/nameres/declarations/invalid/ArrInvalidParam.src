@@ -1,0 +1,3 @@
+// Invalid
+
+let int testarr[2][3] = {{1, 2, 3}, {3, 2, undefined}}; // Err

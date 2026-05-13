@@ -30,7 +30,8 @@ static const char* NodeTypeStr[] = {
     [ARR_DECL_NODE] = "ARR_DECL", [ARR_INIT_LIST_NODE] = "ARR_INIT_LIST",
     [LITERAL_NODE] = "LITERAL", [IDENT_NODE] = "IDENT", [FUNC_POINTER_NODE] = "FUNC_POINTER",
     [CLOSURE_NODE] = "CLOSURE", [CAPTURES_NODE] = "CAPTURES", 
-    [CONTINUE_NODE] = "CONTINUE", [BREAK_NODE] = "BREAK"
+    [CONTINUE_NODE] = "CONTINUE", [BREAK_NODE] = "BREAK",
+    [EMPTY_NODE] = "EMPTY"
 };
 
 static void DEBUG_PRINT_NODE(ASTNode* node, int depth) {

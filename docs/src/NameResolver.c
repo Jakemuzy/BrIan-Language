@@ -196,6 +196,12 @@ void ResolveBody(NameResolverContext* ctx, ASTNode* current)
             case RETURN_STMT_NODE:
                 ResolveReturnStmt(ctx, stmt);
                 break;
+            case LOCK_STMT_NODE:
+                ResolveLockStmt(ctx, stmt);
+                break;
+            case CRITICAL_STMT_NODE:
+                ResolveCriticalStmt(ctx, stmt);
+                break;
             case VAR_DECL_NODE:
                 ResolveVarDecl(ctx, stmt);
                 break;
@@ -236,6 +242,9 @@ void ResolveBody(NameResolverContext* ctx, ASTNode* current)
             case REF_NODE:      // Falthrough, since same format
             case SREF_NODE:
                 ResolveReference(ctx, stmt);
+                break;
+            case BREAK_NODE:    // Fallthrough, since same format
+            case CONTINUE_NODE: 
                 break;
             default: 
                 ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
@@ -283,11 +292,15 @@ void ResolveIfStmt(NameResolverContext* ctx, ASTNode* current)
         switch (ifElifElse->ntype) {
             case IF_NODE:   // Fallthrough, same structure
             case ELIF_NODE:
+                EnterScope(ctx->arena, ctx->nss);
                 ResolveExpr(ctx, ifElifElse->children[0]);
                 ResolveBody(ctx, ifElifElse->children[1]);
+                ExitScope(ctx->nss);
                 break;
             case ELSE_NODE:
+                EnterScope(ctx->arena, ctx->nss);
                 ResolveBody(ctx, ifElifElse->children[0]);
+                ExitScope(ctx->nss);
                 break;    
             default: break;
         }
@@ -321,7 +334,9 @@ void ResolveWhileStmt(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("WhileStmt");
     ResolveExpr(ctx, current->children[0]);
+    EnterScope(ctx->arena, ctx->nss);
     ResolveBody(ctx, current->children[1]);
+    ExitScope(ctx->nss);
 }
 
 void ResolveDoWhileStmt(NameResolverContext* ctx, ASTNode* current)
@@ -335,16 +350,21 @@ void ResolveForStmt(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("ForStmt");
     ASTNode* initNode = current->children[0];
-    if (initNode->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, initNode);
+    if (initNode == &EMPTYNODE) ; 
+    else if (initNode->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, initNode);
     else ResolveExpr(ctx, initNode);
 
     ResolveExpr(ctx, current->children[1]);
 
     ASTNode* exprListNode = current->children[2];
-    for (size_t i = 0; i < exprListNode->childCount; i++) 
+    for (size_t i = 0; i < exprListNode->childCount; i++)  {
+        if (exprListNode->children[i] == &EMPTYNODE) continue;
         ResolveExpr(ctx, exprListNode->children[i]);
+    }
 
-    ResolveBody(ctx, current->children[3]);
+    EnterScope(ctx->arena, ctx->nss);
+    if (current->children[3] != &EMPTYNODE) ResolveBody(ctx, current->children[3]);
+    ExitScope(ctx->nss);
 }
 
 void ResolveReturnStmt(NameResolverContext* ctx, ASTNode* current)
@@ -363,7 +383,8 @@ void ResolveLockStmt(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveCriticalStmt(NameResolverContext* ctx, ASTNode* current)
 {
-
+    Debug("Critical");
+    ResolveBody(ctx, current->children[0]);
 }
 
 /* Decls */
@@ -564,15 +585,7 @@ void ResolveCast(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("Cast");
     ResolveType(ctx, current->children[0]);
-    char* varName = current->children[1]->token.lexeme;
-    Environment* env = GetNamespace(ctx->nss, N_VAR);
-    Symbol* sym = LookupEnvironment(env, varName);
-
-    if (sym == SYM_DOESNT_EXIST)
-        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
-            "Variable '%s' doesn't exist within current scope on line %d, col %d.\n",
-            varName, current->token.row, current->token.col
-        );
+    ResolveExpr(ctx, current->children[1]);
 }
 
 void ResolveIndex(NameResolverContext* ctx, ASTNode* current)
@@ -828,6 +841,7 @@ void ResolveType(NameResolverContext* ctx, ASTNode* current)
 
     switch (current->ntype) {
         case TYPE_NODE: return; // Predefined types
+        case CHANNEL_NODE: ResolveChannel(ctx, current); return;
         case CLOSURE_NODE: ResolveClosure(ctx, current); return;
         case FUNC_POINTER_NODE: ResolveFuncPointer(ctx, current); return;
         default: break;
@@ -843,6 +857,12 @@ void ResolveType(NameResolverContext* ctx, ASTNode* current)
             "User defined type '%s' doesn't exist within current scope on line %d, col %d.\n",
             typeName, current->token.row, current->token.col
         );
+}
+
+void ResolveChannel(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Channel");
+    ResolveType(ctx, current->children[0]);
 }
 
 void ResolveLambda(NameResolverContext* ctx, ASTNode* current)

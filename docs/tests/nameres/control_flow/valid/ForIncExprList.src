@@ -1,0 +1,8 @@
+// Valid
+
+fn int main() {
+    let int j = 3;
+    for (let int i = 3; i < 3; i++, j--) {
+        break;
+    }
+}

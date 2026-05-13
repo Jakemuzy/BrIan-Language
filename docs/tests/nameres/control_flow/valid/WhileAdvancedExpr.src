@@ -1,0 +1,8 @@
+// Valid
+
+fn void main() {
+    let int i = 1;
+    while ( ((i++) * 32 & 752) as float ) {
+
+    }
+}

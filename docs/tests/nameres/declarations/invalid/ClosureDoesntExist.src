@@ -1,0 +1,12 @@
+// Invalid 
+
+
+let u32 secretThree = 1; let closure void(int, int) adder = 
+    lambda void (int one, int two) captures secretThree {
+        return one + two + secretThree;
+    };
+
+fn void Test() {
+    subber(1, 2);  Func call doesn't exist
+    adder(one, two); Func call params don't exist
+}

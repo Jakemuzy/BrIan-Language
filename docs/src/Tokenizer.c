@@ -51,6 +51,7 @@ void LoadBuffer(TokenizerContext* ctx, int bufferNum)
 
 void RetractBuffer(TokenizerContext* ctx, char* pos) 
 {
+    // TODO: needs awareness if actual sentinel, or hit EOF, 
     ctx->forward = pos;
     if (ctx->forward == &ctx->buffer1[TOKENIZER_BUFFER_SIZE - 1]) {
         ctx->forward = ctx->buffer2;
@@ -261,6 +262,7 @@ Token ScanNumber(TokenizerContext* ctx)
     bool isReal = false;
 
     if (c == '0') {
+        prev = ctx->forward;
         c = AdvanceBuffer(ctx);
         if (c == 'x') {
             prev = ctx->forward;
@@ -393,13 +395,15 @@ Token ScanCharacter(TokenizerContext* ctx)
 
 Token ScanIdentOrKeyword(TokenizerContext* ctx)
 {
+    char* prev;
     int c = AdvanceBuffer(ctx);
 
-    while (c != EOF && ( isalpha((unsigned int)c) || isdigit((unsigned int)c) || c == '_' )) 
+    while (c != EOF && ( isalpha((unsigned int)c) || isdigit((unsigned int)c) || c == '_' )) {
+        prev = ctx->forward;
         c = AdvanceBuffer(ctx);
+    }
 
-    // Always valid, given advanced
-    if (c != EOF) RetractBuffer(ctx, ctx->forward - 1);    
+    RetractBuffer(ctx, prev);
 
     Token tok = ExtractTokenFromBuffer(ctx);
     tok.type = KeywordLookup(tok.lexeme);

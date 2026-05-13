@@ -1,0 +1,18 @@
+// Valid
+
+fn int main() {
+    if (true) {
+        let int i = 0;  
+    }
+    else {
+        let int j = 571;
+    }
+
+
+    let int i = 0;
+    let int k = 0;
+    if (i) { }
+    else {
+        k = 32;
+    }
+}
