@@ -1,0 +1,4 @@
+// Valid
+
+let int arrTest[1][scretThree] = {{1}};
+let int arrTwo[2] = {2, 3, 4};

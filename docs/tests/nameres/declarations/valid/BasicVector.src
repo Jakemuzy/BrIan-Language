@@ -1,0 +1,9 @@
+// Valid
+
+let vec<1> v1 = { 1 };
+
+let int i = 1;
+let int j = 2;
+
+let vec<2> v2 = {i, j};
+let vec<22> v3;

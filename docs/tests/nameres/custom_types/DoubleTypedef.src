@@ -1,0 +1,6 @@
+// Valid
+
+type T = int;
+type F = T;
+
+let F = 12;

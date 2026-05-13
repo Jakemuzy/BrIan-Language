@@ -95,8 +95,6 @@ void ResolveGeneric(NameResolverContext* ctx, ASTNode* current);
 void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current);
 void ResolveType(NameResolverContext* ctx, ASTNode* current);
 void ResolveChannel(NameResolverContext* ctx, ASTNode* current);
-void ResolveMatrix(NameResolverContext* ctx, ASTNode* current);
-void ResolveVector(NameResolverContext* ctx, ASTNode* current);
 void ResolveLambda(NameResolverContext* ctx, ASTNode* current);
 void ResolveClosure(NameResolverContext* ctx, ASTNode* current);
 void ResolveFuncPointer(NameResolverContext* ctx, ASTNode* current);

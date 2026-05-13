@@ -1,0 +1,17 @@
+let char a = 'a';
+let bool b = true;
+let int c = 1;
+let long d = 0x1AabBfF9;
+let double e = 3.14159;
+let float f = 1.623481e+3;
+let void g = null;
+let string h = "string";
+let i8 i = c;
+let i16 j = -742;
+let i32 k = j;
+let i64 l = k;
+let u8 m = 731;
+let u16 n = 571379513;
+let u32 o = 1;
+let u64 p = o; 
+

@@ -1,0 +1,11 @@
+// Valid
+
+fn int main() {
+    if (true) {
+        let int i = 0;  
+    }
+
+    let int i = 0;
+    if (i) { }
+    if (false) { }
+}

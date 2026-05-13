@@ -289,11 +289,15 @@ void ResolveIfStmt(NameResolverContext* ctx, ASTNode* current)
         switch (ifElifElse->ntype) {
             case IF_NODE:   // Fallthrough, same structure
             case ELIF_NODE:
+                EnterScope(ctx->arena, ctx->nss);
                 ResolveExpr(ctx, ifElifElse->children[0]);
                 ResolveBody(ctx, ifElifElse->children[1]);
+                ExitScope(ctx->nss);
                 break;
             case ELSE_NODE:
+                EnterScope(ctx->arena, ctx->nss);
                 ResolveBody(ctx, ifElifElse->children[0]);
+                ExitScope(ctx->nss);
                 break;    
             default: break;
         }
@@ -836,8 +840,6 @@ void ResolveType(NameResolverContext* ctx, ASTNode* current)
     switch (current->ntype) {
         case TYPE_NODE: return; // Predefined types
         case CHANNEL_NODE: ResolveChannel(ctx, current); return;
-        case MATRIX_NODE: ResolveMatrix(ctx, current); return;
-        case VECTOR_NODE: ResolveVector(ctx, current); return;
         case CLOSURE_NODE: ResolveClosure(ctx, current); return;
         case FUNC_POINTER_NODE: ResolveFuncPointer(ctx, current); return;
         default: break;
@@ -859,16 +861,6 @@ void ResolveChannel(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("Channel");
     ResolveType(ctx, current->children[0]);
-}
-
-void ResolveMatrix(NameResolverContext* ctx, ASTNode* current)
-{
-
-}
-
-void ResolveVector(NameResolverContext* ctx, ASTNode* current)
-{
-
 }
 
 void ResolveLambda(NameResolverContext* ctx, ASTNode* current)

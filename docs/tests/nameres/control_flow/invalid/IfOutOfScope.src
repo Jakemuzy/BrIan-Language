@@ -1,0 +1,9 @@
+// Invalid
+
+fn int main() {
+    if (true) {
+        let int i = 0;  
+    }
+
+    if (i) { }
+}

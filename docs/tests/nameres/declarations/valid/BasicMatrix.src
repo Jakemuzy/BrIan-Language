@@ -1,0 +1,11 @@
+// Valid
+
+let mat<1, 2> m1 = {{1, 2}};
+
+let int i = 1;
+let int j = 2;
+
+let mat<9, 9> m2;
+let mat<2, 1> m3 = {{i}, {j}};
+
+let mat<900, 9> m4;
