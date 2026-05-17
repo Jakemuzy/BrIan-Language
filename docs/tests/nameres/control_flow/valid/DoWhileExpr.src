@@ -1,0 +1,9 @@
+// Valid 
+
+fn void main() {
+    let int j = 3;
+    do {
+        let int i = 0;
+        j++;
+    } while ( j < 12 );
+}

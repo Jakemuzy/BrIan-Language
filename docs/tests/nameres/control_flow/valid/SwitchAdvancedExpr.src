@@ -1,0 +1,10 @@
+// Valid
+
+fn void main() {
+    let int i = 0;
+    switch ( i += 34 | 0x4B && true || i /= 1.23e+32 ) {
+        case 1 {
+            
+        }
+    }
+}

@@ -1,0 +1,8 @@
+// Valid 
+
+fn void main() {
+    let int j = 0;
+    do {
+
+    } while ( j += 3++ && 45 >> 3 );
+}

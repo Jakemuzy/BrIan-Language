@@ -1,0 +1,6 @@
+// Valid
+
+fn void main() {
+    let int i = 0;
+    return i++;
+}

@@ -1,0 +1,16 @@
+// Valid
+
+fn void main() {
+    let int i = 1;
+    switch (i) {
+        case 1 {
+            let int j = 3;
+        }
+        case 2 {
+            let int j = 3;
+        }
+        default {
+            let int j = 3;
+        }
+    }
+}

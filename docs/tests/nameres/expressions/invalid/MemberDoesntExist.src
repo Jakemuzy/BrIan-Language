@@ -1,0 +1,5 @@
+// Invalid
+
+fn void main() {
+    struct1.i = 0;
+}

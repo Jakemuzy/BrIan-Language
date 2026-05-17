@@ -13,6 +13,8 @@
 ### The IDENT in Type is for user defined types (struct, enum, typedef, etc) this will be handled in the parser, though the grammar doesn't really show this ambiguity being handled
 ### Empty statements ie. ';' are disallowed since they serve no purpose in this language
 ### Generics are interesting, they allow generic return types without an implicit generic paramater list. This is simple syntactic sugar and is equivalent to defining a generic paramater list AND a generic return type.
+### Variable length arrays (VLAs) are allowed in the language for now, but really there is no use for them in BrIan, they will be removed later for safety and memory limitation concerns on embedded systems.
+### Undefiend array sizes are NOT allowed, EXCEPT as paramaters. This is because we allow any array size to match.
 
 ```
 	Program ::=  { Import | Directive } { Function | DeclStmt }

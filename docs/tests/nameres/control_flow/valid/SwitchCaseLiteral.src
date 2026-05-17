@@ -1,0 +1,18 @@
+// Valid
+
+fn void main() {
+    let int i = 0;
+
+    switch (i) {
+        case true { }
+        case false { }
+        case null { }
+        case 41 { }
+        case 31.52 { }
+        case 's' { }
+        case "str" { } 
+        case 0x42 { }
+        case 1.24e-3 { }
+        case 1.472e+74 { }
+    }
+}

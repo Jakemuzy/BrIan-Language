@@ -93,8 +93,8 @@ void Program(ParserContext* ctx)
 				if (ctx->panicMode) { SyncRecovery(ctx, RBRACE); Advance(ctx); }
                 else AddChildASTNode(ctx->arena, ctx->ast->root, funcNode);
 
-				if (funcNode->ntype == FUNC_DECL && !Match(ctx, SEMI)) 
-					ParseERROR(ctx, "Expected ';' after function declaration in generic struct.");
+				if (funcNode->ntype == FUNC_DECL  || funcNode->ntype == GEN_FUNC_DECL && !Match(ctx, SEMI)) 
+					ParseERROR(ctx, "Expected ';' after function declaration.");
                 break;
             case INTERFACE:
                 ASTNode* interfaceDeclNode = InterfaceDecl(ctx);
@@ -264,6 +264,28 @@ ASTNode* Param(ParserContext* ctx)
     if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected parameter identifier.");
 	ASTNode* paramNode = InitalizeASTNode(ctx->arena, PARAM_NODE, ctx->current);
     Advance(ctx);
+
+	// ALLOW NESTED ARRAYS
+	while (Match(ctx, LBRACK)) {
+		// Optional Literal Size
+		ASTNode* exprNode = NULL;
+		switch (ctx->current.type) {
+			EXPR_START_CASES
+				exprNode = Expr(ctx, PREC_NONE);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACK); 
+				break;
+			default: break;
+		}
+
+		if (!Match(ctx, RBRACK)) return ParseERROR(ctx, "Expected ']' for array initalization.");
+
+		// TODO: Idk if this is correct
+		ASTNode* arrayInitNode = InitalizeASTNode(ctx->arena, ARR_DECL_NODE, DUMMY_TOKEN);
+
+		if (exprNode)
+			AddChildASTNode(ctx->arena, arrayInitNode, exprNode);
+		AddChildASTNode(ctx->arena, paramNode, arrayInitNode);
+	}
 
 	AddChildASTNode(ctx->arena, paramNode, typeNode);
     return paramNode;
@@ -894,15 +916,25 @@ ASTNode* SwitchStmt(ParserContext* ctx)
 ASTNode* Case(ParserContext* ctx)
 {
 	Advance(ctx);
+	ASTNode* caseNode = InitalizeASTNode(ctx->arena, CASE_STMT_NODE, DUMMY_TOKEN);
+
+	ASTNode* caseVarNode;
 	switch (ctx->current.type) { 
 		LITERAL_CASES 
-		case IDENT: break; 
+			caseVarNode = InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current);
+			break;
+		case IDENT: 
+			caseVarNode = InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current);				
+			break;
 		default: return ParseERROR(ctx, "Switch case only allows compile time constants.");
 	}
-	ASTNode* caseNode = InitalizeASTNode(ctx->arena, CASE_STMT_NODE, ctx->current);
+	AddChildASTNode(ctx->arena, caseNode, caseVarNode);
 	Advance(ctx);
 
-	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Switch case only allows literals. Expected '{' to begin body.");
+	if (ctx->current.type != LBRACE) { 
+		ParseERROR(ctx, "Switch case only allows literals. Expected '{' to begin body.");
+		SyncRecovery(ctx, LBRACE);
+	}
 	ASTNode* bodyNode = Body(ctx);
 	if(ctx->panicMode) SyncRecovery(ctx, RBRACE);
 	else AddChildASTNode(ctx->arena, caseNode, bodyNode);
@@ -1561,15 +1593,10 @@ ASTNode* ArrInitList(ParserContext* ctx)
 	ASTNode* arrInitList = InitalizeASTNode(ctx->arena, ARR_INIT_LIST_NODE, DUMMY_TOKEN);
 	while (true) {
 		switch (ctx->current.type) {
-			LITERAL_CASES
-				ASTNode* literalSizeNode = InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current);
-				AddChildASTNode(ctx->arena, arrInitList, literalSizeNode);
-				Advance(ctx);
-				break;
-			case IDENT:
-				ASTNode* sizeNode = InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current);
-				AddChildASTNode(ctx->arena, arrInitList, sizeNode);
-				Advance(ctx);
+			EXPR_START_CASES
+				ASTNode* exprNode = Expr(ctx, PREC_NONE);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, arrInitList, exprNode);
 				break;
 			case LBRACE:
 				ASTNode* nestedArrInitNode = ArrInitList(ctx);

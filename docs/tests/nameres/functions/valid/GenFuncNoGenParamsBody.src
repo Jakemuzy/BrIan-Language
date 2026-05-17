@@ -1,0 +1,4 @@
+// Valid
+
+// Again, desugaring will save this
+//fn <X> f9 () { let X a = 3; } 

@@ -1,0 +1,7 @@
+// Invalid 
+
+fn void main() {
+    do {
+        
+    } while();
+}

@@ -1,0 +1,8 @@
+// Invalid 
+
+fn void main() {
+    if (1) {
+        let int i = 0;
+    }
+    return i;
+}
