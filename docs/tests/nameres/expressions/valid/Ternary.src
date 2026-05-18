@@ -1,0 +1,4 @@
+// Valid 
+
+let int x = 3, y = 2;
+let int a = x == y ? x : y;

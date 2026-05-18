@@ -1,0 +1,6 @@
+// Valid
+
+type ID = int;
+let int x = 1;
+
+let chan<ID> idChan;

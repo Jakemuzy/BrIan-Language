@@ -1,0 +1,7 @@
+// Valid
+
+let int a;
+interface Printable {
+    let int a;
+    fn void print(string msg);  
+}

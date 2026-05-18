@@ -1,0 +1,7 @@
+// Invalid
+
+let int x = 1;
+let int y = 1;
+
+let mat<u32, 1,y> mat2; 
+let mat<u32, x,1> mat3; 

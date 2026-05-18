@@ -1,0 +1,14 @@
+// Valid
+
+struct GenGroup2 <T, B> {
+    let int a = 1;
+    
+    enum COLOR {
+        RED, BLUE, GREEN
+    };
+
+    fn void ADD(T one, B two) 
+    {
+
+    }
+}

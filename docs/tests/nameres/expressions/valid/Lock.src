@@ -1,0 +1,9 @@
+// Valid
+
+fn void main() {
+    let int i = 0;
+
+    lock ( i = i++ ) {
+        i++; 
+    }
+}

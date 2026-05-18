@@ -1,0 +1,6 @@
+// Invalid
+
+fn void main() {
+    lock () {
+    }
+}

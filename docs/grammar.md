@@ -15,6 +15,8 @@
 ### Generics are interesting, they allow generic return types without an implicit generic paramater list. This is simple syntactic sugar and is equivalent to defining a generic paramater list AND a generic return type.
 ### Variable length arrays (VLAs) are allowed in the language for now, but really there is no use for them in BrIan, they will be removed later for safety and memory limitation concerns on embedded systems.
 ### Undefiend array sizes are NOT allowed, EXCEPT as paramaters. This is because we allow any array size to match.
+### Matricies and vectors first paramater is their underlying type. Only numerical types are allowed (verified in type checker). Additionally only FIXED size is allowed
+
 
 ```
 	Program ::=  { Import | Directive } { Function | DeclStmt }
@@ -58,9 +60,9 @@
     VarDecl ::= "let" LinkageSpecifier TypeQualifier ( Type | IDENT ) VarList 
     StructDecl ::= GenericStruct | RegularStruct
     GenericStruct ::= "struct" IDENT GenericList '{' GenStructBody '}'
-        GenStructBody ::= { EnumDecl | VarDecl | Function }
-    RegularStruct ::= "struct" IDENT [ Implements ] '{' StructBody '}' 
-        StructBody ::= { EnumDecl | DeclStmt | Function | OperatorOverload }
+        GenStructBody ::= { EnumDecl | VarDecl | TypedefDecl | Function }
+    RegularStruct ::= "struct" IDET [ Implements ] '{' StructBody '}' 
+        StructBody ::= { EnumDecl | DeclStmt | TypedefDecl | Function | OperatorOverload }
         Implements ::= ':' IDENT { IDENT { ',' IDENT } }
         OperatorOverload ::= "operator" OverloadableOp '(' Param [ ',' Param ] ')' Body
         OverloadableOp   ::= '+' | '-' | '*' | '/' | '%' | '@'
@@ -119,8 +121,8 @@
 
     Type ::= ( "char" | "bool" | "int" | "long" | "double" | "float" | "void" | "string" | "I8" | "I16" | "I32" | "I64" | "U8" | "U16" | "U32" | "U64" | Matrix | Vector | "mutex" | "semaphore" | "task" | Channel | FuncPointer | Closure | IDENT )   // Ident is user defined type (struct, typedef, etc)
         Channel ::= "chan" '<' ( Type | IDENT ) '>'
-        Matrix ::= "mat" '<' {1-9} ',' {1-9} '>'
-        Vector ::= "vec" '<' {1-9} '>'
+        Matrix ::= "mat" '<' Type, {1-9} ',' {1-9} '>'
+        Vector ::= "vec" '<' Type, {1-9} '>'
         Closure ::= "closure" [ TypeQualifier ] FuncPointerSignature
         FuncPointer ::= "fp" [ TypeQualifier ] FuncPointerSignature
         FuncPointerSignature ::= ( Type | IDENT ) '(' [ AnonParamList ] ')' 

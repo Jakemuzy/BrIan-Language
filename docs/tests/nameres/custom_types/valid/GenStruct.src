@@ -1,0 +1,9 @@
+// Valid
+
+struct GenGroup <T, B> {
+    let T one;
+    let B two;
+
+    fn void ADD(T one, B two);
+}
+fn void ADD(int a, int b);

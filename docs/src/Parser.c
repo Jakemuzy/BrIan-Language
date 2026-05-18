@@ -93,7 +93,7 @@ void Program(ParserContext* ctx)
 				if (ctx->panicMode) { SyncRecovery(ctx, RBRACE); Advance(ctx); }
                 else AddChildASTNode(ctx->arena, ctx->ast->root, funcNode);
 
-				if (funcNode->ntype == FUNC_DECL  || funcNode->ntype == GEN_FUNC_DECL && !Match(ctx, SEMI)) 
+				if ( (funcNode->ntype == FUNC_DECL  || funcNode->ntype == GEN_FUNC_DECL) && !Match(ctx, SEMI)) 
 					ParseERROR(ctx, "Expected ';' after function declaration.");
                 break;
             case INTERFACE:
@@ -549,7 +549,22 @@ ASTNode* GenStructBody(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, genStructNode, genFuncNode);
 
-				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected ';' after function declaration in generic struct.");
+				if (genFuncNode->ntype == GEN_FUNC_DECL && !Match(ctx, SEMI)) 	
+					return ParseERROR(ctx, "Expected ';' after function declaration in generic struct.");
+				break;
+			case TYPEDEF: 
+				ASTNode* typedefNode = TypedefDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, genStructNode, typedefNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after typedef declaration inside of struct.");
+				break;
+			case ENUM:
+				ASTNode* enumNode = EnumDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, genStructNode, enumNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected ';' after enum declaration in generic struct.");
 				break;
 			case RBRACE:
 				Advance(ctx);
@@ -615,6 +630,7 @@ ASTNode* StructBody(ParserContext* ctx)
 ASTNode* OperatorOverload(ParserContext* ctx)
 {
 	Advance(ctx);
+	ASTNode* overloadOpNode = InitalizeASTNode(ctx->arena, OPERATOR_OVERLOAD_NODE, ctx->current);
 
 	switch (ctx->current.type) {
 		// Overloadable operators
@@ -622,16 +638,18 @@ ASTNode* OperatorOverload(ParserContext* ctx)
 		case DOTPROD: case EQQ: case NEQQ: case LESS: case GREAT:
 		case LEQQ: case GEQQ: case LSHIFT: case RSHIFT: case AND: 
 		case OR: case XOR: case NEG:
+			Advance(ctx);
 			break;
 		case LBRACK:
+			// Only stores ] for indexing, but thats fine. Unambigous.
 			if (!Match(ctx, RBRACK)) return ParseERROR(ctx, "Expected matching ']' for overloaded '[]' operator.");
+			Advance(ctx);
 			break;	
-		default: return ParseERROR(ctx, "Invalid operator for overloading.");
+		default: 
+			ParseERROR(ctx, "Invalid operator for overloading.");
+			SyncRecovery(ctx, LPAREN);
+			break;
 	}
-
-	// Only stores ] for indexing, but thats fine. Unambigous.
-	ASTNode* overloadOpNode = InitalizeASTNode(ctx->arena, OPERATOR_OVERLOAD_NODE, ctx->current);
-	Advance(ctx);
 
 	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' after overloaded operator.");
 
@@ -642,7 +660,9 @@ ASTNode* OperatorOverload(ParserContext* ctx)
 			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 			else AddChildASTNode(ctx->arena, overloadOpNode, paramNode);
 			break;
-		default: return ParseERROR(ctx, "Operator overloading doesn't allow primitve types.");
+		default: 
+			ParseERROR(ctx, "Operator overloading doesn't allow primitve types.");
+			SyncRecovery(ctx, RPAREN);
 	}
 
 	if (Match(ctx, COMMA)) {
@@ -1293,7 +1313,7 @@ ASTNode* Type(ParserContext* ctx)
 
 ASTNode* Channel(ParserContext* ctx)
 {
-	// Channel is a bit interesting
+	// Channel is a bit interesting, read pipeline.md for more info
 	Advance(ctx);
 	ASTNode* channelNode = InitalizeASTNode(ctx->arena, CHANNEL_NODE, DUMMY_TOKEN);
 	if (!Match(ctx, LESS)) return ParseERROR(ctx, "Channel requires '<' '>' to surround channel type, expected '<'.");
@@ -1318,19 +1338,30 @@ ASTNode* Matrix(ParserContext* ctx)
 	Advance(ctx);
 	ASTNode* matrixNode = InitalizeASTNode(ctx->arena, MATRIX_NODE, DUMMY_TOKEN);
 
-	if (!Match(ctx, LESS)) return ParseERROR(ctx, "Matrix requires '<' '>' to specify size, expected '<'.");
+	if (!Match(ctx, LESS)) return ParseERROR(ctx, "Matrix requires '<' to specify size and type.");
+
+	switch (ctx->current.type) { 
+		TYPE_CASES 
+			ASTNode* matTypeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
+			else AddChildASTNode(ctx->arena, matrixNode, matTypeNode);
+			break;
+		default: return ParseERROR(ctx, "Expected matrix to be a valid type.");
+	}
+
+	if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Comma delimiter required between matrix type and col size.");
 
 	if (ctx->current.type != INTEGRAL) return ParseERROR(ctx, "Matrix row size only accepts integral digits.");
 	AddChildASTNode(ctx->arena, matrixNode, InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current));
 	Advance(ctx);	
 
-	if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Comma delimiter required for matrix size.");
+	if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Comma delimiter required between matrix row and col size.");
 
 	if (ctx->current.type != INTEGRAL) return ParseERROR(ctx, "Matrix col size only accepts integral digits.");
 	AddChildASTNode(ctx->arena, matrixNode, InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current));
 	Advance(ctx);	
 
-	if (!Match(ctx, GREAT)) return ParseERROR(ctx, "Matrix requires '<' '>' to specify size, expected '>'.");
+	if (!Match(ctx, GREAT)) return ParseERROR(ctx, "Matrix requires '>' to end size specification.");
 
 	return matrixNode;
 }
@@ -1341,6 +1372,17 @@ ASTNode* Vector(ParserContext* ctx)
 	ASTNode* vectorNode = InitalizeASTNode(ctx->arena, VECTOR_NODE, DUMMY_TOKEN);
 
 	if (!Match(ctx, LESS)) return ParseERROR(ctx, "Vector requires '<' '>' to specify size, expected '<'.");
+
+	switch (ctx->current.type) { 
+		TYPE_CASES 
+			ASTNode* matTypeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
+			else AddChildASTNode(ctx->arena, vectorNode, matTypeNode);
+			break;
+		default: return ParseERROR(ctx, "Expected vector to be a valid type.");
+	}
+
+	if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Expected comma between vector type and size.");
 
 	if (ctx->current.type != INTEGRAL) return ParseERROR(ctx, "Vector row size only accepts integral digits.");
 	AddChildASTNode(ctx->arena, vectorNode, InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current));

@@ -1,0 +1,6 @@
+// Valid
+
+struct str {
+    type foo = bool;
+    let foo f = true;
+}

@@ -1,0 +1,7 @@
+// Valid
+
+struct str {
+    enum COLOR {
+        BLUE, RED, GREEN
+    };
+}

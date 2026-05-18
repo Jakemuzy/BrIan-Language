@@ -1,0 +1,7 @@
+// Valid
+
+struct str {
+    fn void func(int a, string b) {
+        
+    }
+}

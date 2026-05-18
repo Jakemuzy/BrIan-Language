@@ -1,0 +1,9 @@
+// Invalid
+
+interface Printable {
+    fn void print(string msg);
+}
+
+struct str <T> : Printable {
+    fn void print(string msg);
+}

@@ -1,0 +1,7 @@
+// Valid
+
+let int RED = true;
+enum COLOR {
+    RED, GREEN, BLUE    
+};
+let int BLUE = true;    

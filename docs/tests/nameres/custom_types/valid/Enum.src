@@ -1,0 +1,7 @@
+// Valid
+
+enum COLOR {
+    RED, GREEN, BLUE
+};
+
+let COLOR col = RED;

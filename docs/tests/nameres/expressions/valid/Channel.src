@@ -1,0 +1,4 @@
+// Valid
+
+let int x = 1;
+let chan<int> intChan = <-(x + 1);

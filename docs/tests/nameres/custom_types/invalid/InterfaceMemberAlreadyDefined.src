@@ -1,0 +1,6 @@
+// Valid
+
+interface Printable {
+    let int print;
+    fn void print(string msg);  // Already defined
+}

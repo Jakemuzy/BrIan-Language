@@ -1,0 +1,5 @@
+// Invalid
+
+enum DUPE {
+    one, two, two
+};

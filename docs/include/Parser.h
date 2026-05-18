@@ -161,7 +161,9 @@ static ParseRule PRECEDENCE_TABLE[] = {
 
       [INC] = { PrefixExpr, PostfixExpr, PREC_POST, false }, [DEC] = { PrefixExpr, PostfixExpr, PREC_POST, false }, 
       [NEG] = { PrefixExpr, NULL, PREC_PRE, false }, [NOT] = { PrefixExpr, NULL, PREC_PRE, false }, 
-      [SPAWN] = { PrefixExpr, NULL, PREC_PRE, false }, [AWAIT] = { PrefixExpr, NULL, PREC_PRE, false }, 
+      [SPAWN] = { PrefixExpr, NULL, PREC_PRE, false }, [AWAIT] = { PrefixExpr, NULL, PREC_PRE, false },
+
+      [QUESTION] = { NULL, TernaryExpr, PREC_TERNARY, true }
 };
 
 #endif

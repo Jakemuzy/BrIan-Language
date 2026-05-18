@@ -1,5 +1,5 @@
 // Valid
 
 struct str {
-    let int a;
+    let int a = 1;
 }

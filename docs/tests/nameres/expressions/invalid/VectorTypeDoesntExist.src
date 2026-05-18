@@ -1,0 +1,3 @@
+// Invalid
+
+let vec<foo, 3> v1;

@@ -264,10 +264,11 @@ void ResolveStructBody(NameResolverContext* ctx, ASTNode* current)
         else if (bodyElement->ntype == ENUM_DECL_NODE) ResolveEnumDecl(ctx, bodyElement);
         else if (bodyElement->ntype == FUNC_DEF) ResolveFuncDef(ctx, bodyElement);
         else if (bodyElement->ntype == FUNC_DECL) ResolveFuncDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == TYPEDEF_DECL_NODE) ResolveTypedefDecl(ctx, bodyElement);
         else if (bodyElement->ntype == OPERATOR_OVERLOAD_NODE) ResolveOperatorOverload(ctx, bodyElement);
         else 
             ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
-                "Invalid statement '%s' within struct scope on line %d, col %d.\n",
+                "Invalid statement '%s' within generic struct scope on line %d, col %d.\n",
                 bodyElement->token.lexeme, bodyElement->token.row, bodyElement->token.col
             );
     }
@@ -279,7 +280,15 @@ void ResolveGenStructBody(NameResolverContext* ctx, ASTNode* current)
     for (size_t i = 0; i < current->childCount; i++) {
         ASTNode* bodyElement = current->children[i];
         if (bodyElement->ntype == GEN_DECL_NODE) ResolveVarDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == FUNC_DEF) ResolveFuncDef(ctx, bodyElement);
         else if (bodyElement->ntype == FUNC_DECL) ResolveFuncDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == ENUM_DECL_NODE) ResolveEnumDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == TYPEDEF_DECL_NODE) ResolveTypedefDecl(ctx, bodyElement);
+        else 
+            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                "Invalid statement '%s' within struct scope on line %d, col %d.\n",
+                bodyElement->token.lexeme, bodyElement->token.row, bodyElement->token.col
+            );
     }
 }
 
@@ -858,6 +867,8 @@ void ResolveType(NameResolverContext* ctx, ASTNode* current)
 
     switch (current->ntype) {
         case TYPE_NODE: return; // Predefined types
+        case MATRIX_NODE: ResolveMatrix(ctx, current); return;
+        case VECTOR_NODE: ResolveVector(ctx, current); return;
         case CHANNEL_NODE: ResolveChannel(ctx, current); return;
         case CLOSURE_NODE: ResolveClosure(ctx, current); return;
         case FUNC_POINTER_NODE: ResolveFuncPointer(ctx, current); return;
@@ -874,6 +885,21 @@ void ResolveType(NameResolverContext* ctx, ASTNode* current)
             "User defined type '%s' doesn't exist within current scope on line %d, col %d.\n",
             typeName, current->token.row, current->token.col
         );
+}
+
+void ResolveMatrix(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Matrix");
+    ResolveType(ctx, current->children[0]);
+    ResolveExpr(ctx, current->children[1]);
+    ResolveExpr(ctx, current->children[2]);
+}
+
+void ResolveVector(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Vector");
+    ResolveType(ctx, current->children[0]);
+    ResolveExpr(ctx, current->children[1]);
 }
 
 void ResolveChannel(NameResolverContext* ctx, ASTNode* current)

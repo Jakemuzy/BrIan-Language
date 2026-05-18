@@ -1,0 +1,4 @@
+// Invalid
+
+let int x = 4;
+let vec<i64, x> = { 1, 2, 3, 4 };

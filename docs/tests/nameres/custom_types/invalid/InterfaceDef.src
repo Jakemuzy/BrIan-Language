@@ -1,0 +1,7 @@
+// Invalid
+
+interface Printable {
+    fn void print () {
+        
+    }
+}
