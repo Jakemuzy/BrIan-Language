@@ -1,0 +1,4 @@
+// Valid
+
+type Custom = int;
+let int size = sizeof(Custom);

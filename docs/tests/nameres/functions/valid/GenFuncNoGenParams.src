@@ -1,0 +1,4 @@
+// Valid
+
+// Again, desugaring will save this
+fn <X> f8 (X a, X b) {}

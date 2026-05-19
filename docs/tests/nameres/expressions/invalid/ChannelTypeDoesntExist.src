@@ -1,0 +1,4 @@
+// Invalid 
+
+let int x = 4;
+let chan<ID> idChan = <-x;

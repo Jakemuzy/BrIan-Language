@@ -1,0 +1,3 @@
+// Valid
+
+let int size = sizeof(int);

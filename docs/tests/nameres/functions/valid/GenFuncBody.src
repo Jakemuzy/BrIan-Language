@@ -1,0 +1,5 @@
+// Valid
+
+fn <X> f6 <X>(X a, X b) {
+
+}

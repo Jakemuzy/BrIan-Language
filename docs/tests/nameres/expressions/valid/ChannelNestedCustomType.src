@@ -1,0 +1,7 @@
+// Valid
+
+type ID = int;
+let int x = 1;
+
+let chan<ID> intChan = <-(x);
+let chan<chan<ID>> intChanChan = <- intChan;

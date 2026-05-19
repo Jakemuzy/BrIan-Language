@@ -1,0 +1,23 @@
+// Valid
+
+enum BUDDY {
+    John, Harry, Calvin
+};
+
+interface Printable {
+    fn void print(string msg);  
+}
+
+let int b = 3;
+struct Group : Printable {
+    let BUDDY one, two, three = Calvin;
+
+    fn void print(string msg) {
+        // ...
+        three = two;
+    }
+
+    operator +(Group a, Group b) {
+        return b;
+    }
+}

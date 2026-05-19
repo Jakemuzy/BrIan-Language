@@ -1,0 +1,7 @@
+// Valid 
+
+fn void main() {
+    do {
+        let int i = 0;
+    } while (true);
+}

@@ -1,0 +1,11 @@
+// Valid
+
+struct S {
+    let int i = 0;
+}
+
+let S struct1;
+
+fn void main() {
+    struct1.i = 0;
+}

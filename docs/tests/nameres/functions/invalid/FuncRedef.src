@@ -1,0 +1,5 @@
+// Invalid 
+
+fn void main(int a) {
+    let int a = 4;
+}

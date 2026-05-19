@@ -1,0 +1,3 @@
+// Valid
+
+fn <X> f4<T, C>(T a, C b);  

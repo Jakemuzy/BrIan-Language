@@ -1,0 +1,7 @@
+// Valid
+
+struct str {
+    operator + (string a, int b) {
+        a + b; 
+    }
+}

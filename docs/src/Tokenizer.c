@@ -212,6 +212,8 @@ Token ScanOperator(TokenizerContext* ctx)
     int c;
     int current = 1, lastAccept = DFA_ERROR_STATE;
     char* prev = ctx->forward;
+
+    char* prevAcceptPos = ctx->forward;
     char* lastAcceptPos = ctx->forward;
   
     while (current != DFA_ERROR_STATE) {
@@ -227,6 +229,7 @@ Token ScanOperator(TokenizerContext* ctx)
         current = TABLE_DFA[current][(unsigned int)cc];
 
         if (ACCEPT_STATES[current] != ERR) {
+            prevAcceptPos = lastAcceptPos;
             lastAccept = current;
             lastAcceptPos = ctx->forward;
         }
@@ -236,7 +239,7 @@ Token ScanOperator(TokenizerContext* ctx)
         ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Invalid operator discovered %c on line %d row %d\n", c, ctx->row, ctx->col);
 
     if (ctx->nestedChan && ACCEPT_STATES[lastAccept] == RSHIFT)
-        lastAcceptPos = prev;  // retract to after first '>' only
+        lastAcceptPos = prevAcceptPos;  // retract to after first '>' only
     RetractBuffer(ctx, lastAcceptPos);
 
     Token tok = ExtractTokenFromBuffer(ctx);

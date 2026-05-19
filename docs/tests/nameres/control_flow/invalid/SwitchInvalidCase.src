@@ -1,0 +1,10 @@
+// Invalid 
+
+fn void main() {
+    let int i = 0;
+    switch (i) {
+        case i+1 { 
+
+        }
+    }
+}

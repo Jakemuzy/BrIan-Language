@@ -1,0 +1,4 @@
+// Valid
+
+// Gen return, no gen param, will error for now since we expect to desugar b4 name res
+fn <X> f5 (int a, int b);   

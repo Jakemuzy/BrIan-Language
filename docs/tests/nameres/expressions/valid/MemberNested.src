@@ -1,0 +1,15 @@
+// Valid
+
+struct B {
+    let int i = 0;
+}
+
+struct A {
+    let B struct2;
+}
+
+let A struct1;
+
+fn void main() {
+    struct1.struct2.i = 0;
+}

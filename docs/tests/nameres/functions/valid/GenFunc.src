@@ -1,0 +1,3 @@
+// Valid
+
+fn <T> Add<T, A>() { }

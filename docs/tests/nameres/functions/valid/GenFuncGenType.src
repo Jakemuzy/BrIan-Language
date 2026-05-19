@@ -1,0 +1,3 @@
+// Invalid
+
+fn <T> f10 <T, C>(T a, T b) { let T d = 3; }

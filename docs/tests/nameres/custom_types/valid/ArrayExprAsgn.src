@@ -1,0 +1,4 @@
+// Valid
+
+let int b = 3;
+let int a[2] = {1, b++, b += 18.3e+741};

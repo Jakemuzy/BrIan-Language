@@ -1,0 +1,6 @@
+// Valid
+
+let int x = 1;
+
+let chan<int> intChan = <-(x);
+let chan<chan<int>> intChanChan = <- intChan;

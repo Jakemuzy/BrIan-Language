@@ -1,0 +1,17 @@
+// Valid
+
+let int a = 1;
+fn void print(int a);
+type FOO = int;
+enum COLOR {
+    RED
+};
+
+struct str {
+    let int a = 2;
+    fn void print(int a);
+    type FOO = bool;
+    enum COLOR {
+        BLUE
+    };
+}

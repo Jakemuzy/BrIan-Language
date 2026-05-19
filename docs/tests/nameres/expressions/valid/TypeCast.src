@@ -1,0 +1,4 @@
+// Valid
+
+let int a = 4; 
+let float b = a as float;

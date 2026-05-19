@@ -1,0 +1,7 @@
+// Invalid 
+
+struct str <T> {
+    operator + (str a, str b) {
+        
+    }
+}

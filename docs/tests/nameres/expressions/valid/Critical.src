@@ -1,0 +1,8 @@
+// Valid
+
+fn void main() {
+    critical {
+        break;
+        continue;
+    }
+}

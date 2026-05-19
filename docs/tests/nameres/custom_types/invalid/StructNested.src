@@ -1,0 +1,7 @@
+// Invalid
+
+struct Nest {
+    struct two {    
+
+    }
+}
