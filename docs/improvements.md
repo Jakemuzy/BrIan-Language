@@ -4,7 +4,7 @@
 * Have a better way to track bugs, progress, things to do, etc
 * Give steps on how to build
 * Convert to using cmake instead of bash X
-* Use a dedicated tools for test cases
+* Use a dedicated tools for test cases X
 * Use clang instead of gcc ( llvm support ) X
 * Run the program with werror, wall, wextra X
 * Give solutions on how BrIan fixes C pain points in the documentation
@@ -100,13 +100,13 @@ and upon an abort or exit error that function will be called. X
 * Needs to be able to read EOF (built into grammar) X
 
 ## Name Resolver 
-* Shouldn't be doing partial type checking, type checking redoes the work ( given in terms of sym->stype, but I think this is necessary for verifiying names inside of structs )
+* Shouldn't be doing partial type checking, type checking redoes the work ( given in terms of sym->stype, but I think this is necessary for verifiying names inside of structs ) X
 * Scope context is kind of weird, especially with multiple namespaces X
-* Check return name exists
-* Enum fields should be validated, need a defined way to access them 
-* Function overloading should be allowed, need to change name based on the type, but unsure how to implement this without type checking, could defer, but then name resolution is messed up. Maybe a preprocessor check? 
-* Add better capture ( lambda ) support, right now persistent scope is what I use, but doesn't capture everything, need to specify where it begins and ends. Whereas a capture will capture everything currently in scope. 
-* Need to define how captures will work on embedded systems, could be difficult to store it on small RAM
+* Check return name exists X
+* Enum fields should be validated, need a defined way to access them  X
+* Function overloading should be allowed, need to change name based on the type, but unsure how to implement this without type checking, could defer, but then name resolution is messed up. Maybe a preprocessor check? X (disallowed)
+* Add better capture ( lambda ) support, right now persistent scope is what I use, but doesn't capture everything, need to specify where it begins and ends. Whereas a capture will capture everything currently in scope. X
+* Need to define how captures will work on embedded systems, could be difficult to store it on small RAM X
 * Think about the structs underlying representation, maybe I can reprsent it as an array of serparate types? But this wouldn't make sense for name resolution, so its a bit ambiguous. 
 
 ## Type Checker
