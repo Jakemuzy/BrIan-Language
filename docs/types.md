@@ -22,56 +22,83 @@ $\Gamma \vdash \texttt{mutex} : \texttt{Type}$
 $\Gamma \vdash \texttt{semaphore} : \texttt{Type}$ 
 $\Gamma \vdash \texttt{type} : \texttt{Type}$ 
 
-$\Gamma \vdash \texttt{chan<Type>} : \texttt{Type}$$  
-$\Gamma \vdash \texttt{mat<Type, i64, i64>} : \texttt{Type}$$ 
-$\Gamma \vdash \texttt{vec<Type, i64>} : \texttt{Type}$$  
+$\Gamma \vdash \texttt{chan<Type>} : \texttt{Type}$  
+$\Gamma \vdash \texttt{mat<Type, i64, i64>} : \texttt{Type}$  
+$\Gamma \vdash \texttt{vec<Type, i64>} : \texttt{Type}$   
 
-$\Gamma \vdash \texttt{fp...} : \texttt{Type}$$ 
-$\Gamma \vdash \texttt{closure...} : \texttt{Type}$$ 
+$$
+\frac
+{\Gamma \vdash T_1 : \texttt{i32} \qquad ... \qquad \Gamma \vdash T_n : \texttt{i32}}
+{\Gamma \vdash enum R(T_1,...T_n) : \texttt{Type} }
+$$
+  
+$$
+\frac
+{\Gamma \vdash T : \texttt{Type} \qquad \Gamma \vdash T_1 : \texttt{Type} \qquad ... \qquad \Gamma \vdash T_n : \texttt{Type}}
+{\Gamma \vdash fp T(T_1,...,T_n) : \texttt{Type} }
+$$  
+
+$$
+\frac
+{\Gamma \vdash T : \texttt{Type} \qquad \Gamma \vdash T_1 : \texttt{Type} \qquad ... \qquad \Gamma \vdash T_n : \texttt{Type}}
+{\Gamma \vdash closure T(T_1,...,T_n) : \texttt{Type} }
+$$  
+  
 $$\frac
 { \Gamma \vdash T : \texttt{Type} \qquad \text{Integral}(T) }
 { \Gamma \vdash \texttt{\%T} : \texttt{Type} }
-$$
-
+$$  
+  
 # Classes  
-
 $$\text{Numeric}(T) \triangleq T \in \{\texttt{i8},\ \texttt{i16},\ \texttt{i32},\ \texttt{i64},\ \texttt{u8},\ \texttt{u16},\ \texttt{u32},\ \texttt{u64},\ \texttt{int},\ \texttt{float},\ \texttt{double},\ \texttt{long}, \texttt{char}\}$$
-
+  
 $\text{Integral}(T) \triangleq T \in \{\texttt{i8},\texttt{i16}, \texttt{i32}, \texttt{i64}, \texttt{u8}, \texttt{u16}, \texttt{u32}, \texttt{u64}, \texttt{int}, \texttt{long}, \texttt{char}\}$  
-
+  
 $\text{Signed}(T) \triangleq T \in \{\texttt{i8},\texttt{i16}, \texttt{i32}, \texttt{i64}, \texttt{float}, \texttt{double}, \texttt{int}, \texttt{long}\}$  
-
+  
 $\text{Unsigned}(T) \triangleq T \in \{\texttt{u8}, \texttt{u16}, \texttt{u32}, \texttt{u64}, \texttt{char}\}$  
-
+  
 $\text{Decimal}(T) \triangleq T \in \{\texttt{float}, \texttt{double}\}$  
-
+  
 $\text{Boolean}(T) \triangleq T \in \{\texttt{bool}\}$  
-
+  
 $\text{Pointer}(T) \triangleq \exists U. (T = *U) \lor (T = fp R(T_1,...,T_n)) \lor (T = closure R(T_1,...T_n))$
-
+  
 $\text{Truthy}(T) \triangleq \text{Integral}(T) \lor \text{Boolean}(T) \lor \text{Pointer}(T) \lor (T = texttt{string})}$  
-
-
-~ Don't forget vectors and matricies in addition, subtraction @, etc
-
+    
 # Relations  
-$\Gamma \vdash \texttt{char === i8}$
-$\Gamma \vdash \texttt{bool === u8}$
-$\Gamma \vdash \texttt{int === i32}$
-$\Gamma \vdash \texttt{long === i64}$
-
-# Operations  
+$\Gamma \vdash \texttt{char === i8}$  
+$\Gamma \vdash \texttt{bool === u8}$  
+$\Gamma \vdash \texttt{int === i32}$  
+$\Gamma \vdash \texttt{long === i64}$  
+$\Gamma \vdash \texttt{string === (pointer, i8)}$
 $$
 \frac
-{\Gamma \vdash a : \texttt{i64} \qquad \Gamma \vdash b : \texttt{i64}}
-{\Gamma \vdash a + b : \texttt{i64}}
+{\Gamma \vdash t : \texttt{string}}
+{\Gamma \vdash t : pointer \times i64}
+$$
+  
+# Operations  
+$\text{Operator}(NUMOP) \triangleq NUMOP \in \{\texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}, \texttt{%}, \}
+
+
+$$
+\frac
+{\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Integral}}
+{\Gamma \vdash a + b : \text{Integral}}
 $$
 
+% Widening
+$$
+\frac 
+{\Gamma \vdash a : \text{Integral} \qquad \Gamme \vdash b : \text{Decimal}}
+{\Gamma \vdash \exists OP \in {a + b \text{Decimal}}
+$$
+  
+### Notes  
 
-
-### Notes
-
-* Strings are truthy since they are true if non empty and false if empty
-* Matrix and vector operations get their own semantics, but not category
-* Pointer arithmetic WILL be allowed since it is necessary, though it is the source of safety concerns
-* Truthy is also a common source of bugs, but I believe removing these convenient statements removes power from the user. At the end of the day you can do it either way and BrIan will not force a particular coding convention upon its users. BrIan prevents obvious footguns and traps, however, it will not restrict its users freedom. That being said, BrIan IS a multi-paradigm langauge so it needs to balance its features with safety. Despite this, BrIan also primarily targets embedded systems, so the user should discern the best cases to use particular conventions.
+* Strings are truthy since they are true if non empty and false if empty  
+* Matrix and vector operations get their own semantics, but not category  
+* Pointer arithmetic WILL be allowed since it is necessary, though it is the source of safety concerns  
+* Truthy is also a common source of bugs, but I believe removing these convenient statements removes power from the user. At the end of the day you can do it either way and BrIan will not force a particular coding convention upon its users. BrIan prevents obvious footguns and traps, however, it will not restrict its users freedom. That being said, BrIan IS a multi-paradigm langauge so it needs to balance its features with safety. Despite this, BrIan also primarily targets embedded systems, so the user should discern the best cases to use particular conventions.  
+* Widening IS implicitly allowed (warned), however, narrowing is explicity forbidden unless a prior cast has been made.
