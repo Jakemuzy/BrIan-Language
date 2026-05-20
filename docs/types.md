@@ -1,50 +1,77 @@
 # Types  
 
-$$\Gamma \vdash \texttt{u8} : \texttt{Type}$$ u8 : Type  
-$$\Gamma \vdash \texttt{u16} : \texttt{Type}$$ u16 : Type  
-$$\Gamma \vdash \texttt{u32} : \texttt{Type}$$ u32 : Type  
-$$\Gamma \vdash \texttt{u64} : \texttt{Type}$$ u64 : Type  
-$$\Gamma \vdash \texttt{i8} : \texttt{Type}$$ i8 : Type  
-$$\Gamma \vdash \texttt{i16} : \texttt{Type}$$ i16 : Type  
-$$\Gamma \vdash \texttt{i32} : \texttt{Type}$$ i32 : Type  
-$$\Gamma \vdash \texttt{i64} : \texttt{Type}$$ i64 : Type  
+$\Gamma \vdash \texttt{u8} : \texttt{Type}$ 
+$\Gamma \vdash \texttt{u16} : \texttt{Type}$
+$\Gamma \vdash \texttt{u32} : \texttt{Type}$
+$\Gamma \vdash \texttt{u64} : \texttt{Type}$
+$\Gamma \vdash \texttt{i8} : \texttt{Type}$ 
+$\Gamma \vdash \texttt{i16} : \texttt{Type}$
+$\Gamma \vdash \texttt{i32} : \texttt{Type}$
+$\Gamma \vdash \texttt{i64} : \texttt{Type}$
 
-$$\Gamma \vdash \texttt{char} : \texttt{Type}$$ 
-$$\Gamma \vdash \texttt{bool} : \texttt{Type}$$ 
-$$\Gamma \vdash \texttt{float} : \texttt{Type}$$ 
-$$\Gamma \vdash \texttt{int} : \texttt{Type}$$ 
-$$\Gamma \vdash \texttt{double} : \texttt{Type}$$  
-$$\Gamma \vdash \texttt{long} : \texttt{Type}$$ 
-$$\Gamma \vdash \texttt{string} : \texttt{Type}$$  
-$$\Gamma \vdash \texttt{void} : \texttt{Type}$$ 
+$\Gamma \vdash \texttt{char} : \texttt{Type}$ 
+$\Gamma \vdash \texttt{bool} : \texttt{Type}$ 
+$\Gamma \vdash \texttt{float} : \texttt{Type}$ 
+$\Gamma \vdash \texttt{int} : \texttt{Type}$ 
+$\Gamma \vdash \texttt{double} : \texttt{Type}$  
+$\Gamma \vdash \texttt{long} : \texttt{Type}$ 
+$\Gamma \vdash \texttt{string} : \texttt{Type}$  
+$\Gamma \vdash \texttt{void} : \texttt{Type}$ 
 
-$$\Gamma \vdash \texttt{mutex} : \texttt{Type}$$ 
-$$\Gamma \vdash \texttt{semaphore} : \texttt{Type}$$ 
-$$\Gamma \vdash \texttt{type} : \texttt{Type}$$ 
+$\Gamma \vdash \texttt{mutex} : \texttt{Type}$ 
+$\Gamma \vdash \texttt{semaphore} : \texttt{Type}$ 
+$\Gamma \vdash \texttt{type} : \texttt{Type}$ 
 
-$$\Gamma \vdash \texttt{chan<Type>} : \texttt{Type}$$  
-$$\Gamma \vdash \texttt{mat<Type, i64, i64>} : \texttt{Type}$$ 
-$$\Gamma \vdash \texttt{vec<Type, i64>} : \texttt{Type}$$  
+$\Gamma \vdash \texttt{chan<Type>} : \texttt{Type}$$  
+$\Gamma \vdash \texttt{mat<Type, i64, i64>} : \texttt{Type}$$ 
+$\Gamma \vdash \texttt{vec<Type, i64>} : \texttt{Type}$$  
 
-$$\Gamma \vdash \texttt{fp} : \texttt{Type}$$ 
-$$\Gamma \vdash \texttt{closure} : \texttt{Type}$$ 
+$\Gamma \vdash \texttt{fp...} : \texttt{Type}$$ 
+$\Gamma \vdash \texttt{closure...} : \texttt{Type}$$ 
+$$\frac
+{ \Gamma \vdash T : \texttt{Type} \qquad \text{Integral}(T) }
+{ \Gamma \vdash \texttt{\%T} : \texttt{Type} }
+$$
 
 # Classes  
 
-$$\text{Numeric}(T) \triangleq T \in \{\texttt{i8},\ \texttt{i16},\ \texttt{i32},\ \texttt{i64},\ \texttt{u8},\ \texttt{u16},\ \texttt{u32},\ \texttt{u64},\ \texttt{int},\ \texttt{float},\ \texttt{double},\ \texttt{long}\}$$
+$$\text{Numeric}(T) \triangleq T \in \{\texttt{i8},\ \texttt{i16},\ \texttt{i32},\ \texttt{i64},\ \texttt{u8},\ \texttt{u16},\ \texttt{u32},\ \texttt{u64},\ \texttt{int},\ \texttt{float},\ \texttt{double},\ \texttt{long}, \texttt{char}\}$$
+
+$\text{Integral}(T) \triangleq T \in \{\texttt{i8},\texttt{i16}, \texttt{i32}, \texttt{i64}, \texttt{u8}, \texttt{u16}, \texttt{u32}, \texttt{u64}, \texttt{int}, \texttt{long}, \texttt{char}\}$  
+
+$\text{Signed}(T) \triangleq T \in \{\texttt{i8},\texttt{i16}, \texttt{i32}, \texttt{i64}, \texttt{float}, \texttt{double}, \texttt{int}, \texttt{long}\}$  
+
+$\text{Unsigned}(T) \triangleq T \in \{\texttt{u8}, \texttt{u16}, \texttt{u32}, \texttt{u64}, \texttt{char}\}$  
+
+$\text{Decimal}(T) \triangleq T \in \{\texttt{float}, \texttt{double}\}$  
+
+$\text{Boolean}(T) \triangleq T \in \{\texttt{bool}\}$  
+
+$\text{Pointer}(T) \triangleq \exists U. (T = *U) \lor (T = fp R(T_1,...,T_n)) \lor (T = closure R(T_1,...T_n))$
+
+$\text{Truthy}(T) \triangleq \text{Integral}(T) \lor \text{Boolean}(T) \lor \text{Pointer}(T) \lor (T = texttt{string})}$  
+
+
+~ Don't forget vectors and matricies in addition, subtraction @, etc
 
 # Relations  
-$$\Gamma \vdash \texttt{char === i8}$$
-$$\Gamma \vdash \texttt{bool === i8}$$
-$$\Gamma \vdash \texttt{int === i32}$$
+$\Gamma \vdash \texttt{char === i8}$
+$\Gamma \vdash \texttt{bool === u8}$
+$\Gamma \vdash \texttt{int === i32}$
+$\Gamma \vdash \texttt{long === i64}$
 
 # Operations  
 $$
 \frac
-{
-$\Gamma$, x : i64 $$\vdash$$ b : i64 $$\vdash$$ a : i64
-}
-{
-$\Gamma$ $$\vdash ($\lambda$x.a$\lambda$x.b) : i64
-}
+{\Gamma \vdash a : \texttt{i64} \qquad \Gamma \vdash b : \texttt{i64}}
+{\Gamma \vdash a + b : \texttt{i64}}
 $$
+
+
+
+### Notes
+
+* Strings are truthy since they are true if non empty and false if empty
+* Matrix and vector operations get their own semantics, but not category
+* Pointer arithmetic WILL be allowed since it is necessary, though it is the source of safety concerns
+* Truthy is also a common source of bugs, but I believe removing these convenient statements removes power from the user. At the end of the day you can do it either way and BrIan will not force a particular coding convention upon its users. BrIan prevents obvious footguns and traps, however, it will not restrict its users freedom. That being said, BrIan IS a multi-paradigm langauge so it needs to balance its features with safety. Despite this, BrIan also primarily targets embedded systems, so the user should discern the best cases to use particular conventions.

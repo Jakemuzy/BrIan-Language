@@ -16,7 +16,8 @@
 ### Variable length arrays (VLAs) are allowed in the language for now, but really there is no use for them in BrIan, they will be removed later for safety and memory limitation concerns on embedded systems.
 ### Undefiend array sizes are NOT allowed, EXCEPT as paramaters. This is because we allow any array size to match.
 ### Matricies and vectors first paramater is their underlying type. Only numerical types are allowed (verified in type checker). Additionally only FIXED size is allowed
-
+### Register '%' prefix forbids addressing of, but can be applied to any integral type
+### Strings are NOT represented as pointers in my language, but rahter a fat pointer type datastructure. Data + length is stored since they are immutable
 
 ```
 	Program ::=  { Import | Directive } { Function | DeclStmt }
