@@ -1,5 +1,9 @@
 # Types  
 
+### Hint: 
+source words are texttt, named predicates are Text and metavariables are just plain text
+Numeric(T) = "for any T that is Numeric, if a and b are both of type T, then a + b is of type T"
+
 $\Gamma \vdash \texttt{u8} : \texttt{Type}$  
 $\Gamma \vdash \texttt{u16} : \texttt{Type}$  
 $\Gamma \vdash \texttt{u32} : \texttt{Type}$  
@@ -24,20 +28,20 @@ $\Gamma \vdash \texttt{type} : \texttt{Type}$
 
 $$ 
 \frac
-{\Gamma \vdash \text{T} : \texttt{Type}}
-{\Gamma \vdash \texttt{chan<} T \texttt{>}}
+{\Gamma \vdash T : \texttt{Type}}
+{\Gamma \vdash \texttt{chan} \langle T \rangle}
 $$
 
 $$
 \frac
-{\Gamma \vdash \text{T} : \texttt{Type} \qquad \Gamma \vdash \text{X} : \texttt{i64} \qquad \Gamma \vdash \text{Y}}
-{\Gamma \vdash \texttt{mat<} T \textttt{,} X \texttt{,} Y \texttt{>} : \texttt{Type}}
+{\Gamma \vdash T : \texttt{Type} \qquad \Gamma \vdash \text{X} : \texttt{i64} \qquad \Gamma \vdash \text{Y}}
+{\Gamma \vdash \texttt{mat} \langle T \texttt{,} X \texttt{,} Y \rangle : \texttt{Type}}
 $$  
   
 $$
 \frac
-{\Gamma \vdash \text{T} : \texttt{Type} \qquad \Gamma \vdash \text{X} : \texttt{i64}}
-{\Gamma \vdash \texttt{mat<} T \textttt{,} X \texttt{>} : \texttt{Type}}
+{\Gamma \vdash T : \texttt{Type} \qquad \Gamma \vdash \text{X} : \texttt{i64}}
+{\Gamma \vdash \texttt{mat} \langle T \texttt{,} X \rangle : \texttt{Type}}
 $$  
   
 $$
@@ -78,7 +82,7 @@ $\text{Boolean}(T) \triangleq T \in \{\texttt{bool}\}$
   
 $\text{Pointer}(T) \triangleq \exists U. (T = *U) \lor (T = fp R(T_1,...,T_n)) \lor (T = closure R(T_1,...T_n))$
   
-$\text{Truthy}(T) \triangleq \text{Integral}(T) \lor \text{Boolean}(T) \lor \text{Pointer}(T) \lor (T = \texttt{string})}$  
+$\text{Truthy}(T) \triangleq \text{Integral}(T) \lor \text{Boolean}(T) \lor \text{Pointer}(T) \lor (T = \texttt{string})$  
     
 # Relations  
 $\Gamma \vdash \texttt{char} \equiv \texttt{i8}$  
@@ -93,10 +97,10 @@ $$
 $$  
   
 # Operations  
-$\text{Operator}(ASGNOP) \triangleq ASGNOP \in \{\texttt{=}, \texttt{+=}, \texttt{-=}, \texttt{*=}, \texttt{/=}, \texttt{\%=}, \texttt{&=}, \texttt{|=}, \texttt{\&\&=}, \texttt{||=}, \texttt{\~=}, \texttt{^=}, \texttt{>>=}, \texttt{<<=}, \texttt{++}, \texttt{--}\}$  
-$\text{Operator}(BINOP) \triangleq BINOP \in \{\texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}, \texttt{\%}\}}$  
+$\text{Operator}(ASGNOP) \triangleq ASGNOP \in \{\texttt{=}, \texttt{+=}, \texttt{-=}, \texttt{*=}, \texttt{/=}, \texttt{\%=}, \texttt{\&=}, \texttt{|=}, \texttt{\&\&=}, \texttt{||=}, \texttt{\~=}, \texttt{\^=}, \texttt{>>=}, \texttt{<<=}, \texttt{++}, \texttt{--}\}$  
+$\text{Operator}(BINOP) \triangleq BINOP \in \{\texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}, \texttt{\%}\}$  
 $\text{Operator}(LOGOP) \triangleq LOGOP \in \{\texttt{==}, \texttt{!=}, \texttt{>=}, \texttt{<=}, \texttt{!}, \texttt{\&\&}, \texttt{||}, \texttt{>}, \texttt{<}\}$  
-$\text{Operator}(BITOP) \triangleq BITOP \in \{\texttt{\~}, \texttt{^}, \texttt{|}, \texttt{&}, \texttt{<<}, \texttt{>>}\}$  
+$\text{Operator}(BITOP) \triangleq BITOP \in \{\texttt{\~}, \texttt{\^}, \texttt{|}, \texttt{&}, \texttt{<<}, \texttt{>>}\}$  
 $\text{Operator}(STRCTOP) \triangleq STRCTOP \in \{\texttt{.}, \texttt{.?}, \texttt{->}, \texttt{->?}\}$  
 $\text{Operator}(VECOP) \triangleq VECOP \in \{\texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}, \texttt{@}\}$  
 $\Gamma \vdash \text{Operator}(PTROP) \equiv \texttt{[]}$  
