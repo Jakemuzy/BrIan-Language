@@ -96,35 +96,164 @@ $$
 {\Gamma \vdash t : pointer \times i64}
 $$  
   
-# Operations  
+# Operators 
 $\text{Operator}(ASGNOP) \triangleq ASGNOP \in \{\texttt{=}, \texttt{+=}, \texttt{-=}, \texttt{*=}, \texttt{/=}, \texttt{\%=}, \texttt{\&=}, \texttt{|=}, \texttt{\&\&=}, \texttt{||=}, \texttt{\~=}, \texttt{\^=}, \texttt{>>=}, \texttt{<<=}, \texttt{++}, \texttt{--}\}$  
 $\text{Operator}(BINOP) \triangleq BINOP \in \{\texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}, \texttt{\%}\}$  
 $\text{Operator}(LOGOP) \triangleq LOGOP \in \{\texttt{==}, \texttt{!=}, \texttt{>=}, \texttt{<=}, \texttt{!}, \texttt{\&\&}, \texttt{||}, \texttt{>}, \texttt{<}\}$  
-$\text{Operator}(BITOP) \triangleq BITOP \in \{\texttt{\~}, \texttt{\^}, \texttt{|}, \texttt{&}, \texttt{<<}, \texttt{>>}\}$  
+$\text{Operator}(BITOP) \triangleq BITOP \in \{\texttt{\char"7E}, \texttt{\char"5E}, \texttt{|}, \texttt{\char"26}, \texttt{<<}, \texttt{>>}\}$  
 $\text{Operator}(STRCTOP) \triangleq STRCTOP \in \{\texttt{.}, \texttt{.?}, \texttt{->}, \texttt{->?}\}$  
 $\text{Operator}(VECOP) \triangleq VECOP \in \{\texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}, \texttt{@}\}$  
-$\Gamma \vdash \text{Operator}(PTROP) \equiv \texttt{[]}$  
+$\Gamma \vdash \text{Operator}(PTROP) \triangleq PTROP \in \{\texttt{[], *}\}$
+$\Gamma \vdash \text{Operator}(MSGOP) \triangleq MSGOP \in \{\texttt{send}, \texttt{receive} \}$
+$\Gamma \vdash \text{Operator}(TERNOP) \triangleq TERNOP \in \{\texttt{? :}\}$
 
 $$
 \frac
 {\Gamma \vdash \text{T} : Type} 
 {\Gamma \vdash \text{Operator}(SIZEOP) \equiv \texttt{sizeof(} T \texttt{)}}
 $$
+$\text{OP}(T) \triangleq \text{ASGNOP}(T) \lor \text{BINOP}(T) \lor \text{LOGOP}(T) \lor \text{BITOP}(T) \lor \text{STRTCOP}(T) \lor \text{VECOP}(T) \lor \text{PTROP}(T) \lor \text{SIZEOP}(T)$
 
-### Don't forget about ternary and send / receive
+
+# Operations
+
+### Binop
+$$
+\frac
+{\Gamma \vdash a : \text{Numeric} \qquad \Gamma \vdash b : \text{Numeric} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Numeric}}  
+$$
 
 $$
 \frac
-{\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Integral}}
-{\Gamma \vdash a + b : \text{Integral}}
+{\Gamma \vdash a : \text{Numeric} \qquad \Gamma \vdash b : \text{Integral} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Integral}}  
 $$
 
+$$
+\frac
+{\Gamma \vdash a : \text{Numeric} \qquad \Gamma \vdash b : \text{Decimal} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Decimal}}  
+$$
+
+$$
+\frac
+{\Gamma \vdash a : \text{Numeric} \qquad \Gamma \vdash b : \text{Signed} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Signed}}  
+$$
+
+$$
+\frac
+{\Gamma \vdash a : \text{Numeric} \qquad \Gamma \vdash b : \text{Unsigned} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Unsigned}}  
+$$
+
+<br/>
+
+$$
+\frac
+{\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Integral} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Integral}}  
+$$
+
+$$
+\frac
+{\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Decimal} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Decimal}}  
+$$
+
+$$
+\frac
+{\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Signed} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Signed}}  
+$$
+
+$$
+\frac
+{\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Unsigned} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Unsigned}}  
+$$
+
+<br/>
+
+$$
+\frac
+{\Gamma \vdash a : \text{Decimal} \qquad \Gamma \vdash b : \text{Decimal} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Decimal}}  
+$$
+
+$$
+\frac
+{\Gamma \vdash a : \text{Decimal} \qquad \Gamma \vdash b : \text{Signed} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Decimal}}  
+$$
+
+$$
+\frac
+{\Gamma \vdash a : \text{Decimal} \qquad \Gamma \vdash b : \text{Unsigned} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Decimal}}  
+$$
+
+<br/>
+
+$$
+\frac
+{\Gamma \vdash a : \text{Unsigned} \qquad \Gamma \vdash b : \text{Signed} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Signed}}  
+$$
+
+$$
+\frac
+{\Gamma \vdash a : \text{Unsigned} \qquad \Gamma \vdash b : \text{Unsigned} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Unsigned}}  
+$$
+
+<br/>
+  
+$$
+\frac
+{\Gamma \vdash a : \text{Signed} \qquad \Gamma \vdash b : \text{Signed} \qquad \Gamma \vdash T \exists \text{BINOP}}
+{\Gamma \vdash a T b : \text{Signed}}  
+$$
+
+--- 
+### Logop 
+
+$$
+\frac
+{\Gamma \vdash a : \text{Truthy} \qquad \Gamma \vdash b : \text{Truthy} \qquad \Gamma \vdash T \exists \text{LOGOP}}
+{\Gamma \vdash a T b : \text{Bool}}  
+$$
+
+--- 
+
+### Bitop
+
+$$
+\frac
+{\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Integral} \qquad \Gamma \vdash T \exists \text{BITOP}}
+{\Gamma \vdash a T b : \text{Integral}}  
+$$
+
+--- 
+
+### Strctop
+
+
+$$
+\frac
+{\Gamma \vdash a : \text{Struct} \qquad \Gamma \vdash b : \text{Name} \qquad \Gamma \vdash T \exists \text{STRCTOP}}
+{\Gamma \vdash a T b : \text{Type}}  
+$$
+
+---
+
 ### Widening
-### Using categories for now, but may have to specify which size decima
+Using categories for now, but may have to specify which size decima
 $$
 \frac 
 {\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Decimal}}
-{\Gamma \vdash \exists OP \in {a + b : \text{Decimal}}
+{\Gamma \vdash \exists OP \in {a + b : \text{Decimal}}}
 $$
   
 ### Notes  
@@ -134,3 +263,5 @@ $$
 * Pointer arithmetic WILL be allowed since it is necessary, though it is the source of safety concerns  
 * Truthy is also a common source of bugs, but I believe removing these convenient statements removes power from the user. At the end of the day you can do it either way and BrIan will not force a particular coding convention upon its users. BrIan prevents obvious footguns and traps, however, it will not restrict its users freedom. That being said, BrIan IS a multi-paradigm langauge so it needs to balance its features with safety. Despite this, BrIan also primarily targets embedded systems, so the user should discern the best cases to use particular conventions.  
 * Widening IS implicitly allowed (warned), however, narrowing is explicity forbidden unless a prior cast has been made.
+* Although bool is implicity u8, you cannot do mathematical operations on it
+* Bitwise operators banned on decimal category types
