@@ -33,7 +33,18 @@ typedef struct TYPE {
         struct { struct TYPE* element; size_t size; } array; 
         struct { Symbol* sym; struct TYPE* type; } name;
         struct { Symbol* sym; struct TYPE_FIELD_LIST* fields; } struc;
-    };
-};
+    } Specific;
+} TYPE;
+
+static TYPE TY_ERR = { TYPE_VOID, NULL, 0 };
+static TYPE* TY_ERROR = &TY_ERROR;
+
+/* ----- Helpers ----- */
+
+TYPE* ExistsType(ASTNode* node);
+TYPE* CreateNewType(ASTNode* node);
+
+TYPE* LiteralToType(TokenType);
+
 
 #endif

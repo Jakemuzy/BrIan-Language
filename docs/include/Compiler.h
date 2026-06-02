@@ -11,6 +11,7 @@
 #include "Tokenizer.h"
 #include "Parser.h"
 #include "NameResolver.h"
+#include "TypeChecker.h"
 
 /*      BrIan Compiler Entry
     ----------------------------

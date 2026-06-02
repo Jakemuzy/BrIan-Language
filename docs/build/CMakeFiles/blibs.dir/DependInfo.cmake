@@ -19,6 +19,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Parser.c" "CMakeFiles/blibs.dir/src/Parser.c.o" "gcc" "CMakeFiles/blibs.dir/src/Parser.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Token.c" "CMakeFiles/blibs.dir/src/Token.c.o" "gcc" "CMakeFiles/blibs.dir/src/Token.c.o.d"
   "/home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c" "CMakeFiles/blibs.dir/src/Tokenizer.c.o" "gcc" "CMakeFiles/blibs.dir/src/Tokenizer.c.o.d"
+  "/home/jmuzy/Programming/C/BrIan-Language/docs/src/TypeChecker.c" "CMakeFiles/blibs.dir/src/TypeChecker.c.o" "gcc" "CMakeFiles/blibs.dir/src/TypeChecker.c.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

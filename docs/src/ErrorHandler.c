@@ -15,7 +15,7 @@ void ERROR(ErrorRecovery recovery, ErrorCategory cat, const char* format, ...)
         case PARSER_ERR: catStr = "SYNTAX"; break;
         case PREPROCESSER_ERR: catStr = "PREPROCESSOR"; break;
         case NAME_RESOLVER_ERR: catStr = "NAME RESOLUTION"; break;
-        case TYPE_RESOLVER_ERR: catStr = "TYPE RESOLUTION"; break;
+        case TYPE_CHECKER_ERR: catStr = "TYPE RESOLUTION"; break;
         case LLVM_ERR: catStr = "LLVM CONVERSION"; break;
         case COMPILER_ERR: catStr = "COMPILER"; break;
         default: catStr = "UNKNOWN";

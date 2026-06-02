@@ -226,6 +226,20 @@ CMakeFiles/blibs.dir/src/Tokenizer.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blibs.dir/src/Tokenizer.c.s"
 	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/Tokenizer.c -o CMakeFiles/blibs.dir/src/Tokenizer.c.s
 
+CMakeFiles/blibs.dir/src/TypeChecker.c.o: CMakeFiles/blibs.dir/flags.make
+CMakeFiles/blibs.dir/src/TypeChecker.c.o: /home/jmuzy/Programming/C/BrIan-Language/docs/src/TypeChecker.c
+CMakeFiles/blibs.dir/src/TypeChecker.c.o: CMakeFiles/blibs.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/blibs.dir/src/TypeChecker.c.o"
+	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/blibs.dir/src/TypeChecker.c.o -MF CMakeFiles/blibs.dir/src/TypeChecker.c.o.d -o CMakeFiles/blibs.dir/src/TypeChecker.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/TypeChecker.c
+
+CMakeFiles/blibs.dir/src/TypeChecker.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/blibs.dir/src/TypeChecker.c.i"
+	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jmuzy/Programming/C/BrIan-Language/docs/src/TypeChecker.c > CMakeFiles/blibs.dir/src/TypeChecker.c.i
+
+CMakeFiles/blibs.dir/src/TypeChecker.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/blibs.dir/src/TypeChecker.c.s"
+	clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jmuzy/Programming/C/BrIan-Language/docs/src/TypeChecker.c -o CMakeFiles/blibs.dir/src/TypeChecker.c.s
+
 # Object files for target blibs
 blibs_OBJECTS = \
 "CMakeFiles/blibs.dir/src/AST.c.o" \
@@ -238,7 +252,8 @@ blibs_OBJECTS = \
 "CMakeFiles/blibs.dir/src/Namespace.c.o" \
 "CMakeFiles/blibs.dir/src/Parser.c.o" \
 "CMakeFiles/blibs.dir/src/Token.c.o" \
-"CMakeFiles/blibs.dir/src/Tokenizer.c.o"
+"CMakeFiles/blibs.dir/src/Tokenizer.c.o" \
+"CMakeFiles/blibs.dir/src/TypeChecker.c.o"
 
 # External object files for target blibs
 blibs_EXTERNAL_OBJECTS =
@@ -254,9 +269,10 @@ libblibs.a: CMakeFiles/blibs.dir/src/Namespace.c.o
 libblibs.a: CMakeFiles/blibs.dir/src/Parser.c.o
 libblibs.a: CMakeFiles/blibs.dir/src/Token.c.o
 libblibs.a: CMakeFiles/blibs.dir/src/Tokenizer.c.o
+libblibs.a: CMakeFiles/blibs.dir/src/TypeChecker.c.o
 libblibs.a: CMakeFiles/blibs.dir/build.make
 libblibs.a: CMakeFiles/blibs.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking C static library libblibs.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/jmuzy/Programming/C/BrIan-Language/docs/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Linking C static library libblibs.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/blibs.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/blibs.dir/link.txt --verbose=$(VERBOSE)
 
