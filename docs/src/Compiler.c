@@ -20,6 +20,7 @@ void CompileBrian(int argc, char* argv[])
     RunTokenizer(cs);
     RunParser(cs);
     RunNameResolver(cs);
+    RunTypeChecker(cs);
     // .. Other phases get implemented 
 
     CleanupBrian(cs);
@@ -145,7 +146,17 @@ void RunNameResolver(CompilationState* cs)
 
 void RunTypeChecker(CompilationState* cs)
 {
-    cs->typecheck = NULL;
+    TypeCheckerContext* ctx = InitalizeTypeCheckerContext();
+    TypeCheckProgram(ctx);
+
+    if (ctx->failure) {
+        CleanupBrian(cs);
+        ERROR(ERR_FLAG_EXIT, TYPE_CHECKER_ERR, "Failed to type check.\n");
+    }
+    if (cs->flags.stopAfter == TYPECHECK)
+        CleanupBrian(cs);
+
+    cs->typecheck = ctx;
 }
 
 void RunLLVMGenerateIR(CompilationState* cs)

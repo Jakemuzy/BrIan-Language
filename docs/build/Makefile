@@ -419,6 +419,30 @@ src/Tokenizer.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/Tokenizer.c.s
 .PHONY : src/Tokenizer.c.s
 
+src/TypeChecker.o: src/TypeChecker.c.o
+.PHONY : src/TypeChecker.o
+
+# target to build an object file
+src/TypeChecker.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/TypeChecker.c.o
+.PHONY : src/TypeChecker.c.o
+
+src/TypeChecker.i: src/TypeChecker.c.i
+.PHONY : src/TypeChecker.i
+
+# target to preprocess a source file
+src/TypeChecker.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/TypeChecker.c.i
+.PHONY : src/TypeChecker.c.i
+
+src/TypeChecker.s: src/TypeChecker.c.s
+.PHONY : src/TypeChecker.s
+
+# target to generate assembly for a file
+src/TypeChecker.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/blibs.dir/build.make CMakeFiles/blibs.dir/src/TypeChecker.c.s
+.PHONY : src/TypeChecker.c.s
+
 src/main.o: src/main.c.o
 .PHONY : src/main.o
 
@@ -487,6 +511,9 @@ help:
 	@echo "... src/Tokenizer.o"
 	@echo "... src/Tokenizer.i"
 	@echo "... src/Tokenizer.s"
+	@echo "... src/TypeChecker.o"
+	@echo "... src/TypeChecker.i"
+	@echo "... src/TypeChecker.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

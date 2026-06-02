@@ -112,131 +112,22 @@ $$
 {\Gamma \vdash \text{T} : Type} 
 {\Gamma \vdash \text{Operator}(SIZEOP) \equiv \texttt{sizeof(} T \texttt{)}}
 $$
-$\text{OP}(T) \triangleq \text{ASGNOP}(T) \lor \text{BINOP}(T) \lor \text{LOGOP}(T) \lor \text{BITOP}(T) \lor \text{STRTCOP}(T) \lor \text{VECOP}(T) \lor \text{PTROP}(T) \lor \text{SIZEOP}(T)$
 
 
 # Operations
 
-### Binop
-$$
-\frac
-{\Gamma \vdash a : \text{Numeric} \qquad \Gamma \vdash b : \text{Numeric} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Numeric}}  
-$$
+### Prefix:
+$\text{Numeric} \sqsubseteq \text{Integral} \sqsubseteq \text{Signed} \sqsubseteq \text{Decimal} $
 
-$$
-\frac
-{\Gamma \vdash a : \text{Numeric} \qquad \Gamma \vdash b : \text{Integral} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Integral}}  
-$$
+$\text{Numeric} \sqsubseteq \text{Integral} \sqsubseteq \text{Unsigned} $
 
-$$
-\frac
-{\Gamma \vdash a : \text{Numeric} \qquad \Gamma \vdash b : \text{Decimal} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Decimal}}  
-$$
-
-$$
-\frac
-{\Gamma \vdash a : \text{Numeric} \qquad \Gamma \vdash b : \text{Signed} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Signed}}  
-$$
-
-$$
-\frac
-{\Gamma \vdash a : \text{Numeric} \qquad \Gamma \vdash b : \text{Unsigned} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Unsigned}}  
-$$
-
-<br/>
-
-$$
-\frac
-{\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Integral} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Integral}}  
-$$
-
-$$
-\frac
-{\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Decimal} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Decimal}}  
-$$
-
-$$
-\frac
-{\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Signed} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Signed}}  
-$$
-
-$$
-\frac
-{\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Unsigned} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Unsigned}}  
-$$
-
-<br/>
-
-$$
-\frac
-{\Gamma \vdash a : \text{Decimal} \qquad \Gamma \vdash b : \text{Decimal} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Decimal}}  
-$$
-
-$$
-\frac
-{\Gamma \vdash a : \text{Decimal} \qquad \Gamma \vdash b : \text{Signed} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Decimal}}  
-$$
-
-$$
-\frac
-{\Gamma \vdash a : \text{Decimal} \qquad \Gamma \vdash b : \text{Unsigned} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Decimal}}  
-$$
-
-<br/>
-
-$$
-\frac
-{\Gamma \vdash a : \text{Unsigned} \qquad \Gamma \vdash b : \text{Signed} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Signed}}  
-$$
-
-$$
-\frac
-{\Gamma \vdash a : \text{Unsigned} \qquad \Gamma \vdash b : \text{Unsigned} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Unsigned}}  
-$$
-
-<br/>
-  
-$$
-\frac
-{\Gamma \vdash a : \text{Signed} \qquad \Gamma \vdash b : \text{Signed} \qquad \Gamma \vdash T \exists \text{BINOP}}
-{\Gamma \vdash a T b : \text{Signed}}  
-$$
-
---- 
-### Logop 
-
-$$
-\frac
-{\Gamma \vdash a : \text{Truthy} \qquad \Gamma \vdash b : \text{Truthy} \qquad \Gamma \vdash T \exists \text{LOGOP}}
-{\Gamma \vdash a T b : \text{Bool}}  
-$$
+$ \sqcup \text{ is the least upper bound} $
 
 --- 
 
-### Bitop
 
-$$
-\frac
-{\Gamma \vdash a : \text{Integral} \qquad \Gamma \vdash b : \text{Integral} \qquad \Gamma \vdash T \exists \text{BITOP}}
-{\Gamma \vdash a T b : \text{Integral}}  
-$$
 
 --- 
-
 ### Strctop
 
 

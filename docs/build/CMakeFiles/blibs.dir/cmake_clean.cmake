@@ -21,6 +21,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/blibs.dir/src/Token.c.o.d"
   "CMakeFiles/blibs.dir/src/Tokenizer.c.o"
   "CMakeFiles/blibs.dir/src/Tokenizer.c.o.d"
+  "CMakeFiles/blibs.dir/src/TypeChecker.c.o"
+  "CMakeFiles/blibs.dir/src/TypeChecker.c.o.d"
   "libblibs.a"
   "libblibs.pdb"
 )

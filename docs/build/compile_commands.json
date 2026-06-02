@@ -67,6 +67,12 @@
 },
 {
   "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
+  "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/blibs.dir/src/TypeChecker.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/TypeChecker.c",
+  "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/TypeChecker.c",
+  "output": "CMakeFiles/blibs.dir/src/TypeChecker.c.o"
+},
+{
+  "directory": "/home/jmuzy/Programming/C/BrIan-Language/docs/build",
   "command": "clang  -I/home/jmuzy/Programming/C/BrIan-Language/docs/include  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -g -std=gnu99 -o CMakeFiles/compiler.dir/src/main.c.o -c /home/jmuzy/Programming/C/BrIan-Language/docs/src/main.c",
   "file": "/home/jmuzy/Programming/C/BrIan-Language/docs/src/main.c",
   "output": "CMakeFiles/compiler.dir/src/main.c.o"
