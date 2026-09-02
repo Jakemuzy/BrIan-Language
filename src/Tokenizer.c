@@ -1,812 +1,414 @@
 #include "Tokenizer.h"
 
-#define ERRT -1      /* Token with err */
-#define NAT 0       /* Not a token */
-#define VALID 1
+// TODO: identifier at EOF is infinite loop
+// this whole thing needs a redesign around the buffer system
 
-/* KNOWN BUGS */
+// TODO: might just have a temporary buffer
 
-/* TODO: 
-        - Add Factorials, Register Access, Bit Manipulation and other Tokens
-        - Add Support for line and column tracking for better debugging 
-        - Refactor the Dictionary System to use something more elegant
-        - Refactor the Entire Tokenizer to reduce boilerplate and make it more modular
-        - Instead of checking for '\n' in each case, just put the token back and let the 
-          main GetNextToken function handle the logic regarding line numbers
-*/
+/* ----- Double Buffered Context ----- */
 
-/* ---------- Helpers ---------- */
-
-void KWMapInit()
+TokenizerContext* InitalizeTokenizerContext(FILE* fptr, size_t fileSize)
 {
-    KWmap = malloc(sizeof(Dict));
-    *KWmap = DictInit(HASH_STR, 109);
+    TokenizerContext* ctx = malloc(sizeof(TokenizerContext));
+    ctx->buffer1[TOKENIZER_BUFFER_SIZE -1] = TOKENIZER_SENTINEL;
+    ctx->buffer2[TOKENIZER_BUFFER_SIZE -1] = TOKENIZER_SENTINEL;
 
-    DictPush(KWmap, (void*) "if", (void*)(uintptr_t) IF);      DictPush(KWmap, (void*) "elif", (void*)(uintptr_t) ELIF);  
-    DictPush(KWmap, (void*) "else", (void*)(uintptr_t) ELSE);    DictPush(KWmap, (void*) "do", (void*)(uintptr_t) DO);      
-    DictPush(KWmap, (void*) "while", (void*)(uintptr_t) WHILE);  DictPush(KWmap, (void*) "break", (void*)(uintptr_t) BREAK);  
-    DictPush(KWmap, (void*) "for", (void*)(uintptr_t) FOR);      DictPush(KWmap, (void*) "switch", (void*)(uintptr_t) SWITCH);
-    DictPush(KWmap, (void*) "case", (void*)(uintptr_t) CASE);    DictPush(KWmap, (void*) "default", (void*)(uintptr_t) DEFAULT); 
-    DictPush(KWmap, (void*) "return", (void*)(uintptr_t) RET);   DictPush(KWmap, (void*) "char", (void*)(uintptr_t) CHAR);     
-    DictPush(KWmap, (void*) "short", (void*)(uintptr_t) SHORT);   DictPush(KWmap, (void*) "int", (void*)(uintptr_t) INT);      
-    DictPush(KWmap, (void*) "float", (void*)(uintptr_t) FLOAT);   DictPush(KWmap, (void*) "double", (void*)(uintptr_t) DOUBLE); 
-    DictPush(KWmap, (void*) "long", (void*)(uintptr_t) LONG);     DictPush(KWmap, (void*) "void", (void*)(uintptr_t) VOID);    
-    DictPush(KWmap, (void*) "string", (void*)(uintptr_t) STRING); DictPush(KWmap, (void*) "enum", (void*)(uintptr_t) ENUM);    
-    DictPush(KWmap, (void*) "struct", (void*)(uintptr_t) STRUCT); DictPush(KWmap, (void*) "const", (void*)(uintptr_t) CONST); 
-    DictPush(KWmap, (void*) "signed", (void*)(uintptr_t) SIGNED);DictPush(KWmap, (void*) "unsigned", (void*)(uintptr_t) UNSIGNED);
-    DictPush(KWmap, (void*) "static", (void*)(uintptr_t) STATIC);DictPush(KWmap, (void*) "typedef", (void*)(uintptr_t) TYPEDEF); 
-    DictPush(KWmap, (void*) "U8", (void*)(uintptr_t) U8);        DictPush(KWmap, (void*) "U16", (void*)(uintptr_t) U16);     
-    DictPush(KWmap, (void*) "U32", (void*)(uintptr_t) U32);      DictPush(KWmap, (void*) "U64", (void*)(uintptr_t) U64);     
-    DictPush(KWmap, (void*) "I8", (void*)(uintptr_t) I8);        DictPush(KWmap, (void*) "I16", (void*)(uintptr_t) I16);     
-    DictPush(KWmap, (void*) "I32", (void*)(uintptr_t) I32);      DictPush(KWmap, (void*) "I64", (void*)(uintptr_t) I64);     
-    DictPush(KWmap, (void*) "bool", (void*)(uintptr_t) BOOL);    DictPush(KWmap, (void*) "true", (void*)(uintptr_t) TRUE);
-    DictPush(KWmap, (void*) "false", (void*)(uintptr_t) FALSE);  DictPush(KWmap, (void*) "null", (void*)(uintptr_t) NILL);
+    ctx->lexemeBegin = ctx->buffer1;
+    ctx->forward = ctx->buffer1;
+    ctx->currentBuffer = 1;
 
+    ctx->row = 1;
+    ctx->col = 1;
+
+    ctx->fptr = fptr;
+
+    /* Make the constant variable depending on density */
+    size_t arenaSize = fileSize * ARENA_CAPACITY_MULTIPLIER_FROM_FILESIZE;
+    ctx->arena = CreateArena(arenaSize);
+
+    LoadBuffer(ctx, 1);
+    return ctx;
 }
 
-int GetLineNum() { return LINE_NUM; }
-int CheckBuffer(Token* out)
+void DestroyTokenizerContext(TokenizerContext* ctx) 
 {
-    if (Buff.tokCount == 0)
-        return NAT;
-    *out = Buff.toks[--Buff.tokCount];
-
-    return VALID;
+    fclose(ctx->fptr);
+    free(ctx);
 }
 
-Token GetNextToken(FILE* fptr)
+void SetEdgeCaseFlag(TokenizerContext* ctx, bool val)
 {
-    Token next;
-    if (CheckBuffer(&next) != NAT)
-        return next;
-
-    /* Fetch new Token From File */
-    next.lex.size = 0;
-    next.lex.max = INIT_LEXEME;
-    next.lex.word = malloc(next.lex.max * sizeof(char));
-    next.lex.word[0] = '\0';
-    
-    int c;
-    GET_CHAR(fptr, c);
-
-    if (IsEnd(fptr, &next, c) != NAT)
-        ;
-    else if (IsNumber(fptr, &next, c) != NAT)
-        ;
-    else if (IsLiteral(fptr, &next, c) != NAT)
-        ;
-    else if (IsOperator(fptr, &next, c) != NAT)
-        ;
-    else if (IsComp(fptr, &next, c) != NAT)
-        ;
-    else if (IsBracket(fptr, &next, c) != NAT)
-        ;
-    else if (IsBitwise(fptr, &next, c) != NAT)
-        ;
-    else if (IsOther(fptr, &next, c) != NAT)
-        ;
-    else if (isalpha(c) || c == '_')
-        IdentOrKeyword(fptr, &next, c);
-    else 
-        printf("ERROR: Unknown char: %c\n", c);
-
-    return next;
+    // For now only handles '>>' ambiguity, but could easily make it an enum flag
+    ctx->nestedChan = val;
 }
 
-int PutTokenBack(const Token* t)
+void LoadBuffer(TokenizerContext* ctx, int bufferNum)
 {
-    Token* tmp = realloc(Buff.toks, sizeof(Token) * (Buff.tokCount + 1));
-    if (!tmp)
-        return NAT;
-
-    Buff.toks = tmp;
-    Buff.toks[Buff.tokCount] = *t; 
-    Buff.tokCount++;
-
-    return VALID;
+    char* buffer = (bufferNum == 1) ? ctx->buffer1 : ctx->buffer2;
+    size_t n = fread(buffer, sizeof(char), TOKENIZER_BUFFER_SIZE-1, ctx->fptr);
+    buffer[n] = TOKENIZER_SENTINEL;
 }
 
-void UpdateLexeme(Token* t, int c)
+void RetractBuffer(TokenizerContext* ctx, char* pos) 
 {
-    if (t->lex.size + 1 >= t->lex.max)      /* +1 for null terminator */
-    {
-        t->lex.max *= 2;
-        t->lex.word = realloc(t->lex.word, t->lex.max * sizeof(char));
+    // TODO: needs awareness if actual sentinel, or hit EOF, 
+    ctx->forward = pos;
+    if (ctx->forward == &ctx->buffer1[TOKENIZER_BUFFER_SIZE - 1]) {
+        ctx->forward = ctx->buffer2;
+        ctx->currentBuffer = 2;
+    } else if (ctx->forward == &ctx->buffer2[TOKENIZER_BUFFER_SIZE - 1]) {
+        ctx->forward = ctx->buffer1;
+        ctx->currentBuffer = 1;
     }
-
-    t->lex.word[t->lex.size] = c;
-    t->lex.size++;
-    t->lex.word[t->lex.size] = '\0'; 
-    t->line = LINE_NUM;
 }
 
-/* ---------- CATEGORIES ---------- */
-
-int IsOperator(FILE* fptr, Token* t, int c)
+int AdvanceBuffer(TokenizerContext* ctx)
 {
+    while (1) {
+        if (*ctx->forward == TOKENIZER_SENTINEL) {
+            if (ctx->currentBuffer == 1) {
+                LoadBuffer(ctx, 2);
 
-    if(IsDiv(fptr, t, c) != NAT)
-        return VALID;
-    else if(IsPlus(fptr, t, c) != NAT)
-        return VALID;
-    else if(IsMinus(fptr, t, c) != NAT)
-        return VALID;
-    else if(IsMult(fptr, t, c) != NAT)
-        return VALID;
-    else if(IsMod(fptr, t, c) != NAT)
-        return VALID;
-    else if(IsEqual(fptr, t, c) != NAT)  
-        return VALID;
-
-    /* TODO: account for ERR */
-    return NAT;
-}
-
-int IsNumber(FILE* fptr, Token* t, int c)
-{
-    bool decimalSeen = false;
-
-    if(isdigit(c)) {
-        UpdateLexeme(t, c);
-        t->type = INTEGRAL;
-    }
-    else if(c == '.')
-    {
-        UpdateLexeme(t, c);
-
-        int next = fgetc(fptr);
-        if(next == '?') {
-            t->type = SMEM;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-        else if (isdigit(next)) {
-            t->type = DECIMAL;
-            UpdateLexeme(t, next);
-            decimalSeen = true;
-        } 
-        else {
-            ungetc(next, fptr);
-            t->type = MEM;
-            return VALID;
-        }
-
-    }
-    else 
-        return NAT;
-
-    while(t->type == INTEGRAL || t->type == DECIMAL)
-    {
-        int next = fgetc(fptr);
-        if(isdigit(next))
-            ;
-        else if (next == '.' && !decimalSeen)
-        {
-            t->type = DECIMAL;
-            decimalSeen = true;
-        }
-        else if (next == '.')
-            return ERRT;     /* Don't even finish */
-        else if (isspace(next)) {
-            if (next == '\n') LINE_NUM++;
-            break;
-        }
-        else if (isalpha(next))
-        {
-            /* TODO: Need to send to an IsIdent function if ANY function returns Ident to check next chars */
-            ungetc(next, fptr);
-            t->type = NA;
-            break;
-        }
-        else 
-        {
-            ungetc(next, fptr);
-            break;
-        }
-
-        UpdateLexeme(t, next);
-    }
-    return VALID;
-}
-
-int IsLiteral(FILE* fptr, Token* t, int c)
-{
-    if(c == '\'')
-    {
-        UpdateLexeme(t, c);
-
-        int next = fgetc(fptr);
-        UpdateLexeme(t, next);
-        if(next != EOF)
-        {
-            next = fgetc(fptr);
-            if(next != '\'')
-            {
-                printf("ERROR: Cannot have char literal with length > 1\n");
-                t->type = ERR;
-                return ERRT;
+                // If new buffer is empty then real EOF
+                if (ctx->buffer2[0] == TOKENIZER_SENTINEL) return EOF;
+                ctx->forward = ctx->buffer2;
+                ctx->currentBuffer = 2;
+                continue;
             }
-            
-            UpdateLexeme(t, next);
-        }
-        t->type = CLITERAL;
-        return VALID;
-    }
-    else if(c == '\"')
-    {
-        UpdateLexeme(t, c);
-        int next;
-        while((next = fgetc(fptr)) != '\"')
-        {
-            if(next == EOF)
-            {
-                printf("ERROR: EOF reached before string literal ended\n");
-                t->type = ERR;
-                return ERRT;
+            else {
+                LoadBuffer(ctx, 1);
+
+                if (ctx->buffer1[0] == TOKENIZER_SENTINEL) return EOF;
+                ctx->forward = ctx->buffer1;
+                ctx->currentBuffer = 1;
+                continue;
             }
-            UpdateLexeme(t, next);
-        }
-        UpdateLexeme(t, next);
-        t->type = SLITERAL;
-        return VALID;
-    }
-
-    t->type = NA;
-    return NAT;
-}
-
-int IsBracket(FILE* fptr, Token* t, int c)
-{
-    switch (c)
-    {
-        case '[':
-            t->type = LBRACK;       /* I accidentally switched up braces and brackets OOPS */
-            break;
-        case ']':
-            t->type = RBRACK;
-            break;
-        case '{':
-            t->type = LBRACE;
-            break;
-        case '}':
-            t->type = RBRACE;
-            break;
-        case '(':
-            t->type = LPAREN;
-            break;
-        case ')':
-            t->type = RPAREN;
-            break;
-        default:
-            t->type = NA;
-            return NAT;
-    }
-    
-    UpdateLexeme(t, c);
-    return VALID;
-}
-
-int IsComp(FILE* fptr, Token* t, int c)
-{
-    
-    if(IsNeqq(fptr, t, c) != NAT)
-        return VALID;
-    else if(IsGeqq(fptr, t, c) != NAT)
-        return VALID;
-    else if(IsLeqq(fptr, t, c) != NAT)
-        return VALID;
-    else if(IsAndl(fptr, t, c) != NAT)
-        return VALID;
-    else if(IsOrl(fptr, t, c) != NAT)
-        return VALID;
-
-    t->type = NA;
-    return NAT;
-}
-
-int IsBitwise(FILE* fptr, Token* t, int c)
-{
-    if(c == '~') {
-        UpdateLexeme(t, c);
-        int next = fgetc(fptr);
-        if(next == '=')
-        {
-            t->type = NEGEQ;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-            
-        ungetc(next, fptr);
-        t->type = NEG;
-        return VALID;
-    }
-    else if(c == '^') {
-        UpdateLexeme(t, c);
-        int next = fgetc(fptr);
-        if(next == '=')
-        {
-            t->type = XOREQ;
-            UpdateLexeme(t, next);
-            return VALID;
         }
 
-        ungetc(next, fptr);
-        t->type = XOR;
-        return VALID;
+        return (unsigned char)*ctx->forward++;
     }
-
-    t->type = NA;
-    return NAT;
 }
 
-int IsOther(FILE* fptr, Token* t, int c)
+Token ExtractTokenFromBuffer(TokenizerContext* ctx)
 {
-    
-    if(c == ';') {
-        t->type = SEMI;
-        UpdateLexeme(t, c);
-        return VALID;
-    }
-    if(c == ':') {
-        t->type = COLON;
-        UpdateLexeme(t, c);
-        return VALID;
-    }
-    if(c == '#'){
-        t->type = HASH;
-        UpdateLexeme(t, c);
-        return VALID;
-    }
-    if(c == ','){
-        t->type = COMMA;
-        UpdateLexeme(t, c);
-        return VALID;
-    }
-    if(c == '@'){
-        t->type = REGISTER;
-        UpdateLexeme(t, c);
-        return VALID;
-    }
-    if(c == '?') {
-        t->type = QUESTION;
-        UpdateLexeme(t, c);
-        return VALID;
-    }  
+    char* sentinelPos1 = &ctx->buffer1[TOKENIZER_BUFFER_SIZE - 1];
+    char* sentinelPos2 = &ctx->buffer2[TOKENIZER_BUFFER_SIZE - 1];
 
-    t->type = NA;
-    return NAT;
+    size_t lexLength;
+    char* lexeme;
+
+    // Can't just blindly memcpy since cross boundaries would copy an extra \0 
+    bool spansBuffer = (ctx->lexemeBegin <= sentinelPos1 && ctx->forward > sentinelPos1)
+                || (ctx->lexemeBegin <= sentinelPos2 && ctx->forward > sentinelPos2)
+                || (ctx->lexemeBegin >= ctx->buffer2 && ctx->forward < ctx->buffer2); 
+
+    if (spansBuffer) {
+        char* sentinel = (ctx->lexemeBegin < ctx->buffer2) ? sentinelPos1 : sentinelPos2;
+
+        size_t part1 = sentinel - ctx->lexemeBegin;       
+        char* secondBufferStart = (ctx->lexemeBegin < ctx->buffer2) ? ctx->buffer2 : ctx->buffer1;
+        char* part2Src = secondBufferStart;
+        size_t part2 = ctx->forward - secondBufferStart;
+
+        lexLength = part1 + part2;
+        if (lexLength >= TOKEN_MAX_LENGTH) 
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Identifier is limited to %d characters.\n", TOKEN_MAX_LENGTH);
+        lexeme = AllocateArena(ctx->arena, lexLength + 1);
+
+        memcpy(lexeme, ctx->lexemeBegin, part1);
+        memcpy(lexeme + part1, part2Src, part2);
+    } else {
+        lexLength = ctx->forward - ctx->lexemeBegin;
+        if (lexLength >= TOKEN_MAX_LENGTH) 
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Identifier is limited to %d characters.\n", TOKEN_MAX_LENGTH);
+        lexeme = AllocateArena(ctx->arena, lexLength + 1);
+        memcpy(lexeme, ctx->lexemeBegin, lexLength);
+    }
+
+    lexeme[lexLength] = '\0';
+    size_t startCol = ctx->col;
+    ctx->lexemeBegin = ctx->forward;
+    ctx->col += lexLength;
+
+    /* Caller fills TokenType */
+    return (Token) {ERR, ctx->row, startCol, lexeme, lexLength};
 }
 
-/* Others */
+/* ----- Tokenization ----- */
 
-int IsEnd(FILE* fptr, Token* t, int c)
+Token GetNextToken(TokenizerContext* ctx) 
 {
-    if(c == EOF) {
-        t->type = END;
-        UpdateLexeme(t, c);
-        return VALID;
-    }
+    int c = SkipWhitespace(ctx);
+    if (c == EOF) return (Token) { END, ctx->row, ctx->col, "", 0 };
+    CharClass class = CHAR_MAP[(unsigned int)c];
 
-    t->type = NA;
-    return NAT;
+    switch (class) {
+        case (CC_ERROR): ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Unknown character discovered %c on line %d row %d\n", c, ctx->row, ctx->col - 1);
+        case (CC_DIGIT): return ScanNumber(ctx);
+        case (CC_ALPHA): return ScanIdentOrKeyword(ctx);
+        case (CC_HASH): return ScanDirective(ctx);
+        case (CC_SINGLE_QUOTE): return ScanCharacter(ctx);
+        case (CC_DOUBLE_QUOTE): return ScanString(ctx);
+        case (CC_DIVIDE): return SkipComment(ctx);     /* Gets next token after comment */
+        default: return ScanOperator(ctx);
+    }
 }
 
-/* ---------- OPERATORS ---------- */
-
-/* = and == */
-int IsEqual(FILE* fptr, Token* t, int c)
+Token SkipComment(TokenizerContext* ctx)
 {
-    if(c == '=')
-    {
-        UpdateLexeme(t, c);
+    // Returns next token AFTER comment is consumed 
+    char* past = ctx->forward;
 
-        int next = fgetc(fptr);
-        if(next == '=') {
-            t->type = EQQ;
-            UpdateLexeme(t, next);
-            return VALID;
+    int c = AdvanceBuffer(ctx);
+    if (c == '/') {
+        c = AdvanceBuffer(ctx);
+        if (c == '/') {
+            while (c != '\n' && c != EOF) 
+                c = AdvanceBuffer(ctx);
+            ctx->lexemeBegin = ctx->forward;
+            ctx->row++; ctx->col = 1;
+            return GetNextToken(ctx);
         }
-        
-        ungetc(next, fptr);
-        t->type = EQ;
-        return VALID; 
-    }
-
-    t->type = NA;
-    return NAT;
-}
-
-/* +, +=, ++ */
-int IsPlus(FILE* fptr, Token* t, int c)
-{
-    if(c == '+')
-    {
-        UpdateLexeme(t, c);
-
-        int next = fgetc(fptr);
-        if(next == '=') {
-            t->type = PEQ;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-        else if(next == '+') {
-            t->type = PP;
-            UpdateLexeme(t, next);
-            return VALID;  
-        }
-
-        ungetc(next, fptr);
-        t->type = PLUS;
-        return VALID;
-    }
-
-    t->type = NA;
-    return NAT;
-}
-
-int IsMinus(FILE* fptr, Token* t, int c)
-{
-    if(c == '-')
-    {
-        UpdateLexeme(t, c);
-
-        int next = fgetc(fptr);
-        if(next == '=') {
-            t->type = SEQ;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-        else if(next == '-') {
-            t->type = SS;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-        else if(next == '>') {      /* Accessing Pointers */
-            UpdateLexeme(t, next);
-
-            next = fgetc(fptr);
-            if (next == '?') {
-                t->type = SREF;
-                UpdateLexeme(t, next);
-                return VALID;
+        else if (c == '*') {
+            int last = ' ';
+            while (!(c == '/' && last == '*')) {
+                if (c == EOF) 
+                    ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "EOF reached before comment end");
+                else if (c == '\n') { ctx->row++; ctx->col = 1; }
+                last = c; 
+                c = AdvanceBuffer(ctx); 
+                ctx->col++;
             }
-
-            ungetc(next, fptr);
-            t->type = REF;
-            return VALID;
-        }
-        ungetc(next, fptr);
-        t->type = MINUS;
-        return MINUS;
-    }
-    t->type = NA;
-    return NAT;
-}
-
-int IsDiv(FILE* fptr, Token* t, int c)
-{
-
-    if(c == '/')
-    {
-        UpdateLexeme(t, c);
-
-        int next = fgetc(fptr);
-        if(next == '=') {
-            t->type = DEQ;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-        else if (IsComm(fptr, t, next) != NAT) 
-            return VALID; 
-
-        ungetc(next, fptr);
-
-        t->type = DIV;
-        return VALID;    
-    }
-    t->type = NA;
-    return NAT;
-}
-
-int IsMult(FILE* fptr, Token* t, int c)
-{
-
-    if(c == '*')
-    {
-        UpdateLexeme(t, c);
-
-        int next = fgetc(fptr);
-        if(next == '=') {
-            t->type = MEQ;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-        else if(next == '*') {
-            t->type = POW;
-            UpdateLexeme(t, next);
-            return VALID;
+            ctx->lexemeBegin = ctx->forward;
+            return GetNextToken(ctx);
         }
 
-        ungetc(next, fptr);
-        t->type = MULT;
-        return VALID;
-    }
-    t->type = NA;
-    return NAT;
-}
-
-int IsMod(FILE* fptr, Token* t, int c)
-{
-
-    if(c == '%')
-    {
-        UpdateLexeme(t, c);
-
-        int next = fgetc(fptr);
-        if(next == '=') {
-            t->type = MODEQ;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-
-        ungetc(next, fptr);
-        t->type = MOD;
-        return MOD;
-    }
-    t->type = NA;
-    return NAT;
-}
-
-/* ---------- COMPARISONS  ----------*/
-
-int IsNeqq(FILE* fptr, Token* t, int c)
-{
-    if(c == '!')
-    {
-        UpdateLexeme(t, c);
-
-        int next = fgetc(fptr);
-        if(next == '=') {
-            t->type = NEQQ;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-
-        ungetc(next, fptr);
-        t->type = NOT;
-        return VALID;
-    }
-
-    t->type = NA;
-    return NAT;
-}
-int IsGeqq(FILE* fptr, Token* t, int c)
-{
-
-    if(c == '>')
-    {
-        UpdateLexeme(t, c);
-
-        int next = fgetc(fptr);
-        if(next == '=') {
-            t->type = GEQQ;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-        else if(next == '>') {
-            UpdateLexeme(t, c);
-            int next = fgetc(fptr);
-            if(next == '=')
-            {
-                t->type = RIGHTEQ;
-                UpdateLexeme(t, next);
-                return VALID;
-            }
-            else
-                ungetc(next, fptr);
-
-            t->type = RSHIFT;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-
-        ungetc(next, fptr);
-        t->type = GREAT;
-        return VALID;
-    }
-
-    t->type = NA;
-    return NAT;
-}
-int IsLeqq(FILE* fptr, Token* t, int c)
-{
-    
-    if(c == '<')
-    {
-        UpdateLexeme(t, c);
-
-        int next = fgetc(fptr);
-        if(next == '=') {
-            t->type = LEQQ;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-        else if(next == '<') {
-            UpdateLexeme(t, c);
-            int next = fgetc(fptr);
-            if(next == '=')
-            {
-                t->type = LEFTEQ;
-                UpdateLexeme(t, next);
-                return VALID;
-            }
-            else
-                ungetc(next, fptr);
-
-            t->type = LSHIFT;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-
-        ungetc(next, fptr);
-        t->type = LESS;
-        return VALID;
-    }
-
-    t->type = NA;
-    return NAT;
-}
-int IsAndl(FILE* fptr, Token* t, int c)
-{
-
-    if(c == '&')
-    {
-        UpdateLexeme(t, c);
-
-        int next = fgetc(fptr);
-        if(next == '&') {
-            UpdateLexeme(t, next);
-
-            next = fgetc(fptr);
-            if(next == '=') {
-                t->type = ANDLEQ;
-                UpdateLexeme(t, next);
-                return VALID;
-            }
-            else 
-                ungetc(next, fptr);
-
-            t->type = ANDL;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-
-        if(next == '=') {
-            t->type = ANDEQ;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-
-        ungetc(next, fptr);
-        t->type = AND;
-        return VALID;     /* Bitwise */
-    }
-
-    t->type = NA;
-    return NAT;
-}
-int IsOrl(FILE* fptr, Token* t, int c) 
-{
-
-    if(c == '|')
-    {
-        UpdateLexeme(t, c);
-
-        int next = fgetc(fptr);
-        if(next == '|'){ 
-            UpdateLexeme(t, next);
-
-            next = fgetc(fptr);
-            if(next == '=') {
-                t->type = ORLEQ;
-                UpdateLexeme(t, next);
-                return VALID;
-            }
-            else 
-                ungetc(next, fptr);
-
-            t->type = ORL;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-
-        if(next == '=') {
-            t->type = OREQ;
-            UpdateLexeme(t, next);
-            return VALID;
-        }
-
-        ungetc(next, fptr);
-        t->type = OR;
-        return VALID;
-    }
-
-    t->type = NA;
-    return NAT;
-}
-
-/* ---------- OTHERS ---------- */
-
-int IsComm(FILE* fptr, Token* t, int c)
-{
-    /* Only called in IsDiv so first char already div */
-    int next = c;
-    int prev = 0;
-    if(next == '*')
-    {
-        UpdateLexeme(t, next);
-        while((next = fgetc(fptr)) != '/' && prev != '*')
-        {
-            if(next == EOF)
-            {
-                printf("ERROR: Comment doesn't end before EOF reached\n");
-                t->type = ERR;
-                return ERRT;
-            }
-            else if (next == '\n') LINE_NUM++;
-
-            prev = next;
-            UpdateLexeme(t, next);
-        }
-
-        UpdateLexeme(t, next);
-        t->type = COMMENT;
-        return VALID;
     } 
-    else if (next == '/')
-    {
-        UpdateLexeme(t, next);
-        /* Add EOF check */
-        while((next = fgetc(fptr)) != '\n')
-        {
-            UpdateLexeme(t, next);
-            if(next == EOF)
-                break;
-        }
-        LINE_NUM++;
-        t->type = COMMENT;
-        return VALID;
-    }
-    t->type = NA;
-    return NAT;
+    
+    RetractBuffer(ctx, past);
+    return ScanOperator(ctx);   /* If not a comment, probably an operator */
 }
 
-
-int IdentOrKeyword(FILE* fptr, Token* t, int c)
+int SkipWhitespace(TokenizerContext* ctx) 
 {
-    if (!KWmap) KWMapInit();
+    int c = AdvanceBuffer(ctx);
+    if (c == EOF) return EOF;
 
-    int next = c;
-    while(next != '\n' && next != EOF)
-    {
-        if(!isalnum(next) && next != '_')
-        {
-            ungetc(next, fptr);
+    while (isspace(c)) {
+        if (c == '\n') { ctx->row++; ctx->col = 1; }
+        else ctx->col++;
+
+        c = AdvanceBuffer(ctx);
+        if (c == EOF) return EOF;
+    }
+
+    RetractBuffer(ctx, ctx->forward - 1); // Overconsumption in space check
+    ctx->lexemeBegin = ctx->forward;
+    return c;
+}
+
+Token ScanOperator(TokenizerContext* ctx)
+{
+    int c;
+    int current = 1, lastAccept = DFA_ERROR_STATE;
+    char* prev = ctx->forward;
+
+    char* prevAcceptPos = ctx->forward;
+    char* lastAcceptPos = ctx->forward;
+  
+    while (current != DFA_ERROR_STATE) {
+        prev = ctx->forward;
+        c = AdvanceBuffer(ctx);
+
+        if (c == EOF) {
+            RetractBuffer(ctx, prev);
             break;
         }
-        UpdateLexeme(t, next);
-        next = fgetc(fptr);
+
+        CharClass cc = CHAR_MAP[c];
+        current = TABLE_DFA[current][(unsigned int)cc];
+
+        if (ACCEPT_STATES[current] != ERR) {
+            prevAcceptPos = lastAcceptPos;
+            lastAccept = current;
+            lastAcceptPos = ctx->forward;
+        }
     }
-    if (next == '\n') ungetc(next, fptr);
 
-    /* KW or IDENT */
-    UpdateLexeme(t, '\0');  /* Null Terminator */
-    void* val = DictLookup(KWmap, t->lex.word);
-    if(val)
-        t->type = (TokenType)(uintptr_t)val;
-    else
-        t->type = IDENT;
+    if (lastAccept == DFA_ERROR_STATE) 
+        ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Invalid operator discovered %c on line %d row %d\n", c, ctx->row, ctx->col);
 
-    return VALID;
+    if (ctx->nestedChan && ACCEPT_STATES[lastAccept] == RSHIFT)
+        lastAcceptPos = prevAcceptPos;  // retract to after first '>' only
+    RetractBuffer(ctx, lastAcceptPos);
+
+    Token tok = ExtractTokenFromBuffer(ctx);
+    tok.type = (ctx->nestedChan && ACCEPT_STATES[lastAccept] == RSHIFT) ? GREAT : ACCEPT_STATES[lastAccept];
+    return tok;
 }
 
+Token ScanDirective(TokenizerContext* ctx)
+{
+    int c = AdvanceBuffer(ctx);
+    while (c != '\n' && c != EOF) c = AdvanceBuffer(ctx); // EOF fail
+    RetractBuffer(ctx, ctx->forward);
+
+    Token tok = ExtractTokenFromBuffer(ctx);
+    tok.type = DIRECTIVE;
+    return tok;
+}
+
+Token ScanNumber(TokenizerContext* ctx)
+{
+    char* prev = ctx->forward;
+    int c = AdvanceBuffer(ctx);
+    bool isReal = false;
+
+    if (c == '0') {
+        prev = ctx->forward;
+        c = AdvanceBuffer(ctx);
+        if (c == 'x') {
+            prev = ctx->forward;
+            c = AdvanceBuffer(ctx);
+            if (!isxdigit(c)) {
+                RetractBuffer(ctx, prev); Token t = ExtractTokenFromBuffer(ctx);
+                ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Expected hex digit after '0x' in token '%s' on line %d row %d\n", t.lexeme, t.row, t.col);
+            }
+            while (isxdigit(c)) {
+                prev = ctx->forward;
+                c = AdvanceBuffer(ctx);
+            } 
+            RetractBuffer(ctx, prev);
+            Token tok = ExtractTokenFromBuffer(ctx);
+            tok.type = HEX;
+            return tok;
+        }
+    }
+
+    while (isdigit(c)) {
+        prev = ctx->forward;
+        c = AdvanceBuffer(ctx);
+    }
+
+    if (c == '.') {
+        isReal = true;
+        prev = ctx->forward;
+        c = AdvanceBuffer(ctx);
+        if (!isdigit(c)) {
+            RetractBuffer(ctx, prev); Token t = ExtractTokenFromBuffer(ctx);
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Expected digit after '.' in token '%s' on line %d row %d\n", t.lexeme, t.row, t.col);
+        }
+        while (isdigit(c)) {
+            prev = ctx->forward;
+            c = AdvanceBuffer(ctx);
+        }
+    }
+
+    if (c == 'e') {
+        isReal = true;
+        prev = ctx->forward;
+        c = AdvanceBuffer(ctx);
+        if (c == '+' || c == '-') c = AdvanceBuffer(ctx);
+        if (!isdigit(c)) { 
+            RetractBuffer(ctx, prev); Token t = ExtractTokenFromBuffer(ctx);
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Expected digit after exponent in token '%s' on line %d row %d\n", t.lexeme, t.row, t.col);
+        }
+        while (isdigit(c)) { 
+            prev = ctx->forward;
+            c = AdvanceBuffer(ctx);
+        }
+    }
+
+    RetractBuffer(ctx, prev);
+    Token tok = ExtractTokenFromBuffer(ctx);
+    tok.type = isReal ? REAL : INTEGRAL;
+    return tok;
+}
+
+Token ScanString(TokenizerContext* ctx)
+{
+    char* prev = ctx->forward;
+    int c = AdvanceBuffer(ctx); 
+
+    while (1) {
+        prev = ctx->forward;
+        c = AdvanceBuffer(ctx);
+
+        if (c == EOF)  {
+            RetractBuffer(ctx, ctx->forward); Token t = ExtractTokenFromBuffer(ctx);
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "EOF discovered before string terminator ' %s ' on line %d row %d\n", t.lexeme, t.row, t.col);
+        }
+        if (c == '\n') {
+            RetractBuffer(ctx, prev); Token t = ExtractTokenFromBuffer(ctx);
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Illegal newline in string literal ' %s ' on line %d row %d\n", t.lexeme, t.row, t.col);
+        }
+        if (c == '\0') { 
+            RetractBuffer(ctx, ctx->forward); Token t = ExtractTokenFromBuffer(ctx);
+            ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Illegal null byte '\0' found in string literal ' %s ' on line %d row %d\n", t.lexeme, t.row, t.col);
+        }
+
+        if (c == '\\') {
+            c = AdvanceBuffer(ctx);
+            switch (c) {
+                case '"': case '\\': case '/':
+                case 'n': case 't': case 'r':
+                case 'b': case 'f':             break;
+                case 'u': /* TODO: \uXXXX */    break;
+                default: 
+                    Token t = ExtractTokenFromBuffer(ctx);
+                    ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Unknown escape sequence '\\%c' found in string literal ' %s ' on line %d row %d\n", c, t.lexeme, t.row, t.col);
+            }
+            continue;
+        }
+
+        if (c == '"') break; 
+    }
+
+    Token tok = ExtractTokenFromBuffer(ctx);
+    tok.type = SLITERAL;
+    return tok;
+}
+
+Token ScanCharacter(TokenizerContext* ctx)
+{
+    int c = AdvanceBuffer(ctx);
+    c = AdvanceBuffer(ctx);
+
+    if (c == '\n' || c == '\0') ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Invalid newline or null byte found in character literal on line %d row %d\n", ctx->row, ctx->col);
+    if (c == EOF) ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Invalid EOF found in character literal on line %d row %d\n", ctx->row, ctx->col);
+
+    if (c == '\\') {
+        c = AdvanceBuffer(ctx);
+        switch (c) {
+            case '"': case '\\': case '/':
+            case 'n': case 't': case 'r':
+            case 'b': case 'f':             break;
+            case 'u': /* TODO: \uXXXX */    break;
+            default: ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "Unknown escape sequence '\\%c' found in character literal on line %d row %d\n", c, ctx->row, ctx->col);
+        }
+    }
+
+    c = AdvanceBuffer(ctx);
+    if (c != '\'') ERROR(ERR_FLAG_EXIT, TOKENIZER_ERR, "No closing \' found for character\n"); 
+
+    Token tok = ExtractTokenFromBuffer(ctx);
+    tok.type = CLITERAL;
+    return tok;
+}
+
+Token ScanIdentOrKeyword(TokenizerContext* ctx)
+{
+    char* prev;
+    int c = AdvanceBuffer(ctx);
+
+    while (c != EOF && ( isalpha((unsigned int)c) || isdigit((unsigned int)c) || c == '_' )) {
+        prev = ctx->forward;
+        c = AdvanceBuffer(ctx);
+    }
+
+    RetractBuffer(ctx, prev);
+
+    Token tok = ExtractTokenFromBuffer(ctx);
+    tok.type = KeywordLookup(tok.lexeme);
+    return tok;
+}

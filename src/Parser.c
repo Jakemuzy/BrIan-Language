@@ -1,1943 +1,1656 @@
 #include "Parser.h"
 
-/* TODO: 
-        - GetNextTokenP after PeekNextTokenP might be dangerous, but since the 
-          preprocessor only skips directors, for now it is fine.
-        - Can easily simplify most of the binary expressions with a helper function to reduce
-          boilerplate code, which is making the file artifically longer than it needs
-        - Currently freeing more than I need to since ASTFreeNodes is recursive, ONLY
-          free nodes that aren't parented yet 
-        - Add Qualifiers checking to DeclStmt
-        - Turn all type nodes into Ident Nodes and check in the type resolver step
-        - Safe reference not added
+/* ----- Small Helpers ----- */
 
-        - Make switch case exprs constant instead of expr
-        - NEED to differentiate between prefix and postfix for unary exprs
-            - Could have an empty node if post fix
-*/
+#define TYPE_CASES \
+    case CHAR: case BOOL: case INT: case LONG: case DOUBLE: case FLOAT: \
+    case VOID: case STRING: case I8: case I16: case I32: case I64: \
+    case U8: case U16: case U32: case U64: case MAT: case VEC: \
+    case MUTEX: case SEMAPHORE: case TASK: case CHANNEL: case FUNCPTR: \
+	case CLOSURE: case IDENT:
 
-/* ----------- ERRORS ---------- */
+#define QUALIFIER_CASES \
+	case STATIC: case INLINE: case CONST: case VOLATILE: case ATOMIC:
 
-ParseResult PARSE_VALID(ASTNode* node, NodeType type)
-{
-    ParseResult result = {VALID, node};
-    result.node->type = type;
-    return result;
+#define EXPR_START_CASES \
+    case IDENT: case INTEGRAL: case REAL: case CLITERAL: case SLITERAL: case SIZEOF: \
+    case LPAREN: case LAMBDA: \
+    case PLUS: case MINUS: case NOT: case NEG: case MULT: case AND: \
+    case INC: case DEC: \
+    case SPAWN: case AWAIT: case SEND: \
+    case HEX: case TRUE: case FALSE: case NILL:
+
+#define LITERAL_CASES \
+	case REAL: case INTEGRAL: case CLITERAL: case SLITERAL: \
+	case HEX: case NILL: case FALSE: case TRUE: 
+
+/* Helpers */
+static inline void Advance(ParserContext* ctx) { 
+	ctx->current = GetNextToken(ctx->tokenizer); 
 }
 
-ParseResult PARSE_NAP() 
-{
-    ParseResult result = {NAP, NULL};
-    return result;
+static inline bool Match(ParserContext* ctx, TokenType t) {
+    if (ctx->current.type != t) return false;
+    Advance(ctx);
+    return true;
 }
 
-ParseResult PARSE_ERRP(char* message, Token tok)
+static inline void SyncRecovery(ParserContext* ctx, TokenType tt) 
 {
-    ParseResult result = {ERRP, NULL};
+    while (ctx->current.type != tt && ctx->current.type != END) {
+		//printf("%d\n", ctx->current.lexeme[0]);
+		if (ctx->current.lexeme[0] == ctx->tokenizer->buffer1[TOKENIZER_BUFFER_SIZE - 1])
+			printf("SENTINEL");
+		if (ctx->current.lexeme[0] == ctx->tokenizer->buffer2[TOKENIZER_BUFFER_SIZE - 1])
+			printf("SENTINEL");
+        Advance(ctx);
+	}
+	ctx->panicMode = false;
+}
 
-    /* If a fatal error occurs, we don't want cascading errors due to recursive descent structure*/
-    if (GLOBAL_ERRP)    
-        return result;
-
-    ERROR_MESSAGE(message, tok.line, tok.lex.word);
-    GLOBAL_ERRP = true;
-    return result;
+static inline ASTNode* ParseERROR(ParserContext* ctx, char* format) {
+    ctx->failure = true; ctx->panicMode = true;
+    char buf[256];
+    snprintf(buf, sizeof(buf), "%s Instead encountered '%s' on line %d, col %d\n",
+             format, ctx->current.lexeme, ctx->current.row, ctx->current.col);
+    ERROR(ERR_FLAG_CONTINUE, PARSER_ERR, "%s", buf);
+    return NULL;
 }
 
 
-/* ----------- HELPER ---------- */
+/* ----- Recursive Descent ----- */
 
-int ValidTokType(const TokenType types[], int arrSize, TokenType type)
+
+ParserContext* InitalizeParserContext(TokenizerContext* tokenizer)
 {
-    int i;
-    for(i = 0; i < arrSize; i++)
-    {
-        if(types[i] == type)
-            return VALID;
-    }
-    return NAP;
+    ParserContext* parser = malloc(sizeof(ParserContext));
+
+	parser->failure = false; parser->panicMode = false;
+    parser->tokenizer = tokenizer;
+	// Share the same arena to avoid token's str copy issues 
+    parser->arena = tokenizer->arena;	
+    parser->ast = InitalizeAST(parser->arena);
+    return parser;
 }
 
-int FuncNodePossible(FILE* fptr)
+void DestroyParserContext(ParserContext* ctx)
 {
-    Token type = GetNextTokenP(fptr);
-    if (ValidTokType(TYPES, TYPES_COUNT, type.type) != VALID)  {
-        PutTokenBack(&type);
-        return NAP;
-    }
-
-    Token ident = GetNextTokenP(fptr);
-    if (ident.type != IDENT) {
-        PutTokenBack(&ident);
-        PutTokenBack(&type);
-        return NAP;
-    }
-
-    Token lparen = GetNextTokenP(fptr);
-    if (lparen.type != LPAREN) {
-        PutTokenBack(&lparen);
-        PutTokenBack(&ident);
-        PutTokenBack(&type);
-        return NAP;
-    }
-
-    PutTokenBack(&lparen);
-    PutTokenBack(&ident);
-    PutTokenBack(&type);
-    return VALID;
+    ResetArena(ctx->arena);
+	free(ctx);
 }
 
-int DeclStmtPossible(FILE* fptr)
+
+/* ----- Recursive Descent ----- */
+
+void Program(ParserContext* ctx) 
 {
-    Token first = GetNextTokenP(fptr);
-
-    if (ValidTokType(TYPES, TYPES_COUNT, first.type) == VALID) {
-        PutTokenBack(&first);
-        return VALID; 
-    }
-
-    if (first.type == IDENT) {
-        Token second = GetNextTokenP(fptr);
-
-        if (second.type == IDENT) {
-            PutTokenBack(&second);
-            PutTokenBack(&first);
-            return VALID;
-        }
-
-        PutTokenBack(&second);
-        PutTokenBack(&first);
-        return NAP;
-    }
-
-    PutTokenBack(&first);
-    return NAP;
-}
-
-ParseResult IdentNode(Token tok)
-{
-    ASTNode* identNode = InitASTNode();
-    identNode->token = tok;
-    return PARSE_VALID(identNode, IDENT_NODE);
-}
-
-ParseResult EmptyNode()
-{
-    ASTNode* emptyNode = InitASTNode();
-    return PARSE_VALID(emptyNode, EMPTY_NODE);
-}
-
-ParseResult ProgNode() {
-    ASTNode* progNode = InitASTNode();
-    return PARSE_VALID(progNode, PROG_NODE); 
-}
-
-ParseResult ArbitraryNode(Token tok, NodeType type)
-{
-    ASTNode* arbitraryNode = InitASTNode();
-    arbitraryNode->token = tok;
-    return PARSE_VALID(arbitraryNode, type);
-}
-
-/* ---------- EBNF ---------- */
-
-AST* Program(FILE* fptr)
-{
-    /* TODO: errors regarding ast freeing and progNode freeing */
-    AST* ast = ASTInit();
-    ast->root = ProgNode().node;
-    ASTNode* progNode = ast->root;
-    
+	// Advance one to start, every other instance the child function Advances first before returning
+	Advance(ctx);	
     while (true) {
-        if (PeekNextTokenP(fptr) == END)
-            return ast;
+        switch (ctx->current.type) {
+            case FUNCTION: 
+                ASTNode* funcNode = Function(ctx);
+				if (ctx->panicMode) { SyncRecovery(ctx, RBRACE); Advance(ctx); }
+                else AddChildASTNode(ctx->arena, ctx->ast->root, funcNode);
 
-        if (FuncNodePossible(fptr) != NAP) {
-            ParseResult funcNode = Function(fptr);
-            if (funcNode.status == VALID) {
-                ASTPushChildNode(progNode, funcNode.node);
-                continue;
-            } 
-            else if (funcNode.status == ERRP)  {
-                ASTFreeNodes(1, progNode);
-                return NULL;
-            }
+				if ( (funcNode->ntype == FUNC_DECL  || funcNode->ntype == GEN_FUNC_DECL) && !Match(ctx, SEMI)) 
+					ParseERROR(ctx, "Expected ';' after function declaration.");
+                break;
+            case INTERFACE:
+                ASTNode* interfaceDeclNode = InterfaceDecl(ctx);
+				if (ctx->panicMode) { SyncRecovery(ctx, RBRACE); Advance(ctx); }
+                else AddChildASTNode(ctx->arena, ctx->ast->root, interfaceDeclNode);
+                break;
+			case LET:
+                ASTNode* varDeclNode = VarDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+                else AddChildASTNode(ctx->arena, ctx->ast->root, varDeclNode);
+
+				if (!Match(ctx, SEMI)) ParseERROR(ctx, "Expected semicolon ';' after variable declartion."); 
+                break;
+			case ENUM:
+				ASTNode* enumNode = EnumDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, ctx->ast->root, enumNode);
+
+				if (!Match(ctx, SEMI)) ParseERROR(ctx, "Expected semicolon ';' after global enum declaration.");
+				break;
+			case TYPEDEF: 
+				ASTNode* typedefNode = TypedefDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, ctx->ast->root, typedefNode);
+
+				if (!Match(ctx, SEMI)) ParseERROR(ctx, "Expected semicolon ';' after global type declaration.");
+				break;
+			case STRUCT:
+				ASTNode* structNode = StructDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, ctx->ast->root, structNode);
+				break;
+            case END: return;
+			default: ParseERROR(ctx, "Unexpected token occured in global scope."); return;
         }
-
-        ParseResult declStmtNode = DeclStmt(fptr);
-        if (declStmtNode.status == VALID) {
-            ASTPushChildNode(progNode, declStmtNode.node);
-            continue;
-        }
-        else if (declStmtNode.status == ERRP) {
-            DEBUG_MESSAGE("Invalid DeclStmt in Global Scope\n");
-            ASTFreeNodes(1, progNode);
-            return NULL;
-        }
-
-        DEBUG_MESSAGE("ERROR: failed to Parse AST\n");
-        ASTFreeNodes(1, progNode);
-        return NULL;
     }
-
-
-    return ast;
 }
 
-ParseResult Function(FILE* fptr)
+ASTNode* Function(ParserContext* ctx)
 {
-    /* TODO: Nested Functions */
-    DEBUG_MESSAGE("Starting Function\n");
-    ParseResult typeNode = StdType(fptr);
-    if (typeNode.status == ERRP)
-        return PARSE_ERRP("Invalid Type in Function", GetNextToken(fptr));
-    else if (typeNode.status == NAP)
-        return PARSE_NAP();
+	Advance(ctx);
+	ASTNode* linkageNode = NULL, *qualifierNode = NULL;
 
-    if (PeekNextTokenP(fptr) != IDENT) {
-        ASTFreeNodes(1, typeNode.node);
-        return PARSE_ERRP("Function does not have a valid name", GetNextToken(fptr));
-    }
-    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
+	/* Optional Specifiers and Qualifiers */
+	if (ctx->current.type == EXTERN) { linkageNode = LinkageSpecifier(ctx); }
+	switch(ctx->current.type) { QUALIFIER_CASES  qualifierNode = TypeQualifierList(ctx); default: break; }
 
-    if (PeekNextTokenP(fptr) != LPAREN) {
-        ASTFreeNodes(2, typeNode.node, identNode.node);
-        return PARSE_ERRP("Expected left parenthesis in function", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
+	ASTNode* retTypeNode = ReturnType(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
 
-    ParseResult paramListNode = ParamList(fptr);
-    if (paramListNode.status != VALID ) {
-        ASTFreeNodes(2, typeNode.node, identNode.node);
-        return PARSE_ERRP("Invalid ParamList in Function", GetNextToken(fptr));
-    }
+	ASTNode* funcNode = FuncSignature(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 
-    if (PeekNextTokenP(fptr) != RPAREN) {
-        ASTFreeNodes(3, typeNode.node, paramListNode.node, identNode.node);
-        return PARSE_ERRP("Expected right parenthesis in function", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
+	// TODO: If panic this derefs 
+	bool retIsGeneric = retTypeNode->children[0]->ntype == GENERIC_NODE;
+	bool paramsAreGeneric = funcNode->ntype == GEN_FUNC_NODE ? true : false;
 
-    ParseResult bodyNode = Body(fptr);
-    if (bodyNode.status != VALID) {
-        ASTFreeNodes(3, typeNode.node, paramListNode.node, identNode);
-        return PARSE_ERRP("Invalid Body in Function", GetNextToken(fptr));
-    }
+	switch (ctx->current.type) {
+		case SEMI: 
+			funcNode->ntype = (retIsGeneric || paramsAreGeneric) ? GEN_FUNC_DECL : FUNC_DECL;
+			break;
+		case LBRACE:
+			funcNode->ntype = (retIsGeneric || paramsAreGeneric) ? GEN_FUNC_DEF : FUNC_DEF;
+			ASTNode* bodyNode = Body(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, funcNode, bodyNode);
+			break;
+		default: return ParseERROR(ctx, "Expected body or ';' after function paramaters.");
+	}
 
-    ASTNode* funcNode = InitASTNode();
-    ASTPushChildNode(funcNode, typeNode.node);
-    ASTPushChildNode(funcNode, identNode.node);
-    ASTPushChildNode(funcNode, paramListNode.node);
-    ASTPushChildNode(funcNode, bodyNode.node);
-    return PARSE_VALID(funcNode, FUNC_NODE);
+	PrependChildASTNode(ctx->arena, funcNode, retTypeNode);
+	if (linkageNode) PrependChildASTNode(ctx->arena, funcNode, linkageNode);
+	if (qualifierNode) PrependChildASTNode(ctx->arena, funcNode, qualifierNode);
+
+	return funcNode;
 }
 
-ParseResult ParamList(FILE* fptr)
+ASTNode* FuncSignature(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Starting ParamList\n");
-    if (PeekNextTokenP(fptr) == RPAREN) {
-        ASTNode* paramListNode = InitASTNode();
-        ASTPushChildNode(paramListNode, EmptyNode().node);
-        return PARSE_VALID(paramListNode, PARAM_LIST_NODE);
-    }
-    
-    ParseResult paramNode = Param(fptr);
-    if (paramNode.status == ERRP)
-        return PARSE_ERRP("Invalid Param in ParamList", GetNextToken(fptr));
-    else if (paramNode.status == NAP)
-        return PARSE_NAP();
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Function name expected.");
+	ASTNode* funcNode = InitalizeASTNode(ctx->arena, FUNC_NODE, ctx->current);
+	Advance(ctx);
 
-    ASTNode* paramListNode = InitASTNode();
-    ASTPushChildNode(paramListNode, paramNode.node);
+	// Optional Generic List
+	ASTNode* genericListNode = NULL;
+	if (ctx->current.type == LESS) {
+		genericListNode = GenericList(ctx);
+		if (ctx->panicMode) SyncRecovery(ctx, IDENT);
+		else AddChildASTNode(ctx->arena, funcNode, genericListNode);
 
-    while(true)
-    {
-        if (PeekNextTokenP(fptr) != COMMA)
-            break;
-        GetNextTokenP(fptr);
+		funcNode->ntype = GEN_FUNC_NODE;
+	}
 
-        paramNode = Param(fptr);
-        if (paramNode.status != VALID){
-            ASTFreeNodes(2, paramNode.node, paramListNode);
-            return PARSE_ERRP("Invalid Param in ParamList", GetNextToken(fptr));
-        }
-        ASTPushChildNode(paramListNode, paramNode.node);
-    }
+	// Paramater list 
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' after function name.");
 
-    return PARSE_VALID(paramListNode, PARAM_LIST_NODE);
+	switch (ctx->current.type) {
+		QUALIFIER_CASES
+		TYPE_CASES
+			ASTNode* paramListNode = ParamList(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, funcNode, paramListNode);
+			break;
+		default: 
+			// Empty param list
+			AddChildASTNode(ctx->arena, funcNode, InitalizeASTNode(ctx->arena, PARAM_LIST_NODE, DUMMY_TOKEN));
+			break;	
+	}
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' after function paramaters.");
+	return funcNode;
 }
 
-ParseResult Param(FILE* fptr)
+ASTNode* ReturnType(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Starting Param\n");
-
-    ParseResult typeNode = StdType(fptr);
-    if (typeNode.status == ERRP)
-        return PARSE_ERRP("Invalid Param", GetNextToken(fptr));
-    else if (typeNode.status == NAP)
-        return PARSE_NAP();
-
-    if (PeekNextTokenP(fptr) != IDENT) {
-        ASTFreeNodes(1, typeNode.node);
-        return PARSE_ERRP("Param does not have a name", GetNextToken(fptr));
-    }
-    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
-
-    ASTNode* paramNode = InitASTNode();
-    ASTPushChildNode(paramNode, typeNode.node);
-    ASTPushChildNode(paramNode, identNode.node);
-    return PARSE_VALID(paramNode, PARAM_NODE);;
+	ASTNode* returnTypeNode = InitalizeASTNode(ctx->arena, RETURN_TYPE_NODE, DUMMY_TOKEN);
+	switch (ctx->current.type) {
+		TYPE_CASES
+			ASTNode* typeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, IDENT);	// Func name
+			else AddChildASTNode(ctx->arena, returnTypeNode, typeNode);
+			break;
+		case LESS: 
+			ASTNode* genNode = Generic(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, IDENT);
+			else AddChildASTNode(ctx->arena, returnTypeNode, genNode);
+			break;
+		default: return ParseERROR(ctx, "Function return type expected valid type.");
+	}
+	return returnTypeNode;
 }
 
-
-/* ---------- Statements ----------- */
-
-ParseResult Body(FILE* fptr)
+ASTNode* ParamList(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering Body\n");
-    
-    if (PeekNextTokenP(fptr) != LBRACE)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
+	ASTNode* paramListNode = InitalizeASTNode(ctx->arena, PARAM_LIST_NODE, DUMMY_TOKEN);
 
-    ParseResult stmtListNode = StmtList(fptr);
-    if (stmtListNode.status != VALID)
-        return PARSE_ERRP("Invalid StmtList in Body", GetNextToken(fptr));
+	while (true) {
+		ASTNode* qualifierNode = NULL;
+		switch (ctx->current.type) { QUALIFIER_CASES qualifierNode = TypeQualifierList(ctx); default: break; }
 
-    if (PeekNextTokenP(fptr) != RBRACE) {
-        ASTFreeNodes(1, stmtListNode.node);
-        return PARSE_ERRP("Expected closing brace in Body", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
+		switch (ctx->current.type) {
+			TYPE_CASES
+				ASTNode* paramNode = Param(ctx);
+				if (qualifierNode) PrependChildASTNode(ctx->arena, paramNode, qualifierNode);
 
-    ASTNode* bodyNode = InitASTNode();
-    ASTPushChildNode(bodyNode, stmtListNode.node);
-    return PARSE_VALID(bodyNode, BODY_NODE);
+				// TODO: Ideal to go to comma THEN rparen, but for later
+				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+				else AddChildASTNode(ctx->arena, paramListNode, paramNode);
+				break;
+			case RPAREN: return paramListNode;
+			default: return ParseERROR(ctx, "Expected paramaters inside function signature.");
+		}
+
+		switch (ctx->current.type) {
+			case COMMA: Advance(ctx); break;
+			case RPAREN: return paramListNode;
+			default: break;
+		}
+	}
 }
 
-ParseResult StmtList(FILE* fptr)
+ASTNode* Param(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering StmtList\n");
-    
-    ASTNode* stmtListNode = InitASTNode();
-    if (PeekNextTokenP(fptr) == RBRACE)  {      /* Assume all StmtLists are followed by RBRACE */
-        ASTPushChildNode(stmtListNode, EmptyNode().node);     
-        return PARSE_VALID(stmtListNode, STMT_LIST_NODE);
-    }
+	ASTNode* typeNode = Type(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, IDENT);
 
-    while (true) {
-        if (PeekNextTokenP(fptr) == RBRACE) 
-            break;
+    if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected parameter identifier.");
+	ASTNode* paramNode = InitalizeASTNode(ctx->arena, PARAM_NODE, ctx->current);
+    Advance(ctx);
 
-        ParseResult stmtNode = Stmt(fptr);
-        if (stmtNode.status == VALID) {
-            ASTPushChildNode(stmtListNode, stmtNode.node);
-            continue;
-        } else if (stmtNode.status == ERRP) {
-            ASTFreeNodes(2, stmtNode.node, stmtListNode);
-            return PARSE_ERRP("Invalid Stmt in StmtList", GetNextToken(fptr));
-        }
+	// ALLOW NESTED ARRAYS
+	while (Match(ctx, LBRACK)) {
+		// Optional Literal Size
+		ASTNode* exprNode = NULL;
+		switch (ctx->current.type) {
+			EXPR_START_CASES
+				exprNode = Expr(ctx, PREC_NONE);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACK); 
+				break;
+			default: break;
+		}
 
-        ASTFreeNodes(2, stmtNode.node, stmtListNode);
-        return PARSE_ERRP("Invalid Stmt in StmtList", GetNextToken(fptr));
-    }
+		if (!Match(ctx, RBRACK)) return ParseERROR(ctx, "Expected ']' for array initalization.");
 
-    return PARSE_VALID(stmtListNode, STMT_LIST_NODE);
+		// TODO: Idk if this is correct
+		ASTNode* arrayInitNode = InitalizeASTNode(ctx->arena, ARR_DECL_NODE, DUMMY_TOKEN);
+
+		if (exprNode)
+			AddChildASTNode(ctx->arena, arrayInitNode, exprNode);
+		AddChildASTNode(ctx->arena, paramNode, arrayInitNode);
+	}
+
+	AddChildASTNode(ctx->arena, paramNode, typeNode);
+    return paramNode;
 }
 
-ParseResult Stmt(FILE* fptr)
+ASTNode* Lambda(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering Stmt\n");
+	Advance(ctx);
+	ASTNode* lambdaNode = InitalizeASTNode(ctx->arena, LAMBDA_NODE, DUMMY_TOKEN);
 
-    /* Children already set their node types, Stmt only needs to return the child result if VALID */
-    ParseResult ctrlStmtNode = CtrlStmt(fptr);
-    if (ctrlStmtNode.status == VALID)
-        return ctrlStmtNode;    
-    else if (ctrlStmtNode.status == ERRP)
-        return PARSE_ERRP("Invalid CtrlStmt in Stmt", GetNextToken(fptr));
+	// Function Pointer should impelment AnonParamList
+	switch (ctx->current.type) {
+		TYPE_CASES 
+			// TODO: Types are ambigous with lambda paramater list 	
+			ASTNode* typeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
+			else AddChildASTNode(ctx->arena, lambdaNode, typeNode);
+			break;
+		default: return ParseERROR(ctx, "Expected lambda to have a valid return type.");
+	}
 
-    ParseResult declStmtNode = DeclStmt(fptr);
-    if (declStmtNode.status == VALID)
-        return declStmtNode;
-    else if (declStmtNode.status == ERRP)
-        return PARSE_ERRP("Invalid DeclStmt in Stmt", GetNextToken(fptr));
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' after lambda declaration.");
 
-    ParseResult exprStmtNode = ExprStmt(fptr);
-    if (exprStmtNode.status == VALID)
-        return exprStmtNode;    
-    else if (exprStmtNode.status == ERRP)
-        return PARSE_ERRP("Invalid ExprStmt in Stmt", GetNextToken(fptr));
+	switch (ctx->current.type) {
+		QUALIFIER_CASES
+		TYPE_CASES
+			ASTNode* paramListNode = ParamList(ctx);	
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, lambdaNode, paramListNode);
+			break;
+		default: break; // Maybe have this do something? Empty node?
+	}
 
-    ParseResult returnStmtNode = ReturnStmt(fptr);
-    if (returnStmtNode.status == VALID)
-        return returnStmtNode;
-    else if (returnStmtNode.status == ERRP)
-        return PARSE_ERRP("Invalid ReturnStmt in Stmt", GetNextToken(fptr));
- 
-    return PARSE_NAP();
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' after function paramaters.");
+
+
+	if (ctx->current.type != CAPTURES) return ParseERROR(ctx, "Expected explicit capture list via 'captures' keyword.");
+	ASTNode* capturesNode = Captures(ctx);
+	if(ctx->panicMode) SyncRecovery(ctx, LBRACE);
+	else AddChildASTNode(ctx->arena, lambdaNode, capturesNode);
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected lambda to have a body.");
+	ASTNode* bodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, lambdaNode, bodyNode);
+
+	return lambdaNode;
 }
 
-ParseResult ExprStmt(FILE* fptr)
+ASTNode* Captures(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering ExprStmt\n");
-
-    if (PeekNextTokenP(fptr) == SEMI) {
-        GetNextTokenP(fptr);
-        return EmptyNode();
-    }
-    
-    ParseResult exprNode = Expr(fptr);
-    if (exprNode.status == ERRP) 
-        return PARSE_ERRP("Invalid Expr in ExprStmt", GetNextToken(fptr));
-    else if (exprNode.status == NAP)
-        return PARSE_NAP();
-
-    if (PeekNextTokenP(fptr) != SEMI) {
-        ASTFreeNodes(1, exprNode.node);
-        return PARSE_ERRP("No Semicolon after Expr in ExprStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    ASTNode* exprStmt = InitASTNode();
-    ASTPushChildNode(exprStmt, exprNode.node);
-
-    return PARSE_VALID(exprStmt, EXPR_STMT_NODE);
-}
-
-ParseResult DeclStmt(FILE* fptr)
-{
-    DEBUG_MESSAGE("Enter DeclStmt\n");
-
-    ParseResult declStmtNode;
-
-    do {
-        declStmtNode = VarDecl(fptr);
-        if (declStmtNode.status == VALID) 
-            break;
-        else if (declStmtNode.status == ERRP)
-            return PARSE_ERRP("Invalid Var Decl Stmt", GetNextToken(fptr));
-
-        declStmtNode = StructDecl(fptr);
-        if (declStmtNode.status == VALID) 
-            break;
-        else if (declStmtNode.status == ERRP)
-            return PARSE_ERRP("Invalid Struct Decl Stmt", GetNextToken(fptr));
-
-        declStmtNode = EnumDecl(fptr);
-        if (declStmtNode.status == VALID) 
-            break;
-        else if (declStmtNode.status == ERRP)
-            return PARSE_ERRP("Invalid Enum Decl Stmt", GetNextToken(fptr));
-
-        declStmtNode = TypedefDecl(fptr);
-        if (declStmtNode.status == VALID) 
-            break;
-        else if (declStmtNode.status == ERRP)
-            return PARSE_ERRP("Invalid Enum Decl Stmt", GetNextToken(fptr));
-
-        return PARSE_NAP();
-    } while (0);
-
-    if (PeekNextTokenP(fptr) != SEMI) {
-        ASTFreeNodes(1, declStmtNode);
-        return PARSE_ERRP("Semicolon missing in DeclStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    return declStmtNode;
-}
-
-ParseResult VarDecl(FILE* fptr) 
-{
-    if (DeclStmtPossible(fptr) != VALID) 
-        return PARSE_NAP();
-    
-    ParseResult typeNode = StdType(fptr);
-    if (typeNode.status == ERRP)
-        return PARSE_ERRP("Invalid Type in DeclStmt", GetNextToken(fptr));
-    else if (typeNode.status == NAP) {
-        if (PeekNextTokenP(fptr) == IDENT)
-            typeNode = IdentNode(GetNextTokenP(fptr));
-        else
-            return PARSE_NAP();
-    }
-
-    ParseResult varListNode = VarList(fptr);
-    if (varListNode.status != VALID) {
-        ASTFreeNodes(1, typeNode.node);
-        return PARSE_ERRP("Invalid VarList in DeclStmt", GetNextToken(fptr));
-    }
-
-    ASTNode* declStmtNode = InitASTNode();
-    ASTPushChildNode(declStmtNode, typeNode.node);
-    ASTPushChildNode(declStmtNode, varListNode.node);
-    return PARSE_VALID(declStmtNode, VAR_DECL_NODE);
-}
-
-ParseResult StructDecl(FILE* fptr) 
-{
-    if (PeekNextTokenP(fptr) != STRUCT)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
-
-    if (PeekNextTokenP(fptr) != IDENT) 
-        return PARSE_ERRP("Struct doesn't have a name", GetNextToken(fptr));
-    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
-
-    ASTNode* structNode = InitASTNode();
-    ASTPushChildNode(structNode, identNode.node);
-
-    if (PeekNextTokenP(fptr) != LBRACE) {
-        ASTFreeNodes(1, structNode);
-        return PARSE_ERRP("Expected opening brace in Struct", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    ParseResult structBodyNode = StructBody(fptr);
-    if (structBodyNode.status != VALID) {
-        ASTFreeNodes(1, structNode);
-        return PARSE_ERRP("Invalid Struct Body in Struct", GetNextToken(fptr));
-    }
-    ASTPushChildNode(structNode, structBodyNode.node);
-
-    if (PeekNextTokenP(fptr) != RBRACE) {
-        ASTFreeNodes(1, structNode);
-        return PARSE_ERRP("Expected closing brace in Struct", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    return PARSE_VALID(structNode, STRUCT_DECL_NODE);
-}
-
-ParseResult StructBody(FILE* fptr)
-{
-    ASTNode* structBodyNode = InitASTNode();
-    while (true) {
-
-        /* TODO: This is a bad check since nested structs are allowed */
-        if (PeekNextTokenP(fptr) == RBRACE) 
-            break;
-
-        /* Need to check if Function Possible since grammar is ambiguous */
-        ParseResult declOrFuncNode;
-        if (FuncNodePossible(fptr) != NAP) {
-            declOrFuncNode = Function(fptr);
-            if (declOrFuncNode.status == VALID) {
-                ASTPushChildNode(structBodyNode, declOrFuncNode.node);
-                continue;
-            }
-            else if (declOrFuncNode.status == ERRP) {
-                ASTFreeNodes(1, structBodyNode);
-                return PARSE_ERRP("Invalid Function in Struct", GetNextToken(fptr));
-            }
-        } else {
-            declOrFuncNode = DeclStmt(fptr);
-            if (declOrFuncNode.status == VALID) {
-                ASTPushChildNode(structBodyNode, declOrFuncNode.node);
-                continue;
-            } else if (declOrFuncNode.status == ERRP) {
-                ASTFreeNodes(1, structBodyNode);
-                return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
-            }
-        }
-
-        ParseResult enumNode = EnumDecl(fptr);
-        if (enumNode.status == VALID) {
-            ASTPushChildNode(structBodyNode, enumNode.node);
-            continue;
-        }
-        else if (enumNode.status == ERRP) {
-            ASTFreeNodes(2, structBodyNode, declOrFuncNode);
-            return PARSE_ERRP("Invalid Enum in Struct", GetNextToken(fptr));
-        }
-
-        ParseResult structNode = StructDecl(fptr);
-        if (structNode.status == VALID) {
-            ASTPushChildNode(structBodyNode, structNode.node);
-            continue;
-        }
-        else if (structNode.status == NAP)
-            break;
-
-        ASTFreeNodes(3, structBodyNode, enumNode, declOrFuncNode);
-        return PARSE_ERRP("Invalid DeclStmt in Struct", GetNextToken(fptr));
-    }
-
-    return PARSE_VALID(structBodyNode, STRUCT_BODY_NODE);
-}
-
-ParseResult EnumDecl(FILE* fptr)
-{
-    if (PeekNextTokenP(fptr) != ENUM)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
-
-    ASTNode* enumNode = InitASTNode();
-    if (PeekNextTokenP(fptr) != IDENT) {
-        ASTFreeNodes(1, enumNode);
-        return PARSE_ERRP("Enum name Identifier expected", GetNextToken(fptr));
-    }
-    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
-
-    ASTPushChildNode(enumNode, identNode.node);
-
-    ParseResult enumBodyNode = EnumBody(fptr);
-    if (enumBodyNode.status != VALID) {
-        ASTFreeNodes(1, enumNode);
-        return PARSE_ERRP("Invalid Enum Body in Enum", GetNextToken(fptr));
-    }
-    ASTPushChildNode(enumNode, enumBodyNode.node);
-
-    return PARSE_VALID(enumNode, ENUM_DECL_NODE);
-}
-
-ParseResult EnumBody(FILE* fptr)
-{
-    if (PeekNextTokenP(fptr) != LBRACE) 
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
-
-    ASTNode* enumBodyNode = InitASTNode();
+	Advance(ctx);
+	ASTNode* capturesNode = InitalizeASTNode(ctx->arena, CAPTURES_NODE, DUMMY_TOKEN);
+    if (ctx->current.type == LBRACE) return capturesNode;
 
     while (true) {
-        if (PeekNextTokenP(fptr) != IDENT)
-            break;
+        if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected variable to capture.");
+        AddChildASTNode(ctx->arena, capturesNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+        Advance(ctx);
 
-        ParseResult memberNode = IdentNode(GetNextTokenP(fptr));
-
-        if (PeekNextTokenP(fptr) == EQ) {
-            GetNextTokenP(fptr);
-            if (PeekNextTokenP(fptr) != INTEGRAL) {
-                ASTFreeNodes(1, memberNode.node);
-                return PARSE_ERRP("Expected integral value for enum member", GetNextToken(fptr));
-            }
-            Token valueTok = GetNextTokenP(fptr);
-            ParseResult valueNode = ArbitraryNode(valueTok, LITERAL_NODE);
-            ASTPushChildNode(memberNode.node, valueNode.node);
-        }
-
-        ASTPushChildNode(enumBodyNode, memberNode.node);
-
-        if (PeekNextTokenP(fptr) == COMMA) {
-            GetNextTokenP(fptr);
-            continue;
-        } else {
-            break;
-        }
+        if (ctx->current.type == LBRACE) return capturesNode;
+        if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Expected ',' or '{' after specified captures.");
     }
-
-    if (PeekNextTokenP(fptr) != RBRACE) {
-        ASTFreeNodes(1, enumBodyNode);
-        return PARSE_ERRP("Expected '}' to close enum body", GetNextTokenP(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    return PARSE_VALID(enumBodyNode, ENUM_BODY_NODE);
 }
 
-ParseResult TypedefDecl(FILE* fptr)
+ASTNode* Body(ParserContext* ctx)
 {
-    if (PeekNextTokenP(fptr) != TYPEDEF) 
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
+	Advance(ctx);
+	ASTNode* bodyNode = InitalizeASTNode(ctx->arena, BODY_NODE, DUMMY_TOKEN);
 
-    ParseResult typedefDecl;
+	while (true) {
+		switch(ctx->current.type) {
+			case IF: 
+				ASTNode* ifNode = IfStmt(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, bodyNode, ifNode);
+				break;
+			case SWITCH: 
+				ASTNode* switchNode = SwitchStmt(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, bodyNode, switchNode);
+				break;
+			case WHILE: 
+				ASTNode* whileNode = WhileStmt(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, bodyNode, whileNode);
+				break;
+			case DO: 
+				ASTNode* doNode = DoWhileStmt(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, bodyNode, doNode);
 
-    TokenType tokType = PeekNextTokenP(fptr);
-    if (ValidTokType(TYPES, TYPES_COUNT, tokType) == VALID) 
-        typedefDecl = ArbitraryNode(GetNextTokenP(fptr), TYPE_NODE);
-    else if (tokType == IDENT) 
-        typedefDecl = ArbitraryNode(GetNextTokenP(fptr), IDENT_NODE);
-    else 
-        return PARSE_ERRP("Invalid TypeSpec for reassignment in typedef", GetNextToken(fptr));
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after DoWhile statement.");
+				break;
+			case FOR: 
+				ASTNode* forNode = ForStmt(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, bodyNode, forNode);
+				break;
+			case LET: 
+				ASTNode* varDeclNode = VarDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, bodyNode, varDeclNode);
 
-    ASTNode* typedefNode = InitASTNode();
-    ASTPushChildNode(typedefNode, typedefDecl.node);
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after variable declaration.");
+				break;
+			case ENUM:
+				ASTNode* enumNode = EnumDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, bodyNode, enumNode);
 
-    ParseResult typedefPostfix = TypedefPostfix(fptr);
-    while (typedefPostfix.status == VALID) {
-        ASTPushChildNode(typedefNode, typedefPostfix.node);
-        typedefPostfix = TypedefPostfix(fptr);
-    }
-    if (typedefPostfix.status == ERRP) {
-        ASTFreeNodes(1, typedefNode);
-        return PARSE_ERRP("Invalid Postfix for TypeSpec in Typedef", GetNextToken(fptr));
-    }
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after enum declaration.");
+				break;
+			case TYPEDEF: 
+				ASTNode* typedefNode = TypedefDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, bodyNode, typedefNode);
 
-    if (PeekNextTokenP(fptr) != IDENT){
-        ASTFreeNodes(1, typedefNode);
-        return PARSE_ERRP("Invalid declarator for reassignment in typedef", GetNextToken(fptr));
-    }
-    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after typedef declaration.");
+				break;
+			case STRUCT:
+				ASTNode* structNode = StructDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, bodyNode, structNode);
+				break;
 
-    ASTPushChildNode(typedefNode, identNode.node);
-    return PARSE_VALID(typedefNode, TYPEDEF_DECL_NODE);
+			// case SEMI: 
+				// Empty Expr Stmt
+			EXPR_START_CASES
+				ASTNode* exprNode = Expr(ctx, PREC_NONE);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, bodyNode, exprNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after expression.");
+				break;
+			case RETURN:
+				ASTNode* returnNode = ReturnStmt(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, bodyNode, returnNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after return expression.");
+				break;
+			case BREAK: 
+				AddChildASTNode(ctx->arena, bodyNode, InitalizeASTNode(ctx->arena, BREAK_NODE, ctx->current));
+				Advance(ctx);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after break expression.");
+				break;
+			case CONTINUE:
+				AddChildASTNode(ctx->arena, bodyNode, InitalizeASTNode(ctx->arena, CONTINUE_NODE, ctx->current));
+				Advance(ctx);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after continue expression.");
+				break;
+			case LOCK: 
+
+				// TODO: Lock and critical shouldn't return on early errors,
+				// sync inside the body so it checks its body as well before returning error
+				ASTNode* lockNode = LockStmt(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, bodyNode, lockNode);
+				break;
+			case CRITICAL:
+				ASTNode* criticalNode = CriticalStmt(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, bodyNode, criticalNode);
+				break;
+			/* 
+				TODO: I don't like having rbrace check here, gives less clarity on error, return instead
+				but then again if I just return, I do an extra check. Worth the debate.
+			*/
+			case RBRACE: Advance(ctx); return bodyNode;
+			default: return ParseERROR(ctx, "Unexpected token in body.");
+		}
+	}
 }
 
-ParseResult TypedefPostfix(FILE* fptr)
+ASTNode* VarDecl(ParserContext* ctx)
 {
-    TokenType tok = PeekNextTokenP(fptr);
+	Advance(ctx);
+	ASTNode* varDeclNode = InitalizeASTNode(ctx->arena, VAR_DECL_NODE, DUMMY_TOKEN);
 
-    if (tok == MULT) {
-        GetNextTokenP(fptr);
+	if (ctx->current.type == EXTERN) { AddChildASTNode(ctx->arena, varDeclNode, LinkageSpecifier(ctx)); }
+	switch(ctx->current.type) { QUALIFIER_CASES AddChildASTNode(ctx->arena, varDeclNode, TypeQualifierList(ctx)); default: break; }
 
-        ASTNode* node = InitASTNode();
-        return PARSE_VALID(node, TYPEDEF_POSTFIX_PTR);
-    }
-    else if (tok == LBRACK) {
-        GetNextTokenP(fptr);  
+	switch (ctx->current.type) {
+		TYPE_CASES
+			ASTNode* typeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, IDENT);
+			else AddChildASTNode(ctx->arena, varDeclNode, typeNode);
+			break;
+		default: return ParseERROR(ctx, "Expected Type for variable declaration.");
+	}
 
-        ASTNode* node = InitASTNode();
-        node->type = TYPEDEF_POSTFIX_ARR;
+	ASTNode* varListNode = VarList(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+	else AddChildASTNode(ctx->arena, varDeclNode, varListNode);
 
-        if (PeekNextTokenP(fptr) == INTEGRAL) {
-            ParseResult size = ArbitraryNode(GetNextTokenP(fptr), LITERAL_NODE);
-            ASTPushChildNode(node, size.node);
-        }
-
-        if (PeekNextTokenP(fptr) != RBRACK) {
-            ASTFreeNodes(1, node);
-            return PARSE_ERRP("Expected RBRACE in typedef array postfix", GetNextToken(fptr));
-        }
-
-        GetNextTokenP(fptr);  
-        return PARSE_VALID(node, TYPEDEF_POSTFIX_ARR);
-    }
-
-    return PARSE_NAP();
+	return varDeclNode;
 }
 
-
-ParseResult CtrlStmt(FILE* fptr) 
+ASTNode* StructDecl(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering CtrlStmt\n");
-    
-    ParseResult ifStmtNode = IfStmt(fptr);
-    if (ifStmtNode.status == VALID)
-        return PARSE_VALID(ifStmtNode.node, IF_STMT_NODE);
-    else if (ifStmtNode.status == ERRP)
-        return PARSE_ERRP("Invalid IfStmt in Stmt", GetNextToken(fptr));
+	// This function is a little unorthodox compared to the others especially 
+	// the different handlign of the cases, maybe take a look at later 
+	Advance(ctx);
 
-    ParseResult switchStmtNode = SwitchStmt(fptr);
-    if (switchStmtNode.status == VALID)
-        return PARSE_VALID(switchStmtNode.node, SWITCH_STMT_NODE);
-    else if (switchStmtNode.status == ERRP)
-        return PARSE_ERRP("Invalid SwitchStmt in Stmt", GetNextToken(fptr));
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected struct identifier.");
+	ASTNode* structNode = InitalizeASTNode(ctx->arena, STRUCT_DECL_NODE, ctx->current);
+	Advance(ctx);
 
-    ParseResult whileStmtNode = WhileStmt(fptr);
-    if (whileStmtNode.status == VALID)
-        return PARSE_VALID(whileStmtNode.node, WHILE_STMT_NODE);
-    else if (whileStmtNode.status == ERRP)
-        return PARSE_ERRP("Invalid WhileStmt in Stmt", GetNextToken(fptr));
+	switch (ctx->current.type) {
+		case LESS: 
+			// Gen Struct
+			structNode->ntype = GEN_STRUCT_DECL_NODE;
+			ASTNode* genericListNode = GenericList(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, LBRACE);
+			else AddChildASTNode(ctx->arena, structNode, genericListNode);
 
-    ParseResult doWhileStmtNode = DoWhileStmt(fptr);
-    if (doWhileStmtNode.status == VALID)
-        return PARSE_VALID(doWhileStmtNode.node, DO_WHILE_STMT_NODE);
-    else if (doWhileStmtNode.status == ERRP)
-        return  PARSE_ERRP("Invalid DoWhileStmt in Stmt", GetNextToken(fptr));
+			ASTNode* genBodyNode = GenStructBody(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+			else AddChildASTNode(ctx->arena, structNode, genBodyNode);
+			break;
+		case COLON: 
+			ASTNode* implementsNode = Implements(ctx);	
+			if (ctx->panicMode) SyncRecovery(ctx, LBRACE);
+			else AddChildASTNode(ctx->arena, structNode, implementsNode);
 
-    ParseResult forStmtNode = ForStmt(fptr);
-    if (forStmtNode.status == VALID)
-        return PARSE_VALID(forStmtNode.node, FOR_STMT_NODE);
-    else if (forStmtNode.status == ERRP)
-        return PARSE_ERRP("Invalid ForStmt in Stmt", GetNextToken(fptr));
+			// Can't just fall through, need to check if it has LBRACE, then fall through
+			if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' struct body after implenting interface.");
+			// FALLTHROUGH
+		case LBRACE: 
+			ASTNode* structBodyNode = StructBody(ctx); 
+			if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+			else AddChildASTNode(ctx->arena, structNode, structBodyNode);
+			break;
+		default: return ParseERROR(ctx, "Invalid token after struct identifier.");
+	}
 
-    DEBUG_MESSAGE("Not a CtrlStmt\n");
-    return PARSE_NAP();
+	return structNode;
 }
 
-ParseResult ReturnStmt(FILE* fptr) 
+ASTNode* GenStructBody(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering ReturnStmt\n");
-    
-    if (PeekNextTokenP(fptr) != RET)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
+	Advance(ctx);
+	ASTNode* genStructNode = InitalizeASTNode(ctx->arena, GEN_STRUCT_BODY_NODE, DUMMY_TOKEN);
 
-    if (PeekNextTokenP(fptr) == SEMI) {
-        GetNextTokenP(fptr);
-        return EmptyNode();
-    }
+	while (true) {
+		switch (ctx->current.type) {
+			case LET:
+				ASTNode* genDeclNode = VarDecl(ctx);
+				genDeclNode->ntype = GEN_DECL_NODE;	// Didn't want to write a new function for the same thing
 
-    ParseResult exprNode = Expr(fptr);
-    if (exprNode.status != VALID)
-        return PARSE_ERRP("Invalid Expr in ReturnStmt", GetNextToken(fptr));
-    
-    if (PeekNextTokenP(fptr) != SEMI) {
-        ASTFreeNodes(1, exprNode.node);
-        return PARSE_ERRP("No semicolon in ReturnStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, genStructNode, genDeclNode);
 
-    ASTNode* returnStmtNode = InitASTNode();
-    ASTPushChildNode(returnStmtNode, exprNode.node);
-    return PARSE_VALID(returnStmtNode, RETURN_STMT_NODE);
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected ';' after variable declaration in generic struct.");
+				break;
+			case FUNCTION:
+				ASTNode* genFuncNode = Function(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, genStructNode, genFuncNode);
+
+				if (genFuncNode->ntype == GEN_FUNC_DECL && !Match(ctx, SEMI)) 	
+					return ParseERROR(ctx, "Expected ';' after function declaration in generic struct.");
+				break;
+			case TYPEDEF: 
+				ASTNode* typedefNode = TypedefDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, genStructNode, typedefNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after typedef declaration inside of struct.");
+				break;
+			case ENUM:
+				ASTNode* enumNode = EnumDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, genStructNode, enumNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected ';' after enum declaration in generic struct.");
+				break;
+			case RBRACE:
+				Advance(ctx);
+				return genStructNode;
+			default: return ParseERROR(ctx, "Expected generic function or variable in generic struct.");
+		}
+	}
+
 }
 
-ParseResult IfStmt(FILE* fptr) 
+ASTNode* StructBody(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering IfStmt\n");
-    
-    ASTNode* ifStmtNode = InitASTNode();
+	Advance(ctx);
+	ASTNode* structBodyNode = InitalizeASTNode(ctx->arena, STRUCT_BODY_NODE, DUMMY_TOKEN);
+	while (true) {
+		switch (ctx->current.type) {
+			case OPERATOR:
+				ASTNode* overloadOpNode = OperatorOverload(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, structBodyNode, overloadOpNode);
+				break;
+			case FUNCTION:
+				ASTNode* funcNode = Function(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, structBodyNode, funcNode);
 
-    ParseResult ifNode = IfElifElse(fptr, IF);
-    if (ifNode.status == ERRP)
-        return PARSE_ERRP("Invalid IfStmt", GetNextToken(fptr));
-    if (ifNode.status == NAP)
-        return PARSE_NAP();
-    ASTPushChildNode(ifStmtNode, ifNode.node);
+				if (funcNode->ntype == FUNC_DECL && !Match(ctx, SEMI)) 
+					return ParseERROR(ctx, "Expected ';' after function declaration in generic struct.");
+				break;
+			case LET: 
+				ASTNode* varDeclNode = VarDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, structBodyNode, varDeclNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after variable declaration inside of struct.");
+				break;
+			case ENUM:
+				ASTNode* enumNode = EnumDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, structBodyNode, enumNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after enum declaration inside of struct.");
+				break;
+			case TYPEDEF: 
+				ASTNode* typedefNode = TypedefDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, structBodyNode, typedefNode);
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' after typedef declaration inside of struct.");
+				break;
+			case STRUCT:
+				ASTNode* structNode = StructDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, structBodyNode, structNode);
+				break;
+			case RBRACE: Advance(ctx); return structBodyNode;
+			default: return ParseERROR(ctx, "Unexpected struct member.");
+		}
+
+	}
+}
+
+ASTNode* OperatorOverload(ParserContext* ctx)
+{
+	Advance(ctx);
+	ASTNode* overloadOpNode = InitalizeASTNode(ctx->arena, OPERATOR_OVERLOAD_NODE, ctx->current);
+
+	switch (ctx->current.type) {
+		// Overloadable operators
+		case PLUS: case MINUS: case MULT: case DIV: case MOD:
+		case DOTPROD: case EQQ: case NEQQ: case LESS: case GREAT:
+		case LEQQ: case GEQQ: case LSHIFT: case RSHIFT: case AND: 
+		case OR: case XOR: case NEG:
+			Advance(ctx);
+			break;
+		case LBRACK:
+			// Only stores ] for indexing, but thats fine. Unambigous.
+			if (!Match(ctx, RBRACK)) return ParseERROR(ctx, "Expected matching ']' for overloaded '[]' operator.");
+			Advance(ctx);
+			break;	
+		default: 
+			ParseERROR(ctx, "Invalid operator for overloading.");
+			SyncRecovery(ctx, LPAREN);
+			break;
+	}
+
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' after overloaded operator.");
+
+	// Only allow up 1 or 2 paramaters ( unary or binary )
+	switch (ctx->current.type) {
+		case IDENT:
+			ASTNode* paramNode = Param(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, overloadOpNode, paramNode);
+			break;
+		default: 
+			ParseERROR(ctx, "Operator overloading doesn't allow primitve types.");
+			SyncRecovery(ctx, RPAREN);
+	}
+
+	if (Match(ctx, COMMA)) {
+		if (ctx->current.type != IDENT) return ParseERROR(ctx, "Operator overloading doesn't allow primitive types.");
+
+		ASTNode* paramNode = Param(ctx);
+		if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+		else AddChildASTNode(ctx->arena, overloadOpNode, paramNode);
+	}
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' after overloaded operator paramter.");
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Overloaded operator requires body in order specify behavior.");
+	ASTNode* bodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, overloadOpNode, bodyNode);
+
+	return overloadOpNode;
+}
+
+ASTNode* InterfaceDecl(ParserContext* ctx)
+{
+	Advance(ctx);
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected interface name.");
+	ASTNode* interfaceDeclNode = InitalizeASTNode(ctx->arena, INTERFACE_DECL_NODE, ctx->current);
+	Advance(ctx);
+
+	if (!Match(ctx, LBRACE)) return ParseERROR(ctx, "Expected '{' to begin interface declaration.");
+
+	ASTNode* interfaceBodyNode = InterfaceBody(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, interfaceDeclNode, interfaceBodyNode);
+
+	if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected '}' to terminate interface declaration.");
+
+	return interfaceDeclNode;
+}
+
+ASTNode* InterfaceBody(ParserContext* ctx)
+{
+	ASTNode* interfaceBodyNode = InitalizeASTNode(ctx->arena, INTERFACE_BODY_NODE, DUMMY_TOKEN);
+
+	while (true) {
+		switch (ctx->current.type) {
+			case LET: 
+				ASTNode* varDeclNode = VarDecl(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, interfaceBodyNode, varDeclNode); 
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expect semicolon ';' after variable declartion.");
+				break;
+			case FUNCTION:
+				ASTNode* funcNode = Function(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, interfaceBodyNode, funcNode); 
+
+				if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expect semicolon ';' after function declartion.");
+				break;
+			case RBRACE: return interfaceBodyNode;
+			default:     return ParseERROR(ctx, "Only FUNCTIONS or VARAIBLES allowed inside of interface's body.");
+		}
+	}
+}
+
+ASTNode* Implements(ParserContext* ctx)
+{
+    Advance(ctx);
+    ASTNode* implementsNode = InitalizeASTNode(ctx->arena, IMPLEMENTS_NODE, DUMMY_TOKEN);
 
     while (true) {
-        ParseResult elifNode = IfElifElse(fptr, ELIF);
-        if (elifNode.status == ERRP) {
-            ASTFreeNodes(2, ifNode.node, ifStmtNode);
-            return PARSE_ERRP("Invalid Elif in IfStmt", GetNextToken(fptr));
-        }
-        else if (elifNode.status == NAP)
-            break;
-
-        ASTPushChildNode(ifStmtNode, elifNode.node);
-    }
-
-    ParseResult elseNode = IfElifElse(fptr, ELSE);
-    if (elseNode.status == VALID) 
-        ASTPushChildNode(ifStmtNode, elseNode.node);
-    else if (elseNode.status == ERRP) {
-        ASTFreeNodes(2, ifNode.node, ifStmtNode);
-        return PARSE_ERRP("Invalid Else in IfStmt", GetNextToken(fptr));
-    }
-
-    return PARSE_VALID(ifStmtNode, IF_STMT_NODE);
-}
-
-
-ParseResult IfElifElse(FILE* fptr, TokenType type) 
-{
-    DEBUG_MESSAGE("Entering IfElifElse\n");
-    
-    if (PeekNextTokenP(fptr) != type)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
-
-    ASTNode* ifElifElseNode = InitASTNode();
-
-    if (type != ELSE) {
-        if (PeekNextTokenP(fptr) != LPAREN) {
-            ASTFreeNodes(1, ifElifElseNode);
-            return PARSE_ERRP("Expected left parenthesis in IfStmt", GetNextToken(fptr));
-        }
-        GetNextTokenP(fptr);
-
-        ParseResult exprNode = Expr(fptr);
-        if (exprNode.status != VALID) {
-            ASTFreeNodes(1, ifElifElseNode);
-            return PARSE_ERRP("Invalid Expr in IfStmt", GetNextToken(fptr));
-        }
-
-        if (PeekNextTokenP(fptr) != RPAREN) {
-            ASTFreeNodes(2, exprNode, ifElifElseNode);
-            return PARSE_ERRP("Mising right parenthesis in IfStmt", GetNextToken(fptr));
-        }
-        GetNextTokenP(fptr);
-
-        ASTPushChildNode(ifElifElseNode, exprNode.node);
-    }
-
-    ParseResult bodyNode = Body(fptr);
-    if (bodyNode.status != VALID) {
-        ASTFreeNodes(1, ifElifElseNode);
-        return PARSE_ERRP("Invaldi Body in IfStmt", GetNextToken(fptr));
+		if (ctx->current.type == LBRACE) return implementsNode;
+        else if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected identifier for interface implementation.");
         
+        AddChildASTNode(ctx->arena, implementsNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+        Advance(ctx);
+
+		if (ctx->current.type == LBRACE) return implementsNode;
+        else if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Expected ',' or '{' after interface implementation.");
     }
-    ASTPushChildNode(ifElifElseNode, bodyNode.node);
-
-    NodeType nodeType;      /* A bit unorthodox, not sure if incorrect */
-    if (type == IF) nodeType = IF_NODE;
-    else if (type == ELIF) nodeType = ELIF_NODE;
-    else nodeType = ELSE_NODE;
-
-    return PARSE_VALID(ifElifElseNode, nodeType);
 }
 
-ParseResult SwitchStmt(FILE* fptr) 
+ASTNode* EnumDecl(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering SwtichStmt\n");
-    
-    ASTNode* switchStmtNode = InitASTNode();
+	// TODO: should allow enum to = a number
+	Advance(ctx);
 
-    if (PeekNextTokenP(fptr) != SWITCH)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected Identifier for enum.");
+	ASTNode* enumNode = InitalizeASTNode(ctx->arena, ENUM_DECL_NODE, ctx->current);
+	Advance(ctx);
 
-    if (PeekNextTokenP(fptr) != LPAREN) {
-        ASTFreeNodes(1, switchStmtNode);
-        return PARSE_ERRP("No Left Parenthesis in SwitchStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-    
-    ParseResult exprNode = Expr(fptr);
-    if (exprNode.status != VALID) {
-        ASTFreeNodes(1, switchStmtNode);
-        return PARSE_ERRP("Invalid Expr in SwitchStmt", GetNextToken(fptr));
-    }
-    ASTPushChildNode(switchStmtNode, exprNode.node);
+	if (!Match(ctx, LBRACE)) return ParseERROR(ctx,  "Expected '{' to begin Enum body.");
 
-    if (PeekNextTokenP(fptr) != RPAREN) {
-        ASTFreeNodes(2, exprNode, switchStmtNode);
-        return PARSE_ERRP("No Right Parenthesis in SwitchStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
+	ASTNode* enumBodyNode = InitalizeASTNode(ctx->arena, ENUM_BODY_NODE, DUMMY_TOKEN);
+	while (true) {
+		// TODO: Trailing commas not handled
+		if (ctx->current.type == IDENT) {
+			AddChildASTNode(ctx->arena, enumBodyNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+			Advance(ctx); 
 
-    if (PeekNextTokenP(fptr) != LBRACE) {
-        ASTFreeNodes(2, exprNode, switchStmtNode);
-        return PARSE_ERRP("Expected opening brace in SwitchStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
+			if (Match(ctx, COMMA))  continue;
+		}
 
-    while (true) {
-        ParseResult caseNode = Case(fptr);
-        if (caseNode.status == ERRP) {
-            ASTFreeNodes(1, switchStmtNode);
-            return PARSE_ERRP("Invalid Case in SwitchStmt", GetNextToken(fptr));
+		else if (ctx->current.type == RBRACE) break;
+		else return ParseERROR(ctx, "Expected Identifier in enum.");
+	}
+
+	if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected '}' to terminate Enum body.");
+
+	AddChildASTNode(ctx->arena, enumNode, enumBodyNode);
+	return enumNode;
+}
+
+ASTNode* TypedefDecl(ParserContext* ctx)
+{
+	Advance(ctx);
+
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected identifier for user defined type.");
+	ASTNode* typedefNode = InitalizeASTNode(ctx->arena, TYPEDEF_DECL_NODE, ctx->current);
+	Advance(ctx);
+
+	if (!Match(ctx, EQ)) return ParseERROR(ctx, "User defined type must be equal '=' to something.");
+
+	switch (ctx->current.type) {
+		TYPE_CASES
+			ASTNode* typeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, typedefNode, typeNode);
+			break;
+		default: return ParseERROR(ctx, "Expected valid type declaration for custom type.");
+	}
+
+	return typedefNode;
+}
+
+ASTNode* LockStmt(ParserContext* ctx)
+{
+	Advance(ctx);
+	ASTNode* lockNode = InitalizeASTNode(ctx->arena, LOCK_STMT_NODE, DUMMY_TOKEN);
+	
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' to begin lock expression.");
+
+	ASTNode* exprNode = Expr(ctx, PREC_NONE);
+	if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+	else AddChildASTNode(ctx->arena, lockNode, exprNode);
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate lock expression.");
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin lock statement body.");
+	ASTNode* bodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, lockNode, bodyNode);
+
+	return lockNode;
+}
+
+ASTNode* CriticalStmt(ParserContext* ctx)
+{
+	Advance(ctx);
+	ASTNode* criticalNode = InitalizeASTNode(ctx->arena, CRITICAL_STMT_NODE, DUMMY_TOKEN);
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Missing '{' to begin critical section body.");
+
+	ASTNode* bodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+	else AddChildASTNode(ctx->arena, criticalNode, bodyNode);
+
+	return criticalNode;
+}
+
+
+ASTNode* IfStmt(ParserContext* ctx)
+{
+	ASTNode* ifStmtNode = InitalizeASTNode(ctx->arena, IF_STMT_NODE, DUMMY_TOKEN);
+	Advance(ctx);
+
+	ASTNode* ifNode = InitalizeASTNode(ctx->arena, IF_NODE, DUMMY_TOKEN);
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' to begin If Statment's condition.");
+
+	switch (ctx->current.type) {
+		EXPR_START_CASES
+			ASTNode* conditionalNode = Expr(ctx, PREC_NONE);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, ifNode, conditionalNode);
+			break;
+		default: return ParseERROR(ctx, "Expected expression in If Statements condition.");
+	}
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate If Statment's condition.");
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin If Statements body");
+	ASTNode* ifBodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, ifNode, ifBodyNode);
+	AddChildASTNode(ctx->arena, ifStmtNode, ifNode);
+
+	while (Match(ctx, ELIF)) {
+		ASTNode* elifNode = InitalizeASTNode(ctx->arena, ELIF_NODE, DUMMY_TOKEN);
+		if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' to begin Else If Statment's condition.");
+
+		switch (ctx->current.type) {
+			EXPR_START_CASES
+				ASTNode* conditionalNode = Expr(ctx, PREC_NONE);
+				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+				else AddChildASTNode(ctx->arena, elifNode, conditionalNode);
+				break;
+			default: return ParseERROR(ctx, "Expected expression in elif condition.");
+		}
+
+		if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate Else If Statment's condition.");
+			
+		if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin Else If Statements body");
+		ASTNode* elifBodyNode = Body(ctx);
+		if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+		else AddChildASTNode(ctx->arena, elifNode, elifBodyNode);
+		AddChildASTNode(ctx->arena, ifStmtNode, elifNode);
+	}
+
+	if (Match(ctx, ELSE)) {
+		ASTNode* elseNode = InitalizeASTNode(ctx->arena, ELSE_NODE, DUMMY_TOKEN);
+			
+		if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin Else Statements body");
+		ASTNode* elifBodyNode = Body(ctx);
+		if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+		else AddChildASTNode(ctx->arena, elseNode, elifBodyNode);
+		AddChildASTNode(ctx->arena, ifStmtNode, elseNode);
+	}
+
+	return ifStmtNode;
+}
+
+ASTNode* SwitchStmt(ParserContext* ctx)
+{
+	Advance(ctx);
+	ASTNode* switchStmtNode = InitalizeASTNode(ctx->arena, SWITCH_STMT_NODE, DUMMY_TOKEN);
+
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' to begin switch statement's comparison.");
+
+	switch (ctx->current.type) {
+		EXPR_START_CASES
+			ASTNode* exprNode = Expr(ctx, PREC_NONE);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, switchStmtNode, exprNode);
+			break;
+		default: return ParseERROR(ctx, "Switch statement expected an Expression or ')'.");
+	}
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expecteed ')' to terminate switch statement's comparison.");
+
+	if (!Match(ctx, LBRACE)) return ParseERROR(ctx, "Expected '{' to begin switch statement's body.");
+	while(true) {
+		switch (ctx->current.type) {
+			case CASE:	
+				ASTNode* caseNode = Case(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, switchStmtNode, caseNode);
+				break;
+			case DEFAULT:
+				ASTNode* defaultNode = Default(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, switchStmtNode, defaultNode);
+
+				if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected '}' to terminate switch statement's body.");
+				return switchStmtNode;
+			case RBRACE: Advance(ctx); return switchStmtNode;
+			default: return ParseERROR(ctx, "Expected CASE or DEFAULT within Switch Statement body.");
+		}
+
+	}
+}
+
+ASTNode* Case(ParserContext* ctx)
+{
+	Advance(ctx);
+	ASTNode* caseNode = InitalizeASTNode(ctx->arena, CASE_STMT_NODE, DUMMY_TOKEN);
+
+	ASTNode* caseVarNode;
+	switch (ctx->current.type) { 
+		LITERAL_CASES 
+			caseVarNode = InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current);
+			break;
+		case IDENT: 
+			caseVarNode = InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current);				
+			break;
+		default: return ParseERROR(ctx, "Switch case only allows compile time constants.");
+	}
+	AddChildASTNode(ctx->arena, caseNode, caseVarNode);
+	Advance(ctx);
+
+	if (ctx->current.type != LBRACE) { 
+		ParseERROR(ctx, "Switch case only allows literals. Expected '{' to begin body.");
+		SyncRecovery(ctx, LBRACE);
+	}
+	ASTNode* bodyNode = Body(ctx);
+	if(ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, caseNode, bodyNode);
+
+	return caseNode;
+}
+
+ASTNode* Default(ParserContext* ctx)
+{
+	ASTNode* defaultNode = InitalizeASTNode(ctx->arena, DEFAULT_STMT_NODE, DUMMY_TOKEN);
+	Advance(ctx);
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Switch default requires '{' to begin.");
+	ASTNode* bodyNode = Body(ctx);
+	if(ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, defaultNode, bodyNode);
+
+	return defaultNode;
+}
+
+ASTNode* WhileStmt(ParserContext* ctx)
+{
+	Advance(ctx);
+	ASTNode* whileNode = InitalizeASTNode(ctx->arena, WHILE_STMT_NODE, DUMMY_TOKEN);
+
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' to begin while statement.");
+
+	ASTNode* exprNode = Expr(ctx, PREC_NONE);
+	if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+	else AddChildASTNode(ctx->arena, whileNode, exprNode);
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate while statement.");
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin while statement body.");
+	ASTNode* bodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, whileNode, bodyNode);
+
+
+	return whileNode;
+}
+
+ASTNode* DoWhileStmt(ParserContext* ctx)
+{
+	Advance(ctx);
+	ASTNode* doWhileNode = InitalizeASTNode(ctx->arena, DO_WHILE_STMT_NODE, DUMMY_TOKEN);
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin  do-while statement body.");
+	ASTNode* bodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+
+	if (!Match(ctx, WHILE)) return ParseERROR(ctx, "Expected 'while' to begin do while condition.");
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' to begin do while statement.");
+
+	ASTNode* exprNode = Expr(ctx, PREC_NONE);
+	if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+	else AddChildASTNode(ctx->arena, doWhileNode, exprNode);
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate do-while statement.");
+
+	// Want it to match the format of condition then body
+	if (bodyNode) AddChildASTNode(ctx->arena, doWhileNode, bodyNode);
+
+	return doWhileNode;
+}
+
+ASTNode* ForStmt(ParserContext* ctx)
+{
+	Advance(ctx);
+	ASTNode* forStmtNode = InitalizeASTNode(ctx->arena, FOR_STMT_NODE, DUMMY_TOKEN);
+
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' to begin for statement.");
+
+	switch (ctx->current.type) {
+		case LET:
+			ASTNode* initNode = VarDecl(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, forStmtNode, initNode);
+			break;
+		EXPR_START_CASES
+			ASTNode* exprInitNode = ExprList(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, forStmtNode, exprInitNode);
+			break;
+		case SEMI:
+			AddChildASTNode(ctx->arena, forStmtNode, &EMPTYNODE); 
+			break;
+		default: return ParseERROR(ctx, "Expected initalizer section of for statement.");
+	}
+
+	// TODO: don't return here allow to continue
+	if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' between initalizer and conditional sections of for statement.");
+
+	switch (ctx->current.type) {
+		EXPR_START_CASES
+			ASTNode* conditionNode = Expr(ctx, PREC_NONE);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, forStmtNode, conditionNode);
+			break;
+		case SEMI: 
+			AddChildASTNode(ctx->arena, forStmtNode, &EMPTYNODE); 
+			break;
+		default: return ParseERROR(ctx, "Expected conditional section of for statement.");
+	}
+
+	if (!Match(ctx, SEMI)) return ParseERROR(ctx, "Expected semicolon ';' between conditional and incremental sections of for statement.");
+
+	switch (ctx->current.type) {
+		EXPR_START_CASES
+			ASTNode* exprListNode = ExprList(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, forStmtNode, exprListNode);
+			break;
+		case RPAREN: 
+			AddChildASTNode(ctx->arena, forStmtNode, &EMPTYNODE); 
+			break;
+		default: return ParseERROR(ctx, "Expected incremental section of for statement.");
+	}
+
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' to terminate for statement.");
+
+
+	if (ctx->current.type != LBRACE) return ParseERROR(ctx, "Expected '{' to begin for statement's body.");
+	ASTNode* bodyNode = Body(ctx);
+	if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+	else AddChildASTNode(ctx->arena, forStmtNode, bodyNode);
+
+	return forStmtNode;
+}
+
+ASTNode* ReturnStmt(ParserContext* ctx)
+{
+	Advance(ctx);
+
+	// Typically if there is nothing in a node, we omit the parent node, however, 
+	// In this case we still need to type check the lack of a return type of the function
+	ASTNode* returnStmtNode = InitalizeASTNode(ctx->arena, RETURN_STMT_NODE, DUMMY_TOKEN);
+	switch (ctx->current.type) {
+		EXPR_START_CASES	
+			ASTNode* exprNode = Expr(ctx, PREC_NONE);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, returnStmtNode, exprNode);
+			break;
+		case SEMI: break;
+		default: return ParseERROR(ctx, "Expected a return value.");
+	}
+	return returnStmtNode;
+}
+
+ASTNode* ExprList(ParserContext* ctx)
+{
+    ASTNode* exprListNode = InitalizeASTNode(ctx->arena, EXPR_LIST_NODE, DUMMY_TOKEN);
+
+    // First always guaranteed by predictive parsing
+    ASTNode* exprNode = Expr(ctx, PREC_NONE);
+    if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+    else AddChildASTNode(ctx->arena, exprListNode, exprNode);
+
+    // Rest only if comma follows
+    while (Match(ctx, COMMA)) {
+        exprNode = Expr(ctx, PREC_NONE);
+        if (ctx->panicMode) {
+            SyncRecovery(ctx, RPAREN);
+            return exprListNode;
         }
-        else if (caseNode.status == NAP)
-            break;
-
-        ASTPushChildNode(switchStmtNode, caseNode.node);
+        AddChildASTNode(ctx->arena, exprListNode, exprNode);
     }
 
-    ParseResult defaultNode = Default(fptr);
-    if (defaultNode.status == VALID)
-        ASTPushChildNode(switchStmtNode, defaultNode.node);
-    else if (defaultNode.status == ERRP) {
-        ASTFreeNodes(2, exprNode.node, switchStmtNode);
-        return PARSE_ERRP("Invalid Default in SwitchStmt", GetNextToken(fptr));
-    }
-
-    if (PeekNextTokenP(fptr) != RBRACE) {
-        ASTFreeNodes(3, exprNode.node, defaultNode.node, switchStmtNode);
-        return PARSE_ERRP("Expected closing brace in SwitchStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    return PARSE_VALID(switchStmtNode, SWITCH_STMT_NODE);
+    return exprListNode;
 }
 
-ParseResult Case(FILE* fptr) 
+ASTNode* Expr(ParserContext* ctx, PRECEDENCE prec)
 {
-    DEBUG_MESSAGE("Entering Case\n");
-    
-    if (PeekNextTokenP(fptr) != CASE)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
+	ASTNode* left = NULL;
+	switch (ctx->current.type) {
+		LITERAL_CASES
+			left = InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current);
+			Advance(ctx); break;
+		case IDENT:
+			left = InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current);
+			Advance(ctx); break;
+		case LAMBDA:
+			left = Lambda(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+			break;
+		case SIZEOF:
+			left = Sizeof(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			break;
+		case LPAREN:
+			Advance(ctx);
+			left = Expr(ctx, PREC_NONE);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 
-    ParseResult exprNode = Expr(fptr);
-    if (exprNode.status != VALID)
-        return PARSE_ERRP("Invalid Expr in Case", GetNextToken(fptr));
+			if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected closing ')' for parenthesized expression.");
+			break;
+		default:
+			// Prefix
+			ParseRule prefixRule = PRECEDENCE_TABLE[ctx->current.type];
+			if (!prefixRule.prefix) return ParseERROR(ctx, "Expected expression.");
+            left = prefixRule.prefix(ctx, prec);
+	}
 
-    ParseResult bodyNode = Body(fptr);
-    if (bodyNode.status != VALID) {
-        ASTFreeNodes(1, exprNode.node);
-        return PARSE_ERRP("Invalid Body in Case", GetNextToken(fptr));
-    }
+	// Infix
+	ParseRule rule = PRECEDENCE_TABLE[ctx->current.type];
+	while (rule.prec > prec && rule.infix != NULL) {
+		left = rule.infix(ctx, rule.rightAssoc ? rule.prec - 1 : rule.prec, left);
+		rule = PRECEDENCE_TABLE[ctx->current.type];
+	}
 
-    ASTNode* caseNode = InitASTNode();
-    ASTPushChildNode(caseNode, exprNode.node);
-    ASTPushChildNode(caseNode, bodyNode.node);
-    return PARSE_VALID(caseNode, CASE_NODE);
+	return left;
 }
 
-ParseResult Default(FILE* fptr) 
+
+// Unused prec variable to preserve table structure
+ASTNode* PrefixExpr(ParserContext* ctx, PRECEDENCE prec)
 {
-    DEBUG_MESSAGE("Entering Default\n");
-    
-    if (PeekNextTokenP(fptr) != DEFAULT)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
+	ASTNode* unaryNode = InitalizeASTNode(ctx->arena, PREFIX_EXPR_NODE, ctx->current);
+	Advance(ctx);
 
-    ParseResult bodyNode = Body(fptr);
-    if (bodyNode.status != VALID)
-        return PARSE_ERRP("Invalid Body in Default", GetNextToken(fptr));
+	ASTNode* exprNode = Expr(ctx, PREC_PRE - 1);
+	if (ctx->panicMode) return NULL;
+	else AddChildASTNode(ctx->arena, unaryNode, exprNode);
 
-    ASTNode* defaultNode = InitASTNode();
-    ASTPushChildNode(defaultNode, bodyNode.node);
-    return PARSE_VALID(defaultNode, DEFAULT_NODE);
+	return unaryNode;
 }
 
-ParseResult WhileStmt(FILE* fptr)
+ASTNode* PostfixExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left) {
+    ASTNode* node = InitalizeASTNode(ctx->arena, POSTFIX_EXPR_NODE, ctx->current);
+    AddChildASTNode(ctx->arena, node, left);
+    Advance(ctx);
+    return node;
+}
+
+ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 {
-    DEBUG_MESSAGE("Entering WhileStmt\n");
-    
-    if (PeekNextTokenP(fptr) != WHILE)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
+	/* Could refactor member and references to their own separate functions, but relatively simple, no need */
+	ASTNode* binaryNode = NULL;
+	switch (ctx->current.type) {
+		case MEM:
+			Advance(ctx);
+			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid struct member access.");
+			binaryNode = left; binaryNode->ntype = MEMBER_NODE;
+			AddChildASTNode(ctx->arena, binaryNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+			Advance(ctx);  
+			return binaryNode;  
+		case SMEM:
+			Advance(ctx);
+			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid safe struct member access.");
+			binaryNode = left; binaryNode->ntype = SMEMBER_NODE;
+			AddChildASTNode(ctx->arena, binaryNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+			Advance(ctx);  
+			return binaryNode;  
+		case REF:
+			Advance(ctx);
+			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid struct member pointer access.");
+			binaryNode = left; binaryNode->ntype = REF_NODE;
+			AddChildASTNode(ctx->arena, binaryNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+			Advance(ctx);  
+			return binaryNode;  
+		case SREF:
+			Advance(ctx);
+			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid safe struct member pointer access.");
+			binaryNode = left; binaryNode->ntype = SREF_NODE;
+			AddChildASTNode(ctx->arena, binaryNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
+			Advance(ctx);  
+			return binaryNode;  
+		case AS:
+			binaryNode = Cast(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, binaryNode, left);
+			return binaryNode;  
+		case LBRACK: 
+			binaryNode = Index(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, binaryNode, left);
+			return binaryNode;  
+		case LPAREN:
+			binaryNode = CallFunc(ctx, left);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			return binaryNode;
+		default: binaryNode = InitalizeASTNode(ctx->arena, BINARY_EXPR_NODE, ctx->current);
 
-    if (PeekNextTokenP(fptr) != LPAREN)
-        return PARSE_ERRP("No left parenthesis in WhileStmt", GetNextToken(fptr));
-    GetNextTokenP(fptr);
+	}
+	Advance(ctx);	
 
-    ParseResult exprNode = Expr(fptr);
-    if (exprNode.status != VALID)
-        return PARSE_ERRP("Invalid Expr in WhileStmt", GetNextToken(fptr));
+	AddChildASTNode(ctx->arena, binaryNode, left);
+	ASTNode* right = Expr(ctx, prec);
+	if (ctx->panicMode) return NULL;	// Main expr handles errors
+	else AddChildASTNode(ctx->arena, binaryNode, right);
 
-    if (PeekNextTokenP(fptr) != RPAREN) {
-        ASTFreeNodes(1, exprNode.node);
-        return PARSE_ERRP("No right parenthesis in WhileStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-    
-    ParseResult bodyNode = Body(fptr);
-    if (bodyNode.status != VALID) {
-        ASTFreeNodes(1, exprNode.node);
-        return PARSE_ERRP("Invalid Body in WhileStmt", GetNextToken(fptr));
-    }
-
-    ASTNode* whileStmtNode = InitASTNode();
-    ASTPushChildNode(whileStmtNode, exprNode.node);
-    ASTPushChildNode(whileStmtNode, bodyNode.node);
-    return PARSE_VALID(whileStmtNode, WHILE_STMT_NODE);
+	return binaryNode;
 }
 
-ParseResult DoWhileStmt(FILE* fptr) 
+ASTNode* AsgnExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 {
-    DEBUG_MESSAGE("Entering DoWhileStmt\n");
-    
-    if (PeekNextTokenP(fptr) != DO)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
+	ASTNode* asgnNode = InitalizeASTNode(ctx->arena, ASGN_EXPR_NODE, ctx->current);
+	Advance(ctx);	
 
-    ParseResult bodyNode = Body(fptr);
-    if (bodyNode.status != VALID) 
-        return PARSE_ERRP("Invalid Body in DoWhileStmt", GetNextToken(fptr));
+	AddChildASTNode(ctx->arena, asgnNode, left);
+	ASTNode* right = Expr(ctx, prec);
+	if (ctx->panicMode) return NULL;	
+	else AddChildASTNode(ctx->arena, asgnNode, right);
 
-    if (PeekNextTokenP(fptr) != WHILE) {
-        ASTFreeNodes(1, bodyNode);
-        return PARSE_ERRP("No While found in DoWhileStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    if (PeekNextTokenP(fptr) != LPAREN){
-        ASTFreeNodes(1, bodyNode);
-        return PARSE_ERRP("No left parenthesis in DoWhileStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    ParseResult exprNode = Expr(fptr);
-    if (exprNode.status != VALID) {
-        ASTFreeNodes(1, bodyNode);
-        return PARSE_ERRP("Invalid Expr in WhileStmt", GetNextToken(fptr));
-    }
-
-    if (PeekNextTokenP(fptr) != RPAREN) {
-        ASTFreeNodes(2, bodyNode.node, exprNode.node);
-        return PARSE_ERRP("No right parenthesis in DoWhileStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    if (PeekNextTokenP(fptr) != SEMI) {
-        ASTFreeNodes(2, bodyNode.node, exprNode.node);
-        return PARSE_ERRP("No semicolon in DoWhileStmt", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    ASTNode* doWhileStmtNode = InitASTNode();
-    ASTPushChildNode(doWhileStmtNode, bodyNode.node);
-    ASTPushChildNode(doWhileStmtNode, exprNode.node);
-    return PARSE_VALID(doWhileStmtNode, DO_WHILE_STMT_NODE);
+	return asgnNode;
 }
 
-ParseResult ForStmt(FILE* fptr) 
+ASTNode* TernaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 {
-    DEBUG_MESSAGE("Entering ForStmt\n");
-    
-    /* TODO: Expr does not check for semi colon, therefore empty exprs not allowed rn
-       Need to have a helper function to determine if it is valid.
-    */
+	// TODO: These are broken
+    ASTNode* ternaryNode = InitalizeASTNode(ctx->arena, TERNARY_EXPR_NODE, ctx->current);
+    Advance(ctx); 
+    AddChildASTNode(ctx->arena, ternaryNode, left); 
 
-    if (PeekNextTokenP(fptr) != FOR)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
+    ASTNode* then = Expr(ctx, PREC_NONE);
+    if (ctx->panicMode) return NULL;
+    else AddChildASTNode(ctx->arena, ternaryNode, then);
 
-    if (PeekNextTokenP(fptr) != LPAREN) 
-       return PARSE_ERRP("No left parenthesis found in ForStmt", GetNextToken(fptr)); 
-    GetNextTokenP(fptr);
+    if (!Match(ctx, COLON)) return ParseERROR(ctx, "Expected ':' in ternary expression.");
 
-    ParseResult exprListNode = VarExprList(fptr);
-    if (exprListNode.status != VALID) 
-        return PARSE_ERRP("Invalid ExprList in ForStmt", GetNextToken(fptr));
+    ASTNode* els = Expr(ctx, prec); 
+    if (ctx->panicMode) return NULL;
+    else AddChildASTNode(ctx->arena, ternaryNode, els);
 
-    if (PeekNextTokenP(fptr) != SEMI)  {
-        ASTFreeNodes(1, exprListNode.node);
-        return PARSE_ERRP("Expected semicolon in ForStmt", GetNextToken(fptr)); 
-    }
-    GetNextTokenP(fptr);
-
-    ParseResult exprNode = OptionalExpr(fptr);
-    if (exprNode.status != VALID) {
-        ASTFreeNodes(1, exprListNode.node);
-        return PARSE_ERRP("Invalid Expr in ForStmt", GetNextToken(fptr));
-    }
-
-    if (PeekNextTokenP(fptr) != SEMI)  {
-        ASTFreeNodes(2, exprListNode.node, exprNode.node);
-        return PARSE_ERRP("Expected semicolon in ForStmt", GetNextToken(fptr)); 
-    }
-    GetNextTokenP(fptr);
-
-    ParseResult exprListNode2 = ExprList(fptr);
-    if (exprListNode2.status != VALID) {
-        ASTFreeNodes(2, exprListNode.node, exprNode.node);
-        return PARSE_ERRP("Invalid ExprList in ForStmt", GetNextToken(fptr));
-    }
-
-    if (PeekNextTokenP(fptr) != RPAREN)  {
-        ASTFreeNodes(3, exprListNode.node, exprNode.node, exprListNode2.node);
-        return PARSE_ERRP("No right parenthesis in ForStmt", GetNextToken(fptr)); 
-    }
-    GetNextTokenP(fptr);
-    
-    ParseResult bodyNode = Body(fptr);
-    if (bodyNode.status != VALID) {
-        ASTFreeNodes(3, exprListNode.node, exprNode.node, exprListNode2.node);
-        return PARSE_ERRP("Invalid Body in ForStmt", GetNextToken(fptr));
-    }
-
-    ASTNode* forStmtNode = InitASTNode();
-    ASTPushChildNode(forStmtNode, exprListNode.node);
-    ASTPushChildNode(forStmtNode, exprNode.node);
-    ASTPushChildNode(forStmtNode, exprListNode2.node);
-    ASTPushChildNode(forStmtNode, bodyNode.node);
-    return PARSE_VALID(forStmtNode, FOR_STMT_NODE);
+    return ternaryNode;
 }
 
-ParseResult OptionalExpr(FILE* fptr) 
+ASTNode* Type(ParserContext* ctx)
 {
-    /* TODO: A helper fucntion here would probably be benficial to determine starts to Expr */
-    if (PeekNextTokenP(fptr) == SEMI)
-        return EmptyNode();
+	// Special types handled separately
+	switch (ctx->current.type) {
+		case FUNCPTR: case CLOSURE:
+			return FuncPointerType(ctx);
+		case CHANNEL:
+			return Channel(ctx);
+		case MAT:
+			return Matrix(ctx);
+		case VEC:
+			return Vector(ctx);
+		case IDENT:
+			ASTNode* customTypeNode = InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current);
+			Advance(ctx); return customTypeNode;
+		default: break;
+	}
 
-    ParseResult exprNode = Expr(fptr);
-    if (exprNode.status != VALID) 
-        return PARSE_ERRP("Invalid Optional Expr", GetNextToken(fptr));
-    
-    return exprNode;
+	ASTNode* typeNode = InitalizeASTNode(ctx->arena, TYPE_NODE, ctx->current);
+	Advance(ctx);
+
+	if (ctx->current.type == MOD || ctx->current.type == MULT) {
+		AddChildASTNode(ctx->arena, typeNode, InitalizeASTNode(ctx->arena, DECL_PREFIX_NODE, ctx->current));
+		Advance(ctx);
+	}
+
+	return typeNode;
 }
 
-/* ----------- Expressions ---------- */
-
-ParseResult VarExprList(FILE* fptr) 
+ASTNode* Channel(ParserContext* ctx)
 {
-    /* TODO: This properly*/
-    if (PeekNextTokenP(fptr) == SEMI)     /* Empty ExprList in ForStmt */
-        return EmptyNode();
+	// Channel is a bit interesting, read pipeline.md for more info
+	Advance(ctx);
+	ASTNode* channelNode = InitalizeASTNode(ctx->arena, CHANNEL_NODE, DUMMY_TOKEN);
+	if (!Match(ctx, LESS)) return ParseERROR(ctx, "Channel requires '<' '>' to surround channel type, expected '<'.");
 
-    /* If not var decl, then expr list */
-    ParseResult varDeclNode = VarDecl(fptr);
-    if (varDeclNode.status == VALID)
-        return PARSE_VALID(varDeclNode.node, VAR_DECL_NODE);
-    else if (varDeclNode.status == ERRP)
-        return PARSE_ERRP("Invalid variable declaration", GetNextToken(fptr));    
+	switch (ctx->current.type) {
+		TYPE_CASES
+			SetEdgeCaseFlag(ctx->tokenizer, true);
+			ASTNode* typeNode = Type(ctx);
+			SetEdgeCaseFlag(ctx->tokenizer, false);
+			if (ctx->panicMode) SyncRecovery(ctx, GREAT);
+			else AddChildASTNode(ctx->arena, channelNode, typeNode);
+			break;
+		default: return ParseERROR(ctx, "Channel requires type in between '<' '>' to specify message type.");
+	}
 
-
-    ParseResult exprNode = Expr(fptr);
-    if (exprNode.status == ERRP) 
-        return PARSE_ERRP("Invalid Expr in ExprList", GetNextToken(fptr)); 
-    else if (exprNode.status == NAP) 
-        return PARSE_NAP();
-
-    ASTNode* exprListNode = InitASTNode();
-    ASTPushChildNode(exprListNode, exprNode.node);
-
-    while (true) {
-        if (PeekNextTokenP(fptr) != COMMA) 
-            break;
-        GetNextTokenP(fptr);
-
-        exprNode = Expr(fptr);
-        if (exprNode.status != VALID) {
-            ASTFreeNodes(1, exprListNode);
-            return PARSE_ERRP("Invalid Expr in ExprList", GetNextToken(fptr));
-        }
-
-        ASTPushChildNode(exprListNode, exprNode.node);
-    }
-
-    return PARSE_VALID(exprListNode, EXPR_LIST_NODE);
+	if (!Match(ctx, GREAT)) return ParseERROR(ctx, "Channel requires '<' '>' to surround channel type, expected '>'.");
+	return channelNode;
 }
 
-ParseResult ExprList(FILE* fptr) 
+ASTNode* Matrix(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering ExprList\n");
+	Advance(ctx);
+	ASTNode* matrixNode = InitalizeASTNode(ctx->arena, MATRIX_NODE, DUMMY_TOKEN);
 
-    if (PeekNextTokenP(fptr) == SEMI || PeekNextTokenP(fptr) == RPAREN)     /* Empty ExprList in ForStmt */
-        return EmptyNode();
+	if (!Match(ctx, LESS)) return ParseERROR(ctx, "Matrix requires '<' to specify size and type.");
 
+	switch (ctx->current.type) { 
+		TYPE_CASES 
+			ASTNode* matTypeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
+			else AddChildASTNode(ctx->arena, matrixNode, matTypeNode);
+			break;
+		default: return ParseERROR(ctx, "Expected matrix to be a valid type.");
+	}
 
-    ParseResult exprNode = Expr(fptr);
-    if (exprNode.status == ERRP) 
-        return PARSE_ERRP("Invalid Expr in ExprList", GetNextToken(fptr)); 
-    else if (exprNode.status == NAP) 
-        return PARSE_NAP();
+	if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Comma delimiter required between matrix type and col size.");
 
-    ASTNode* exprListNode = InitASTNode();
-    ASTPushChildNode(exprListNode, exprNode.node);
+	if (ctx->current.type != INTEGRAL) return ParseERROR(ctx, "Matrix row size only accepts integral digits.");
+	AddChildASTNode(ctx->arena, matrixNode, InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current));
+	Advance(ctx);	
 
-    while (true) {
-        if (PeekNextTokenP(fptr) != COMMA) 
-            break;
-        GetNextTokenP(fptr);
+	if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Comma delimiter required between matrix row and col size.");
 
-        exprNode = Expr(fptr);
-        if (exprNode.status != VALID) {
-            ASTFreeNodes(1, exprListNode);
-            return PARSE_ERRP("Invalid Expr in ExprList", GetNextToken(fptr));
-        }
+	if (ctx->current.type != INTEGRAL) return ParseERROR(ctx, "Matrix col size only accepts integral digits.");
+	AddChildASTNode(ctx->arena, matrixNode, InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current));
+	Advance(ctx);	
 
-        ASTPushChildNode(exprListNode, exprNode.node);
-    }
+	if (!Match(ctx, GREAT)) return ParseERROR(ctx, "Matrix requires '>' to end size specification.");
 
-    return PARSE_VALID(exprListNode, EXPR_LIST_NODE);
+	return matrixNode;
 }
 
-ParseResult Expr(FILE* fptr) 
-{   
-    DEBUG_MESSAGE("Entering Expr\n");
-    
-    /* TODO: Technically an Alias for AsgnEpxr, but allows for easier readability */
-    return AsgnExpr(fptr);
-}
-
-ParseResult AsgnExpr(FILE* fptr)
+ASTNode* Vector(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering AsgnExpr\n");
-    
-    ParseResult lhs = OrlExpr(fptr);
-    if (lhs.status == ERRP) 
-        return PARSE_ERRP("Invalid OrlExpr in AsgnExpr", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
+	Advance(ctx);
+	ASTNode* vectorNode = InitalizeASTNode(ctx->arena, VECTOR_NODE, DUMMY_TOKEN);
 
-    if (ValidTokType(ASSIGNS, ASSIGNS_COUNT, PeekNextTokenP(fptr)) == VALID) 
-    {
-        Token tok = GetNextTokenP(fptr);
+	if (!Match(ctx, LESS)) return ParseERROR(ctx, "Vector requires '<' '>' to specify size, expected '<'.");
 
-        ParseResult rhs = AsgnExpr(fptr);
-        if (rhs.status != VALID) {
-            ASTFreeNodes(1, lhs.node);
-            return PARSE_ERRP("Invalid AsgnExpr in AsgnExpr", GetNextToken(fptr));
-        }
-        
-        ParseResult operatorNode = ArbitraryNode(tok, ASGN_EXPR_NODE);
+	switch (ctx->current.type) { 
+		TYPE_CASES 
+			ASTNode* matTypeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
+			else AddChildASTNode(ctx->arena, vectorNode, matTypeNode);
+			break;
+		default: return ParseERROR(ctx, "Expected vector to be a valid type.");
+	}
 
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        ASTPushChildNode(operatorNode.node, rhs.node);
+	if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Expected comma between vector type and size.");
 
-        lhs = operatorNode;
-    }
-    return lhs;
+	if (ctx->current.type != INTEGRAL) return ParseERROR(ctx, "Vector row size only accepts integral digits.");
+	AddChildASTNode(ctx->arena, vectorNode, InitalizeASTNode(ctx->arena, LITERAL_NODE, ctx->current));
+	Advance(ctx);	
+
+	if (!Match(ctx, GREAT)) return ParseERROR(ctx, "Vector requires '<' '>' to specify size, expected '>'.");
+	return vectorNode;
 }
 
-ParseResult OrlExpr(FILE* fptr) 
+ASTNode* FuncPointerType(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering OrlExpr\n");
-    
-    ParseResult lhs = AndlExpr(fptr);
-    if (lhs.status == ERRP)
-        return PARSE_ERRP("Invalid AndlExpr in OrlExpr", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
+    ASTNode* fpNode = InitalizeASTNode(ctx->arena, ctx->current.type == FUNCPTR ? FUNC_POINTER_NODE : CLOSURE_NODE, ctx->current);
+    Advance(ctx);
 
-    while (PeekNextTokenP(fptr) == ORL) {
-        Token tok = GetNextTokenP(fptr);
+	/* TODO: ALLOW FUNC POINTER QUALIFIERS */
+	switch (ctx->current.type) { 
+		TYPE_CASES 
+			ASTNode* returnTypeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
+			else AddChildASTNode(ctx->arena, fpNode, returnTypeNode);
+			break;
+		default: return ParseERROR(ctx, "Expected function pointer to return a valid type.");
+	}
 
-        ParseResult rhs = AndlExpr(fptr);
-        if (rhs.status != VALID) {
-            ASTFreeNodes(1, lhs.node);
-            return PARSE_ERRP("Invalid AndlExpr in OrlExpr", GetNextToken(fptr));
-        }
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected function pointer / closure to have '(' to begin paramaters.") ;
+	if (Match(ctx, RPAREN)) return fpNode;
 
-        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
+	while (true) {
+		switch (ctx->current.type) {
+			TYPE_CASES
+				ASTNode* anonParam = Type(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+				else AddChildASTNode(ctx->arena, fpNode, anonParam);
+				break;
+			default: return ParseERROR(ctx, "Expected anonymous paramater inside of function pointer.")	;
+		}
 
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        ASTPushChildNode(operatorNode.node, rhs.node);
-
-        lhs = operatorNode;
-    }
-
-    return lhs;
+		if (Match(ctx, COMMA)) continue;
+		else if (Match(ctx, RPAREN)) return fpNode; 
+		else return ParseERROR(ctx, "Expected anonymous paramaters in function pointer paramaters.");
+	}
 }
 
-ParseResult AndlExpr(FILE* fptr)
+ASTNode* GenericList(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering AndlExpr\n");
-    
-    ParseResult lhs = OrExpr(fptr);
-    if (lhs.status == ERRP) 
-        return PARSE_ERRP("invalid OrExpr in AndlExpr", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
+	Advance(ctx);
+	ASTNode* genericListNode = InitalizeASTNode(ctx->arena, GENERIC_LIST_NODE, DUMMY_TOKEN);
 
-    while (PeekNextTokenP(fptr) == ANDL) {
-        Token tok = GetNextTokenP(fptr);
+	while (true) {
+		if (Match(ctx, GREAT)) break;
+		else if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected valid identifier for generic ie.) <IDENTIFIER>.");
+		AddChildASTNode(ctx->arena, genericListNode, (InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current)));
+		Advance(ctx);
 
-        ParseResult rhs = XorExpr(fptr);
-        if (rhs.status != VALID) {
-            ASTFreeNodes(1, lhs.node);
-            return PARSE_ERRP("invalid OrEpxr in AndlExpr", GetNextToken(fptr));
-        }
+		if (Match(ctx, COMMA)) continue;
+		else if (Match(ctx, GREAT)) break; 
+		else return ParseERROR(ctx, "Expected '>' to close generic.");
+	}
 
-        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        ASTPushChildNode(operatorNode.node, rhs.node);
-
-        lhs = operatorNode;
-    }
-
-    return lhs;
+	return genericListNode;
 }
 
-ParseResult OrExpr(FILE* fptr)
+ASTNode* Generic(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering OrExpr\n");
-    
-    ParseResult lhs = XorExpr(fptr);
-    if (lhs.status == ERRP)
-        return PARSE_ERRP("Invalid XorExpr in OrExpr", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
+	Advance(ctx);
 
-    while (PeekNextTokenP(fptr) == OR) {
-        Token tok = GetNextTokenP(fptr);
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected valid identifier for generic ie.) <IDENTIFIER>.");
+	ASTNode* genNode = InitalizeASTNode(ctx->arena, GENERIC_NODE, ctx->current);
+	Advance(ctx);
 
-        ParseResult rhs = XorExpr(fptr);
-        if (rhs.status != VALID) {
-            ASTFreeNodes(1, lhs.node);
-            return PARSE_ERRP("Invalid XorExpr in OrExpr", GetNextToken(fptr));
-        }
-
-        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        ASTPushChildNode(operatorNode.node, rhs.node);
-
-        lhs = operatorNode;
-    }
-
-    return lhs;
+	if (!Match(ctx, GREAT)) return ParseERROR(ctx, "Expected '>' to close generic.");
+	return genNode;
 }
 
-ParseResult XorExpr(FILE* fptr)
+ASTNode* TypeQualifierList(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering XorExpr\n");
-    
-    ParseResult lhs = AndExpr(fptr);
-    if (lhs.status == ERRP)
-        return PARSE_ERRP("Invalid AndExpr in XorExpr", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
-
-    while (PeekNextTokenP(fptr) == XOR) {
-        Token tok = GetNextTokenP(fptr);
-
-        ParseResult rhs = AndExpr(fptr);
-        if (rhs.status != VALID) {
-            ASTFreeNodes(1, lhs.node);
-            return PARSE_ERRP("Invalid AndExpr in XorExpr", GetNextToken(fptr));
-        }
-
-        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        ASTPushChildNode(operatorNode.node, rhs.node);
-
-        lhs = operatorNode;
-    }
-
-    return lhs;
+	ASTNode* qualifierListNode = InitalizeASTNode(ctx->arena, QUALIFIER_LIST_NODE, DUMMY_TOKEN);
+	while (true) {
+		switch (ctx->current.type) {
+			QUALIFIER_CASES
+				ASTNode* qualifierNode = InitalizeASTNode(ctx->arena, TYPE_QUALIFIER_NODE, ctx->current);
+				AddChildASTNode(ctx->arena, qualifierListNode, qualifierNode);
+				break;
+			default: return qualifierListNode;
+		}
+		Advance(ctx);
+	}
 }
 
-ParseResult AndExpr(FILE* fptr) 
+ASTNode* LinkageSpecifier(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering AndExpr\n");
-    
-    ParseResult lhs = EqqExpr(fptr);
-    if (lhs.status == ERRP)
-        return PARSE_ERRP("invalid EqqExpr in AndExpr", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
-
-    while (PeekNextTokenP(fptr) == AND) {
-        Token tok = GetNextTokenP(fptr);
-
-        ParseResult rhs = EqqExpr(fptr);
-        if (rhs.status != VALID) {
-            ASTFreeNodes(1, lhs.node);
-            return PARSE_ERRP("Invalid EqqExpr in AndExpr", GetNextToken(fptr));
-        }
-
-        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        ASTPushChildNode(operatorNode.node, rhs.node);
-        lhs = operatorNode;
-    }
-
-    return lhs;
+	ASTNode* linkageSpecifierNode = InitalizeASTNode(ctx->arena, LINKAGE_SPECIFIER_NODE, ctx->current);
+	Advance(ctx);
+	return linkageSpecifierNode;
 }
 
-ParseResult EqqExpr(FILE* fptr) 
+
+ASTNode* Sizeof(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering EqqExpr\n");
-    
-    ParseResult lhs = RelationExpr(fptr);
-    if (lhs.status == ERRP)
-        return PARSE_ERRP("invalid RelationExpr in EqqExpr", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
+	Advance(ctx);
+	ASTNode* sizeofNode = InitalizeASTNode(ctx->arena, SIZEOF_NODE, DUMMY_TOKEN);
 
-    TokenType tokType = PeekNextTokenP(fptr);
-    if (tokType == EQQ || tokType == NEQQ) {
-        Token tok = GetNextTokenP(fptr);
+	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Sizeof requires surrounding '(' ')', expected '('.");
 
-        ParseResult rhs = RelationExpr(fptr);
-        if (rhs.status != VALID) {
-            ASTFreeNodes(1, lhs.node);
-            return PARSE_ERRP("Invalid RelationExpr in EqqExpr", GetNextToken(fptr));
-        }
+	switch (ctx->current.type) {
+		TYPE_CASES
+			ASTNode* typeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, sizeofNode, typeNode);
+			break;
+		default: return ParseERROR(ctx, "Sizeof expected predefined or user defined type");
+	}
 
-        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        ASTPushChildNode(operatorNode.node, rhs.node);
-        lhs = operatorNode;
-    }
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Sizeof requires surrounding '(' ')', expected ')'.");
 
-    return lhs;
+	return sizeofNode;
 }
 
-ParseResult RelationExpr(FILE* fptr)
+ASTNode* CallFunc(ParserContext* ctx, ASTNode* left)
 {
-    DEBUG_MESSAGE("Entering RelationExpr\n");
-    
-    ParseResult lhs = ShiftExpr(fptr);
-    if (lhs.status == ERRP)
-        return PARSE_ERRP("invalid ShiftExpr in RelationExpr", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
+	Advance(ctx);
+	left->ntype = CALL_FUNC_NODE;
+	ASTNode* callFuncNode = left;
+	switch (ctx->current.type) {
+		EXPR_START_CASES
+			ASTNode* exprNode = ArgList(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, callFuncNode, exprNode);
+			break;
+		case RPAREN: break;
+		default: return ParseERROR(ctx, "Function calling only allows expression arguments.");
+	}
 
-    TokenType tokType = PeekNextTokenP(fptr);
-    if (ValidTokType(RELATIONAL, RELATIONAL_COUNT, tokType) == VALID) 
-    {
-        Token tok = GetNextTokenP(fptr);
-
-        ParseResult rhs = ShiftExpr(fptr);
-        if (rhs.status != VALID) {
-            ASTFreeNodes(1, lhs.node);
-            return PARSE_ERRP("Invalid ShftExpr in RelationExpr", GetNextToken(fptr));
-        }
-
-        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        ASTPushChildNode(operatorNode.node, rhs.node);
-        lhs = operatorNode;
-    }
-
-    return lhs;
+	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Function calling requires '(' ')' to surround arguments, expected ')'.");
+	return callFuncNode;
 }
 
-ParseResult ShiftExpr(FILE* fptr)
+ASTNode* Index(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering ShiftExpr\n");
-    
-    ParseResult lhs = AddExpr(fptr);
-    if (lhs.status == ERRP)
-        return PARSE_ERRP("Invalid AddExpr in ShiftExpr", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
+	Advance(ctx);
+	ASTNode* indexNode = InitalizeASTNode(ctx->arena, INDEX_NODE, DUMMY_TOKEN);
 
-    TokenType tokType = PeekNextTokenP(fptr);;
-    while (tokType == LSHIFT || tokType == RSHIFT) {
-        Token tok = GetNextTokenP(fptr);
-
-        ParseResult rhs = AddExpr(fptr);
-        if (rhs.status != VALID) {
-            ASTFreeNodes(1, lhs.node);
-            return PARSE_ERRP("Invalid AddExpr in ShfitExpr", GetNextToken(fptr));
-        }
-
-        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        ASTPushChildNode(operatorNode.node, rhs.node);
-
-        lhs = operatorNode;
-        tokType = PeekNextTokenP(fptr);;
-    }
-
-    return lhs;
+	switch (ctx->current.type) {
+		EXPR_START_CASES
+			ASTNode* exprNode = Expr(ctx, PREC_NONE);
+			if (ctx->panicMode) SyncRecovery(ctx, RBRACK);
+			else AddChildASTNode(ctx->arena, indexNode, exprNode);
+			break;
+		default: return ParseERROR(ctx, "Array indexing only allows expressions or integral literals.");
+	}
+	if (!Match(ctx, RBRACK)) return ParseERROR(ctx, "Array index missing closing bracket ']'.");
+	return indexNode;  
 }
 
-ParseResult AddExpr(FILE* fptr)
+ASTNode* Cast(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering AddExpr\n");
-    
-    ParseResult lhs = MultExpr(fptr);
-    if (lhs.status == ERRP)
-        return PARSE_ERRP("Invalid MultExpr in AddExpr", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
+	Advance(ctx);
+	ASTNode* castNode = InitalizeASTNode(ctx->arena, CAST_NODE, ctx->current);
 
-    while (ValidTokType(ADDS, ADDS_COUNT, PeekNextTokenP(fptr)) == VALID) {
-        Token tok = GetNextTokenP(fptr);
-
-        ParseResult rhs = MultExpr(fptr);
-        if (rhs.status != VALID) {
-            ASTFreeNodes(1, lhs.node);
-            return PARSE_ERRP("Invalid MultExpr in AddExpr", GetNextToken(fptr));
-        }
-
-        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        ASTPushChildNode(operatorNode.node, rhs.node);
-        lhs = operatorNode;
-    }
-
-    return lhs;
+	switch (ctx->current.type) {
+		TYPE_CASES
+			ASTNode* typeNode = Type(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+			else AddChildASTNode(ctx->arena, castNode, typeNode);
+			break;
+		default: return ParseERROR(ctx, "Invalid type for casting.");
+	}
+	return castNode;
 }
 
-ParseResult MultExpr(FILE* fptr)
+ASTNode* ArgList(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering MultExpr\n");
-    
-    ParseResult lhs = PowExpr(fptr);
-    if (lhs.status == ERRP)
-        return PARSE_ERRP("Invalid PowExpr in MultExpr", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
+	ASTNode* argListNode = InitalizeASTNode(ctx->arena, ARG_LIST_NODE, DUMMY_TOKEN);
 
-    while (ValidTokType(MULTS, MULTS_COUNT, PeekNextTokenP(fptr)) == VALID) {
-        Token tok = GetNextTokenP(fptr);
+	while (true) {
+		switch (ctx->current.type) {
+			EXPR_START_CASES
+				ASTNode* argNode = Expr(ctx, PREC_NONE);
+				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+				else AddChildASTNode(ctx->arena, argListNode, argNode);
+				break;
+			case RPAREN: 
+				return argListNode;
+			default: return ParseERROR(ctx, "Expected arguments inside function call.");
+		}
 
-        ParseResult rhs = PowExpr(fptr);
-        if (rhs.status != VALID) {
-            ASTFreeNodes(1, lhs.node);
-            return PARSE_ERRP("Invalid PowExpr in MultExpr", GetNextToken(fptr));
-        }
-
-        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        ASTPushChildNode(operatorNode.node, rhs.node);
-        lhs = operatorNode;
-    }
-
-    return lhs;
+		switch (ctx->current.type) {
+			case COMMA: Advance(ctx); break;
+			case RPAREN: return argListNode;
+			default: break;
+		}
+	}
 }
 
-ParseResult PowExpr(FILE* fptr)
+
+ASTNode* VarList(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering PowExpr\n");
-    
-    ParseResult lhs = Prefix(fptr);
-    if (lhs.status == ERRP)
-        return PARSE_ERRP("Invalid Prefix in PowExpr", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
+	ASTNode* varListNode = InitalizeASTNode(ctx->arena, VAR_LIST_NODE, DUMMY_TOKEN);
 
-    if (PeekNextTokenP(fptr) == POW) {
-        Token tok = GetNextTokenP(fptr);
+	while (true) {
+		ASTNode* varNode = Var(ctx);
+		if (ctx->panicMode) { SyncRecovery(ctx, SEMI); break; }
+		AddChildASTNode(ctx->arena, varListNode, varNode);
 
-        ParseResult rhs = PowExpr(fptr);
-        if (rhs.status != VALID) {
-            ASTFreeNodes(1, lhs.node);
-            return PARSE_ERRP("Invalid PowExpr in PowExpr", GetNextToken(fptr));
-        }
-
-        ParseResult operatorNode = ArbitraryNode(tok, BINARY_EXPR_NODE);
-        ASTPushChildNode(operatorNode.node, lhs.node);
-        ASTPushChildNode(operatorNode.node, rhs.node);
-        lhs = operatorNode;
-    }
-
-    return lhs;
+		if (!Match(ctx, COMMA)) break;
+	}
+	return varListNode;
 }
 
-ParseResult Prefix(FILE* fptr)
+ASTNode* Var(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering Prefix\n");
-    
-    /* TODO: Add Casts */
+	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected identifier name for variable declaration.");
+	ASTNode* varNode = InitalizeASTNode(ctx->arena, VAR_NODE, ctx->current);
+    Advance(ctx);
 
-    if (ValidTokType(PREFIXS, PREFIXS_COUNT, PeekNextTokenP(fptr)) == VALID) {
-        Token tok = GetNextTokenP(fptr);
+	while (Match(ctx, LBRACK)) {
+		ASTNode* exprNode = Expr(ctx, PREC_NONE);
+		if (ctx->panicMode) { SyncRecovery(ctx, RBRACK); return varNode; }
+		if (!Match(ctx, RBRACK)) return ParseERROR(ctx, "Epexted ']' for array initalization.");
 
-        ParseResult operandNode = Prefix(fptr);
-        if (operandNode.status != VALID) 
-            return PARSE_ERRP("Invalid Prefix in Prefix", GetNextToken(fptr));
+		// TODO: Idk if this is correct
+		ASTNode* arrayInitNode = InitalizeASTNode(ctx->arena, ARR_DECL_NODE, DUMMY_TOKEN);
+		AddChildASTNode(ctx->arena, arrayInitNode, exprNode);
+		AddChildASTNode(ctx->arena, varNode, arrayInitNode);
+	}
 
-        ParseResult operatorNode = ArbitraryNode(tok, UNARY_EXPR_NODE);
-        ASTPushChildNode(operatorNode.node, operandNode.node);
-        return operatorNode;
-    }
+	if (Match(ctx, EQ)) {
+		switch (ctx->current.type) {
+			case LBRACE: // ARR init list 
+				ASTNode* arrListNode = ArrInitList(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, varNode, arrListNode);
+				break;
+			EXPR_START_CASES // Expr k
+				ASTNode* exprNode = Expr(ctx, PREC_NONE);
+				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+				else AddChildASTNode(ctx->arena, varNode, exprNode);
+				break;
+			default: return ParseERROR(ctx, "Invalid assignment to variable.");
+		}	
+	}
 
-    ParseResult postfix = Postfix(fptr);
-    if (postfix.status == ERRP)
-        return PARSE_ERRP("Invalid Postfix in Prefix", GetNextToken(fptr));
-    else if (postfix.status == NAP)
-        return PARSE_NAP();
-
-    return postfix;
+	return varNode;
 }
 
-ParseResult Postfix(FILE* fptr)
+ASTNode* ArrInitList(ParserContext* ctx)
 {
-    DEBUG_MESSAGE("Entering Postfix\n");
-    
-    /* TODO: Include Array Indexing and Function Calling */
-    ParseResult lhs = Primary(fptr);
-    if (lhs.status == ERRP)
-        return PARSE_ERRP("Invalid Primary in Postfix", GetNextToken(fptr));
-    else if (lhs.status == NAP)
-        return PARSE_NAP();
+	Advance(ctx);
 
-    while (true) {
-        TokenType tokType = PeekNextTokenP(fptr);
+	ASTNode* arrInitList = InitalizeASTNode(ctx->arena, ARR_INIT_LIST_NODE, DUMMY_TOKEN);
+	while (true) {
+		switch (ctx->current.type) {
+			EXPR_START_CASES
+				ASTNode* exprNode = Expr(ctx, PREC_NONE);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, arrInitList, exprNode);
+				break;
+			case LBRACE:
+				ASTNode* nestedArrInitNode = ArrInitList(ctx);
+				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
+				else AddChildASTNode(ctx->arena, arrInitList, nestedArrInitNode);
+				break;
+			case RBRACE: break;
+			default: return ParseERROR(ctx, "Expected array initalization.");
+		}
 
-        if (tokType == LPAREN) {
-            /* Func Call */
-            ParseResult callFuncNode = CallFunc(fptr, lhs.node);
-            if (callFuncNode.status != VALID) {
-                ASTFreeNodes(1, lhs.node);
-                return PARSE_ERRP("Invalid Function Call in Postfix", GetNextToken(fptr));
-            }
-            lhs = callFuncNode;
-        }
-        else if (tokType == LBRACK) {
-            /* Array Index */
-            ParseResult indexNode = Index(fptr, lhs.node);
-            if (indexNode.status != VALID) {
-                ASTFreeNodes(1, lhs.node);
-                return PARSE_ERRP("Invalid Array in Postfix", GetNextToken(fptr));
-            }
-            lhs = indexNode;
-        }
-        else if (tokType == MEM || tokType == SMEM) {
-            /* Member Access */
-            ParseResult memberNode = Member(fptr, lhs.node);
-            if (memberNode.status != VALID) {
-                ASTFreeNodes(1, lhs.node);
-                return PARSE_ERRP("Invalid Struct Member access", GetNextToken(fptr));
-            }
-            lhs = memberNode;
-        }
-        else if (ValidTokType(POSTFIXS, POSTFIXS_COUNT, tokType) == VALID ) {
-            Token tok = GetNextTokenP(fptr);
-            ParseResult operatorNode = ArbitraryNode(tok, UNARY_EXPR_NODE);
-            ASTPushChildNode(operatorNode.node, lhs.node);
-            lhs = operatorNode;
-        }
-        else 
-            break;
-    }
-
-    return lhs;
-}
-
-ParseResult Index(FILE* fptr, ASTNode* callee) 
-{
-    if (PeekNextTokenP(fptr) != LBRACK)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
- 
-    ParseResult indexNode = Expr(fptr);
-    if (indexNode.status != VALID) 
-        return PARSE_ERRP("Invalid Expr for Indexing Array", GetNextToken(fptr));
-
-    if (PeekNextTokenP(fptr) != RBRACK) {
-        ASTFreeNodes(1, indexNode.node);
-        return PARSE_ERRP("No closing bracket detected for Array Index", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    ASTNode* arrNode = InitASTNode();
-    
-    ASTPushChildNode(arrNode, callee);
-    ASTPushChildNode(arrNode, indexNode.node);
-    return PARSE_VALID(arrNode, ARR_INDEX_NODE);
-}
-
-ParseResult CallFunc(FILE* fptr, ASTNode* callee)
-{
-    if (PeekNextTokenP(fptr) != LPAREN)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);    /* Postfix already checks for LPAREN, I just thought it would be cleaner and more true to the grammar to have it here*/
-
-    ParseResult argListNode = ArgList(fptr);
-    if (argListNode.status != VALID) {
-        ASTFreeNodes(1, argListNode.node);
-        return PARSE_ERRP("Invalid Argument List in Function Call", GetNextToken(fptr));
-    }
-
-    if (PeekNextTokenP(fptr) != RPAREN) {
-        ASTFreeNodes(1, argListNode.node);
-        return PARSE_ERRP("No Right Parenthesis in Function Call", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    ASTNode* callFuncNode = InitASTNode();
-    ASTPushChildNode(callFuncNode, callee);
-    ASTPushChildNode(callFuncNode, argListNode.node);
-    return PARSE_VALID(callFuncNode, CALL_FUNC_NODE);
-}
-
-ParseResult Member(FILE* fptr, ASTNode* callee) 
-{
-    TokenType type = PeekNextTokenP(fptr);
-    if (type != MEM && type != SMEM)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);   
-   
-    ASTNode* memberNode = InitASTNode();
-    ASTPushChildNode(memberNode, callee);
-
-    if (PeekNextTokenP(fptr) != IDENT)  {
-        ASTFreeNodes(1, memberNode);
-        return PARSE_ERRP("Struct Member access is invalid", GetNextToken(fptr));
-    }
-    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
-
-    ASTPushChildNode(memberNode, identNode.node);
-    return PARSE_VALID(memberNode, MEMBER_ACCESS_NODE);
-}
-
-ParseResult Primary(FILE* fptr)
-{
-    DEBUG_MESSAGE("Entering Primary\n");
-    
-    /* TODO: Clean up Expr */
-    if (ValidTokType(PRIMARYS, PRIMARYS_COUNT, PeekNextTokenP(fptr)) == VALID) {
-        Token tok = GetNextTokenP(fptr);
-        
-        ParseResult operandNode;
-        if (tok.type == IDENT)
-            operandNode = ArbitraryNode(tok, IDENT_NODE);
-        else 
-            operandNode = ArbitraryNode(tok, LITERAL_NODE);
-        return operandNode;
-    } 
-    else if (ValidTokType(PREDEF_VAR, PREDEF_VAR_COUNT, PeekNextTokenP(fptr)) == VALID) {
-        Token tok = GetNextTokenP(fptr); 
-        ParseResult predefNode = ArbitraryNode(tok, LITERAL_NODE);
-        return predefNode;
-    }
-    /* Check Parenthesis Helper Function Needed */
-    else if (PeekNextTokenP(fptr) == LPAREN) {
-        GetNextTokenP(fptr);
-
-        ParseResult exprNode = Expr(fptr);
-        if (exprNode.status != VALID) 
-            return PARSE_ERRP("Expected Expr in parenthesized Expr", GetNextToken(fptr));
-    
-        if (PeekNextTokenP(fptr) != RPAREN) {
-            ASTFreeNodes(1, exprNode.node);
-            return PARSE_ERRP("Expected right parenthesis in parenthesized Epxr", GetNextToken(fptr));
-        }
-        GetNextTokenP(fptr);
-
-        return exprNode;
-    }
-
-    DEBUG_MESSAGE("Failed to Parse Primary, Climbing Tree\n");
-    return PARSE_NAP();
-}
-
-/* ---------- Etc ---------- */
-
-ParseResult StdType(FILE* fptr) 
-{
-    DEBUG_MESSAGE("Entering Type\n");
-    
-    if (ValidTokType(TYPES, TYPES_COUNT, PeekNextTokenP(fptr)) != VALID) 
-        return PARSE_NAP();
-    Token tok = GetNextTokenP(fptr);
-
-    ParseResult typeNode = ArbitraryNode(tok, TYPE_NODE);
-    return typeNode;
-}
-
-ParseResult ArgList(FILE* fptr) 
-{
-    DEBUG_MESSAGE("Entering ArgList\n");
-    if (PeekNextTokenP(fptr) == RPAREN) {
-        ASTNode* argListNode = InitASTNode();
-        ASTPushChildNode(argListNode, EmptyNode().node);
-        return PARSE_VALID(argListNode, ARG_LIST_NODE);
-    }
-    
-    ParseResult exprNode = Expr(fptr);
-    if (exprNode.status == ERRP) 
-        return PARSE_ERRP("Invalid Expr in ArgList", GetNextToken(fptr));
-    else if (exprNode.status == NAP)
-        return PARSE_NAP();
-    
-    ASTNode* argListNode = InitASTNode();
-    ASTPushChildNode(argListNode, exprNode.node);
-
-    while(true)
-    {
-        if (PeekNextTokenP(fptr) != COMMA)
-            break;
-        GetNextTokenP(fptr);
-
-        exprNode = Expr(fptr);
-        if (exprNode.status != VALID) {
-            ASTFreeNodes(1, argListNode);
-            return PARSE_ERRP("Invalid Expr in ArgList", GetNextToken(fptr));
-        }
-        ASTPushChildNode(argListNode, exprNode.node);
-    }
-
-    return PARSE_VALID(argListNode, ARG_LIST_NODE);
-}
-
-ParseResult VarList(FILE* fptr) 
-{
-    DEBUG_MESSAGE("Entering VarList\n");
-    
-    ParseResult varNode = Var(fptr);
-    if (varNode.status == ERRP)
-        return PARSE_ERRP("Invalid Var in VarList", GetNextToken(fptr));
-    else if (varNode.status == NAP)
-        return PARSE_NAP();
-
-    ASTNode* varListNode = InitASTNode();
-    ASTPushChildNode(varListNode, varNode.node);
-
-    while(true)
-    {
-        if (PeekNextTokenP(fptr) != COMMA)
-            break;
-        GetNextTokenP(fptr);
-
-        varNode = Var(fptr);
-        if (varNode.status != VALID) {
-            ASTFreeNodes(1, varListNode);
-            return PARSE_ERRP("Invalid Var in VarList", GetNextToken(fptr));
-        }
-
-        ASTPushChildNode(varListNode, varNode.node);
-    }
-
-    return PARSE_VALID(varListNode, VAR_LIST_NODE);
-}
-
-ParseResult Var(FILE* fptr) 
-{
-    DEBUG_MESSAGE("Entering Var\n");
-    
-    if (PeekNextTokenP(fptr) != IDENT) 
-        return PARSE_NAP();
-    ParseResult identNode = IdentNode(GetNextTokenP(fptr));
-
-    ASTNode* varNode = InitASTNode();
-    ASTPushChildNode(varNode, identNode.node);
-
-    while (PeekNextTokenP(fptr) == LBRACK) {
-        ParseResult arrDeclNode = ArrDecl(fptr);
-        if (arrDeclNode.status != VALID) {
-            ASTFreeNodes(1, varNode);
-            return PARSE_ERRP("Invalid Array Declaration in Var", GetNextToken(fptr));
-        }
-        ASTPushChildNode(varNode, arrDeclNode.node);
-    }
-    
-    if (PeekNextTokenP(fptr) == EQ) {
-        GetNextTokenP(fptr);
-
-        ParseResult initNode;
-        if (PeekNextTokenP(fptr) == LBRACE) {
-            initNode = ArrInitList(fptr);
-            if (initNode.status != VALID) {
-                ASTFreeNodes(1, varNode);
-                return PARSE_ERRP("Invalid Array Initalizer List in Var", GetNextToken(fptr));
-            }
-        } else {
-            initNode = Expr(fptr);
-            if (initNode.status != VALID) {
-                ASTFreeNodes(1, varNode);
-                return PARSE_ERRP("Invalid Expr in Var", GetNextToken(fptr));
-            }
-        }
-
-        ASTPushChildNode(varNode, initNode.node);
-    } 
-
-    return PARSE_VALID(varNode, VAR_NODE);
-}
-
-ParseResult ArrDecl(FILE* fptr) 
-{
-    if (PeekNextTokenP(fptr) != LBRACK)
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
-
-    ASTNode* arrDeclNode = InitASTNode();
-
-    ParseResult exprNode = Expr(fptr);
-    if (exprNode.status == ERRP) {  /* Optional so ERRP only */
-        ASTFreeNodes(1, arrDeclNode);
-        return PARSE_ERRP("Invalid Expr for Array Size in Array Declaration", GetNextToken(fptr));
-    }
-    ASTPushChildNode(arrDeclNode, exprNode.node);
-
-    if (PeekNextTokenP(fptr) != RBRACK) {
-        ASTFreeNodes(1, arrDeclNode);
-        return PARSE_ERRP("Expected right bracket in Array Declaration", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    return PARSE_VALID(arrDeclNode, ARR_DECL_NODE);
-}
-
-ParseResult ArrInitList(FILE* fptr) 
-{
-    if (PeekNextTokenP(fptr) != LBRACE) 
-        return PARSE_NAP();
-    GetNextTokenP(fptr);
-
-    ASTNode* arrInitListNode = InitASTNode();
-
-    if (PeekNextTokenP(fptr) == RBRACE) {   /* Empty */
-        GetNextTokenP(fptr);
-        return PARSE_VALID(arrInitListNode, ARR_INIT_NODE);
-    }
-
-    while (true) { 
-        ParseResult child;
-
-        if (PeekNextTokenP(fptr) == LBRACE) {   /* Nesting */
-            child = ArrInitList(fptr);
-            if (child.status != VALID) {
-                ASTFreeNodes(1, arrInitListNode);
-                return PARSE_ERRP("Invalid nested array initializer", GetNextToken(fptr));
-            }
-        } else if (ValidTokType(PRIMARYS, PRIMARYS_COUNT, PeekNextTokenP(fptr)) == VALID) {
-            Token tok = GetNextTokenP(fptr);
-            child = ArbitraryNode(tok, LITERAL_NODE);
-        } else {
-            ASTFreeNodes(1, arrInitListNode);
-            return PARSE_ERRP("Expected literal or nested array initializer", GetNextToken(fptr));
-        }
-
-        ASTPushChildNode(arrInitListNode, child.node);
-
-        if (PeekNextTokenP(fptr) == COMMA) {
-            GetNextTokenP(fptr); 
-            continue;
-        } else {
-            break;
-        }
-    }
-
-    if (PeekNextTokenP(fptr) != RBRACE) {
-        ASTFreeNodes(1, arrInitListNode);
-        return PARSE_ERRP("Expected closing brace in Array Initalizer List", GetNextToken(fptr));
-    }
-    GetNextTokenP(fptr);
-
-    return PARSE_VALID(arrInitListNode, ARR_INIT_NODE);
+		if (Match(ctx, COMMA)) continue;
+		else if (Match(ctx, RBRACE)) return arrInitList;
+		return ParseERROR(ctx, "Expected ',' or '}' to end array initalization.");
+	}
 }

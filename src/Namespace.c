@@ -1,82 +1,47 @@
 #include "Namespace.h"
 
-/* ---------- Namespace Scope ---------- */
+/* ----- Namespaces ----- */
 
-Namespace* NamespaceInit(NamespaceKind kind)
+Namespaces* InitalizeNamespaces(Arena* arena) 
 {
-    Namespace* ns = malloc(sizeof(Namespace));
-    ns->env = STInit();
-    ns->kind = kind;
+   Namespaces* nss = malloc(sizeof(Namespaces));
+   nss->ns[0] = InitalizeEnvironment(arena, N_VAR);
+   nss->ns[1] = InitalizeEnvironment(arena, N_TYPE);
+   nss->ns[2] = InitalizeEnvironment(arena, N_OPERATOR);
 
-    ns->symbols = NULL;
-    ns->symCount = 0;
-
-    return ns;
+   return nss;
 }
 
-Namespace* GetNamespace(Namespaces* namespaces, NamespaceKind kind)
+Environment* GetNamespace(Namespaces* nss, NamespaceKind nskind)
 {
-    for (size_t i = 0; i < namespaces->count; i++) {
-        if (namespaces->nss[i]->kind != kind) continue;
-        return namespaces->nss[i];
-    }
-    return NULL;
+   for (int i = 0; i < NS_COUNT; i++) {
+      if (nss->ns[i]->nskind == nskind) 
+         return nss->ns[i];
+   }
+   return NULL;
 }
 
-Namespace* BeginNamespaceScope(Namespace* namespace) 
+/* ----- Scopes ----- */
+
+void EnterScope(Arena* arena, Namespaces* nss)
 {
-    /* SHOULD COPY ENV BUT new SYMBOLS AND KIND */
-    Namespace* ns = malloc(sizeof(Namespace));
-    ns->env = namespace->env;
-    ns->kind = namespace->kind;
+   for (int i = 0; i < NS_COUNT; i++) {
+      Environment* env = nss->ns[i];
+      Environment* newEnv = InitalizeEnvironment(arena, env->nskind);
+      newEnv->prev = env;
 
-    ns->symbols = NULL;
-    ns->symCount = 0;
-
-    return ns;
+      nss->ns[i] = newEnv;
+   }
 }
 
-void ExitNamespaceScope(Namespace* namespace) 
+void ExitScope(Namespaces* nss)
 {
-    for (size_t j = 0; j < namespace->symCount; j++) {
-        Symbol* sym = namespace->symbols[j];
-        if (!sym) continue;
-    }
+   for (int i = 0; i < NS_COUNT; i++) {
+      Environment* env = nss->ns[i];
 
-    free(namespace->symbols);
-}
+      Environment* prev = env->prev;
+      DestroyEnvironment(env);
 
-void PushNamespaceScope(Namespace* namespace, Symbol* sym)
-{
-    size_t symCount = namespace->symCount;
-
-    /* TODO: More elegant resizing */
-    namespace->symbols = realloc(namespace->symbols, (symCount + 1) * sizeof(Symbol*));      
-    namespace->symbols[symCount] = sym;
-
-    namespace->symCount++;
-}
-
-Symbol* LookupNamespaceCurrentScope(Namespace* namespace, char* name)
-{
-    size_t symCount = namespace->symCount;
-
-    for (size_t j = 0; j < symCount; j++) {
-        Symbol* sym = namespace->symbols[j];
-        if (!sym) continue;
-        if (0 == strcmp(name, sym->name))
-            return sym;
-    }
-    return NULL;
-}
-
-/* ---------- Helpers ---------- */
-
-size_t GetTotalArgCount(ASTNode* argListNode) {
-    size_t total = 0;
-    for (size_t i = 0; i < argListNode->childCount; i++) {
-        if (argListNode->children[i]->type != EMPTY_NODE)
-            total ++;
-    }
-    return total;
+      nss->ns[i] = prev;
+   }
 }

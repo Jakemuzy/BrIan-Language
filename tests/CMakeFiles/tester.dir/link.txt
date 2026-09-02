@@ -1,0 +1,1 @@
+clang  -Wno-c23-extensions -Wall -Wextra -Wpedantic -g -Wl,--dependency-file=CMakeFiles/tester.dir/link.d CMakeFiles/tester.dir/GoldenTester.c.o -o ../bin/tester  ../libblibs.a

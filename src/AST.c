@@ -1,74 +1,55 @@
 #include "AST.h"
 
-AST* ASTInit()
+AST* InitalizeAST(Arena* arena)
 {
-    AST* ast = malloc(sizeof(AST));
-    if (!ast) return NULL;
-
-    ast->root = InitASTNode();
-    if (!ast->root) {
-        free(ast);
-        return NULL;
-    }
-
+    AST* ast = AllocateArena(arena, sizeof(AST));
+    ast->root = InitalizeASTNode(arena, PROG_NODE, DUMMY_TOKEN);
     return ast;
 }
 
-int ASTFree(AST* ast)
+ASTNode* InitalizeASTNode(Arena* arena, NodeType type, Token token)
 {
-    if (!ast) return -1;
-    ASTFreeNodes(1, ast->root);
-    free(ast);
-    return 0;
-}
-
-
-/* ---------- Nodes ---------- */
-
-ASTNode* InitASTNode()
-{
-    ASTNode* node = malloc(sizeof(ASTNode));
-    if (!node) return NULL;
-
-    node->children = NULL;
+    ASTNode* node = AllocateArena(arena, sizeof(ASTNode));
     node->childCount = 0;
-    node->type = EMPTY_NODE;
+    node->childCapacity = 0;
+    node->children = NULL;
+    node->ntype = type;
+    node->token = token;
+
+    node->sym = NULL;
+    node->type = NULL;
+
     return node;
 }
 
-
-int ASTPushChildNode(ASTNode* node, ASTNode* child)
+void AddChildASTNode(Arena* arena, ASTNode* parent, ASTNode* child)
 {
-    int index = node->childCount;
-
-    ASTNode** tmp = realloc(node->children, (index + 1) * sizeof(ASTNode*));
-    if (!tmp) return -1;
-
-    node->children = tmp;
-    node->children[index] = child;
-    node->childCount++;
-    return 0;
+    /* This gets means the old memory is completely unused but its the cleanest solution I found */
+    /* Only caveat being: statements with lots of children will be less efficient (ie. long if else chains) */
+    if (parent->childCount >= parent->childCapacity) {
+        size_t newCapacity = parent->childCapacity == 0 ? 4 : parent->childCapacity * 2;
+        ASTNode** newChildren = AllocateArena(arena, sizeof(ASTNode*) * newCapacity);
+        if (parent->children) {
+            memcpy(newChildren, parent->children, sizeof(ASTNode*) * parent->childCount);
+        }
+        parent->children = newChildren;
+        parent->childCapacity = newCapacity;
+    }
+    parent->children[parent->childCount++] = child;
 }
 
-int ASTFreeNodes(int count, ...)
+void PrependChildASTNode(Arena* arena, ASTNode* parent, ASTNode* child)
 {
-    va_list args; 
-    va_start(args, count);
-
-    int i;
-    for(i = 0; i < count; i++)
-    {
-        ASTNode* node = va_arg(args, ASTNode*); 
-        if (!node) continue;
-
-        for (size_t j = 0; j < node->childCount; j++) {
-            ASTFreeNodes(1, node->children[j]);
-        }
-
-        free(node->children);
-        free(node);
+    if (parent->childCount >= parent->childCapacity) {
+        size_t newCapacity = parent->childCapacity == 0 ? 4 : parent->childCapacity * 2;
+        ASTNode** newChildren = AllocateArena(arena, sizeof(ASTNode*) * newCapacity);
+        if (parent->children)
+            memcpy(newChildren + 1, parent->children, sizeof(ASTNode*) * parent->childCount);
+        parent->children = newChildren;
+        parent->childCapacity = newCapacity;
+    } else {
+        memmove(parent->children + 1, parent->children, sizeof(ASTNode*) * parent->childCount);
     }
-
-    va_end(args);
-    return 0;
+    parent->children[0] = child;
+    parent->childCount++;
 }

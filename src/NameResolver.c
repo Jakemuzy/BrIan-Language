@@ -1,637 +1,938 @@
 #include "NameResolver.h"
 
-/* 
-TODO:
-    - Fix Nested Structs
-    - URGENT: name resolver should NOT try to partially determine types
-        this is ONLY the TypeCheckers job snice variables of different
-        types but the same name can be shadowed. This would make it 
-        extremely hard to check the type from the SymbolTable.
-        SOLUTION: Just check the type in here instead.
-
-    - STRUCT FIELD VALIDATION SHOULD BE IN TYPECHECKER 
-    - Have functions be stateful as well (store their own fields namespace like structs)
-    - Determine if a variable is actually defined (ie int x; int b = x + 4) x is not defined
-
-NOTE: 
-    - There is no possible way to handle name resolution inside of enums and structs without
-      mixing a little bit of types in here since they are technically their own types.
-      That being said, there is no type checking here, just intializing and checking if the 
-      it exists in N_TYPE, not actually checking the type.
+/*
+    Please Note: 
+        PushEnvironment enforces duplicate symbols, 
+        and handles the printing of an error in that case.
+    
+        I should also make an error helper 
+        I should also make an already defined var helper
 */
 
-/* ----------- Error Handling ---------- */
+/* ----- Helpers ----- */
 
-int NERROR_NO_IDENT(ASTNode* curr)
-{
-    printf("NAME ERROR: No Identifier found on line '%d'\n", curr->token.line); 
-    return ERRN;
+#define DEBUG_MODE true
+
+static inline void Debug(char* msg) {
+    if (DEBUG_MODE) printf("%s\n", msg);
 }
 
-int NERROR_ALREADY_DEFINED(char* name, ASTNode* curr, ASTNode* first)
+/* 
+TODO: 
+static inline void NameresERROR(char* format, ASTNode* current) {
+    int buf[1028];
+    snprintf(buf, sizeof(buf), "%s, on line %d, col %d.", format);
+    ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, buf);
+
+    ctx->failure = true;
+}
+*/
+
+/* ----- Context ----- */
+
+NameResolverContext* InitalizeNameResolverContext(AST* ast, size_t arenaSize)
 {
-    printf("NAME ERROR: Identifier '%s' on line %d already defined, first definition on line %d\n", name, curr->token.line, first->token.line); \
-    return ERRN; 
+    NameResolverContext* ctx = malloc(sizeof(NameResolverContext));
+
+    ctx->ast = ast;
+    ctx->arena = CreateArena(arenaSize); // Estimate done in compiler.c
+    ctx->nss = InitalizeNamespaces(ctx->arena);
+    ctx->failure = false;
+
+    return ctx;
 }
 
-int NERROR_DOESNT_EXIST(char* name, ASTNode* curr) 
+void DestroyNameResolverContext(NameResolverContext* ctx)
 {
-    printf("NAME ERROR: '%s' on line %d is an undefined IDENTIFIER\n", name, curr->token.line);
-    return ERRN;
+    // Dont free ast, owned by parser context (freed with its arena)
+    DestroyArena(ctx->arena);   // Arena frees namespace symbols
+    free(ctx->nss);
+    free(ctx);
 }
 
-int NERROR(char* msg, char* name, ASTNode* curr) 
+/* ----- Actual Resolution ----- */
+
+void NameResolve(NameResolverContext* ctx)
 {
-    printf("NAME ERROR: %s '%s' on line %d\n", msg, name, curr->token.line);
-    return ERRN;
-}
+    Debug("\t START");
+    ASTNode* root = ctx->ast->root;
+    for (size_t i = 0; i < root->childCount; i++) {
+        ASTNode* current = root->children[i];
 
-/* ----------- Name Resolution ---------- */
-
-Namespaces* ResolveNames(AST* ast) 
-{
-    ScopeContext* scope = ScopeInit(PROG_SCOPE, 2, N_VAR, N_TYPE);
-
-    if (ResolveEverything(scope, ast->root) != VALDN) {
-        printf("NAME ERROR: failed to build\n");
-        return NULL;
+        switch (current->ntype) {
+            case FUNC_DECL:
+                ResolveFuncDecl(ctx, current);
+                break;
+            case FUNC_DEF:
+                ResolveFuncDef(ctx, current);
+                break;
+            case GEN_FUNC_DECL:
+                ResolveGenFuncDecl(ctx, current);
+                break;
+            case GEN_FUNC_DEF:
+                ResolveGenFuncDef(ctx, current);
+                break;
+            case VAR_DECL_NODE:
+                ResolveVarDecl(ctx, current);
+                break;
+            case ENUM_DECL_NODE:
+                ResolveEnumDecl(ctx, current);
+                break;
+            case TYPEDEF_DECL_NODE:
+                ResolveTypedefDecl(ctx, current);
+                break;
+            case INTERFACE_DECL_NODE:
+                ResolveInterfaceDecl(ctx, current);
+                break;
+            case STRUCT_DECL_NODE:  
+                ResolveStructDecl(ctx, current);
+                break;
+            case GEN_STRUCT_DECL_NODE:
+                ResolveGenStructDecl(ctx, current);
+                break;
+            default:
+                printf("Unexpected node type %d\n", current->ntype);
+                return;
+        }
     }
-
-    return scope->namespaces;
 }
 
-int ResolveEverything(ScopeContext* scope, ASTNode* current)
+void ResolveFuncDecl(NameResolverContext* ctx, ASTNode* current)
 {
-    if (!current) return VALDN;
+    Debug("FuncDecl");
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    PushEnvironment(ctx->arena, env, current, S_FUNC);
 
-    int status = NANN;
-    switch (current->type) {
-        case(VAR_DECL_NODE):
-            return ResolveVars(scope, current);
-        case (TYPEDEF_DECL_NODE):
-            status = ResolveTypedefs(scope, current);
-            break;
-        case (FUNC_NODE):
-            return ResolveFuncs(scope, current);   /* Return since ResolveFuncs already traverses Children */
-        case (IF_STMT_NODE):
-        case (DO_WHILE_STMT_NODE):  // TODO: Just put them here
-        case (WHILE_STMT_NODE):
-        case (SWITCH_STMT_NODE):
-        case (RETURN_STMT_NODE):
-        case (FOR_STMT_NODE):
-            return ResolveStmts(scope, current);
-        case (EXPR_STMT_NODE):
-            status = ResolveExprs(scope, current);
-            break;
-        case (CALL_FUNC_NODE):
-            status = ResolveFuncCall(scope, current);
-            break;
-        case (STRUCT_DECL_NODE):
-            return ResolveStructDecl(scope, current);
-        case (ENUM_DECL_NODE):
-            status = ResolveEnums(scope, current);
-            break;
-    }
+    ResolveReturnType(ctx, current->children[0]);
 
-    if (status == ERRN) return status;
+    EnterScope(ctx->arena, ctx->nss);
+    ResolveParamList(ctx, current->children[1]);
+    ExitScope(ctx->nss);
+}
 
-    /* Recursively check children if none apply */
+void ResolveFuncDef(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("FuncDef");
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    PushEnvironment(ctx->arena, env, current, S_FUNC);
+
+    ResolveReturnType(ctx, current->children[0]);
+
+    EnterScope(ctx->arena, ctx->nss);
+    ResolveParamList(ctx, current->children[1]);
+    ResolveBody(ctx, current->children[2]);
+    ExitScope(ctx->nss);
+}
+
+void ResolveGenFuncDecl(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("GenFuncDecl");
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    PushEnvironment(ctx->arena, env, current, S_FUNC);
+
+    // Enter scope earlier, since should resolve from gen param list
+    EnterScope(ctx->arena, ctx->nss);
+
+    size_t i = 1;
+    // Optional generic list 
+    if (current->children[i]->ntype == GENERIC_LIST_NODE) 
+        ResolveGenericList(ctx, current->children[i++]);
+
+    ResolveReturnType(ctx, current->children[0]);
+    ResolveParamList(ctx, current->children[i++]);
+    ExitScope(ctx->nss);
+}
+
+void ResolveGenFuncDef(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("GenFuncDef");
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    PushEnvironment(ctx->arena, env, current, S_FUNC);
+
+    // Enter scope earlier, since should resolve from gen param list
+    EnterScope(ctx->arena, ctx->nss);
+
+    size_t i = 1;
+    // Optional generic list 
+    if (current->children[i]->ntype == GENERIC_LIST_NODE) 
+        ResolveGenericList(ctx, current->children[i++]);
+
+    ResolveReturnType(ctx, current->children[0]);
+    ResolveParamList(ctx, current->children[i++]);
+    ResolveBody(ctx, current->children[i++]);
+    ExitScope(ctx->nss);
+}
+
+void ResolveReturnType(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("ReturnType");
+    ASTNode* returnTypeNode = current->children[0];
+    if (returnTypeNode->ntype == GENERIC_NODE)   ResolveGenericRef(ctx, returnTypeNode);
+    else if (returnTypeNode->ntype == TYPE_NODE) ResolveType(ctx, returnTypeNode);
+}
+
+void ResolveBody(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Body");
     for (size_t i = 0; i < current->childCount; i++) {
-        if (ResolveEverything(scope, current->children[i]) == ERRN) 
-            return ERRN;
-    }
+        ASTNode* stmt = current->children[i];
 
-    return VALDN;
-}
-
-int ResolveVars(ScopeContext* scope, ASTNode* current)
-{
-    /* If custom type like struct, need variable to have fields knowledge */
-    ASTNode* typeNode = current->children[0];
-    char* typeLex = typeNode->token.lex.word;
-
-    Symbol* sym = LookupAllScopes(scope, typeLex, N_TYPE);
-    if (sym && sym->stype == S_STRUCT) 
-        return ResolveStructVar(scope, current->children[1], sym);
-
-    /* Otherwise use classic variable resolution */
-    return ResolveVar(scope, current->children[1]);   
-}
-
-int ResolveVar(ScopeContext* scope, ASTNode* current)
-{
-    /* TODO: Find the underlying cause for this null check being required */
-    if (!current) return NANN;
-
-    if (current->type == VAR_NODE) {
-        ASTNode* identNode = current->children[0];
-        char* name = identNode->token.lex.word;
-        
-        // Resolve initializer first
-        if (current->childCount > 1) {
-            int status = ResolveVar(scope, current->children[1]);
-            if (status == ERRN) return status;
-        }
-        
-        // Register the variable
-        Symbol* sym = LookupCurrentScope(scope, name, N_VAR);
-        if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
-        sym = STPushNamespace(scope, identNode, N_VAR, S_VAR);
-        sym->stype = S_VAR;
-        PushScope(scope, sym, N_VAR);
-
-        return VALDN;
-    }
-    else if (current->type == BINARY_EXPR_NODE || current->type == UNARY_EXPR_NODE) {
-        return ResolveExprs(scope, current);
-    }
-    else if (current->type == CALL_FUNC_NODE) {
-        return ResolveFuncCall(scope, current);
-    }
-    else if (current->type == MEMBER_ACCESS_NODE) {
-        Namespaces* nestedMembers = NULL;
-        return ResolveMemberAccess(scope, current, &nestedMembers);
-    }
-    else {
-        for (size_t i = 0; i < current->childCount; i++) {
-            int status = ResolveVar(scope, current->children[i]);
-            if (status == ERRN) return status;
-        }
-    }
-    return VALDN;
-}
-
-int ResolveStructVar(ScopeContext* scope, ASTNode* current, Symbol* structSym)
-{
-    if (!current) return NANN;
-
-    if (current->type == IDENT_NODE) {
-        Symbol* sym;
-        char* name = current->token.lex.word;
-
-        sym = LookupCurrentScope(scope, name, N_VAR);
-        if (sym) return NERROR_ALREADY_DEFINED(name, current, sym->decl);
-     
-        sym = STPushNamespace(scope, current, N_VAR, S_VAR);
-        sym->stype = S_VAR;
-        sym->fieldCount = structSym->fieldCount;    /* TODO: unsure if this is safe since the same pointer */
-        sym->fields = structSym->fields;        // Copy the fields so the var has access to its own fields
-        PushScope(scope, sym, N_VAR);
-        return VALDN;
-    }    
-    else if (current->type == STRUCT_INIT_NODE) { /* TODO: not implemented yet */ 
-        /* Check field count matches, type checker will resolve types */
-    }
-    else {
-        for (size_t i = 0; i < current->childCount; i++) {
-            int status = ResolveStructVar(scope, current->children[i], structSym);
-            if (status == ERRN) return status;
+        switch (stmt->ntype) {
+            case IF_STMT_NODE:
+                ResolveIfStmt(ctx, stmt);
+                break;
+            case SWITCH_STMT_NODE:
+                ResolveSwitchStmt(ctx, stmt);
+                break;
+            case WHILE_STMT_NODE:
+                ResolveWhileStmt(ctx, stmt);
+                break;
+            case DO_WHILE_STMT_NODE:
+                ResolveDoWhileStmt(ctx, stmt);
+                break;
+            case FOR_STMT_NODE:
+                ResolveForStmt(ctx, stmt);
+                break;
+            case RETURN_STMT_NODE:
+                ResolveReturnStmt(ctx, stmt);
+                break;
+            case LOCK_STMT_NODE:
+                ResolveLockStmt(ctx, stmt);
+                break;
+            case CRITICAL_STMT_NODE:
+                ResolveCriticalStmt(ctx, stmt);
+                break;
+            case VAR_DECL_NODE:
+                ResolveVarDecl(ctx, stmt);
+                break;
+            case ENUM_DECL_NODE:
+                ResolveEnumDecl(ctx, stmt);
+                break;
+            case TYPEDEF_DECL_NODE:
+                ResolveTypedefDecl(ctx, stmt);
+                break;
+            case STRUCT_DECL_NODE:
+                ResolveStructDecl(ctx, stmt);
+                break;
+            case GEN_STRUCT_DECL_NODE:
+                ResolveGenStructDecl(ctx, stmt);
+                break;
+            case BINARY_EXPR_NODE:
+                ResolveBinaryExpr(ctx, stmt);
+                break;
+            case ASGN_EXPR_NODE:
+                ResolveAsgnExpr(ctx, stmt);
+                break;
+            case PREFIX_EXPR_NODE:
+                ResolvePrefixExpr(ctx, stmt);
+                break;
+            case POSTFIX_EXPR_NODE:
+                ResolvePostfixExpr(ctx, stmt);
+                break;
+            case TERNARY_EXPR_NODE:
+                ResolveTernaryExpr(ctx, stmt);
+                break;
+            case CALL_FUNC_NODE:
+                ResolveFuncCall(ctx, stmt);
+                break;
+            case MEMBER_NODE:   // Fallthrough, since same format
+            case SMEMBER_NODE:  
+                ResolveMember(ctx, stmt);
+                break;
+            case REF_NODE:      // Falthrough, since same format
+            case SREF_NODE:
+                ResolveReference(ctx, stmt);
+                break;
+            case BREAK_NODE:    // Fallthrough, since same format
+            case CONTINUE_NODE: 
+                break;
+            default: 
+                ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                    "Invalid statement type within body '%s' on line %d, col %d.\n", 
+                    stmt->token.lexeme, current->token.row, current->token.col
+                );            
         }
     }
-    return VALDN;
 }
 
-int ResolveFuncs(ScopeContext* scope, ASTNode* current)
+void ResolveStructBody(NameResolverContext* ctx, ASTNode* current)
 {
-    /* Function Ident and Scope */
-    ASTNode* identNode = current->children[1];
-    char* name = identNode->token.lex.word;
-
-    /* Current since functions in structs can shadow */
-    Symbol* sym = LookupCurrentScope(scope, name, N_VAR); 
-    if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
-
-    sym = STPushNamespace(scope, identNode, N_VAR, S_FUNC);
-    if (!sym) printf("INVALID SYM\n");
-    PushScope(scope, sym, N_VAR);
-
-    /* Param list has own scope, stored as fields of func sym */
-    BeginPersistentScope(&scope, PARAM_SCOPE);
-
-    int status = ResolveParams(scope, current->children[2], &sym->fieldCount);
-    if (status == ERRN) return status;
-
-    /* Body Calls Resolve Vars */
-    BeginScope(&scope, FUNC_SCOPE);
-    status = ResolveEverything(scope, current->children[3]);
-
-    ExitScope(&scope);  // Func Scope
-    ExitPersistentScope(&scope);  // Param Scope
-
-    /* SET AFTER EXIT SINCE REALLOC IS USED */
-    sym->fields = scope->namespaces;
-    return status;
-}
-
-/* Returns how many params there are */
-int ResolveParams(ScopeContext* scope, ASTNode* current, size_t* paramCount)
-{
-    if (current->type != PARAM_LIST_NODE) return NANN;
-
+    Debug("StructBody");
     for (size_t i = 0; i < current->childCount; i++) {
-        int status = ResolveParam(scope, current->children[i]);
-        if (status != VALDN) return status;
-
-        (*paramCount)++;
+        ASTNode* bodyElement = current->children[i];
+        if (bodyElement->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == ENUM_DECL_NODE) ResolveEnumDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == FUNC_DEF) ResolveFuncDef(ctx, bodyElement);
+        else if (bodyElement->ntype == FUNC_DECL) ResolveFuncDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == TYPEDEF_DECL_NODE) ResolveTypedefDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == OPERATOR_OVERLOAD_NODE) ResolveOperatorOverload(ctx, bodyElement);
+        else 
+            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                "Invalid statement '%s' within generic struct scope on line %d, col %d.\n",
+                bodyElement->token.lexeme, bodyElement->token.row, bodyElement->token.col
+            );
     }
-    return VALDN;
 }
 
-int ResolveParam(ScopeContext* scope, ASTNode* current) 
+void ResolveGenStructBody(NameResolverContext* ctx, ASTNode* current)
 {
-    if (current->type != PARAM_NODE) return NANN;
-
-    /* Still need to lookup because params can be duplicate */
-    ASTNode* identNode = current->children[1];
-
-    Symbol* sym = LookupCurrentScope(scope, identNode->token.lex.word, N_VAR);
-    if (sym) return NERROR_ALREADY_DEFINED(identNode->token.lex.word, identNode, sym->decl);
-
-    /* S_VAR is not guaranteed, could be a func or another type, so determine */
-    sym = STPushNamespace(scope, identNode, N_VAR, DetermineSymType(current));
-    PushScope(scope, sym, N_VAR);
-
-    return VALDN;
-}
-
-int ResolveExprs(ScopeContext* scope, ASTNode* current)
-{
-    return ResolveExpr(scope, current);
-}
-
-int ResolveExpr(ScopeContext* scope, ASTNode* current)
-{
-    if (current->type == IDENT_NODE) {
-        char* name = current->token.lex.word;
-        if (!LookupAllScopes(scope, name, N_VAR))
-            return NERROR_DOESNT_EXIST(name, current);
-        return VALDN;
-    }
-    else if (current->type == MEMBER_ACCESS_NODE) {
-        Namespaces* nestedMembers = NULL;
-        return ResolveMemberAccess(scope, current, &nestedMembers);
-    }
-    else {
-        for (size_t i = 0; i < current->childCount; i++) {
-            int status = ResolveExpr(scope, current->children[i]);
-            if (status == ERRN) return status;  /* Need to have better error handling messages */
-        }
-    }
-    return VALDN;
-}
-
-/* ---------- Statements ---------- */
-
-int ResolveStmts(ScopeContext* scope, ASTNode* current)
-{
-    /* Process paramaters then once hit body call ResolveEverything */
-    /* Each Function will handle their own scope */
-    switch(current->type) {
-        case (IF_STMT_NODE):
-            return ResolveIfStmt(scope, current);
-        case (DO_WHILE_STMT_NODE):
-            return ResolveDoWhileStmt(scope, current);
-        case (WHILE_STMT_NODE):
-            return ResolveWhileStmt(scope, current);
-        case (SWITCH_STMT_NODE):
-            return ResolveSwitchStmt(scope, current);
-        case (FOR_STMT_NODE):
-            return ResolveForStmt(scope, current);
-        case (RETURN_STMT_NODE):
-            return ResolveReturnStmt(scope, current);  
-        default: 
-            break;
-    }
-
-    return NANN;
-}
-
-int ResolveIfStmt(ScopeContext* scope, ASTNode* current) 
-{
-    /* TODO: could probably benefit from an ResolveIfElifStmt and ResolveElseStmt */
+    Debug("GenStructBody");
     for (size_t i = 0; i < current->childCount; i++) {
-        if (current->children[i]->type == ELSE_NODE) {
-            BeginScope(&scope, CTRL_SCOPE);
+        ASTNode* bodyElement = current->children[i];
+        if (bodyElement->ntype == GEN_DECL_NODE) ResolveVarDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == FUNC_DEF) ResolveFuncDef(ctx, bodyElement);
+        else if (bodyElement->ntype == FUNC_DECL) ResolveFuncDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == ENUM_DECL_NODE) ResolveEnumDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == TYPEDEF_DECL_NODE) ResolveTypedefDecl(ctx, bodyElement);
+        else 
+            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                "Invalid statement '%s' within struct scope on line %d, col %d.\n",
+                bodyElement->token.lexeme, bodyElement->token.row, bodyElement->token.col
+            );
+    }
+}
 
-            if (ResolveEverything(scope, current->children[0]) == ERRN) return ERRN; /* Body */
-
-            ExitScope(&scope);
-            continue;
+/* Ctrl Stmts */
+void ResolveIfStmt(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("IfStmt");
+    for (size_t i = 0; i < current->childCount; i++) {
+        ASTNode* ifElifElse = current->children[i];
+        switch (ifElifElse->ntype) {
+            case IF_NODE:   // Fallthrough, same structure
+            case ELIF_NODE:
+                EnterScope(ctx->arena, ctx->nss);
+                ResolveExpr(ctx, ifElifElse->children[0]);
+                ResolveBody(ctx, ifElifElse->children[1]);
+                ExitScope(ctx->nss);
+                break;
+            case ELSE_NODE:
+                EnterScope(ctx->arena, ctx->nss);
+                ResolveBody(ctx, ifElifElse->children[0]);
+                ExitScope(ctx->nss);
+                break;    
+            default: break;
         }
-
-        /* Otherwise if and elif have same format */
-        ASTNode* ifElifNode = current->children[i];
-        ASTNode* ifElifExpr = ifElifNode->children[0];
-        if (ResolveExprs(scope, ifElifExpr) == ERRN) return ERRN;  
-
-        BeginScope(&scope, CTRL_SCOPE);
-
-        ASTNode* ifElifBody = ifElifNode->children[1];
-        if (ResolveEverything(scope, ifElifBody) == ERRN) return ERRN; 
-
-        ExitScope(&scope);
-    }   
-
-    return VALDN;
+    }
 }
 
-int ResolveDoWhileStmt(ScopeContext* scope, ASTNode* current)
+void ResolveSwitchStmt(NameResolverContext* ctx, ASTNode* current)
 {
-    BeginScope(&scope, CTRL_SCOPE);
-
-    ASTNode* doBody = current->children[0];
-    if (ResolveEverything(scope, doBody) == ERRN) return ERRN;
-
-    ExitScope(&scope);
-
-    ASTNode* whileExpr = current->children[1];
-    if (ResolveExpr(scope, whileExpr) == ERRN) return ERRN;
-}
-
-int ResolveWhileStmt(ScopeContext* scope, ASTNode* current) 
-{
-    ASTNode* whileExpr = current->children[0];
-    if (ResolveExpr(scope, whileExpr) == ERRN) return ERRN;
-
-    BeginScope(&scope, CTRL_SCOPE);
-
-    ASTNode* whileBody = current->children[1];
-    if (ResolveEverything(scope, whileBody) == ERRN) return ERRN;
-
-    ExitScope(&scope);
-}
-
-int ResolveSwitchStmt(ScopeContext* scope, ASTNode* current)
-{
-    ASTNode* valueNode = current->children[0];
-    if (ResolveExpr(scope, valueNode) != VALDN) return ERRN;
+    Debug("SwitchStmt");
+    ResolveExpr(ctx, current->children[0]);
 
     for (size_t i = 1; i < current->childCount; i++) {
-        ASTNode* caseNode = current->children[i];
+        ASTNode* caseNode = current->children[i]; 
 
-        if (caseNode->type == DEFAULT_NODE) {
-            BeginScope(&scope, CTRL_SCOPE);
-
-            ASTNode* caseBody = caseNode->children[0];
-            if (ResolveEverything(scope, caseBody) == ERRN) return ERRN;
-
-            ExitScope(&scope);
-            continue;
+        int j = 0;
+        if (caseNode->ntype == CASE_STMT_NODE) {
+            ResolveExpr(ctx, caseNode->children[j]);
+            j++;
         }
-        
-        ASTNode* valueNode2 = caseNode->children[0];
-        if (ResolveExpr(scope, valueNode2) != VALDN) return ERRN;
 
-        BeginScope(&scope, CTRL_SCOPE);
-
-        ASTNode* caseBody = caseNode->children[1];
-        if (ResolveEverything(scope, caseBody) == ERRN) return ERRN;
-
-        ExitScope(&scope);
+        EnterScope(ctx->arena, ctx->nss);
+        ResolveBody(ctx, caseNode->children[j++]); 
+        ExitScope(ctx->nss);
     }
-
-    return VALDN;
 }
 
-int ResolveForStmt(ScopeContext* scope, ASTNode* current)
+void ResolveWhileStmt(NameResolverContext* ctx, ASTNode* current)
 {
-    /* Scope begins early since for stmts can declare variables in their exprs */
-    BeginScope(&scope, PARAM_SCOPE);
+    Debug("WhileStmt");
+    ResolveExpr(ctx, current->children[0]);
+    EnterScope(ctx->arena, ctx->nss);
+    ResolveBody(ctx, current->children[1]);
+    ExitScope(ctx->nss);
+}
 
-    /* TODO: enter scope for arguments, then another for the body */
-    ASTNode* declExprList = current->children[0];
-    if (declExprList->type == VAR_DECL_NODE) {
-        if(ResolveVars(scope, declExprList) == ERRN) return ERRN;
-    } else {
-        if (ResolveExprs(scope, declExprList) == ERRN) return ERRN; 
-    }
+void ResolveDoWhileStmt(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("DoWhileStmt");
+    ResolveExpr(ctx, current->children[0]);
+    EnterScope(ctx->arena, ctx->nss);
+    ResolveBody(ctx, current->children[1]);
+    ExitScope(ctx->nss);
+}
 
-    ASTNode* exprNode = current->children[1];
-    if (ResolveExprs(scope, exprNode) == ERRN) return ERRN;
+void ResolveForStmt(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("ForStmt");
+    ASTNode* initNode = current->children[0];
+    if (initNode == &EMPTYNODE) ; 
+    else if (initNode->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, initNode);
+    else ResolveExpr(ctx, initNode);
+
+    ResolveExpr(ctx, current->children[1]);
 
     ASTNode* exprListNode = current->children[2];
-    if (ResolveExprs(scope, exprListNode) == ERRN) return ERRN;
+    for (size_t i = 0; i < exprListNode->childCount; i++)  {
+        if (exprListNode->children[i] == &EMPTYNODE) continue;
+        ResolveExpr(ctx, exprListNode->children[i]);
+    }
 
-    BeginScope(&scope, CTRL_SCOPE);
-    ASTNode* forBody = current->children[3];
-    if (ResolveEverything(scope, forBody) == ERRN) return ERRN;
-
-    ExitScope(&scope); /* Ctrl then Param */
-    ExitScope(&scope);
-    return VALDN;
+    EnterScope(ctx->arena, ctx->nss);
+    if (current->children[3] != &EMPTYNODE) ResolveBody(ctx, current->children[3]);
+    ExitScope(ctx->nss);
 }
 
-int ResolveReturnStmt(ScopeContext* scope, ASTNode* current)
+void ResolveReturnStmt(NameResolverContext* ctx, ASTNode* current)
 {
-    ASTNode* returnExpr = current->children[0];
-    if (ResolveExprs(scope, returnExpr) == ERRN) return ERRN;
-
-    return VALDN;
+    Debug("ReturnStmt");
+    if (current->childCount == 0) return;
+    ResolveExpr(ctx, current->children[0]);
 }
 
-/* ---------- Custom Types ---------- */
-
-int ResolveStructDecl(ScopeContext* scope, ASTNode* current)
+void ResolveLockStmt(NameResolverContext* ctx, ASTNode* current)
 {
-    /* TODO: sym-fields should be after exit persistent scope, however 
-       it currently breaks, this is because symbols in the persistent namespace gets realloced
-       which I eventually have to access the symbols directly for type checking. currently this 
-       seg faults, but I will have to fix this later 
-    */
-    /* Pushes Struct to scope */
-    ASTNode* identNode = current->children[0];
+    Debug("Lock");
+    ResolveExpr(ctx, current->children[0]);
+    ResolveBody(ctx, current->children[1]);
+}
 
-    Symbol* sym;   
-    char* name = identNode->token.lex.word;
+void ResolveCriticalStmt(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Critical");
+    ResolveBody(ctx, current->children[0]);
+}
 
-    sym = LookupCurrentScope(scope, name, N_TYPE);
-    if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
+/* Decls */
+void ResolveVarDecl(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("VarDecl");
+    ResolveType(ctx, current->children[0]);
 
-    /* TYPE* will become TY_STRUCT during type checking, NULL for now */
-    sym = STPushNamespace(scope, identNode, N_TYPE, S_STRUCT);
-    PushScope(scope, sym, N_TYPE);
+    ASTNode* varListNode = current->children[1];
+    for (size_t i = 0; i < varListNode->childCount; i++) 
+        ResolveVar(ctx, varListNode->children[i]);
+}
 
-    /* Stores namespace that resolves struct members inside of struct */
-    BeginPersistentScope(&scope, STRUCT_SCOPE);
-    sym->fields = scope->namespaces;
+void ResolveEnumDecl(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Enum");
+    char* typeName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF);
 
-    // Can Nest Enum / Structs  
-    // Fields CAN Shadow
-    ASTNode* structBodyNode = current->children[1];
-    for (size_t i = 0; i < structBodyNode->childCount; i++) {
+    // Treated as an identifier in the scope where the enum was defined
+    ASTNode* enumBody = current->children[0];
+    Environment* symEnv = GetNamespace(ctx->nss, N_VAR);
+    for (size_t i = 0; i < enumBody->childCount; i++) 
+        PushEnvironment(ctx->arena, symEnv, enumBody->children[i], S_VAR) ;
+}
 
-        ASTNode* memberNode = structBodyNode->children[i];
-        if (memberNode->type == VAR_DECL_NODE) {
-            if (ResolveVars(scope, memberNode) == ERRN) return ERRN;
+void ResolveTypedefDecl(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Typedef");
+    char* typeName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF);
+}
+
+void ResolveStructDecl(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Struct");
+
+    char* typeName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    PushEnvironment(ctx->arena, typeEnv, current, S_STRUCT);
+
+    // Interface implementation
+    int i = 0;
+    ASTNode* implementsNode = current->children[0];
+    if (implementsNode->ntype == IMPLEMENTS_NODE) {
+        ResolveImplements(ctx, implementsNode);
+        i++;
+    }
+
+    ASTNode* structBody = current->children[i];
+
+    EnterScope(ctx->arena, ctx->nss);
+    ResolveStructBody(ctx, structBody);
+    ExitScope(ctx->nss);
+}
+
+void ResolveGenStructDecl(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("GenStruct");
+
+    EnterScope(ctx->arena, ctx->nss);
+    ResolveGenericList(ctx, current->children[0]);
+    ResolveGenStructBody(ctx, current->children[1]);
+    ExitScope(ctx->nss);
+}
+
+void ResolveImplements(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Implements");
+
+    for (size_t j = 0; j < current->childCount; j++) {
+        ASTNode* interfaceNode = current->children[j];
+
+        char* intName = interfaceNode->token.lexeme;
+        Environment* intEnv = GetNamespace(ctx->nss, N_TYPE);
+        Symbol* sym = LookupEnvironment(intEnv, intName); 
+
+        if (sym == SYM_DOESNT_EXIST) 
+            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                "Interface '%s' doesn't exist within current scope on line %d, col %d.\n",
+                intName, interfaceNode->token.row, interfaceNode->token.col
+            );
+    }
+}
+
+void ResolveInterfaceDecl(NameResolverContext* ctx, ASTNode* current)
+{
+    char* intName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF);
+
+    EnterScope(ctx->arena, ctx->nss);
+
+    ASTNode* interfaceBody = current->children[0];
+    for (size_t i = 0; i < interfaceBody->childCount; i++) {
+        ASTNode* memberNode = interfaceBody->children[i];
+
+        if (memberNode->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, memberNode);
+        else if (memberNode->ntype == FUNC_DECL) ResolveFuncDecl(ctx, memberNode);
+    }
+
+    ExitScope(ctx->nss);
+}
+
+/* Exprs */
+void ResolveExpr(NameResolverContext* ctx, ASTNode* current)
+{
+    switch (current->ntype) {
+        case BINARY_EXPR_NODE:
+            ResolveBinaryExpr(ctx, current);
+            break;
+        case ASGN_EXPR_NODE:
+            ResolveAsgnExpr(ctx, current);
+            break;
+        case PREFIX_EXPR_NODE:
+            ResolvePrefixExpr(ctx, current);
+            break;
+        case POSTFIX_EXPR_NODE:
+            ResolvePostfixExpr(ctx, current);
+            break;
+        case TERNARY_EXPR_NODE:
+            ResolveTernaryExpr(ctx, current);
+            break;
+        case IDENT_NODE:
+            Debug("Ident");
+            char* identName = current->token.lexeme;
+            Environment* env = GetNamespace(ctx->nss, N_VAR);
+            Symbol* sym = LookupEnvironment(env, identName);
+
+            if (sym == SYM_DOESNT_EXIST) 
+                ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                    "Variable '%s' doesn't exist within current scope on line %d, col %d.\n",
+                    identName, current->token.row, current->token.col
+                );
+            break;
+        case LITERAL_NODE:
+            Debug("Literal");
+            // Do Nothing
+            break;
+        case SMEMBER_NODE:  // Fallthrough since same
+        case MEMBER_NODE:
+            ResolveMember(ctx, current);
+            break;
+        case SREF_NODE:     // Fallthrough since same
+        case REF_NODE:
+            ResolveReference(ctx, current);
+            break;
+        case SIZEOF_NODE:
+            ResolveSizeof(ctx, current);
+            break;
+        case CAST_NODE:
+            ResolveCast(ctx, current);
+            break;
+        case INDEX_NODE:
+            ResolveIndex(ctx, current);
+            break;
+        case LAMBDA_NODE:
+            ResolveLambda(ctx, current);
+            break;
+        default: break; // ERROR
+    } 
+}
+
+void ResolveBinaryExpr(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Binary");
+    ASTNode* first = current->children[0];
+    ResolveExpr(ctx, first); 
+    ASTNode* second = current->children[1];
+    ResolveExpr(ctx, second); 
+}
+
+void ResolveAsgnExpr(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Asgn");
+    ASTNode* first = current->children[0];
+    ResolveExpr(ctx, first); 
+    ASTNode* second = current->children[1];
+    ResolveExpr(ctx, second); 
+}
+
+void ResolvePrefixExpr(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Prefix");
+    ASTNode* node = current->children[0];
+    ResolveExpr(ctx, node); // Solves Nested
+}
+
+void ResolvePostfixExpr(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Postfix");
+    ASTNode* node = current->children[0];
+    ResolveExpr(ctx, node);
+}
+
+void ResolveTernaryExpr(NameResolverContext* ctx, ASTNode* current)
+{
+
+}
+
+/* Operations */
+
+void ResolveCast(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Cast");
+    ResolveType(ctx, current->children[0]);
+    ResolveExpr(ctx, current->children[1]);
+}
+
+void ResolveIndex(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Index");
+    ResolveExpr(ctx, current->children[0]);
+
+    // Handles Nested
+    ASTNode* nestedOrVar = current->children[1];
+    if (nestedOrVar->ntype == INDEX_NODE) ResolveIndex(ctx, nestedOrVar);
+    else if (nestedOrVar->ntype == IDENT_NODE) {
+        char* arrName = nestedOrVar->token.lexeme;
+        Environment* env = GetNamespace(ctx->nss, N_VAR);
+        Symbol* arrSym = LookupEnvironment(env, arrName);
+
+        if (arrSym == SYM_DOESNT_EXIST) 
+            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                "Cannot index array. Array '%s' doesn't exist within current scope on line %d, col %d.\n",
+                arrName, current->token.row, current->token.col
+            );
+    }
+}
+
+void ResolveFuncCall(NameResolverContext* ctx, ASTNode* current)
+{
+    char* funcName = current->token.lexeme;
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    Symbol* funcSym = LookupEnvironment(env, funcName);
+
+    if (funcSym == SYM_DOESNT_EXIST) 
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "User defined function '%s' doesn't exist within current scope on line %d, col %d.\n",
+            funcName, current->token.row, current->token.col
+        );
+    ResolveArgList(ctx, current->children[0]);
+}
+
+void ResolveMember(NameResolverContext* ctx, ASTNode* current)
+{
+    // Struct member technically a part of the type. Type Checkers responsibility
+    Debug("Member");
+    char* memName = current->token.lexeme;
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    Symbol* sym = LookupEnvironment(env, memName);
+
+    if (sym == SYM_DOESNT_EXIST) 
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "No struct '%s' exists within current scope on line %d, col %d.\n",
+            memName, current->token.row, current->token.col
+        );
+}
+
+void ResolveReference(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Reference");
+    char* refName = current->token.lexeme;
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    Symbol* sym = LookupEnvironment(env, refName);
+
+    if (sym == SYM_DOESNT_EXIST) 
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "No struct '%s' exists within current scope on line %d, col %d.\n",
+            refName, current->token.row, current->token.col
+        );
+}
+
+void ResolveSizeof(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Sizeof");
+    ASTNode* typeNode = current->children[0];
+    if (typeNode->ntype == TYPE_NODE) return;   // unambiguous
+
+    char* typeName = typeNode->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    Symbol* typeSym = LookupEnvironment(typeEnv, typeName);
+
+    if (typeSym == SYM_DOESNT_EXIST) {
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "Attempting to get the size of an undefined type '%s' within current scope on line %d, col %d.\n",
+            typeName, current->token.row, current->token.col
+        );
+    }
+}
+
+/* Others */
+
+void ResolveVar(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Var");
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    PushEnvironment(ctx->arena, env, current, S_VAR);
+
+    // Declaration not definition
+    if (current->childCount == 0) return;
+
+    // Check for k ArrDecls
+    size_t i = 0;
+    ASTNode* arrDecl = current->children[0];
+    while (arrDecl->ntype == ARR_DECL_NODE) {
+        ResolveArrDecl(ctx, arrDecl);
+        i++;
+
+        arrDecl = current->children[i];
+    }
+
+    // Check between Expr or ArrInitList
+    if (current->children[i]->ntype == ARR_INIT_LIST_NODE)  // Could resuse arrDecl, but confusing
+        ResolveArrInit(ctx, current->children[i]);
+    else 
+        ResolveExpr(ctx, current->children[i]);
+}
+
+void ResolveArrDecl(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("ArrDecl");
+
+    // Ignores literals
+    if (current->ntype != LITERAL_NODE) ResolveExpr(ctx, current);
+}
+
+void ResolveArrInit(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("ArrInit");
+    for (size_t i = 0; i < current->childCount; i++) {
+        ASTNode* listMember = current->children[i];
+
+        // Handles nested arrays 
+        if (listMember->ntype == ARR_INIT_LIST_NODE) {
+            ResolveArrInit(ctx, listMember);
+            continue;
         }
-        else if (memberNode->type == FUNC_NODE) {
-            if (ResolveFuncs(scope, memberNode) == ERRN) return ERRN;
+        else if (listMember->ntype != LITERAL_NODE) {
+            ResolveExpr(ctx, listMember);
+            continue;
         }
-    }
 
-    ExitPersistentScope(&scope);
-    return VALDN;
+        // Ignores literals 
+    }
 }
 
-int ResolveEnums(ScopeContext* scope, ASTNode* current)
+void ResolveCaptures(NameResolverContext* ctx, ASTNode* current)
 {
-    /* Don/t allow shadowing */
-    ASTNode* identNode = current->children[0];
+    Debug("Captures");
+    // Captures from parent scope so its a bit different
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    for (size_t i = 0; i < current->childCount; i++) {
+        ASTNode* capture = current->children[i];
+        char* captureName = capture->token.lexeme;
+        Symbol* captureSym = LookupEnvironment(env->prev, captureName);
 
-    Symbol* sym;   
-    char* name = identNode->token.lex.word;
-
-    sym = LookupCurrentScope(scope, name, N_TYPE);
-    if (sym) return NERROR_ALREADY_DEFINED(name, identNode, sym->decl);
-
-    /* TYPE* will become TY_ENUM during type checking, NULL for now */
-    sym = STPushNamespace(scope, identNode, N_TYPE, S_ENUM);
-    PushScope(scope, sym, N_TYPE);
-
-    /* Enum's Body Namespace */
-    BeginPersistentScope(&scope, ENUM_SCOPE);
-    sym->fields = scope->namespaces;
-
-    ASTNode* enumBody = current->children[1];
-    for (size_t i = 0; i < enumBody->childCount; i++) {
-        ASTNode* memberNode = enumBody->children[i];
-        char* memName = memberNode->token.lex.word;
-
-        Symbol* memSym = LookupCurrentScope(scope, memName, N_VAR);
-        if (memSym) return NERROR_ALREADY_DEFINED(memName, memberNode, memSym->decl);
-
-        memSym = STPushNamespace(scope, memberNode, N_VAR, S_VAR);
-        PushScope(scope, memSym, N_VAR);
+        if (captureSym == SYM_DOESNT_EXIST) {
+            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                "Captured variable '%s' doesn't exist within current scope on line %d, col %d.\n",
+                captureName, current->token.row, current->token.col
+            );
+            capture->sym = POISON_SYM;
+            continue;
+        }
+            
+        // Push them to current
+        PushEnvironment(ctx->arena, env, captureSym->node, S_VAR);
     }
-
-    ExitPersistentScope(&scope);
-    return VALDN;
 }
 
-int ResolveTypedefs(ScopeContext* scope, ASTNode* current)
+void ResolveOperatorOverload(NameResolverContext* ctx, ASTNode* current)
 {
-    /* Not sure if this should be in name resolver */
-    ASTNode* newTypeNode = current->children[1];
-    char* newTypeLex = newTypeNode->token.lex.word;
+    Debug("Operator");
+    // TODO: Lazy namespace binding in the future
+    // TODO: Allow multiple of the same operator, as long as types are diff
 
-    Symbol* sym = LookupCurrentScope(scope, newTypeLex, N_TYPE);
-    if (sym) return NERROR_ALREADY_DEFINED(newTypeLex, newTypeNode, sym->decl);
+    // Operator
+    char* operatorNode = current->token.lexeme;
+    Environment* opEnv = GetNamespace(ctx->nss, N_OPERATOR);
+    PushEnvironment(ctx->arena, opEnv, current, S_OPERATOR);
 
-    /* TYPE* will become TY_NAME during type checking, NULL for now */
-    sym = STPushNamespace(scope, newTypeNode, N_TYPE, S_TYPEDEF);
-    PushScope(scope, sym, N_TYPE); 
+    EnterScope(ctx->arena, ctx->nss);
 
-    /* Resolve Typedefs */
-    return NANN;
+    // Paramaters and body
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+
+    for (size_t i = 0; i < current->childCount; i++) {
+        ASTNode* paramOrBodyNode = current->children[i];
+
+        if (paramOrBodyNode->ntype == PARAM_NODE) {
+            ASTNode* param = paramOrBodyNode;
+
+            ResolveType(ctx, param->children[0]);
+            PushEnvironment(ctx->arena, env, param, S_FIELD);
+        } else if (paramOrBodyNode->ntype == BODY_NODE) 
+            ResolveBody(ctx, paramOrBodyNode);
+    } 
+
+    ExitScope(ctx->nss);
 }
 
-/* ---------- Etc ---------- */
+/* Lists */
 
-int ResolveFuncCall(ScopeContext* scope, ASTNode* current)
+void ResolveParamList(NameResolverContext* ctx, ASTNode* current)
 {
-    /* TODO: This breaks recursion */
-    ASTNode* identNode = current->children[0];
-    char* identLex = identNode->token.lex.word;
+    Debug("ParamList");
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
 
-    Symbol* sym = LookupAllScopes(scope, identLex, N_VAR);
-    if (!sym)
-        return NERROR_DOESNT_EXIST(identLex, identNode);
-    else if (sym->stype != S_FUNC)
-        return NERROR("Attempting to call a non function identifier", identLex, identNode);
+    for (size_t i = 0; i < current->childCount; i++) {
+        ASTNode* param = current->children[i];
 
-    /* Ensure arg count matches */
-    ASTNode* argListNode = current->children[1];
-    if (sym->fieldCount != GetTotalArgCount(argListNode)) 
-        return NERROR("Mismatch in argument count", identLex, identNode);
-
-    for (size_t i = 0; i < argListNode->childCount; i++) {
-        ASTNode* argNode = argListNode->children[i];
-        int status = ResolveFuncArg(scope, argNode);
-        if (status != VALDN)
-            return status;
+        if (param->children[0]->ntype == TYPE_NODE)
+            ResolveType(ctx, param->children[0]);
+        else {
+            size_t i = 0;
+            while (param->children[i]->ntype == ARR_DECL_NODE) {
+                ResolveArrDecl(ctx, param->children[i]);
+                i++;
+            }
+            ResolveType(ctx, param->children[i]);
+        }
+        PushEnvironment(ctx->arena, env, param, S_FIELD);
     }
-    return VALDN;
 }
 
-int ResolveFuncArg(ScopeContext* scope, ASTNode* current)
+void ResolveArgList(NameResolverContext* ctx, ASTNode* current)
 {
-    /* TODO: Resolve for func calls and array index, etc */
-    if (current->type == LITERAL_NODE)
-        return VALDN;
-    else if (current->type == IDENT_NODE) {
-        char* identLex = current->token.lex.word;
-        Symbol* sym = LookupCurrentScope(scope, identLex, N_VAR);
-        if (!sym) 
-            return NERROR_DOESNT_EXIST(identLex, current);
-
-        return VALDN;
-    }
-    return NANN;
+    Debug("Arglist");
+    for (size_t i = 0; i < current->childCount; i++) 
+        ResolveExpr(ctx, current->children[i]);
 }
 
-int ResolveMemberAccess(ScopeContext* scope, ASTNode* current, Namespaces** nestedMembers) 
+/* Types */
+
+void ResolveGenericList(NameResolverContext* ctx, ASTNode* current)
 {
-    ASTNode* identNode = current->children[0];
-    char* identLex = identNode->token.lex.word; 
-
-    Namespaces* memberFields; 
-
-    // Handles Nested Member Access
-    if (identNode->type == MEMBER_ACCESS_NODE) {
-        if (ResolveMemberAccess(scope, identNode, &memberFields) != VALDN) 
-            return ERRN;
-    }
-    else  {
-        Symbol* sym = LookupAllScopes(scope, identLex, N_VAR);
-        if (!sym)
-            return NERROR_DOESNT_EXIST(identLex, identNode);
-        memberFields = sym->fields;
-    }
- 
-    /* 
-        TODO: This check isn't thorough enough, this would allow functions and enums
-        which could actually be a cool feature of the language. Debate on this later 
-    */
-    if (!memberFields)  
-        return NERROR("Identifier is not a struct", identLex, identNode);
-
-    ASTNode* memberNode = current->children[1];
-    char* memberLex = memberNode->token.lex.word;
-    /* TODO: Check N_TYPE if not in N_VAR, etc */
-    Symbol* memSym = STLookupNamespace(memberFields, memberLex, N_VAR);
-
-    if (!memSym)
-        return NERROR_DOESNT_EXIST(memberLex, memberNode);
-
-    // For name resolution phase: done. We assume later type checking handles the rest
-    *nestedMembers = memberFields;
-    return VALDN;
+    Debug("GenericList");
+    for (size_t i = 0; i < current->childCount; i++) 
+        ResolveGeneric(ctx, current->children[i]);
 }
 
-int ResolveArrIndex(ScopeContext* scope, ASTNode* current)
+void ResolveGeneric(NameResolverContext* ctx, ASTNode* current)
 {
-    return NANN;
+    Debug("Generic");
+    char* typeName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    PushEnvironment(ctx->arena, typeEnv, current, S_GEN);
 }
 
-
-/* ---------- Helpers ---------- */
-
-SymbolType DetermineSymType(ASTNode* node) 
+void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current)
 {
-    switch(node->type) {
-        case(VAR_DECL_NODE): return S_VAR;
-        /* Check parent for type? */
-        case(FUNC_NODE) : return S_FUNC;
-        case(ARR_INDEX_NODE) : return S_INDEX;
-        case(CALL_FUNC_NODE) : return S_CALL;
-        case(TYPEDEF_DECL_NODE) : return S_TYPEDEF;
-        case(STRUCT_DECL_NODE) : return S_STRUCT;
-        case(ENUM_DECL_NODE) : return S_ENUM;
-
-        /* Fall thorugh for speicifc Ctrl Scopes */
-        case(IF_NODE): case(ELIF_NODE): case(ELSE_NODE):
-        case(DO_WHILE_STMT_NODE): case(WHILE_STMT_NODE):
-        case(SWITCH_STMT_NODE): case(FOR_STMT_NODE): return S_CTRL;
+    Debug("GenericRef");
+    // For generic returns, need to lookup if defined already
+    char* typeName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    
+    Symbol* found = LookupEnvironment(typeEnv, typeName);
+    if (found == SYM_DOESNT_EXIST || found->stype != S_GEN) {
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "Undefined generic parameter '%s' on line %d, col %d.\n", 
+            typeName, current->token.row, current->token.col
+        );
     }
-    return S_ERROR; 
+}
+
+void ResolveType(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Type");
+
+    switch (current->ntype) {
+        case TYPE_NODE: return; // Predefined types
+        case MATRIX_NODE: ResolveMatrix(ctx, current); return;
+        case VECTOR_NODE: ResolveVector(ctx, current); return;
+        case CHANNEL_NODE: ResolveChannel(ctx, current); return;
+        case CLOSURE_NODE: ResolveClosure(ctx, current); return;
+        case FUNC_POINTER_NODE: ResolveFuncPointer(ctx, current); return;
+        default: break;
+    }
+
+    // Ident -> user defined
+    char* typeName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    Symbol* typeSym = LookupEnvironment(typeEnv, typeName);
+
+    if (typeSym == SYM_DOESNT_EXIST) 
+        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            "User defined type '%s' doesn't exist within current scope on line %d, col %d.\n",
+            typeName, current->token.row, current->token.col
+        );
+}
+
+void ResolveMatrix(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Matrix");
+    ResolveType(ctx, current->children[0]);
+    ResolveExpr(ctx, current->children[1]);
+    ResolveExpr(ctx, current->children[2]);
+}
+
+void ResolveVector(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Vector");
+    ResolveType(ctx, current->children[0]);
+    ResolveExpr(ctx, current->children[1]);
+}
+
+void ResolveChannel(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Channel");
+    ResolveType(ctx, current->children[0]);
+}
+
+void ResolveLambda(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Lambda");
+
+    // Must resolve captures first since it checks the current scope
+    ResolveType(ctx, current->children[0]);
+
+    EnterScope(ctx->arena, ctx->nss);
+    ResolveParamList(ctx, current->children[1]);
+    ResolveCaptures(ctx, current->children[2]);
+    ResolveBody(ctx, current->children[3]);
+    ExitScope(ctx->nss);
+}
+
+void ResolveClosure(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("Closure");
+    for (size_t i = 0; i < current->childCount; i++) 
+        ResolveType(ctx, current->children[i]);
+}
+
+void ResolveFuncPointer(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("FuncPtr");
+
+    for (size_t i = 0; i < current->childCount; i++) 
+        ResolveType(ctx, current->children[i]);
 }
