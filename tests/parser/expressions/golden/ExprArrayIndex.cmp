@@ -1,36 +1,14 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (x)
-│   │   │   │   │   ├── INDEX
-│   │   │   │   │   │   ├── LITERAL (0)
-│   │   │   │   │   │   ├── IDENT (a)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (y)
-│   │   │   │   │   ├── INDEX
-│   │   │   │   │   │   ├── LITERAL (5)
-│   │   │   │   │   │   ├── IDENT (a)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (z)
-│   │   │   │   │   ├── INDEX
-│   │   │   │   │   │   ├── BINARY (+)
-│   │   │   │   │   │   │   ├── IDENT (i)
-│   │   │   │   │   │   │   ├── LITERAL (1)
-│   │   │   │   │   │   ├── IDENT (a)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (w)
-│   │   │   │   │   ├── INDEX
-│   │   │   │   │   │   ├── IDENT (j)
-│   │   │   │   │   │   ├── INDEX
-│   │   │   │   │   │   │   ├── IDENT (i)
-│   │   │   │   │   │   │   ├── IDENT (matrix)
+
+NAME RESOLUTION ERROR: Cannot index array. Array 'a' doesn't exist within current scope on line -1, col -1.
+
+NAME RESOLUTION ERROR: Cannot index array. Array 'a' doesn't exist within current scope on line -1, col -1.
+
+NAME RESOLUTION ERROR: Variable 'i' doesn't exist within current scope on line 4, col 19.
+
+NAME RESOLUTION ERROR: Cannot index array. Array 'a' doesn't exist within current scope on line -1, col -1.
+
+NAME RESOLUTION ERROR: Variable 'j' doesn't exist within current scope on line 5, col 27.
+
+NAME RESOLUTION ERROR: Variable 'i' doesn't exist within current scope on line 5, col 24.
+
+NAME RESOLUTION ERROR: Cannot index array. Array 'matrix' doesn't exist within current scope on line -1, col -1.

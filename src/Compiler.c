@@ -138,7 +138,7 @@ void RunNameResolver(CompilationState* cs)
         CleanupBrian(cs);
         ERROR(ERR_FLAG_EXIT, PARSER_ERR, "Failed to name resolve.\n");
     }
-    if (cs->flags.stopAfter == PARSE) 
+    if (cs->flags.stopAfter == NAMERES) 
         CleanupBrian(cs);
 
     cs->nameres = ctx;

@@ -1,10 +1,4 @@
-PROG
-├── STRUCT_DECL (Foo)
-│   ├── IMPLEMENTS
-│   │   ├── IDENT (IBar)
-│   │   ├── IDENT (IBaz)
-│   ├── STRUCT_BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (x)
+
+NAME RESOLUTION ERROR: Interface 'IBar' doesn't exist within current scope on line 1, col 14.
+
+NAME RESOLUTION ERROR: Interface 'IBaz' doesn't exist within current scope on line 1, col 20.

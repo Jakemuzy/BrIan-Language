@@ -1,9 +1,0 @@
-PROG
-├── FUNC_DEF (increment)
-│   ├── TYPE (void)
-│   ├── PARAM_LIST
-│   │   ├── PARAM (counter)
-│   │   │   ├── QUALIFIER_LIST
-│   │   │   │   ├── TYPE_QUALIFIER (atomic)
-│   │   │   ├── TYPE (int)
-│   ├── BODY

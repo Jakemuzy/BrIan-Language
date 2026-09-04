@@ -1,9 +1,4 @@
-PROG
-├── FUNC_DEF (process)
-│   ├── TYPE (void)
-│   ├── PARAM_LIST
-│   │   ├── PARAM (s)
-│   │   │   ├── TYPE (MyStruct)
-│   │   ├── PARAM (t)
-│   │   │   ├── TYPE (OtherType)
-│   ├── BODY
+
+NAME RESOLUTION ERROR: User defined type 'MyStruct' doesn't exist within current scope on line 1, col 17.
+
+NAME RESOLUTION ERROR: User defined type 'OtherType' doesn't exist within current scope on line 1, col 29.

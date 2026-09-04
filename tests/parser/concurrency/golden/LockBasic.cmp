@@ -1,7 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── LOCK
-│   │   │   ├── IDENT (myMutex)
-│   │   │   ├── BODY
+
+NAME RESOLUTION ERROR: Variable 'myMutex' doesn't exist within current scope on line 2, col 11.

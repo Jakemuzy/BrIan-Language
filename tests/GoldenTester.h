@@ -32,7 +32,7 @@ typedef struct TestRun {
 /* ----- Helpers ----- */
 char* GetParentDirPath(char* currentPath);
 char* GetGoldenFileName(char* fileName);
-char* CaptureOutput(char* sysCommand);
+char* CaptureOutput(TestRun* run, char* sysCommand, int* outExitCode);
 char* ReadGolden(char* goldenPath);
 int CompareOutputs(char* runOutput, char* goldenOutput);
 

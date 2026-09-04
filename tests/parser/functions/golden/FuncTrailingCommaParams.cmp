@@ -1,9 +1,0 @@
-PROG
-├── FUNC_DEF (foo)
-│   ├── TYPE (int)
-│   ├── PARAM_LIST
-│   │   ├── PARAM (a)
-│   │   │   ├── TYPE (int)
-│   │   ├── PARAM (b)
-│   │   │   ├── TYPE (int)
-│   ├── BODY

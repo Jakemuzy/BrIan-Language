@@ -1,19 +1,2 @@
-PROG
-├── STRUCT_DECL (A)
-│   ├── STRUCT_BODY
-│   │   ├── STRUCT_DECL (B)
-│   │   │   ├── STRUCT_BODY
-│   │   │   │   ├── STRUCT_DECL (C)
-│   │   │   │   │   ├── STRUCT_BODY
-│   │   │   │   │   │   ├── VAR_DECL
-│   │   │   │   │   │   │   ├── TYPE (int)
-│   │   │   │   │   │   │   ├── VAR_LIST
-│   │   │   │   │   │   │   │   ├── VAR (value)
-│   │   │   │   ├── VAR_DECL
-│   │   │   │   │   ├── TYPE (float)
-│   │   │   │   │   ├── VAR_LIST
-│   │   │   │   │   │   ├── VAR (x)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (double)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (y)
+
+NAME RESOLUTION ERROR: Invalid statement 'B' within generic struct scope on line 2, col 12.

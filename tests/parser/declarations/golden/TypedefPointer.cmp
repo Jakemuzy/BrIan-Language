@@ -1,4 +1,0 @@
-PROG
-├── TYPEDEF_DECL (IntPtr)
-│   ├── TYPE (int)
-│   │   ├── DECL_PREFIX (*)

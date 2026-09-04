@@ -1,5 +1,0 @@
-PROG
-├── ENUM_DECL (Color)
-│   ├── ENUM_BODY
-│   │   ├── IDENT (Red)
-│   │   ├── IDENT (Green)

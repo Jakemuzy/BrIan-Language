@@ -1,14 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── CLOSURE (closure)
-│   │   │   │   ├── TYPE (void)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (action)
-│   │   │   │   │   ├── LAMBDA
-│   │   │   │   │   │   ├── TYPE (void)
-│   │   │   │   │   │   ├── CAPTURES
-│   │   │   │   │   │   │   ├── IDENT (x)
-│   │   │   │   │   │   ├── BODY
+
+NAME RESOLUTION ERROR: Captured variable 'x' doesn't exist within current scope on line -1, col -1.

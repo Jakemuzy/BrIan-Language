@@ -1,12 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── SWITCH
-│   │   │   ├── IDENT (s)
-│   │   │   ├── CASE ("hello")
-│   │   │   │   ├── BODY
-│   │   │   │   │   ├── BREAK (break)
-│   │   │   ├── CASE ("world")
-│   │   │   │   ├── BODY
-│   │   │   │   │   ├── BREAK (break)
+
+NAME RESOLUTION ERROR: Variable 's' doesn't exist within current scope on line 2, col 13.

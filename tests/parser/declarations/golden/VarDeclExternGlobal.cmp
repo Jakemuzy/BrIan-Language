@@ -1,11 +1,4 @@
-PROG
-├── VAR_DECL
-│   ├── LINKAGE_SPEC (extern)
-│   ├── TYPE (int)
-│   ├── VAR_LIST
-│   │   ├── VAR (globalVar)
-├── VAR_DECL
-│   ├── LINKAGE_SPEC (extern)
-│   ├── TYPE (float)
-│   ├── VAR_LIST
-│   │   ├── VAR (globalFloat)
+
+NAME RESOLUTION ERROR: User defined type 'extern' doesn't exist within current scope on line 1, col 5.
+
+NAME RESOLUTION ERROR: User defined type 'extern' doesn't exist within current scope on line 2, col 5.

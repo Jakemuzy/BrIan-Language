@@ -1,16 +1,6 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── IF STATEMENT
-│   │   │   ├── IF
-│   │   │   │   ├── IDENT (a)
-│   │   │   │   ├── BODY
-│   │   │   │   │   ├── IF STATEMENT
-│   │   │   │   │   │   ├── IF
-│   │   │   │   │   │   │   ├── IDENT (b)
-│   │   │   │   │   │   │   ├── BODY
-│   │   │   │   │   │   │   │   ├── IF STATEMENT
-│   │   │   │   │   │   │   │   │   ├── IF
-│   │   │   │   │   │   │   │   │   │   ├── IDENT (c)
-│   │   │   │   │   │   │   │   │   │   ├── BODY
+
+NAME RESOLUTION ERROR: Variable 'a' doesn't exist within current scope on line 2, col 9.
+
+NAME RESOLUTION ERROR: Variable 'b' doesn't exist within current scope on line 3, col 13.
+
+NAME RESOLUTION ERROR: Variable 'c' doesn't exist within current scope on line 4, col 17.

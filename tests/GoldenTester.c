@@ -4,19 +4,26 @@
 
 char* GetParentDirPath(char* currentPath) 
 {
-    char* parentDirPath = strdup(currentPath);  
-    if (!parentDirPath) return NULL;
-
-    // Strip trailing slash first
-    size_t len = strlen(parentDirPath);
-    if (len > 1 && parentDirPath[len - 1] == '/')
-        parentDirPath[len - 1] = '\0';
-
-    char* lastSlash = strrchr(parentDirPath, '/');
-    if (lastSlash)
-        *(lastSlash + 1) = '\0';  // Truncate after the last slash
-
-    return parentDirPath;  // MUST FREE LATER
+    char* pathCopy = strdup(currentPath);
+    if (!pathCopy) return NULL;
+    
+    char* dir = dirname(pathCopy);
+    size_t len = strlen(dir);
+    
+    char* parentDirPath = malloc(len + 2);
+    if (!parentDirPath) {
+        free(pathCopy);
+        return NULL;
+    }
+    
+    strcpy(parentDirPath, dir);
+    if (len > 0 && parentDirPath[len - 1] != '/') {
+        parentDirPath[len] = '/';
+        parentDirPath[len + 1] = '\0';
+    }
+    
+    free(pathCopy);
+    return parentDirPath;
 }
 
 char* GetGoldenFileName(char* fileName)
@@ -31,12 +38,11 @@ char* GetGoldenFileName(char* fileName)
     memcpy(result, fileName, baseLen);
     memcpy(result + baseLen, ".cmp", 5);
 
-    return result; // Must free later
+    return result;
 }
 
-char* CaptureOutput(char* sysCommand)
+char* CaptureOutput(TestRun* run, char* sysCommand, int* outExitCode)
 {
-    // Append 2>&1 to capture stderr alongside stdout
     size_t cmdLen = strlen(sysCommand);
     char* fullCommand = malloc(cmdLen + 6); // " 2>&1\0"
     if (!fullCommand) { printf("ERROR: malloc failed\n"); exit(1); }
@@ -50,8 +56,12 @@ char* CaptureOutput(char* sysCommand)
     commandOutput[0] = '\0';
 
     FILE* pipe = popen(fullCommand, "r");
-    free(fullCommand);
-    if (!pipe) { printf("ERROR: popen failed\n"); free(commandOutput); exit(1); }
+    if (!pipe) { 
+        printf("ERROR: popen failed\n"); 
+        free(fullCommand); 
+        free(commandOutput); 
+        exit(1); 
+    }
 
     char buffer[256];
     while (fgets(buffer, sizeof(buffer), pipe)) {
@@ -59,34 +69,52 @@ char* CaptureOutput(char* sysCommand)
         if (length + chunkLen + 1 >= capacity) {
             capacity *= 2;
             char* temp = realloc(commandOutput, capacity);
-            if (!temp) { printf("ERROR: realloc failed\n"); free(commandOutput); exit(1); }
+            if (!temp) { printf("ERROR: realloc failed\n"); free(fullCommand); free(commandOutput); pclose(pipe); exit(1); }
             commandOutput = temp;
         }
         memcpy(commandOutput + length, buffer, chunkLen + 1);
         length += chunkLen;
     }
 
-    pclose(pipe);
+    int status = pclose(pipe);
+    if (WIFSIGNALED(status)) {
+        // FIXED: Log fullCommand BEFORE freeing it
+        printf("\tCRASHED %s: signal %d\n", fullCommand, WTERMSIG(status));
+        free(fullCommand);
+        run->failCount++;
+        *outExitCode = -1;
+        commandOutput[0] = '\0';
+        return commandOutput;
+    }
+    
+    free(fullCommand);
+
+    if (WIFEXITED(status)) {
+        *outExitCode = WEXITSTATUS(status);
+    } else {
+        *outExitCode = status;
+    }
+
     return commandOutput;
 }
 
 char* ReadGolden(char* goldenPath) 
 {
     FILE *f = fopen(goldenPath, "rb");
-    if (f == NULL) {
-        printf("Cannot open golden file: %s\n", goldenPath);
-        return NULL;
-    } 
+    if (f == NULL) return NULL;
 
     fseek(f, 0, SEEK_END);
     long length = ftell(f);
-    
     fseek(f, 0, SEEK_SET);
 
     char *buffer = malloc(length + 1);
     if (buffer) {
-        fread(buffer, 1, length, f);
-        buffer[length] = '\0'; 
+        if (length > 0) {
+            size_t readElements = fread(buffer, 1, length, f);
+            buffer[readElements] = '\0';
+        } else {
+            buffer[0] = '\0';
+        }
     }
 
     fclose(f);
@@ -95,7 +123,6 @@ char* ReadGolden(char* goldenPath)
 
 int CompareOutputs(char* runOutput, char* goldenOutput)
 {
-    // Can do somehting more sophisticated later
     return strcmp(runOutput, goldenOutput);
 }
 
@@ -104,12 +131,10 @@ int CompareOutputs(char* runOutput, char* goldenOutput)
 int main(int argc, char* argv[]) 
 {
     TestRun* run = ParseFlags(argc, argv);
-    
     RecurseDirectories(run, run->directory);
-    // CompileBrian(argc, argv);
-
+    int failed = run->failCount;
     free(run);
-    return 0;
+    return failed > 0 ? 1 : 0;
 }
 
 TestRun* ParseFlags(int argc, char* argv[])
@@ -119,130 +144,161 @@ TestRun* ParseFlags(int argc, char* argv[])
     TestRun* run = malloc(sizeof(TestRun));
     run->directory = "./tests";
     run->regenerate = false;
-    run->suppressOutput = false;        // Make this a flag
+    run->suppressOutput = false;
+    run->failCount = 0;
+    run->compilerFlag = NULL;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--file") == 0) {
-            if (++i >= argc) { printf("ERROR: expected file location after --file flag.\n"); exit(1); }
-
+            if (++i >= argc) { printf("ERROR: expected file location.\n"); exit(1); }
             run->directory = argv[i]; 
         }
         else if (strcmp(argv[i], "--regenerate") == 0) {
             run->regenerate = true;
         }
         else {
-            // Directly pass other flags 
-            // Yes only one is allowed for now 
             run->compilerFlag = argv[i];
         }
     }
     return run;
 }
 
-
 /* ----- Comparison ----- */
 
 void RecurseDirectories(TestRun* run, char* currentPath) 
 {
-    // If individual file, handle separately 
     struct stat path_stat;
-
     if (stat(currentPath, &path_stat) != 0) {
-        printf("ERROR: Stat has failed.\n");
+        printf("ERROR: Stat has failed on %s\n", currentPath);
         exit(1);
     }
 
     if (S_ISREG(path_stat.st_mode)) {
         char* pathCopy1 = strdup(currentPath); 
         char* pathCopy2 = strdup(currentPath); 
-
         char* dir  = dirname(pathCopy1);
         char* base = basename(pathCopy2);
 
-        // Truncate last /*
         CompareFile(run, dir, base);
         free(pathCopy1); free(pathCopy2);
         return;
     }
 
-    // If directory recurse
-    struct dirent* entry;
     DIR* dp = opendir(currentPath);
     if (!dp) {
-        printf("ERROR: Failed opening direcotry: %s.\n", currentPath);
+        printf("ERROR: Failed opening directory: %s.\n", currentPath);
         exit(1);
     }
 
+    struct dirent* entry;
     while ((entry = readdir(dp))) {
         if (strcmp(entry->d_name, ".") == 0 ||
             strcmp(entry->d_name, "..") == 0 ||
             strcmp(entry->d_name, "golden") == 0) {
             continue;
         }
-        if (entry->d_type == DT_DIR) {
-            char path[1024];
-            snprintf(path, sizeof(path), "%s/%s", currentPath, entry->d_name);
+        
+        char path[1024];
+        snprintf(path, sizeof(path), "%s/%s", currentPath, entry->d_name);
 
-            printf("In directory: %s.\n", path);
+        if (entry->d_type == DT_DIR) {
             RecurseDirectories(run, path);
         } else if (entry->d_type == DT_REG) {
-            // Checks if its a .src file before entering
             const char* ext = strrchr(entry->d_name, '.');
             if (ext && strcmp(ext, ".src") == 0)
                 CompareFile(run, currentPath, entry->d_name);
         }
     }
-
     closedir(dp);
-    //ReadFile(run, dp, run->directory);
 }
 
 void CompareFile(TestRun* run, char* directoryPath, char* fileName) 
 {
-    // Strip trailing slash from directoryPath to normalize
     char dirNorm[512];
-    strncpy(dirNorm, directoryPath, sizeof(dirNorm));
+    strncpy(dirNorm, directoryPath, sizeof(dirNorm) - 1);
+    dirNorm[sizeof(dirNorm) - 1] = '\0';
     size_t len = strlen(dirNorm);
     if (len > 1 && dirNorm[len - 1] == '/')
         dirNorm[len - 1] = '\0';
 
-    // Open File
     char filePath[512];
     snprintf(filePath, sizeof(filePath), "%s/%s", dirNorm, fileName);
 
-    // Run compiler on file (with flags) and save output
     char sysCommand[512];
     snprintf(sysCommand, sizeof(sysCommand), "%s %s %s", "./bin/compiler", filePath, run->compilerFlag ? run->compilerFlag : "");
 
     char* parentDirPath = GetParentDirPath(directoryPath);
     char* goldenFileName = GetGoldenFileName(fileName);
+    if (!parentDirPath || !goldenFileName) {
+        free(parentDirPath); free(goldenFileName);
+        return;
+    }
 
-    // Output redirect
+    char targetGoldenDir[1028];
+    snprintf(targetGoldenDir, sizeof(targetGoldenDir), "%sgolden", parentDirPath);
+    
+    char mkdirCmd[1200];
+    snprintf(mkdirCmd, sizeof(mkdirCmd), "mkdir -p %s", targetGoldenDir);
+    int status = system(mkdirCmd); (void)status;
+  
     if (run->regenerate) {
-        // If regenerating: replace golden file with current file output
-        char goldenDirCommand[512];
-        snprintf(goldenDirCommand, sizeof(goldenDirCommand), "%s > %sgolden/%s 2>&1", sysCommand, parentDirPath, goldenFileName);
+        char goldenDirCommand[1200];
+        snprintf(goldenDirCommand, sizeof(goldenDirCommand), "%s > %s/%s 2>&1", sysCommand, targetGoldenDir, goldenFileName);
 
         int output = system(goldenDirCommand);
-        printf("\tREGENERATED %s: \t%s\n", fileName, (output == 1) ? "FAIL" : "PASS");
+        printf("\tREGENERATED %s: \t%s\n", fileName, (output != 0) ? "FAIL" : "PASS");
+        
+        free(goldenFileName);
         free(parentDirPath);
         return;
     } 
-    else if (run->suppressOutput) {
-        strncat(sysCommand, " > /dev/null 2>&1", sizeof(sysCommand) - strlen(sysCommand) - 1);
+
+    if (run->suppressOutput) {
+        strncat(sysCommand, " > /dev/null", sizeof(sysCommand) - strlen(sysCommand) - 1);
     }
 
     char goldenPath[1028];
-    snprintf(goldenPath, sizeof(goldenPath), "%sgolden/%s", parentDirPath, goldenFileName);
+    snprintf(goldenPath, sizeof(goldenPath), "%s/%s", targetGoldenDir, goldenFileName);
 
-    // Capture the output of the compiler and the golden file 
-    char* runOutput = CaptureOutput(sysCommand);
+    int compilerExitCode = 0;
+    char* runOutput = CaptureOutput(run, sysCommand, &compilerExitCode);
     char* goldenOutput = ReadGolden(goldenPath);
 
-    int output = CompareOutputs(runOutput, goldenOutput);
-    printf("\tCOMPARED %s:\t%s\n",fileName, (output == 1) ? "FAIL" : "PASS");
+    int expectedExitCode = 0; 
+    bool pathRulesEvaluated = false;
 
-    free(goldenFileName);  
+    if (strstr(filePath, "/invalid/") != NULL) {
+        expectedExitCode = 1;
+        pathRulesEvaluated = true;
+    } else if (strstr(filePath, "/valid/") != NULL) {
+        expectedExitCode = 0;
+        pathRulesEvaluated = true;
+    }
+
+    if (!goldenOutput) {
+        printf("\tCOMPARED %s:\tFAIL (Missing or unreadable golden file)\n", fileName);
+        run->failCount++;
+    } else if (compilerExitCode == -1) {
+        printf("\tCOMPARED %s:\tFAIL (Compiler crashed)\n", fileName);
+    } else {
+        int outputDiff = CompareOutputs(runOutput, goldenOutput);
+        bool exitCodeCorrect = !pathRulesEvaluated || (compilerExitCode == expectedExitCode);
+        bool passed = (outputDiff == 0 && exitCodeCorrect);
+
+        if (passed) {
+            printf("\tCOMPARED %s:\tPASS\n", fileName);
+        } else {
+            printf("\tCOMPARED %s:\tFAIL", fileName);
+            if (outputDiff != 0) printf(" (Output mismatch)");
+            if (!exitCodeCorrect) printf(" (Wrong exit code: expected %d, got %d)", expectedExitCode, compilerExitCode);
+            printf("\n");
+            run->failCount++;
+        }
+    }
+
+    free(runOutput);
+    free(goldenOutput);
+    free(goldenFileName);
     free(parentDirPath);
 }
 

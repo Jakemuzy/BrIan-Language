@@ -1,17 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (MyStruct)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (s)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (MyStruct)
-│   │   │   │   ├── DECL_PREFIX (*)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (ptr)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (OtherType)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (val)
+
+SYNTAX ERROR: Expected identifier name for variable declaration. Instead encountered '*' on line 3, col 17

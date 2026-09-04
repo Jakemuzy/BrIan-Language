@@ -1,18 +1,12 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── WHILE
-│   │   │   ├── BINARY (<)
-│   │   │   │   ├── IDENT (i)
-│   │   │   │   ├── IDENT (n)
-│   │   │   ├── BODY
-│   │   │   │   ├── WHILE
-│   │   │   │   │   ├── BINARY (<)
-│   │   │   │   │   │   ├── IDENT (j)
-│   │   │   │   │   │   ├── IDENT (m)
-│   │   │   │   │   ├── BODY
-│   │   │   │   │   │   ├── POSTFIX (++)
-│   │   │   │   │   │   │   ├── IDENT (j)
-│   │   │   │   ├── POSTFIX (++)
-│   │   │   │   │   ├── IDENT (i)
+
+NAME RESOLUTION ERROR: Variable 'i' doesn't exist within current scope on line 2, col 12.
+
+NAME RESOLUTION ERROR: Variable 'n' doesn't exist within current scope on line 2, col 16.
+
+NAME RESOLUTION ERROR: Variable 'j' doesn't exist within current scope on line 3, col 16.
+
+NAME RESOLUTION ERROR: Variable 'm' doesn't exist within current scope on line 3, col 20.
+
+NAME RESOLUTION ERROR: Variable 'j' doesn't exist within current scope on line 4, col 13.
+
+NAME RESOLUTION ERROR: Variable 'i' doesn't exist within current scope on line 6, col 9.

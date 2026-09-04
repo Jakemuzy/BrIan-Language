@@ -1,22 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── CALL
-│   │   │   ├── MEMBER (baz)
-│   │   │   │   ├── CALL
-│   │   │   │   │   ├── MEMBER (bar)
-│   │   │   │   │   │   ├── CALL
-│   │   │   │   │   │   │   ├── MEMBER (foo)
-│   │   │   │   │   │   │   │   ├── IDENT (a)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (x)
-│   │   │   │   │   ├── CALL
-│   │   │   │   │   │   ├── MEMBER (getValue)
-│   │   │   │   │   │   │   ├── CALL
-│   │   │   │   │   │   │   │   ├── MEMBER (method2)
-│   │   │   │   │   │   │   │   │   ├── CALL
-│   │   │   │   │   │   │   │   │   │   ├── MEMBER (method1)
-│   │   │   │   │   │   │   │   │   │   │   ├── IDENT (obj)
+
+NAME RESOLUTION ERROR: User defined function 'a' doesn't exist within current scope on line 2, col 5.

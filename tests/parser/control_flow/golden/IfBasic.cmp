@@ -1,8 +1,0 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── IF STATEMENT
-│   │   │   ├── IF
-│   │   │   │   ├── LITERAL (true)
-│   │   │   │   ├── BODY

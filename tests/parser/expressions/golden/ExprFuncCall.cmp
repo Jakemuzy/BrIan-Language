@@ -1,21 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── CALL
-│   │   │   ├── IDENT (foo)
-│   │   ├── CALL
-│   │   │   ├── ARG_LIST
-│   │   │   │   ├── LITERAL (1)
-│   │   │   │   ├── LITERAL (2)
-│   │   │   │   ├── LITERAL (3)
-│   │   │   ├── IDENT (bar)
-│   │   ├── CALL
-│   │   │   ├── ARG_LIST
-│   │   │   │   ├── BINARY (+)
-│   │   │   │   │   ├── IDENT (a)
-│   │   │   │   │   ├── IDENT (b)
-│   │   │   │   ├── BINARY (*)
-│   │   │   │   │   ├── IDENT (c)
-│   │   │   │   │   ├── IDENT (d)
-│   │   │   ├── IDENT (baz)
+
+NAME RESOLUTION ERROR: User defined function 'foo' doesn't exist within current scope on line 2, col 5.

@@ -1,8 +1,2 @@
-PROG
-├── FUNC_DEF (getAction)
-│   ├── CLOSURE (closure)
-│   │   ├── TYPE (void)
-│   │   ├── TYPE (int)
-│   ├── BODY
-│   │   ├── RETURN
-│   │   │   ├── IDENT (NULL)
+
+NAME RESOLUTION ERROR: Variable 'NULL' doesn't exist within current scope on line 2, col 12.

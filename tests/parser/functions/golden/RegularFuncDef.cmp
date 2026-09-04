@@ -1,4 +1,0 @@
-PROG
-├── FUNC_DEF (foo)
-│   ├── TYPE (void)
-│   ├── BODY

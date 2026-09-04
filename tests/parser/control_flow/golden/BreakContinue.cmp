@@ -1,21 +1,4 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── WHILE
-│   │   │   ├── LITERAL (true)
-│   │   │   ├── BODY
-│   │   │   │   ├── IF STATEMENT
-│   │   │   │   │   ├── IF
-│   │   │   │   │   │   ├── BINARY (==)
-│   │   │   │   │   │   │   ├── IDENT (x)
-│   │   │   │   │   │   │   ├── LITERAL (5)
-│   │   │   │   │   │   ├── BODY
-│   │   │   │   │   │   │   ├── BREAK (break)
-│   │   │   │   ├── IF STATEMENT
-│   │   │   │   │   ├── IF
-│   │   │   │   │   │   ├── BINARY (==)
-│   │   │   │   │   │   │   ├── IDENT (x)
-│   │   │   │   │   │   │   ├── LITERAL (3)
-│   │   │   │   │   │   ├── BODY
-│   │   │   │   │   │   │   ├── CONTINUE (continue)
+
+NAME RESOLUTION ERROR: Variable 'x' doesn't exist within current scope on line 3, col 13.
+
+NAME RESOLUTION ERROR: Variable 'x' doesn't exist within current scope on line 6, col 13.

@@ -1,0 +1,30 @@
+name: Run Golden Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code Repository
+      uses: actions/checkout@v4
+
+    - name: Set up CMake and GCC
+      uses: lukka/get-cmake@latest
+
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build Project Binary Artifacts
+      run: cmake --build build --config Release
+
+    - name: Run Integration Tests via Golden Tester
+      run: |
+        # Make sure the binary path matches where your project deposits the 'tester' executable
+        ./build/tests/tester --file ./tests
+

@@ -1,9 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── CHANNEL
-│   │   │   │   ├── TYPE (MyMsg)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (ch)
+
+NAME RESOLUTION ERROR: User defined type 'MyMsg' doesn't exist within current scope on line 2, col 14.

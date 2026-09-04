@@ -1,9 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── VECTOR
-│   │   │   │   ├── LITERAL (9)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (v)
+
+SYNTAX ERROR: Expected vector to be a valid type. Instead encountered '9' on line 2, col 13

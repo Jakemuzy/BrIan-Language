@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: Expected semicolon ';' after expression. Instead encountered 'call' on line 10, col 25
+
+TOKENIZER ERROR: No closing ' found for character

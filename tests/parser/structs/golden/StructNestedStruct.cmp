@@ -1,13 +1,2 @@
-PROG
-├── STRUCT_DECL (Outer)
-│   ├── STRUCT_BODY
-│   │   ├── STRUCT_DECL (Inner)
-│   │   │   ├── STRUCT_BODY
-│   │   │   │   ├── VAR_DECL
-│   │   │   │   │   ├── TYPE (int)
-│   │   │   │   │   ├── VAR_LIST
-│   │   │   │   │   │   ├── VAR (val)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (x)
+
+NAME RESOLUTION ERROR: Invalid statement 'Inner' within generic struct scope on line 2, col 12.

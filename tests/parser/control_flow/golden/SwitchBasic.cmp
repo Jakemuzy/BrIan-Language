@@ -1,12 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── SWITCH
-│   │   │   ├── IDENT (x)
-│   │   │   ├── CASE (1)
-│   │   │   │   ├── BODY
-│   │   │   │   │   ├── BREAK (break)
-│   │   │   ├── CASE (2)
-│   │   │   │   ├── BODY
-│   │   │   │   │   ├── BREAK (break)
+
+NAME RESOLUTION ERROR: Variable 'x' doesn't exist within current scope on line 2, col 13.

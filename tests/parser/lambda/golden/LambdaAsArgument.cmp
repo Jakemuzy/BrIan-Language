@@ -1,19 +1,6 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── CALL
-│   │   │   ├── ARG_LIST
-│   │   │   │   ├── LAMBDA
-│   │   │   │   │   ├── TYPE (int)
-│   │   │   │   │   ├── PARAM_LIST
-│   │   │   │   │   │   ├── PARAM (x)
-│   │   │   │   │   │   │   ├── TYPE (int)
-│   │   │   │   │   ├── CAPTURES
-│   │   │   │   │   │   ├── IDENT (base)
-│   │   │   │   │   ├── BODY
-│   │   │   │   │   │   ├── RETURN
-│   │   │   │   │   │   │   ├── BINARY (+)
-│   │   │   │   │   │   │   │   ├── IDENT (x)
-│   │   │   │   │   │   │   │   ├── IDENT (base)
-│   │   │   ├── IDENT (apply)
+
+NAME RESOLUTION ERROR: User defined function 'apply' doesn't exist within current scope on line 2, col 5.
+
+NAME RESOLUTION ERROR: Captured variable 'base' doesn't exist within current scope on line -1, col -1.
+
+NAME RESOLUTION ERROR: Variable 'base' doesn't exist within current scope on line 3, col 20.

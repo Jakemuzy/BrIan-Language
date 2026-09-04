@@ -1,8 +1,0 @@
-PROG
-├── GEN_STRUCT_DECL (Box)
-│   ├── GENERIC_LIST
-│   ├── GEN_STRUCT_BODY
-│   │   ├── GEN_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (x)

@@ -1,15 +1,8 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── LOCK
-│   │   │   ├── IDENT (mutexA)
-│   │   │   ├── BODY
-│   │   │   │   ├── LOCK
-│   │   │   │   │   ├── IDENT (mutexB)
-│   │   │   │   │   ├── BODY
-│   │   │   │   │   │   ├── ASGN (=)
-│   │   │   │   │   │   │   ├── IDENT (x)
-│   │   │   │   │   │   │   ├── BINARY (+)
-│   │   │   │   │   │   │   │   ├── IDENT (x)
-│   │   │   │   │   │   │   │   ├── LITERAL (1)
+
+NAME RESOLUTION ERROR: Variable 'mutexA' doesn't exist within current scope on line 2, col 11.
+
+NAME RESOLUTION ERROR: Variable 'mutexB' doesn't exist within current scope on line 3, col 15.
+
+NAME RESOLUTION ERROR: Variable 'x' doesn't exist within current scope on line 4, col 13.
+
+NAME RESOLUTION ERROR: Variable 'x' doesn't exist within current scope on line 4, col 17.

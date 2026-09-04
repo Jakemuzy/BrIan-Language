@@ -1,19 +1,6 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── VECTOR
-│   │   │   │   ├── LITERAL (2)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (pos2d)
-│   │   ├── VAR_DECL
-│   │   │   ├── VECTOR
-│   │   │   │   ├── LITERAL (3)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (pos3d)
-│   │   ├── VAR_DECL
-│   │   │   ├── VECTOR
-│   │   │   │   ├── LITERAL (4)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (pos4d)
+
+SYNTAX ERROR: Expected vector to be a valid type. Instead encountered '2' on line 2, col 13
+
+SYNTAX ERROR: Expected vector to be a valid type. Instead encountered '3' on line 3, col 13
+
+SYNTAX ERROR: Expected vector to be a valid type. Instead encountered '4' on line 4, col 13

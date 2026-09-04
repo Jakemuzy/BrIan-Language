@@ -1,9 +1,4 @@
-PROG
-├── (null) (identity)
-│   ├── GENERIC (T)
-│   ├── PARAM_LIST
-│   │   ├── PARAM (x)
-│   │   │   ├── TYPE (T)
-│   ├── BODY
-│   │   ├── RETURN
-│   │   │   ├── IDENT (x)
+
+NAME RESOLUTION ERROR: Undefined generic parameter 'T' on line 1, col 5.
+
+NAME RESOLUTION ERROR: User defined type 'T' doesn't exist within current scope on line 1, col 17.

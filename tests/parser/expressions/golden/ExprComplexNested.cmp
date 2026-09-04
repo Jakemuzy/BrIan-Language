@@ -1,55 +1,12 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (x)
-│   │   │   │   │   ├── BINARY (/)
-│   │   │   │   │   │   ├── BINARY (*)
-│   │   │   │   │   │   │   ├── BINARY (+)
-│   │   │   │   │   │   │   │   ├── IDENT (a)
-│   │   │   │   │   │   │   │   ├── IDENT (b)
-│   │   │   │   │   │   │   ├── BINARY (-)
-│   │   │   │   │   │   │   │   ├── IDENT (c)
-│   │   │   │   │   │   │   │   ├── IDENT (d)
-│   │   │   │   │   │   ├── BINARY (%)
-│   │   │   │   │   │   │   ├── IDENT (e)
-│   │   │   │   │   │   │   ├── IDENT (f)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (bool)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (cond)
-│   │   │   │   │   ├── BINARY (||)
-│   │   │   │   │   │   ├── BINARY (&&)
-│   │   │   │   │   │   │   ├── BINARY (>)
-│   │   │   │   │   │   │   │   ├── IDENT (x)
-│   │   │   │   │   │   │   │   ├── LITERAL (0)
-│   │   │   │   │   │   │   ├── BINARY (<)
-│   │   │   │   │   │   │   │   ├── IDENT (x)
-│   │   │   │   │   │   │   │   ├── LITERAL (100)
-│   │   │   │   │   │   ├── BINARY (==)
-│   │   │   │   │   │   │   ├── IDENT (x)
-│   │   │   │   │   │   │   ├── PREFIX (-)
-│   │   │   │   │   │   │   │   ├── LITERAL (1)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (float)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (r)
-│   │   │   │   │   ├── BINARY (+)
-│   │   │   │   │   │   ├── CALL
-│   │   │   │   │   │   │   ├── ARG_LIST
-│   │   │   │   │   │   │   │   ├── BINARY (+)
-│   │   │   │   │   │   │   │   │   ├── IDENT (a)
-│   │   │   │   │   │   │   │   │   ├── IDENT (b)
-│   │   │   │   │   │   │   │   ├── BINARY (*)
-│   │   │   │   │   │   │   │   │   ├── IDENT (c)
-│   │   │   │   │   │   │   │   │   ├── IDENT (d)
-│   │   │   │   │   │   │   ├── IDENT (foo)
-│   │   │   │   │   │   ├── CALL
-│   │   │   │   │   │   │   ├── ARG_LIST
-│   │   │   │   │   │   │   │   ├── BINARY (-)
-│   │   │   │   │   │   │   │   │   ├── IDENT (e)
-│   │   │   │   │   │   │   │   │   ├── IDENT (f)
-│   │   │   │   │   │   │   ├── IDENT (bar)
+
+NAME RESOLUTION ERROR: Variable 'a' doesn't exist within current scope on line 2, col 18.
+
+NAME RESOLUTION ERROR: Variable 'b' doesn't exist within current scope on line 2, col 22.
+
+NAME RESOLUTION ERROR: Variable 'c' doesn't exist within current scope on line 2, col 28.
+
+NAME RESOLUTION ERROR: Variable 'd' doesn't exist within current scope on line 2, col 32.
+
+NAME RESOLUTION ERROR: Variable 'e' doesn't exist within current scope on line 2, col 38.
+
+NAME RESOLUTION ERROR: Variable 'f' doesn't exist within current scope on line 2, col 42.

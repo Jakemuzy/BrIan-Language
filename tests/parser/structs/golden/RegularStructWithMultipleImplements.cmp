@@ -1,11 +1,6 @@
-PROG
-├── STRUCT_DECL (Robot)
-│   ├── IMPLEMENTS
-│   │   ├── IDENT (IMovable)
-│   │   ├── IDENT (IChargeable)
-│   │   ├── IDENT (ISpeakable)
-│   ├── STRUCT_BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (battery)
+
+NAME RESOLUTION ERROR: Interface 'IMovable' doesn't exist within current scope on line 1, col 16.
+
+NAME RESOLUTION ERROR: Interface 'IChargeable' doesn't exist within current scope on line 1, col 26.
+
+NAME RESOLUTION ERROR: Interface 'ISpeakable' doesn't exist within current scope on line 1, col 39.

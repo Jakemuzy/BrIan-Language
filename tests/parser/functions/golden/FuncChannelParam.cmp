@@ -1,8 +1,0 @@
-PROG
-├── FUNC_DEF (sendData)
-│   ├── TYPE (void)
-│   ├── PARAM_LIST
-│   │   ├── PARAM (ch)
-│   │   │   ├── CHANNEL
-│   │   │   │   ├── TYPE (int)
-│   ├── BODY

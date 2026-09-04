@@ -1,2 +1,2 @@
 
-SYNTAX ERROR: Matrix requires '<' '>' to specify size, expected '>'. Instead encountered 'm' on line 2, col 17
+SYNTAX ERROR: Expected matrix to be a valid type. Instead encountered '3' on line 2, col 13

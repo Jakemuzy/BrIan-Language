@@ -1,17 +1,4 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (x)
-│   │   │   │   │   ├── SMEMBER (x)
-│   │   │   │   │   │   ├── IDENT (p)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (y)
-│   │   │   │   │   ├── SMEMBER (value)
-│   │   │   │   │   │   ├── SMEMBER (nested)
-│   │   │   │   │   │   │   ├── IDENT (p)
+
+NAME RESOLUTION ERROR: No struct 'p' exists within current scope on line 2, col 17.
+
+NAME RESOLUTION ERROR: No struct 'p' exists within current scope on line 3, col 17.

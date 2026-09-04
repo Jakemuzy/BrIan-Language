@@ -1,10 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── MATRIX
-│   │   │   │   ├── LITERAL (3)
-│   │   │   │   ├── LITERAL (4)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (m)
+
+SYNTAX ERROR: Expected matrix to be a valid type. Instead encountered '3' on line 2, col 13

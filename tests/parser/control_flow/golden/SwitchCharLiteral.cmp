@@ -1,14 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── SWITCH
-│   │   │   ├── IDENT (c)
-│   │   │   ├── CASE ('a')
-│   │   │   │   ├── BODY
-│   │   │   │   │   ├── BREAK (break)
-│   │   │   ├── CASE ('b')
-│   │   │   │   ├── BODY
-│   │   │   │   │   ├── BREAK (break)
-│   │   │   ├── DEFAULT
-│   │   │   │   ├── BODY
+
+NAME RESOLUTION ERROR: Variable 'c' doesn't exist within current scope on line 2, col 13.

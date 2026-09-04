@@ -1,15 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (mutex)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (m)
-│   │   ├── LOCK
-│   │   │   ├── IDENT (m)
-│   │   │   ├── BODY
-│   │   │   │   ├── CRITICAL
-│   │   │   │   │   ├── BODY
-│   │   │   │   │   │   ├── POSTFIX (++)
-│   │   │   │   │   │   │   ├── IDENT (sharedCounter)
+
+NAME RESOLUTION ERROR: Variable 'sharedCounter' doesn't exist within current scope on line 5, col 13.

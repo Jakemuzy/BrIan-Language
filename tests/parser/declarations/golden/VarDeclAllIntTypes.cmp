@@ -1,36 +1,16 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (I8)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (a)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (I16)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (b)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (I32)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (c)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (I64)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (d)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (U8)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (e)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (U16)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (f)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (U32)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (g)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (U64)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (h)
+
+NAME RESOLUTION ERROR: User defined type 'I8' doesn't exist within current scope on line 2, col 9.
+
+NAME RESOLUTION ERROR: User defined type 'I16' doesn't exist within current scope on line 3, col 9.
+
+NAME RESOLUTION ERROR: User defined type 'I32' doesn't exist within current scope on line 4, col 9.
+
+NAME RESOLUTION ERROR: User defined type 'I64' doesn't exist within current scope on line 5, col 9.
+
+NAME RESOLUTION ERROR: User defined type 'U8' doesn't exist within current scope on line 6, col 9.
+
+NAME RESOLUTION ERROR: User defined type 'U16' doesn't exist within current scope on line 7, col 9.
+
+NAME RESOLUTION ERROR: User defined type 'U32' doesn't exist within current scope on line 8, col 9.
+
+NAME RESOLUTION ERROR: User defined type 'U64' doesn't exist within current scope on line 9, col 9.

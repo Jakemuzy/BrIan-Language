@@ -1,1 +1,2 @@
-Segmentation fault (core dumped)
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered 'continue' on line 1, col 1

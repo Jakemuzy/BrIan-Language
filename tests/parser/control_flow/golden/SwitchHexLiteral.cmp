@@ -1,14 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── SWITCH
-│   │   │   ├── IDENT (flags)
-│   │   │   ├── CASE (0xFF)
-│   │   │   │   ├── BODY
-│   │   │   │   │   ├── BREAK (break)
-│   │   │   ├── CASE (0x00)
-│   │   │   │   ├── BODY
-│   │   │   │   │   ├── BREAK (break)
-│   │   │   ├── DEFAULT
-│   │   │   │   ├── BODY
+
+NAME RESOLUTION ERROR: Variable 'flags' doesn't exist within current scope on line 2, col 13.

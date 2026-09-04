@@ -1,28 +1,12 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── CLOSURE (closure)
-│   │   │   │   ├── TYPE (int)
-│   │   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (f)
-│   │   │   │   │   ├── LAMBDA
-│   │   │   │   │   │   ├── TYPE (int)
-│   │   │   │   │   │   ├── PARAM_LIST
-│   │   │   │   │   │   │   ├── PARAM (x)
-│   │   │   │   │   │   │   │   ├── TYPE (int)
-│   │   │   │   │   │   ├── CAPTURES
-│   │   │   │   │   │   │   ├── IDENT (a)
-│   │   │   │   │   │   │   ├── IDENT (b)
-│   │   │   │   │   │   │   ├── IDENT (c)
-│   │   │   │   │   │   ├── BODY
-│   │   │   │   │   │   │   ├── RETURN
-│   │   │   │   │   │   │   │   ├── BINARY (+)
-│   │   │   │   │   │   │   │   │   ├── BINARY (+)
-│   │   │   │   │   │   │   │   │   │   ├── BINARY (+)
-│   │   │   │   │   │   │   │   │   │   │   ├── IDENT (x)
-│   │   │   │   │   │   │   │   │   │   │   ├── IDENT (a)
-│   │   │   │   │   │   │   │   │   │   ├── IDENT (b)
-│   │   │   │   │   │   │   │   │   ├── IDENT (c)
+
+NAME RESOLUTION ERROR: Captured variable 'a' doesn't exist within current scope on line -1, col -1.
+
+NAME RESOLUTION ERROR: Captured variable 'b' doesn't exist within current scope on line -1, col -1.
+
+NAME RESOLUTION ERROR: Captured variable 'c' doesn't exist within current scope on line -1, col -1.
+
+NAME RESOLUTION ERROR: Variable 'a' doesn't exist within current scope on line 3, col 20.
+
+NAME RESOLUTION ERROR: Variable 'b' doesn't exist within current scope on line 3, col 24.
+
+NAME RESOLUTION ERROR: Variable 'c' doesn't exist within current scope on line 3, col 28.

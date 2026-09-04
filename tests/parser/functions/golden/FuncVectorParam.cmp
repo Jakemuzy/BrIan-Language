@@ -1,8 +1,2 @@
-PROG
-├── FUNC_DEF (scale)
-│   ├── TYPE (void)
-│   ├── PARAM_LIST
-│   │   ├── PARAM (v)
-│   │   │   ├── VECTOR
-│   │   │   │   ├── LITERAL (3)
-│   ├── BODY
+
+SYNTAX ERROR: Expected vector to be a valid type. Instead encountered '3' on line 1, col 19

@@ -1,18 +1,4 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (x)
-│   │   │   │   │   ├── MEMBER (d)
-│   │   │   │   │   │   ├── MEMBER (c)
-│   │   │   │   │   │   │   ├── MEMBER (b)
-│   │   │   │   │   │   │   │   ├── IDENT (a)
-│   │   ├── ASGN (=)
-│   │   │   ├── MEMBER (d)
-│   │   │   │   ├── MEMBER (c)
-│   │   │   │   │   ├── MEMBER (b)
-│   │   │   │   │   │   ├── IDENT (a)
-│   │   │   ├── LITERAL (5)
+
+NAME RESOLUTION ERROR: No struct 'a' exists within current scope on line 2, col 17.
+
+NAME RESOLUTION ERROR: No struct 'a' exists within current scope on line 3, col 5.

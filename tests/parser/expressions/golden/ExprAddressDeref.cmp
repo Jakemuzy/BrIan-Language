@@ -1,17 +1,2 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   │   ├── DECL_PREFIX (*)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (p)
-│   │   │   │   │   ├── PREFIX (&)
-│   │   │   │   │   │   ├── IDENT (x)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (val)
-│   │   │   │   │   ├── PREFIX (*)
-│   │   │   │   │   │   ├── IDENT (p)
+
+NAME RESOLUTION ERROR: Variable 'x' doesn't exist within current scope on line 2, col 19.
