@@ -25,6 +25,6 @@ jobs:
 
     - name: Run Integration Tests via Golden Tester
       run: |
-        # Make sure the binary path matches where your project deposits the 'tester' executable
-        ./build/tests/tester --file ./tests
+        ./bin/tester --file ./tests
+
 
