@@ -316,7 +316,9 @@ ASTNode* Lambda(ParserContext* ctx)
 			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 			else AddChildASTNode(ctx->arena, lambdaNode, paramListNode);
 			break;
-		default: break; // Maybe have this do something? Empty node?
+		default: 
+      AddChildASTNode(ctx->arena, lambdaNode, InitalizeASTNode(ctx->arena, PARAM_LIST_NODE, DUMMY_TOKEN));
+      break;
 	}
 
 	if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Expected ')' after function paramaters.");

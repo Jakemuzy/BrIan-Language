@@ -82,7 +82,7 @@ typedef struct Token {
     size_t lexLength;
 } Token;
 
-#define DUMMY_TOKEN (Token){0}
+#define DUMMY_TOKEN (Token){ .type = NA, .row = -1, .col = -1, .lexeme = NULL, .lexLength = -1 }
 
 /* ----- Keyword Map ----- */
 
