@@ -2,7 +2,7 @@ name: Run Golden Tests
 
 on:
   push:
-    branches: [ '** ]
+    branches: [ '**' ]
   pull_request:
     branches: [ main, master ]
 
