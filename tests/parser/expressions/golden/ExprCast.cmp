@@ -1,4 +1,2 @@
 
-NAME RESOLUTION ERROR: User defined type 'I32' doesn't exist within current scope on line 5, col 9.
-
-NAME RESOLUTION ERROR: User defined type 'I32' doesn't exist within current scope on line 5, col 22.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

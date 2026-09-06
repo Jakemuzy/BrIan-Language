@@ -1,16 +1,2 @@
 
-NAME RESOLUTION ERROR: User defined type 'I8' doesn't exist within current scope on line 2, col 9.
-
-NAME RESOLUTION ERROR: User defined type 'I16' doesn't exist within current scope on line 3, col 9.
-
-NAME RESOLUTION ERROR: User defined type 'I32' doesn't exist within current scope on line 4, col 9.
-
-NAME RESOLUTION ERROR: User defined type 'I64' doesn't exist within current scope on line 5, col 9.
-
-NAME RESOLUTION ERROR: User defined type 'U8' doesn't exist within current scope on line 6, col 9.
-
-NAME RESOLUTION ERROR: User defined type 'U16' doesn't exist within current scope on line 7, col 9.
-
-NAME RESOLUTION ERROR: User defined type 'U32' doesn't exist within current scope on line 8, col 9.
-
-NAME RESOLUTION ERROR: User defined type 'U64' doesn't exist within current scope on line 9, col 9.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

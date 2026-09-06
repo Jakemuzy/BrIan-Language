@@ -1,2 +1,2 @@
 
-SYNTAX ERROR: Expected variable to capture. Instead encountered '{' on line 2, col 58
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

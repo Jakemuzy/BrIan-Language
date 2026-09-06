@@ -1,2 +1,2 @@
 
-NAME RESOLUTION ERROR: Variable 'myMutex' doesn't exist within current scope on line 2, col 11.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

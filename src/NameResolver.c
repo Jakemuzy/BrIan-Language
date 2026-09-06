@@ -262,7 +262,6 @@ void ResolveStructBody(NameResolverContext* ctx, ASTNode* current)
         ASTNode* bodyElement = current->children[i];
         if (bodyElement->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, bodyElement);
         else if (bodyElement->ntype == ENUM_DECL_NODE) ResolveEnumDecl(ctx, bodyElement);
-        else if (bodyElement->ntype == FUNC_DEF) ResolveFuncDef(ctx, bodyElement);
         else if (bodyElement->ntype == FUNC_DECL) ResolveFuncDecl(ctx, bodyElement);
         else if (bodyElement->ntype == TYPEDEF_DECL_NODE) ResolveTypedefDecl(ctx, bodyElement);
         else if (bodyElement->ntype == OPERATOR_OVERLOAD_NODE) ResolveOperatorOverload(ctx, bodyElement);
@@ -280,7 +279,6 @@ void ResolveGenStructBody(NameResolverContext* ctx, ASTNode* current)
     for (size_t i = 0; i < current->childCount; i++) {
         ASTNode* bodyElement = current->children[i];
         if (bodyElement->ntype == GEN_DECL_NODE) ResolveVarDecl(ctx, bodyElement);
-        else if (bodyElement->ntype == FUNC_DEF) ResolveFuncDef(ctx, bodyElement);
         else if (bodyElement->ntype == FUNC_DECL) ResolveFuncDecl(ctx, bodyElement);
         else if (bodyElement->ntype == ENUM_DECL_NODE) ResolveEnumDecl(ctx, bodyElement);
         else if (bodyElement->ntype == TYPEDEF_DECL_NODE) ResolveTypedefDecl(ctx, bodyElement);

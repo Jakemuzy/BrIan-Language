@@ -1,0 +1,4 @@
+	COMPARED VarDeclVector.src:	FAIL (Output mismatch) (Wrong exit code: expected 0, got 1)
+	COMPARED VarDeclUserType.src:	FAIL (Output mismatch) (Wrong exit code: expected 0, got 1)
+	COMPARED VarDeclMatrix.src:	FAIL (Output mismatch) (Wrong exit code: expected 0, got 1)
+	COMPARED VarDeclArrayInitTrailingComma.src:	FAIL (Output mismatch) (Wrong exit code: expected 1, got 0)

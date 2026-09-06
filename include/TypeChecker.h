@@ -26,7 +26,7 @@ typedef struct TypeCheckerContext {
      bool failure;
 } TypeCheckerContext;
 
-TypeCheckerContext* InitalizeTypeCheckerContext(void);
+TypeCheckerContext* InitalizeTypeCheckerContext(AST* ast);
 
 /* ----- Actual Type Checking ----- */
 

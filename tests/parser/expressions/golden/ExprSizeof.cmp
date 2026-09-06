@@ -1,2 +1,40 @@
-
-SYNTAX ERROR: Expected matrix to be a valid type. Instead encountered '3' on line 5, col 28
+PROG
+├── STRUCT_DECL (MyStruct)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (a)
+│   │   │   │   ├── VAR (b)
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (a)
+│   │   │   │   │   ├── SIZEOF
+│   │   │   │   │   │   ├── TYPE (int)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (b)
+│   │   │   │   │   ├── SIZEOF
+│   │   │   │   │   │   ├── TYPE (float)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (c)
+│   │   │   │   │   ├── SIZEOF
+│   │   │   │   │   │   ├── IDENT (MyStruct)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (d)
+│   │   │   │   │   ├── SIZEOF
+│   │   │   │   │   │   ├── MATRIX
+│   │   │   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   │   │   ├── LITERAL (3)
+│   │   │   │   │   │   │   ├── LITERAL (3)

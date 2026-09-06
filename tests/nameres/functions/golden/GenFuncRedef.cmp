@@ -1,2 +1,2 @@
 
-NAME RESOLUTION ERROR: Symbol 'a' on line 3, col 37, is already defined. First defined on line 3, col 21.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

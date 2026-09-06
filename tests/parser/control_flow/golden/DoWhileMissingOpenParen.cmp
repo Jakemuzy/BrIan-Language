@@ -1,2 +1,2 @@
 
-SYNTAX ERROR: Expected '(' to begin do while statement. Instead encountered 'true' on line 3, col 13
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

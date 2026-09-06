@@ -1,4 +1,2 @@
 
-NAME RESOLUTION ERROR: No struct 'p' exists within current scope on line 2, col 17.
-
-NAME RESOLUTION ERROR: No struct 'p' exists within current scope on line 3, col 17.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

@@ -1,6 +1,2 @@
 
-NAME RESOLUTION ERROR: User defined function 'apply' doesn't exist within current scope on line 2, col 5.
-
-NAME RESOLUTION ERROR: Captured variable 'base' doesn't exist within current scope on line -1, col -1.
-
-NAME RESOLUTION ERROR: Variable 'base' doesn't exist within current scope on line 3, col 20.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

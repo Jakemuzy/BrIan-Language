@@ -1,4 +1,5 @@
 fn void test() {
+    let int x = 0;
     switch (x) {
         case 3.14 {
         }

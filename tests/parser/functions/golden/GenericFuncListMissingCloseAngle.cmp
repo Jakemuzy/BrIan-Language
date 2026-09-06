@@ -1,4 +1,2 @@
 
-SYNTAX ERROR: Expected '>' to close generic. Instead encountered '(' on line 1, col 16
-
-SYNTAX ERROR: Expected '(' after function name. Instead encountered 'T' on line 1, col 17
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

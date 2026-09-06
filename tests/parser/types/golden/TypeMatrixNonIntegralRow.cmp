@@ -1,2 +1,2 @@
 
-SYNTAX ERROR: Comma delimiter required between matrix row and col size. Instead encountered '>' on line 2, col 16
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

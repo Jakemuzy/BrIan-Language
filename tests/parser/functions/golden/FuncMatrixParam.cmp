@@ -1,2 +1,11 @@
-
-SYNTAX ERROR: Expected matrix to be a valid type. Instead encountered '3' on line 1, col 23
+PROG
+├── FUNC_DEF (transform)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (m)
+│   │   │   ├── MATRIX
+│   │   │   │   ├── TYPE (int)
+│   │   │   │   ├── LITERAL (3)
+│   │   │   │   ├── LITERAL (3)
+│   ├── BODY

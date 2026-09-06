@@ -1,2 +1,2 @@
-fn void scale(vec<3> v) {
+fn void scale(vec<int, 3> v) {
 }

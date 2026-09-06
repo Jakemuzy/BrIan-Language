@@ -24,6 +24,7 @@ void CompileBrian(int argc, char* argv[])
     // .. Other phases get implemented 
 
     CleanupBrian(cs);
+    exit(0);
 }
 
 void CleanupBrian(CompilationState* cs)
@@ -37,8 +38,6 @@ void CleanupBrian(CompilationState* cs)
 
     // Free the shared arena
     if (arena) DestroyArena(arena);
-
-    exit(0);
 }
 
 CompilationState* ParseFlagsBrian(int argc, char* argv[])
@@ -100,6 +99,7 @@ void RunTokenizer(CompilationState* cs)
             // printf("%d\n", KeywordHash(tok.lexeme));
         }
         CleanupBrian(cs);
+        exit(0);
     }
     cs->tokenizer = ctx;
 }
@@ -116,6 +116,7 @@ void RunParser(CompilationState* cs)
         // Print AST Here 
         DEBUG_PRINT_AST(ctx->ast); 
         CleanupBrian(cs);
+        exit(0);
     }
 
     cs->ast = ctx->ast;
@@ -138,23 +139,27 @@ void RunNameResolver(CompilationState* cs)
         CleanupBrian(cs);
         ERROR(ERR_FLAG_EXIT, PARSER_ERR, "Failed to name resolve.\n");
     }
-    if (cs->flags.stopAfter == NAMERES) 
+    if (cs->flags.stopAfter == NAMERES) {
         CleanupBrian(cs);
+        exit(0);
+    }
 
     cs->nameres = ctx;
 }
 
 void RunTypeChecker(CompilationState* cs)
 {
-    TypeCheckerContext* ctx = InitalizeTypeCheckerContext();
+    TypeCheckerContext* ctx = InitalizeTypeCheckerContext(cs->ast);
     TypeCheckProgram(ctx);
 
     if (ctx->failure) {
         CleanupBrian(cs);
         ERROR(ERR_FLAG_EXIT, TYPE_CHECKER_ERR, "Failed to type check.\n");
     }
-    if (cs->flags.stopAfter == TYPECHECK)
+    if (cs->flags.stopAfter == TYPECHECK) {
         CleanupBrian(cs);
+        exit(0);
+    }
 
     cs->typecheck = ctx;
 }

@@ -1,4 +1,2 @@
 
-SYNTAX ERROR: Expected semicolon ';' after expression. Instead encountered 'call' on line 10, col 25
-
-TOKENIZER ERROR: No closing ' found for character
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

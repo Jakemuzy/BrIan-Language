@@ -1,3 +1,3 @@
 fn void test() {
-    let int x = 1 + * 2;
+    let int x = 1 + ^ 2;
 }

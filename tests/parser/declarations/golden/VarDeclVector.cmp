@@ -1,6 +1,2 @@
 
-SYNTAX ERROR: Expected vector to be a valid type. Instead encountered '2' on line 2, col 13
-
-SYNTAX ERROR: Expected vector to be a valid type. Instead encountered '3' on line 3, col 13
-
-SYNTAX ERROR: Expected vector to be a valid type. Instead encountered '4' on line 4, col 13
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

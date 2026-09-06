@@ -1,2 +1,2 @@
 
-NAME RESOLUTION ERROR: Interface 'IAnimal' doesn't exist within current scope on line 1, col 14.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

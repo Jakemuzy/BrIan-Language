@@ -1,12 +1,2 @@
 
-NAME RESOLUTION ERROR: Captured variable 'a' doesn't exist within current scope on line -1, col -1.
-
-NAME RESOLUTION ERROR: Captured variable 'b' doesn't exist within current scope on line -1, col -1.
-
-NAME RESOLUTION ERROR: Captured variable 'c' doesn't exist within current scope on line -1, col -1.
-
-NAME RESOLUTION ERROR: Variable 'a' doesn't exist within current scope on line 3, col 20.
-
-NAME RESOLUTION ERROR: Variable 'b' doesn't exist within current scope on line 3, col 24.
-
-NAME RESOLUTION ERROR: Variable 'c' doesn't exist within current scope on line 3, col 28.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

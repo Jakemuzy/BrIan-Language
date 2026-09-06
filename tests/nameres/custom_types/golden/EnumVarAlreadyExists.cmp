@@ -1,4 +1,2 @@
 
-NAME RESOLUTION ERROR: Symbol 'RED' on line 5, col 5, is already defined. First defined on line 3, col 9.
-
-NAME RESOLUTION ERROR: Symbol 'BLUE' on line 7, col 9, is already defined. First defined on line 5, col 17.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

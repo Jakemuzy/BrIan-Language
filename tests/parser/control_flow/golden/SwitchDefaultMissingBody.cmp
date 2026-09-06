@@ -1,2 +1,2 @@
 
-SYNTAX ERROR: Switch default requires '{' to begin. Instead encountered ';' on line 3, col 16
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

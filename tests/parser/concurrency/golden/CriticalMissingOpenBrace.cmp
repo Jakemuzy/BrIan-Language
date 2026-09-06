@@ -1,2 +1,2 @@
 
-SYNTAX ERROR: Missing '{' to begin critical section body. Instead encountered 'x' on line 3, col 9
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

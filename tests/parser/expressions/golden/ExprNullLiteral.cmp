@@ -1,2 +1,25 @@
-
-SYNTAX ERROR: Expected identifier name for variable declaration. Instead encountered '*' on line 3, col 17
+PROG
+├── STRUCT_DECL (MyStruct)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (a)
+│   │   │   │   ├── VAR (b)
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   │   ├── DECL_PREFIX (*)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (p)
+│   │   │   │   │   ├── IDENT (NULL)
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (MyStruct)
+│   │   │   │   ├── DECL_PREFIX (*)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (s)
+│   │   │   │   │   ├── IDENT (NULL)

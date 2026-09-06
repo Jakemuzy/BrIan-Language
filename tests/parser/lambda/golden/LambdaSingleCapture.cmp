@@ -1,4 +1,2 @@
 
-NAME RESOLUTION ERROR: Captured variable 'factor' doesn't exist within current scope on line -1, col -1.
-
-NAME RESOLUTION ERROR: Variable 'factor' doesn't exist within current scope on line 3, col 20.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

@@ -1,4 +1,2 @@
 
-NAME RESOLUTION ERROR: No struct 'obj' exists within current scope on line 2, col 11.
-
-NAME RESOLUTION ERROR: No struct 'obj' exists within current scope on line 3, col 9.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

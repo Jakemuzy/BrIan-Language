@@ -1,2 +1,2 @@
 
-SYNTAX ERROR: Switch case only allows literals. Expected '{' to begin body. Instead encountered '+' on line 6, col 15
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

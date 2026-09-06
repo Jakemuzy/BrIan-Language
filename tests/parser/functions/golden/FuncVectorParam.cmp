@@ -1,2 +1,10 @@
-
-SYNTAX ERROR: Expected vector to be a valid type. Instead encountered '3' on line 1, col 19
+PROG
+├── FUNC_DEF (scale)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (v)
+│   │   │   ├── VECTOR
+│   │   │   │   ├── TYPE (int)
+│   │   │   │   ├── LITERAL (3)
+│   ├── BODY

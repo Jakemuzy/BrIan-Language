@@ -1,8 +1,2 @@
 
-NAME RESOLUTION ERROR: Variable 'mutexA' doesn't exist within current scope on line 2, col 11.
-
-NAME RESOLUTION ERROR: Variable 'mutexB' doesn't exist within current scope on line 3, col 15.
-
-NAME RESOLUTION ERROR: Variable 'x' doesn't exist within current scope on line 4, col 13.
-
-NAME RESOLUTION ERROR: Variable 'x' doesn't exist within current scope on line 4, col 17.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

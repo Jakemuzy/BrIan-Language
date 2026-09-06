@@ -1,6 +1,2 @@
 
-NAME RESOLUTION ERROR: Variable 'i' doesn't exist within current scope on line 2, col 17.
-
-NAME RESOLUTION ERROR: Variable 'i' doesn't exist within current scope on line 2, col 25.
-
-NAME RESOLUTION ERROR: Variable 'j' doesn't exist within current scope on line 2, col 30.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

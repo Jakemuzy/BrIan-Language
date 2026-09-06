@@ -1,2 +1,2 @@
 
-SYNTAX ERROR: Expected function pointer to return a valid type. Instead encountered '(' on line 2, col 12
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

@@ -1,4 +1,2 @@
 
-SYNTAX ERROR: Expected struct identifier. Instead encountered '{' on line 1, col 8
-
-SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 3, col 1
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

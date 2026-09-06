@@ -1,2 +1,2 @@
 
-NAME RESOLUTION ERROR: Variable 'j' doesn't exist within current scope on line 13, col 13.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

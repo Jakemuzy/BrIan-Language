@@ -93,6 +93,8 @@ void Program(ParserContext* ctx)
 				if (ctx->panicMode) { SyncRecovery(ctx, RBRACE); Advance(ctx); }
                 else AddChildASTNode(ctx->arena, ctx->ast->root, funcNode);
 
+        // Have to break can't deref
+        if (!funcNode) break; 
 				if ( (funcNode->ntype == FUNC_DECL  || funcNode->ntype == GEN_FUNC_DECL) && !Match(ctx, SEMI)) 
 					ParseERROR(ctx, "Expected ';' after function declaration.");
                 break;
@@ -143,10 +145,10 @@ ASTNode* Function(ParserContext* ctx)
 	switch(ctx->current.type) { QUALIFIER_CASES  qualifierNode = TypeQualifierList(ctx); default: break; }
 
 	ASTNode* retTypeNode = ReturnType(ctx);
-	if (ctx->panicMode) SyncRecovery(ctx, LPAREN);
+	if (ctx->panicMode) return NULL;  // Propogate since it can't recover, let the parents recover
 
 	ASTNode* funcNode = FuncSignature(ctx);
-	if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+	if (ctx->panicMode) return NULL;
 
 	// TODO: If panic this derefs 
 	bool retIsGeneric = retTypeNode->children[0]->ntype == GENERIC_NODE;
@@ -230,6 +232,9 @@ ASTNode* ReturnType(ParserContext* ctx)
 ASTNode* ParamList(ParserContext* ctx)
 {
 	ASTNode* paramListNode = InitalizeASTNode(ctx->arena, PARAM_LIST_NODE, DUMMY_TOKEN);
+  
+  if (Match(ctx, RPAREN))
+    return paramListNode;
 
 	while (true) {
 		ASTNode* qualifierNode = NULL;
@@ -244,7 +249,6 @@ ASTNode* ParamList(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 				else AddChildASTNode(ctx->arena, paramListNode, paramNode);
 				break;
-			case RPAREN: return paramListNode;
 			default: return ParseERROR(ctx, "Expected paramaters inside function signature.");
 		}
 
@@ -550,9 +554,12 @@ ASTNode* GenStructBody(ParserContext* ctx)
 				ASTNode* genFuncNode = Function(ctx);
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, genStructNode, genFuncNode);
-
-				if (genFuncNode->ntype == GEN_FUNC_DECL && !Match(ctx, SEMI)) 	
-					return ParseERROR(ctx, "Expected ';' after function declaration in generic struct.");
+      
+        if (!genFuncNode) break;
+        if (genFuncNode->ntype == FUNC_DECL || genFuncNode->ntype == GEN_FUNC_DECL)
+          return ParseERROR(ctx, "Struct methods must be declarations, not definitions.");
+        if (!Match(ctx, SEMI)) 
+          return ParseERROR(ctx, "Expected ';' after function declaration in generic struct body.");
 				break;
 			case TYPEDEF: 
 				ASTNode* typedefNode = TypedefDecl(ctx);
@@ -593,8 +600,11 @@ ASTNode* StructBody(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, SEMI);
 				else AddChildASTNode(ctx->arena, structBodyNode, funcNode);
 
-				if (funcNode->ntype == FUNC_DECL && !Match(ctx, SEMI)) 
-					return ParseERROR(ctx, "Expected ';' after function declaration in generic struct.");
+        if (!funcNode) break;
+        if (funcNode->ntype == FUNC_DECL || funcNode->ntype == GEN_FUNC_DECL)
+          return ParseERROR(ctx, "Struct methods must be declarations, not definitions.");
+        if (!Match(ctx, SEMI)) 
+          return ParseERROR(ctx, "Expected ';' after function declaration in generic struct body.");
 				break;
 			case LET: 
 				ASTNode* varDeclNode = VarDecl(ctx);
@@ -644,8 +654,8 @@ ASTNode* OperatorOverload(ParserContext* ctx)
 			break;
 		case LBRACK:
 			// Only stores ] for indexing, but thats fine. Unambigous.
+      Advance(ctx);
 			if (!Match(ctx, RBRACK)) return ParseERROR(ctx, "Expected matching ']' for overloaded '[]' operator.");
-			Advance(ctx);
 			break;	
 		default: 
 			ParseERROR(ctx, "Invalid operator for overloading.");
@@ -655,7 +665,7 @@ ASTNode* OperatorOverload(ParserContext* ctx)
 
 	if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Expected '(' after overloaded operator.");
 
-	// Only allow up 1 or 2 paramaters ( unary or binary )
+	// Only allow 1 or 2 paramaters ( unary or binary )
 	switch (ctx->current.type) {
 		case IDENT:
 			ASTNode* paramNode = Param(ctx);
@@ -668,7 +678,8 @@ ASTNode* OperatorOverload(ParserContext* ctx)
 	}
 
 	if (Match(ctx, COMMA)) {
-		if (ctx->current.type != IDENT) return ParseERROR(ctx, "Operator overloading doesn't allow primitive types.");
+    // Only [] allows integral secondary operand (for obvious reasons will have to type check l8r)
+		if (ctx->current.type != IDENT && overloadOpNode->token.type != LBRACK) return ParseERROR(ctx, "Operator overloading doesn't allow primitive types.");
 
 		ASTNode* paramNode = Param(ctx);
 		if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
@@ -735,15 +746,18 @@ ASTNode* Implements(ParserContext* ctx)
     ASTNode* implementsNode = InitalizeASTNode(ctx->arena, IMPLEMENTS_NODE, DUMMY_TOKEN);
 
     while (true) {
-		if (ctx->current.type == LBRACE) return implementsNode;
-        else if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected identifier for interface implementation.");
+        if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected identifier for interface implementation.");
         
         AddChildASTNode(ctx->arena, implementsNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
         Advance(ctx);
 
-		if (ctx->current.type == LBRACE) return implementsNode;
+		if (ctx->current.type == LBRACE) break;
         else if (!Match(ctx, COMMA)) return ParseERROR(ctx, "Expected ',' or '{' after interface implementation.");
     }
+  
+    if (implementsNode->childCount == 0) 
+      return ParseERROR(ctx, "Expected interface to implement after ':' in struct declaration.");
+    return implementsNode;
 }
 
 ASTNode* EnumDecl(ParserContext* ctx)
@@ -759,16 +773,14 @@ ASTNode* EnumDecl(ParserContext* ctx)
 
 	ASTNode* enumBodyNode = InitalizeASTNode(ctx->arena, ENUM_BODY_NODE, DUMMY_TOKEN);
 	while (true) {
-		// TODO: Trailing commas not handled
 		if (ctx->current.type == IDENT) {
 			AddChildASTNode(ctx->arena, enumBodyNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
 			Advance(ctx); 
-
-			if (Match(ctx, COMMA))  continue;
 		}
-
-		else if (ctx->current.type == RBRACE) break;
 		else return ParseERROR(ctx, "Expected Identifier in enum.");
+
+    if (Match(ctx, COMMA)) continue;
+		else if (ctx->current.type == RBRACE) break;
 	}
 
 	if (!Match(ctx, RBRACE)) return ParseERROR(ctx, "Expected '}' to terminate Enum body.");
@@ -1286,28 +1298,38 @@ ASTNode* TernaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 
 ASTNode* Type(ParserContext* ctx)
 {
+  ASTNode* typeNode = NULL;
+
 	// Special types handled separately
 	switch (ctx->current.type) {
-		case FUNCPTR: case CLOSURE:
-			return FuncPointerType(ctx);
-		case CHANNEL:
-			return Channel(ctx);
+    case FUNCPTR: case CLOSURE:
+      typeNode = FuncPointerType(ctx);
+      break;
+    case CHANNEL:
+      typeNode = Channel(ctx);
+      break;
 		case MAT:
-			return Matrix(ctx);
+      typeNode = Matrix(ctx);
+      break;
 		case VEC:
-			return Vector(ctx);
+      typeNode = Vector(ctx);
+      break;
 		case IDENT:
-			ASTNode* customTypeNode = InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current);
-			Advance(ctx); return customTypeNode;
-		default: break;
+      typeNode = InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current);
+      Advance(ctx);
+      break;	
+    default:
+      typeNode = InitalizeASTNode(ctx->arena, TYPE_NODE, ctx->current);
+      Advance(ctx);
+      break;
 	}
 
-	ASTNode* typeNode = InitalizeASTNode(ctx->arena, TYPE_NODE, ctx->current);
-	Advance(ctx);
+  if (!typeNode) return NULL; // Defensive against malformed type inputs, would disallow decl prefixes on these malformed inputs
 
+  // Decl prefix
 	if (ctx->current.type == MOD || ctx->current.type == MULT) {
-		AddChildASTNode(ctx->arena, typeNode, InitalizeASTNode(ctx->arena, DECL_PREFIX_NODE, ctx->current));
-		Advance(ctx);
+    AddChildASTNode(ctx->arena, typeNode, InitalizeASTNode(ctx->arena, DECL_PREFIX_NODE, ctx->current));
+    Advance(ctx);
 	}
 
 	return typeNode;
@@ -1434,8 +1456,7 @@ ASTNode* GenericList(ParserContext* ctx)
 	ASTNode* genericListNode = InitalizeASTNode(ctx->arena, GENERIC_LIST_NODE, DUMMY_TOKEN);
 
 	while (true) {
-		if (Match(ctx, GREAT)) break;
-		else if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected valid identifier for generic ie.) <IDENTIFIER>.");
+		if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected valid identifier for generic ie.) <IDENTIFIER>.");
 		AddChildASTNode(ctx->arena, genericListNode, (InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current)));
 		Advance(ctx);
 
@@ -1559,6 +1580,9 @@ ASTNode* ArgList(ParserContext* ctx)
 {
 	ASTNode* argListNode = InitalizeASTNode(ctx->arena, ARG_LIST_NODE, DUMMY_TOKEN);
 
+  if (ctx->current.type == RPAREN)
+    return argListNode;
+    
 	while (true) {
 		switch (ctx->current.type) {
 			EXPR_START_CASES
@@ -1566,8 +1590,6 @@ ASTNode* ArgList(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
 				else AddChildASTNode(ctx->arena, argListNode, argNode);
 				break;
-			case RPAREN: 
-				return argListNode;
 			default: return ParseERROR(ctx, "Expected arguments inside function call.");
 		}
 
@@ -1598,7 +1620,7 @@ ASTNode* Var(ParserContext* ctx)
 {
 	if (ctx->current.type != IDENT) return ParseERROR(ctx, "Expected identifier name for variable declaration.");
 	ASTNode* varNode = InitalizeASTNode(ctx->arena, VAR_NODE, ctx->current);
-    Advance(ctx);
+  Advance(ctx);
 
 	while (Match(ctx, LBRACK)) {
 		ASTNode* exprNode = Expr(ctx, PREC_NONE);
@@ -1633,6 +1655,9 @@ ASTNode* Var(ParserContext* ctx)
 ASTNode* ArrInitList(ParserContext* ctx)
 {
 	Advance(ctx);
+
+  // LBRACE -> EXPR or LBRACE or RBRACE 
+  // 
 
 	ASTNode* arrInitList = InitalizeASTNode(ctx->arena, ARR_INIT_LIST_NODE, DUMMY_TOKEN);
 	while (true) {

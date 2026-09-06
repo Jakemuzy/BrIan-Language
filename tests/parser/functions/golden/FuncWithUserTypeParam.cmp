@@ -1,4 +1,2 @@
 
-NAME RESOLUTION ERROR: User defined type 'MyStruct' doesn't exist within current scope on line 1, col 17.
-
-NAME RESOLUTION ERROR: User defined type 'OtherType' doesn't exist within current scope on line 1, col 29.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

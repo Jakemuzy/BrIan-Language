@@ -1,14 +1,2 @@
 
-NAME RESOLUTION ERROR: Cannot index array. Array 'a' doesn't exist within current scope on line -1, col -1.
-
-NAME RESOLUTION ERROR: Cannot index array. Array 'a' doesn't exist within current scope on line -1, col -1.
-
-NAME RESOLUTION ERROR: Variable 'i' doesn't exist within current scope on line 4, col 19.
-
-NAME RESOLUTION ERROR: Cannot index array. Array 'a' doesn't exist within current scope on line -1, col -1.
-
-NAME RESOLUTION ERROR: Variable 'j' doesn't exist within current scope on line 5, col 27.
-
-NAME RESOLUTION ERROR: Variable 'i' doesn't exist within current scope on line 5, col 24.
-
-NAME RESOLUTION ERROR: Cannot index array. Array 'matrix' doesn't exist within current scope on line -1, col -1.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

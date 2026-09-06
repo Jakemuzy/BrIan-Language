@@ -8,9 +8,10 @@
     Should really be table driven to be honest.
 */
 
-TypeCheckerContext* InitalizeTypeCheckerContext()
+TypeCheckerContext* InitalizeTypeCheckerContext(AST* ast)
 {
     TypeCheckerContext* ctx = malloc(sizeof(TypeCheckerContext));
+    ctx->ast = ast;
     return ctx; 
 }
 

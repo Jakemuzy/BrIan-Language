@@ -1,2 +1,2 @@
 
-SYNTAX ERROR: Expected matrix to be a valid type. Instead encountered '1' on line 2, col 13
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

@@ -1,6 +1,2 @@
 
-NAME RESOLUTION ERROR: Interface 'IMovable' doesn't exist within current scope on line 1, col 16.
-
-NAME RESOLUTION ERROR: Interface 'IChargeable' doesn't exist within current scope on line 1, col 26.
-
-NAME RESOLUTION ERROR: Interface 'ISpeakable' doesn't exist within current scope on line 1, col 39.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 

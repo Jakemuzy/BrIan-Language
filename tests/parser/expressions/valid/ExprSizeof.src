@@ -1,6 +1,10 @@
+struct MyStruct {
+    let int a, b;
+}
+
 fn void test() {
     let int a = sizeof(int);
     let int b = sizeof(float);
     let int c = sizeof(MyStruct);
-    let int d = sizeof(mat<3,3>);
+    let int d = sizeof(mat<int, 3,3>);
 }

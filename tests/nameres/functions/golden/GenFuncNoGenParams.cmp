@@ -1,6 +1,2 @@
 
-NAME RESOLUTION ERROR: Undefined generic parameter 'X' on line 4, col 5.
-
-NAME RESOLUTION ERROR: User defined type 'X' doesn't exist within current scope on line 4, col 12.
-
-NAME RESOLUTION ERROR: User defined type 'X' doesn't exist within current scope on line 4, col 17.
+COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
