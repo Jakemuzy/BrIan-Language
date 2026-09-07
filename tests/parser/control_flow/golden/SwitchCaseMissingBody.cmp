@@ -1,2 +1,10 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+SYNTAX ERROR: Switch case only allows literals. Expected '{' to begin body. Instead encountered ';' on line 3, col 15
+
+SYNTAX ERROR: Unexpected token in body. Instead encountered '' on line 6, col 1
+
+SYNTAX ERROR: Expected CASE or DEFAULT within Switch Statement body. Instead encountered '' on line 6, col 1
+
+SYNTAX ERROR: Unexpected token in body. Instead encountered '' on line 6, col 1
+
+SYNTAX ERROR: Failed to parse file.

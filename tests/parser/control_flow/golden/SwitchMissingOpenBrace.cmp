@@ -1,2 +1,6 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+SYNTAX ERROR: Expected '{' to begin switch statement's body. Instead encountered 'case' on line 3, col 9
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 4, col 5
+
+SYNTAX ERROR: Failed to parse file.

@@ -184,7 +184,7 @@ ASTNode* FuncSignature(ParserContext* ctx)
 	ASTNode* genericListNode = NULL;
 	if (ctx->current.type == LESS) {
 		genericListNode = GenericList(ctx);
-		if (ctx->panicMode) SyncRecovery(ctx, IDENT);
+		if (ctx->panicMode) return NULL;
 		else AddChildASTNode(ctx->arena, funcNode, genericListNode);
 
 		funcNode->ntype = GEN_FUNC_NODE;
@@ -216,12 +216,12 @@ ASTNode* ReturnType(ParserContext* ctx)
 	switch (ctx->current.type) {
 		TYPE_CASES
 			ASTNode* typeNode = Type(ctx);
-			if (ctx->panicMode) SyncRecovery(ctx, IDENT);	// Func name
+			if (ctx->panicMode) return NULL;
 			else AddChildASTNode(ctx->arena, returnTypeNode, typeNode);
 			break;
 		case LESS: 
 			ASTNode* genNode = Generic(ctx);
-			if (ctx->panicMode) SyncRecovery(ctx, IDENT);
+			if (ctx->panicMode) return NULL;
 			else AddChildASTNode(ctx->arena, returnTypeNode, genNode);
 			break;
 		default: return ParseERROR(ctx, "Function return type expected valid type.");
@@ -1655,11 +1655,15 @@ ASTNode* Var(ParserContext* ctx)
 ASTNode* ArrInitList(ParserContext* ctx)
 {
 	Advance(ctx);
+	ASTNode* arrInitList = InitalizeASTNode(ctx->arena, ARR_INIT_LIST_NODE, DUMMY_TOKEN);
 
   // LBRACE -> EXPR or LBRACE or RBRACE 
-  // 
+  // EXPR -> COMMA or RBRACE
+  // COMMA -> EXPR or LBRACE
 
-	ASTNode* arrInitList = InitalizeASTNode(ctx->arena, ARR_INIT_LIST_NODE, DUMMY_TOKEN);
+  if (Match(ctx, RBRACE))
+    return arrInitList;
+
 	while (true) {
 		switch (ctx->current.type) {
 			EXPR_START_CASES
@@ -1672,7 +1676,6 @@ ASTNode* ArrInitList(ParserContext* ctx)
 				if (ctx->panicMode) SyncRecovery(ctx, RBRACE);
 				else AddChildASTNode(ctx->arena, arrInitList, nestedArrInitNode);
 				break;
-			case RBRACE: break;
 			default: return ParseERROR(ctx, "Expected array initalization.");
 		}
 

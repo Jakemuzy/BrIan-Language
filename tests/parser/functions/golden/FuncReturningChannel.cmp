@@ -1,2 +1,9 @@
-
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+PROG
+├── FUNC_DEF (makeChannel)
+│   ├── RETURN_TYPE
+│   │   ├── CHANNEL
+│   │   │   ├── TYPE (int)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── RETURN
+│   │   │   ├── IDENT (NULL)

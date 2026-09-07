@@ -1,2 +1,8 @@
-
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+PROG
+├── FUNC_DEF (spawnWorker)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (task)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── RETURN
+│   │   │   ├── IDENT (NULL)

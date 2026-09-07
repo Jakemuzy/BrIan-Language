@@ -1,2 +1,6 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+SYNTAX ERROR: Expected generic function or variable in generic struct. Instead encountered 'IContainer' on line 1, col 17
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 3, col 1
+
+SYNTAX ERROR: Failed to parse file.

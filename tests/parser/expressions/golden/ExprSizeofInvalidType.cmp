@@ -1,2 +1,4 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+SYNTAX ERROR: Sizeof expected predefined or user defined type Instead encountered '42' on line 2, col 24
+
+SYNTAX ERROR: Failed to parse file.

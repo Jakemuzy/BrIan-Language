@@ -1,2 +1,48 @@
-
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (a)
+│   │   │   │   │   ├── BINARY (==)
+│   │   │   │   │   │   ├── LITERAL (1)
+│   │   │   │   │   │   ├── LITERAL (1)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (b)
+│   │   │   │   │   ├── BINARY (!=)
+│   │   │   │   │   │   ├── LITERAL (1)
+│   │   │   │   │   │   ├── LITERAL (2)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (c)
+│   │   │   │   │   ├── BINARY (<)
+│   │   │   │   │   │   ├── LITERAL (3)
+│   │   │   │   │   │   ├── LITERAL (4)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (d)
+│   │   │   │   │   ├── BINARY (>)
+│   │   │   │   │   │   ├── LITERAL (4)
+│   │   │   │   │   │   ├── LITERAL (3)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (e)
+│   │   │   │   │   ├── BINARY (<=)
+│   │   │   │   │   │   ├── LITERAL (3)
+│   │   │   │   │   │   ├── LITERAL (3)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (f)
+│   │   │   │   │   ├── BINARY (>=)
+│   │   │   │   │   │   ├── LITERAL (4)
+│   │   │   │   │   │   ├── LITERAL (4)

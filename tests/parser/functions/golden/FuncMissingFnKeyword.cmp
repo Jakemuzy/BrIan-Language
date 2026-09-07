@@ -1,2 +1,4 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered 'int' on line 1, col 1
+
+SYNTAX ERROR: Failed to parse file.

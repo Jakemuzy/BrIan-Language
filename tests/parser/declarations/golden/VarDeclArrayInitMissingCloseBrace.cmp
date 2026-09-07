@@ -1,2 +1,6 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+SYNTAX ERROR: Expected ',' or '}' to end array initalization. Instead encountered ';' on line 2, col 28
+
+SYNTAX ERROR: Expected semicolon ';' after variable declaration. Instead encountered '}' on line 3, col 1
+
+SYNTAX ERROR: Failed to parse file.

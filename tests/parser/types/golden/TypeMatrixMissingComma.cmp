@@ -1,2 +1,4 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+SYNTAX ERROR: Comma delimiter required between matrix row and col size. Instead encountered '3' on line 2, col 20
+
+SYNTAX ERROR: Failed to parse file.

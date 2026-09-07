@@ -1,2 +1,4 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+SYNTAX ERROR: Expected 'while' to begin do while condition. Instead encountered '(' on line 3, col 7
+
+SYNTAX ERROR: Failed to parse file.

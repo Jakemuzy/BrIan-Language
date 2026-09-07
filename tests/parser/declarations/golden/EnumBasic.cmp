@@ -1,2 +1,6 @@
-
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+PROG
+├── ENUM_DECL (Color)
+│   ├── ENUM_BODY
+│   │   ├── IDENT (Red)
+│   │   ├── IDENT (Green)
+│   │   ├── IDENT (Blue)

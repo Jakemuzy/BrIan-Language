@@ -1,2 +1,4 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+SYNTAX ERROR: Expected paramaters inside function signature. Instead encountered ',' on line 1, col 18
+
+SYNTAX ERROR: Failed to parse file.

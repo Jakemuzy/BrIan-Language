@@ -1,2 +1,21 @@
-
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── WHILE
+│   │   │   ├── LITERAL (true)
+│   │   │   ├── BODY
+│   │   │   │   ├── SWITCH
+│   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   ├── CASE
+│   │   │   │   │   │   ├── LITERAL (0)
+│   │   │   │   │   │   ├── BODY
+│   │   │   │   │   │   │   ├── CONTINUE (continue)
+│   │   │   │   │   ├── CASE
+│   │   │   │   │   │   ├── LITERAL (1)
+│   │   │   │   │   │   ├── BODY
+│   │   │   │   │   │   │   ├── BREAK (break)
+│   │   │   │   │   ├── DEFAULT
+│   │   │   │   │   │   ├── BODY

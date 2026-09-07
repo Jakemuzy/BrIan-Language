@@ -1,5 +1,5 @@
 fn void test() {
-    let vec<2> pos2d;
-    let vec<3> pos3d;
-    let vec<4> pos4d;
+    let vec<int, 2> pos2d;
+    let vec<float, 3> pos3d;
+    let vec<double, 4> pos4d;
 }

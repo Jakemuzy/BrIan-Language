@@ -1,3 +1,7 @@
+struct MyStruct {
+  let int a, b;
+}
+
 fn void test() {
     let MyStruct s;
     let MyStruct* ptr;

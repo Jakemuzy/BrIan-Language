@@ -1,2 +1,4 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+SYNTAX ERROR: Overloaded operator requires body in order specify behavior. Instead encountered ';' on line 2, col 29
+
+SYNTAX ERROR: Failed to parse file.

@@ -1,2 +1,4 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+SYNTAX ERROR: Expected valid type declaration for custom type. Instead encountered ';' on line 1, col 14
+
+SYNTAX ERROR: Failed to parse file.
