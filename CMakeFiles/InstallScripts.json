@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/jmuzy/Programming/c/BrIan-Language/cmake_install.cmake",
+		"/home/jmuzy/Programming/c/BrIan-Language/tests/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: Vector requires '<' '>' to specify size, expected '<'. Instead encountered '3' on line 2, col 13
+
+SYNTAX ERROR: Failed to parse file.

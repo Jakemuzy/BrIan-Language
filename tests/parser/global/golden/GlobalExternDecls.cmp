@@ -1,0 +1,23 @@
+PROG
+├── FUNC_DECL (platformInit)
+│   ├── LINKAGE_SPEC (extern)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+├── FUNC_DECL (platformRead)
+│   ├── LINKAGE_SPEC (extern)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (int)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (fd)
+│   │   │   ├── TYPE (int)
+│   │   ├── PARAM (buf)
+│   │   │   ├── TYPE (int)
+│   │   │   │   ├── DECL_PREFIX (*)
+│   │   ├── PARAM (count)
+│   │   │   ├── TYPE (int)
+├── VAR_DECL
+│   ├── LINKAGE_SPEC (extern)
+│   ├── TYPE (int)
+│   ├── VAR_LIST
+│   │   ├── VAR (errno)

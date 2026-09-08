@@ -1,0 +1,17 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── FOR
+│   │   │   ├── VAR_DECL
+│   │   │   │   ├── TYPE (int)
+│   │   │   │   ├── VAR_LIST
+│   │   │   │   │   ├── VAR (i)
+│   │   │   │   │   │   ├── LITERAL (0)
+│   │   │   ├── EMPTY
+│   │   │   ├── EXPR_LIST
+│   │   │   │   ├── POSTFIX (++)
+│   │   │   │   │   ├── IDENT (i)
+│   │   │   ├── BODY

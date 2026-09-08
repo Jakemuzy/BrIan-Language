@@ -1,0 +1,12 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── CRITICAL
+│   │   │   ├── BODY
+│   │   │   │   ├── CRITICAL
+│   │   │   │   │   ├── BODY
+│   │   │   │   │   │   ├── POSTFIX (++)
+│   │   │   │   │   │   │   ├── IDENT (x)

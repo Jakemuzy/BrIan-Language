@@ -1,0 +1,23 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (matrix)
+│   │   │   │   │   ├── ARR_DECL
+│   │   │   │   │   │   ├── LITERAL (2)
+│   │   │   │   │   ├── ARR_DECL
+│   │   │   │   │   │   ├── LITERAL (3)
+│   │   │   │   │   ├── ARR_INIT_LIST
+│   │   │   │   │   │   ├── ARR_INIT_LIST
+│   │   │   │   │   │   │   ├── LITERAL (1)
+│   │   │   │   │   │   │   ├── LITERAL (2)
+│   │   │   │   │   │   │   ├── LITERAL (3)
+│   │   │   │   │   │   ├── ARR_INIT_LIST
+│   │   │   │   │   │   │   ├── LITERAL (4)
+│   │   │   │   │   │   │   ├── LITERAL (5)
+│   │   │   │   │   │   │   ├── LITERAL (6)

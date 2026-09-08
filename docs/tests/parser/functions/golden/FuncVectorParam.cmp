@@ -1,8 +1,0 @@
-PROG
-├── FUNC_DEF (scale)
-│   ├── TYPE (void)
-│   ├── PARAM_LIST
-│   │   ├── PARAM (v)
-│   │   │   ├── VECTOR
-│   │   │   │   ├── LITERAL (3)
-│   ├── BODY

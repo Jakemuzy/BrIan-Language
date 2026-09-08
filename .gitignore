@@ -56,5 +56,6 @@ dkms.conf
 
 # My stuff
 /builds
+/bin
 
 

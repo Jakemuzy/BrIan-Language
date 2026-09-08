@@ -1,0 +1,40 @@
+PROG
+├── VAR_DECL
+│   ├── TYPE (int)
+│   ├── VAR_LIST
+│   │   ├── VAR (counter)
+│   │   │   ├── LITERAL (0)
+├── ENUM_DECL (State)
+│   ├── ENUM_BODY
+│   │   ├── IDENT (Init)
+│   │   ├── IDENT (Running)
+│   │   ├── IDENT (Done)
+├── TYPEDEF_DECL (Callback)
+│   ├── FUNC_POINTER (fp)
+│   │   ├── TYPE (void)
+│   │   ├── TYPE (int)
+├── INTERFACE_DECL (IProcessor)
+│   ├── INTERFACE_BODY
+│   │   ├── FUNC_DECL (process)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── TYPE (void)
+│   │   │   ├── PARAM_LIST
+├── STRUCT_DECL (Processor)
+│   ├── IMPLEMENTS
+│   │   ├── IDENT (IProcessor)
+│   ├── STRUCT_BODY
+│   │   ├── FUNC_DEF (process)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── TYPE (void)
+│   │   │   ├── PARAM_LIST
+│   │   │   ├── BODY
+├── FUNC_DEF (run)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)
+│   │   │   │   │   ├── LITERAL (0)

@@ -1,0 +1,37 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)
+│   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   ├── LITERAL (1)
+│   │   │   │   │   │   ├── LITERAL (2)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (y)
+│   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   ├── LITERAL (1)
+│   │   │   │   │   │   ├── BINARY (*)
+│   │   │   │   │   │   │   ├── LITERAL (2)
+│   │   │   │   │   │   │   ├── BINARY (-)
+│   │   │   │   │   │   │   │   ├── LITERAL (3)
+│   │   │   │   │   │   │   │   ├── BINARY (/)
+│   │   │   │   │   │   │   │   │   ├── LITERAL (4)
+│   │   │   │   │   │   │   │   │   ├── LITERAL (2)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (z)
+│   │   │   │   │   ├── BINARY (||)
+│   │   │   │   │   │   ├── BINARY (&&)
+│   │   │   │   │   │   │   ├── LITERAL (true)
+│   │   │   │   │   │   │   ├── LITERAL (false)
+│   │   │   │   │   │   ├── BINARY (&&)
+│   │   │   │   │   │   │   ├── LITERAL (true)
+│   │   │   │   │   │   │   ├── LITERAL (true)

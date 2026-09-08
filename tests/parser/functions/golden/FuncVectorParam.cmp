@@ -1,0 +1,10 @@
+PROG
+├── FUNC_DEF (scale)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (v)
+│   │   │   ├── VECTOR
+│   │   │   │   ├── TYPE (int)
+│   │   │   │   ├── LITERAL (3)
+│   ├── BODY

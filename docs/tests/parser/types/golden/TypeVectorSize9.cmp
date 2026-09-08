@@ -1,9 +1,0 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── VECTOR
-│   │   │   │   ├── LITERAL (9)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (v)

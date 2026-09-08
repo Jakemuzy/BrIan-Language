@@ -1,0 +1,7 @@
+PROG
+├── GEN_FUNC (identity)
+│   ├── RETURN_TYPE
+│   │   ├── GENERIC (T)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (x)
+│   │   │   ├── IDENT (T)

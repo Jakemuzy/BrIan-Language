@@ -1,0 +1,18 @@
+	 START
+Struct
+StructBody
+VarDecl
+Type
+Var
+Literal
+VarDecl
+Type
+Var
+FuncDef
+ReturnType
+Type
+ParamList
+Body
+Asgn
+Reference
+Literal

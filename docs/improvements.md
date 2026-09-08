@@ -125,6 +125,7 @@ and upon an abort or exit error that function will be called. X
     _ Along with this their memory ownership 
     - Along with this their varialbe lifetimes
 * Table driven type checking needs to include EVERY single operator / lval operation
+* lval checking is in type checking (or maybe a substage)
 * ImplicitCasting rules need to be more robust
 * Should check array initalizing, based on size of array and type of array
 * Should check compound literals based on type of struct / enum and what members it has

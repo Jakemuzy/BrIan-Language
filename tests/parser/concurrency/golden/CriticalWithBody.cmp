@@ -1,0 +1,18 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── CRITICAL
+│   │   │   ├── BODY
+│   │   │   │   ├── ASGN (=)
+│   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   ├── LITERAL (1)
+│   │   │   │   ├── ASGN (=)
+│   │   │   │   │   ├── IDENT (y)
+│   │   │   │   │   ├── BINARY (-)
+│   │   │   │   │   │   ├── IDENT (y)
+│   │   │   │   │   │   ├── LITERAL (1)

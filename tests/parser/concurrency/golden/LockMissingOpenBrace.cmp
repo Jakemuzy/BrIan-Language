@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: Expected '{' to begin lock statement body. Instead encountered 'x' on line 3, col 9
+
+SYNTAX ERROR: Failed to parse file.

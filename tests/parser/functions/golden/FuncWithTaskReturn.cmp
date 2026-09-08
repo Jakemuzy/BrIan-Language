@@ -1,0 +1,8 @@
+PROG
+├── FUNC_DEF (spawnWorker)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (task)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── RETURN
+│   │   │   ├── IDENT (NULL)

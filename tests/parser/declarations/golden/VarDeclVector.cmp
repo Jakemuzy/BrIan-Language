@@ -1,0 +1,24 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── VECTOR
+│   │   │   │   ├── TYPE (int)
+│   │   │   │   ├── LITERAL (2)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (pos2d)
+│   │   ├── VAR_DECL
+│   │   │   ├── VECTOR
+│   │   │   │   ├── TYPE (float)
+│   │   │   │   ├── LITERAL (3)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (pos3d)
+│   │   ├── VAR_DECL
+│   │   │   ├── VECTOR
+│   │   │   │   ├── TYPE (double)
+│   │   │   │   ├── LITERAL (4)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (pos4d)

@@ -1,0 +1,52 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (mutex)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (m)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (semaphore)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (s)
+│   │   ├── VAR_DECL
+│   │   │   ├── CHANNEL
+│   │   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (ch)
+│   │   ├── LOCK
+│   │   │   ├── IDENT (m)
+│   │   │   ├── BODY
+│   │   │   │   ├── VAR_DECL
+│   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   ├── VAR_LIST
+│   │   │   │   │   │   ├── VAR (x)
+│   │   │   │   │   │   │   ├── LITERAL (42)
+│   │   ├── CRITICAL
+│   │   │   ├── BODY
+│   │   │   │   ├── VAR_DECL
+│   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   ├── VAR_LIST
+│   │   │   │   │   │   ├── VAR (y)
+│   │   │   │   │   │   │   ├── LITERAL (0)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (task)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (t)
+│   │   │   │   │   ├── PREFIX (spawn)
+│   │   │   │   │   │   ├── CALL (doWork)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (r)
+│   │   │   │   │   ├── PREFIX (await)
+│   │   │   │   │   │   ├── IDENT (t)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (val)
+│   │   │   │   │   ├── PREFIX (<-)
+│   │   │   │   │   │   ├── IDENT (ch)

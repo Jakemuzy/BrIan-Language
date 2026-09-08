@@ -1,0 +1,27 @@
+
+NAME RESOLUTION ERROR: Variable 'j' doesn't exist within current scope on line 13, col 13.
+	 START
+FuncDef
+ReturnType
+Type
+ParamList
+Body
+VarDecl
+Type
+Var
+Literal
+SwitchStmt
+Ident
+Literal
+Body
+VarDecl
+Type
+Var
+Literal
+SwitchStmt
+Ident
+Literal
+Body
+Asgn
+Ident
+Literal

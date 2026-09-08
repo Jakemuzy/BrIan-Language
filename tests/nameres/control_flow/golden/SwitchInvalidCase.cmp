@@ -1,0 +1,4 @@
+
+SYNTAX ERROR: Switch case only allows literals. Expected '{' to begin body. Instead encountered '+' on line 6, col 15
+
+SYNTAX ERROR: Failed to parse file.

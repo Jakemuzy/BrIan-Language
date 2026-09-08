@@ -1,7 +1,0 @@
-PROG
-├── FUNC_DEF (waitOn)
-│   ├── TYPE (void)
-│   ├── PARAM_LIST
-│   │   ├── PARAM (s)
-│   │   │   ├── TYPE (semaphore)
-│   ├── BODY

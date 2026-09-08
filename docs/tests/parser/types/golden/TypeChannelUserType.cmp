@@ -1,9 +1,0 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── CHANNEL
-│   │   │   │   ├── TYPE (MyMsg)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (ch)

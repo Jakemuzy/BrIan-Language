@@ -1,0 +1,18 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── IF STATEMENT
+│   │   │   ├── IF
+│   │   │   │   ├── IDENT (a)
+│   │   │   │   ├── BODY
+│   │   │   │   │   ├── IF STATEMENT
+│   │   │   │   │   │   ├── IF
+│   │   │   │   │   │   │   ├── IDENT (b)
+│   │   │   │   │   │   │   ├── BODY
+│   │   │   │   │   │   │   │   ├── IF STATEMENT
+│   │   │   │   │   │   │   │   │   ├── IF
+│   │   │   │   │   │   │   │   │   │   ├── IDENT (c)
+│   │   │   │   │   │   │   │   │   │   ├── BODY

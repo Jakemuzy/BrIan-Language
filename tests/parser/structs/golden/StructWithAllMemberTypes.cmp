@@ -1,0 +1,28 @@
+PROG
+├── STRUCT_DECL (Full)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (a)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (float)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (b)
+│   │   ├── ENUM_DECL (Kind)
+│   │   │   ├── ENUM_BODY
+│   │   │   │   ├── IDENT (Alpha)
+│   │   │   │   ├── IDENT (Beta)
+│   │   ├── TYPEDEF_DECL (MyFloat)
+│   │   │   ├── TYPE (float)
+│   │   ├── STRUCT_DECL (Sub)
+│   │   │   ├── STRUCT_BODY
+│   │   │   │   ├── VAR_DECL
+│   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   ├── VAR_LIST
+│   │   │   │   │   │   ├── VAR (x)
+│   │   ├── FUNC_DEF (method)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── TYPE (void)
+│   │   │   ├── PARAM_LIST
+│   │   │   ├── BODY

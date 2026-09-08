@@ -1,0 +1,10 @@
+PROG
+├── FUNC_DEF (getConst)
+│   ├── QUALIFIER_LIST
+│   │   ├── TYPE_QUALIFIER (const)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (int)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── RETURN
+│   │   │   ├── LITERAL (1)

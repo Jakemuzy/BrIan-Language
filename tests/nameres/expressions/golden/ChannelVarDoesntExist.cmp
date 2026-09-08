@@ -1,0 +1,10 @@
+
+NAME RESOLUTION ERROR: Variable 'x' doesn't exist within current scope on line 3, col 28.
+	 START
+VarDecl
+Type
+Channel
+Type
+Var
+Prefix
+Ident

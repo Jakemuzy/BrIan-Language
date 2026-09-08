@@ -1,0 +1,24 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── CLOSURE (closure)
+│   │   │   │   ├── TYPE (float)
+│   │   │   │   ├── TYPE (float)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (scale)
+│   │   │   │   │   ├── LAMBDA
+│   │   │   │   │   │   ├── TYPE (float)
+│   │   │   │   │   │   ├── PARAM_LIST
+│   │   │   │   │   │   │   ├── PARAM (x)
+│   │   │   │   │   │   │   │   ├── TYPE (float)
+│   │   │   │   │   │   ├── CAPTURES
+│   │   │   │   │   │   │   ├── IDENT (factor)
+│   │   │   │   │   │   ├── BODY
+│   │   │   │   │   │   │   ├── RETURN
+│   │   │   │   │   │   │   │   ├── BINARY (*)
+│   │   │   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   │   │   │   ├── IDENT (factor)

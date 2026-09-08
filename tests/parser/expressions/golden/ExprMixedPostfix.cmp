@@ -1,0 +1,31 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)
+│   │   │   │   │   ├── SMEMBER
+│   │   │   │   │   │   ├── LITERAL (0)
+│   │   │   │   │   │   ├── IDENT (arr)
+│   │   │   │   │   │   ├── IDENT (field)
+│   │   │   │   │   │   ├── IDENT (ptr)
+│   │   │   │   │   │   ├── IDENT (safe)
+│   │   │   │   │   │   ├── IDENT (member)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (y)
+│   │   │   │   │   ├── INDEX
+│   │   │   │   │   │   ├── IDENT (index)
+│   │   │   │   │   │   ├── CALL (obj)
+│   │   │   │   │   │   │   ├── IDENT (method)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (z)
+│   │   │   │   │   ├── REF (getPtr)
+│   │   │   │   │   │   ├── IDENT (value)

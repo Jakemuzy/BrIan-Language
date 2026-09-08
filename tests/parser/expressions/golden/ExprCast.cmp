@@ -1,0 +1,32 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)
+│   │   │   │   │   ├── LITERAL (5)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (float)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (y)
+│   │   │   │   │   ├── CAST (float)
+│   │   │   │   │   │   ├── TYPE (float)
+│   │   │   │   │   │   ├── IDENT (x)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (double)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (z)
+│   │   │   │   │   ├── CAST (double)
+│   │   │   │   │   │   ├── TYPE (double)
+│   │   │   │   │   │   ├── IDENT (y)
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (I32)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (w)
+│   │   │   │   │   ├── CAST (I32)
+│   │   │   │   │   │   ├── IDENT (I32)
+│   │   │   │   │   │   ├── IDENT (x)

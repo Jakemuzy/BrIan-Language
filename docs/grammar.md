@@ -61,9 +61,9 @@
     VarDecl ::= "let" LinkageSpecifier TypeQualifier ( Type | IDENT ) VarList 
     StructDecl ::= GenericStruct | RegularStruct
     GenericStruct ::= "struct" IDENT GenericList '{' GenStructBody '}'
-        GenStructBody ::= { EnumDecl | VarDecl | TypedefDecl | Function }
+        GenStructBody ::= { EnumDecl | VarDecl | TypedefDecl | FuncDecl }
     RegularStruct ::= "struct" IDET [ Implements ] '{' StructBody '}' 
-        StructBody ::= { EnumDecl | DeclStmt | TypedefDecl | Function | OperatorOverload }
+        StructBody ::= { EnumDecl | DeclStmt | TypedefDecl | FuncDecl | OperatorOverload }
         Implements ::= ':' IDENT { IDENT { ',' IDENT } }
         OperatorOverload ::= "operator" OverloadableOp '(' Param [ ',' Param ] ')' Body
         OverloadableOp   ::= '+' | '-' | '*' | '/' | '%' | '@'

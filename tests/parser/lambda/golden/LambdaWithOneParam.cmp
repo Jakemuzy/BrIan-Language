@@ -1,0 +1,24 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── CLOSURE (closure)
+│   │   │   │   ├── TYPE (int)
+│   │   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (f)
+│   │   │   │   │   ├── LAMBDA
+│   │   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   │   ├── PARAM_LIST
+│   │   │   │   │   │   │   ├── PARAM (x)
+│   │   │   │   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   │   ├── CAPTURES
+│   │   │   │   │   │   │   ├── IDENT (offset)
+│   │   │   │   │   │   ├── BODY
+│   │   │   │   │   │   │   ├── RETURN
+│   │   │   │   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   │   │   │   ├── IDENT (offset)

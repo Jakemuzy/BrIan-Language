@@ -1,0 +1,8 @@
+PROG
+├── FUNC_DEF (foo)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (int)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── RETURN
+│   │   │   ├── LITERAL (42)

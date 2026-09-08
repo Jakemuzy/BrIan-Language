@@ -1,0 +1,46 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── SWITCH
+│   │   │   ├── IDENT (x)
+│   │   │   ├── CASE
+│   │   │   │   ├── LITERAL (0)
+│   │   │   │   ├── BODY
+│   │   │   │   │   ├── VAR_DECL
+│   │   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   │   ├── VAR_LIST
+│   │   │   │   │   │   │   ├── VAR (a)
+│   │   │   │   │   │   │   │   ├── LITERAL (1)
+│   │   │   │   │   ├── IF STATEMENT
+│   │   │   │   │   │   ├── IF
+│   │   │   │   │   │   │   ├── BINARY (>)
+│   │   │   │   │   │   │   │   ├── IDENT (a)
+│   │   │   │   │   │   │   │   ├── LITERAL (0)
+│   │   │   │   │   │   │   ├── BODY
+│   │   │   │   │   │   │   │   ├── BREAK (break)
+│   │   │   ├── CASE
+│   │   │   │   ├── LITERAL (1)
+│   │   │   │   ├── BODY
+│   │   │   │   │   ├── FOR
+│   │   │   │   │   │   ├── VAR_DECL
+│   │   │   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   │   │   ├── VAR_LIST
+│   │   │   │   │   │   │   │   ├── VAR (i)
+│   │   │   │   │   │   │   │   │   ├── LITERAL (0)
+│   │   │   │   │   │   ├── BINARY (<)
+│   │   │   │   │   │   │   ├── IDENT (i)
+│   │   │   │   │   │   │   ├── LITERAL (10)
+│   │   │   │   │   │   ├── EXPR_LIST
+│   │   │   │   │   │   │   ├── POSTFIX (++)
+│   │   │   │   │   │   │   │   ├── IDENT (i)
+│   │   │   │   │   │   ├── BODY
+│   │   │   │   │   │   │   ├── CONTINUE (continue)
+│   │   │   │   │   ├── BREAK (break)
+│   │   │   ├── DEFAULT
+│   │   │   │   ├── BODY
+│   │   │   │   │   ├── WHILE
+│   │   │   │   │   │   ├── LITERAL (false)
+│   │   │   │   │   │   ├── BODY

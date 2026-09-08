@@ -1,0 +1,13 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── MATRIX
+│   │   │   │   ├── TYPE (float)
+│   │   │   │   ├── LITERAL (1)
+│   │   │   │   ├── LITERAL (1)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (m)

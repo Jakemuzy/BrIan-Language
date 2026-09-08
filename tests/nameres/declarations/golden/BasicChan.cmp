@@ -1,0 +1,23 @@
+	 START
+VarDecl
+Type
+Var
+Literal
+VarDecl
+Type
+Channel
+Type
+Var
+VarDecl
+Type
+Channel
+Type
+Var
+Prefix
+Ident
+Typedef
+VarDecl
+Type
+Channel
+Type
+Var

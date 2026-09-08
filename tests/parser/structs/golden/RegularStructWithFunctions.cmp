@@ -1,0 +1,24 @@
+PROG
+├── STRUCT_DECL (Foo)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (value)
+│   │   ├── FUNC_DEF (getValue)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── TYPE (int)
+│   │   │   ├── PARAM_LIST
+│   │   │   ├── BODY
+│   │   │   │   ├── RETURN
+│   │   │   │   │   ├── IDENT (value)
+│   │   ├── FUNC_DEF (setValue)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── TYPE (void)
+│   │   │   ├── PARAM_LIST
+│   │   │   │   ├── PARAM (v)
+│   │   │   │   │   ├── TYPE (int)
+│   │   │   ├── BODY
+│   │   │   │   ├── ASGN (=)
+│   │   │   │   │   ├── IDENT (value)
+│   │   │   │   │   ├── IDENT (v)

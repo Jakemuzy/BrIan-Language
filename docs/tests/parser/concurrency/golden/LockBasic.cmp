@@ -1,7 +1,0 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── LOCK
-│   │   │   ├── IDENT (myMutex)
-│   │   │   ├── BODY

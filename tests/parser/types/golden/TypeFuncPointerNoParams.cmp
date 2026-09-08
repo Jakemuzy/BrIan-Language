@@ -1,0 +1,11 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── FUNC_POINTER (fp)
+│   │   │   │   ├── TYPE (void)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (action)

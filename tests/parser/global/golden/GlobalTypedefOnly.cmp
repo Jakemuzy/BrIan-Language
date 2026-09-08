@@ -1,0 +1,8 @@
+PROG
+├── TYPEDEF_DECL (Size)
+│   ├── IDENT (U64)
+├── TYPEDEF_DECL (Handler)
+│   ├── FUNC_POINTER (fp)
+│   │   ├── TYPE (void)
+│   │   ├── TYPE (int)
+│   │   ├── TYPE (int)

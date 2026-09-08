@@ -1,0 +1,6 @@
+PROG
+├── FUNC_DEF (doNothing)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY

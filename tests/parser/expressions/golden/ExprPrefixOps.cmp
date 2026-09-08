@@ -1,0 +1,47 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)
+│   │   │   │   │   ├── LITERAL (5)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (a)
+│   │   │   │   │   ├── PREFIX (++)
+│   │   │   │   │   │   ├── IDENT (x)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (b)
+│   │   │   │   │   ├── PREFIX (--)
+│   │   │   │   │   │   ├── IDENT (x)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (c)
+│   │   │   │   │   ├── PREFIX (+)
+│   │   │   │   │   │   ├── IDENT (x)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (d)
+│   │   │   │   │   ├── PREFIX (-)
+│   │   │   │   │   │   ├── IDENT (x)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (e)
+│   │   │   │   │   ├── PREFIX (!)
+│   │   │   │   │   │   ├── LITERAL (true)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (f)
+│   │   │   │   │   ├── PREFIX (~)
+│   │   │   │   │   │   ├── IDENT (x)

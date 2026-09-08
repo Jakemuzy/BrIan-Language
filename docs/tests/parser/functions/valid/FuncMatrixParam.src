@@ -1,2 +1,0 @@
-fn void transform(mat<3,3> m) {
-}

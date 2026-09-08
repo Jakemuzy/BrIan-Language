@@ -1,0 +1,14 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── SWITCH
+│   │   │   ├── IDENT (x)
+│   │   │   ├── CASE
+│   │   │   │   ├── LITERAL (1)
+│   │   │   │   ├── BODY
+│   │   │   │   │   ├── BREAK (break)
+│   │   │   ├── DEFAULT
+│   │   │   │   ├── BODY

@@ -1,0 +1,33 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── CLOSURE (closure)
+│   │   │   │   ├── TYPE (void)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (f)
+│   │   │   │   │   ├── LAMBDA
+│   │   │   │   │   │   ├── TYPE (void)
+│   │   │   │   │   │   ├── PARAM_LIST
+│   │   │   │   │   │   ├── CAPTURES
+│   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   ├── BODY
+│   │   │   │   │   │   │   ├── VAR_DECL
+│   │   │   │   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   │   │   │   ├── VAR_LIST
+│   │   │   │   │   │   │   │   │   ├── VAR (y)
+│   │   │   │   │   │   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   │   │   │   │   │   ├── LITERAL (1)
+│   │   │   │   │   │   │   ├── IF STATEMENT
+│   │   │   │   │   │   │   │   ├── IF
+│   │   │   │   │   │   │   │   │   ├── BINARY (>)
+│   │   │   │   │   │   │   │   │   │   ├── IDENT (y)
+│   │   │   │   │   │   │   │   │   │   ├── LITERAL (10)
+│   │   │   │   │   │   │   │   │   ├── BODY
+│   │   │   │   │   │   │   │   │   │   ├── ASGN (=)
+│   │   │   │   │   │   │   │   │   │   │   ├── IDENT (y)
+│   │   │   │   │   │   │   │   │   │   │   ├── LITERAL (0)

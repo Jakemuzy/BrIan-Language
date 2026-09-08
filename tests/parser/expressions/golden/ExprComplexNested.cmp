@@ -1,0 +1,55 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)
+│   │   │   │   │   ├── BINARY (/)
+│   │   │   │   │   │   ├── BINARY (*)
+│   │   │   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   │   │   ├── IDENT (a)
+│   │   │   │   │   │   │   │   ├── IDENT (b)
+│   │   │   │   │   │   │   ├── BINARY (-)
+│   │   │   │   │   │   │   │   ├── IDENT (c)
+│   │   │   │   │   │   │   │   ├── IDENT (d)
+│   │   │   │   │   │   ├── BINARY (%)
+│   │   │   │   │   │   │   ├── IDENT (e)
+│   │   │   │   │   │   │   ├── IDENT (f)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (cond)
+│   │   │   │   │   ├── BINARY (||)
+│   │   │   │   │   │   ├── BINARY (&&)
+│   │   │   │   │   │   │   ├── BINARY (>)
+│   │   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   │   │   ├── LITERAL (0)
+│   │   │   │   │   │   │   ├── BINARY (<)
+│   │   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   │   │   ├── LITERAL (100)
+│   │   │   │   │   │   ├── BINARY (==)
+│   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   │   ├── PREFIX (-)
+│   │   │   │   │   │   │   │   ├── LITERAL (1)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (float)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (r)
+│   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   ├── CALL (foo)
+│   │   │   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   │   │   │   ├── IDENT (a)
+│   │   │   │   │   │   │   │   │   ├── IDENT (b)
+│   │   │   │   │   │   │   │   ├── BINARY (*)
+│   │   │   │   │   │   │   │   │   ├── IDENT (c)
+│   │   │   │   │   │   │   │   │   ├── IDENT (d)
+│   │   │   │   │   │   ├── CALL (bar)
+│   │   │   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   │   │   ├── BINARY (-)
+│   │   │   │   │   │   │   │   │   ├── IDENT (e)
+│   │   │   │   │   │   │   │   │   ├── IDENT (f)

@@ -1,9 +1,0 @@
-PROG
-├── INTERFACE_DECL (IHasValue)
-│   ├── INTERFACE_BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (value)
-│   │   ├── FUNC_DECL (getValue)
-│   │   │   ├── TYPE (int)

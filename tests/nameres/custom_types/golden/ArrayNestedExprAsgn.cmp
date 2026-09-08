@@ -1,0 +1,18 @@
+	 START
+VarDecl
+Type
+Var
+Literal
+VarDecl
+Type
+Var
+ArrDecl
+ArrDecl
+ArrInit
+ArrInit
+Binary
+Ident
+Literal
+Postfix
+Ident
+ArrInit

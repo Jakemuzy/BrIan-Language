@@ -1,9 +1,0 @@
-PROG
-├── (null) (identity)
-│   ├── GENERIC (T)
-│   ├── PARAM_LIST
-│   │   ├── PARAM (x)
-│   │   │   ├── TYPE (T)
-│   ├── BODY
-│   │   ├── RETURN
-│   │   │   ├── IDENT (x)

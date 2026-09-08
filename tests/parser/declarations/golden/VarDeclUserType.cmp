@@ -1,0 +1,26 @@
+PROG
+├── STRUCT_DECL (MyStruct)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (a)
+│   │   │   │   ├── VAR (b)
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (MyStruct)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (s)
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (MyStruct)
+│   │   │   │   ├── DECL_PREFIX (*)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (ptr)
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (OtherType)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (val)

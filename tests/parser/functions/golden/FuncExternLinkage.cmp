@@ -1,0 +1,8 @@
+PROG
+├── FUNC_DECL (externalFunc)
+│   ├── LINKAGE_SPEC (extern)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (int)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (x)
+│   │   │   ├── TYPE (int)

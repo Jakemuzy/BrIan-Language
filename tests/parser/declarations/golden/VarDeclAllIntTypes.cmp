@@ -1,0 +1,38 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (I8)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (a)
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (I16)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (b)
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (I32)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (c)
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (I64)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (d)
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (U8)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (e)
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (U16)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (f)
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (U32)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (g)
+│   │   ├── VAR_DECL
+│   │   │   ├── IDENT (U64)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (h)

@@ -1,0 +1,48 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (a)
+│   │   │   │   │   ├── BINARY (&&)
+│   │   │   │   │   │   ├── LITERAL (true)
+│   │   │   │   │   │   ├── LITERAL (false)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (b)
+│   │   │   │   │   ├── BINARY (||)
+│   │   │   │   │   │   ├── LITERAL (true)
+│   │   │   │   │   │   ├── LITERAL (false)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (c)
+│   │   │   │   │   ├── PREFIX (!)
+│   │   │   │   │   │   ├── LITERAL (true)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (d)
+│   │   │   │   │   ├── BINARY (||)
+│   │   │   │   │   │   ├── BINARY (&&)
+│   │   │   │   │   │   │   ├── IDENT (a)
+│   │   │   │   │   │   │   ├── IDENT (b)
+│   │   │   │   │   │   ├── PREFIX (!)
+│   │   │   │   │   │   │   ├── IDENT (c)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (bool)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (e)
+│   │   │   │   │   ├── BINARY (||)
+│   │   │   │   │   │   ├── BINARY (&&)
+│   │   │   │   │   │   │   ├── IDENT (a)
+│   │   │   │   │   │   │   ├── IDENT (b)
+│   │   │   │   │   │   ├── BINARY (&&)
+│   │   │   │   │   │   │   ├── PREFIX (!)
+│   │   │   │   │   │   │   │   ├── IDENT (c)
+│   │   │   │   │   │   │   ├── IDENT (d)

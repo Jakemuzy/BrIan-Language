@@ -1,0 +1,8 @@
+struct MyStruct {
+  let int a, b;
+}
+
+fn void test() {
+    let int* p = NULL;
+    let MyStruct* s = NULL;
+}

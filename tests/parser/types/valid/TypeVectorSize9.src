@@ -1,0 +1,3 @@
+fn void test() {
+    let vec<float, 9> v;
+}

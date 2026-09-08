@@ -1,0 +1,11 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── CHANNEL
+│   │   │   │   ├── IDENT (MyMsg)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (ch)

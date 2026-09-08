@@ -1,0 +1,19 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)
+│   │   │   │   ├── VAR (y)
+│   │   │   │   ├── VAR (z)
+│   │   ├── ASGN (=)
+│   │   │   ├── IDENT (x)
+│   │   │   ├── ASGN (=)
+│   │   │   │   ├── IDENT (y)
+│   │   │   │   ├── ASGN (=)
+│   │   │   │   │   ├── IDENT (z)
+│   │   │   │   │   ├── LITERAL (0)

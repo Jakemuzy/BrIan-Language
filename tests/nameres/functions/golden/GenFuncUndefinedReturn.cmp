@@ -1,0 +1,12 @@
+
+NAME RESOLUTION ERROR: Undefined generic parameter 'X' on line 3, col 5.
+	 START
+GenFuncDecl
+GenericList
+Generic
+Generic
+ReturnType
+GenericRef
+ParamList
+Type
+Type

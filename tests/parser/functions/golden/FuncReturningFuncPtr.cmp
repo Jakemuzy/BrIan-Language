@@ -1,0 +1,10 @@
+PROG
+├── FUNC_DEF (getAdder)
+│   ├── RETURN_TYPE
+│   │   ├── FUNC_POINTER (fp)
+│   │   │   ├── TYPE (int)
+│   │   │   ├── TYPE (int)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── RETURN
+│   │   │   ├── IDENT (NULL)

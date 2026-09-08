@@ -1,0 +1,7 @@
+fn int foo(int one, int two) {
+    return one + two;
+}
+
+fn void test() {
+    foo(1, 2,);
+}

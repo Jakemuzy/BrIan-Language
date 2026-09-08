@@ -1,0 +1,17 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── WHILE
+│   │   │   ├── BINARY (&&)
+│   │   │   │   ├── BINARY (>)
+│   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   ├── LITERAL (0)
+│   │   │   │   ├── BINARY (<)
+│   │   │   │   │   ├── IDENT (y)
+│   │   │   │   │   ├── LITERAL (10)
+│   │   │   ├── BODY
+│   │   │   │   ├── POSTFIX (--)
+│   │   │   │   │   ├── IDENT (x)

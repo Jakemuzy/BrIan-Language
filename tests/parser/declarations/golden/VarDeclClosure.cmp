@@ -1,0 +1,18 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── CLOSURE (closure)
+│   │   │   │   ├── TYPE (int)
+│   │   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (transform)
+│   │   ├── VAR_DECL
+│   │   │   ├── CLOSURE (closure)
+│   │   │   │   ├── TYPE (void)
+│   │   │   │   ├── TYPE (string)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (printer)

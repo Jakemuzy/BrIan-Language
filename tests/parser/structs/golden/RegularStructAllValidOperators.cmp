@@ -1,0 +1,123 @@
+PROG
+├── STRUCT_DECL (Vec2)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (float)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (float)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (y)
+│   │   ├── OPERATOR_OVERLOAD (+)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (-)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (*)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (/)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (%)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (@)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (==)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (!=)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (<)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (>)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (<=)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (>=)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (<<)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (>>)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (&)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (|)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (^)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD (~)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── BODY
+│   │   ├── OPERATOR_OVERLOAD ([)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Vec2)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── TYPE (int)
+│   │   │   ├── BODY

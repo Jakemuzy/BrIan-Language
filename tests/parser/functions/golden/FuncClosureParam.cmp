@@ -1,0 +1,10 @@
+PROG
+├── FUNC_DEF (applyFunc)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (cb)
+│   │   │   ├── CLOSURE (closure)
+│   │   │   │   ├── TYPE (int)
+│   │   │   │   ├── TYPE (int)
+│   ├── BODY

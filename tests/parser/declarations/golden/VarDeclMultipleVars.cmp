@@ -1,0 +1,21 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (a)
+│   │   │   │   ├── VAR (b)
+│   │   │   │   ├── VAR (c)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (float)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)
+│   │   │   │   │   ├── LITERAL (1.0)
+│   │   │   │   ├── VAR (y)
+│   │   │   │   │   ├── LITERAL (2.0)
+│   │   │   │   ├── VAR (z)
+│   │   │   │   │   ├── LITERAL (3.0)

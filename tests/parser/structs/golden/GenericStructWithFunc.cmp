@@ -1,0 +1,16 @@
+PROG
+├── GEN_STRUCT_DECL (Stack)
+│   ├── GENERIC_LIST
+│   │   ├── IDENT (T)
+│   ├── GEN_STRUCT_BODY
+│   │   ├── GEN_DECL
+│   │   │   ├── IDENT (T)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (data)
+│   │   ├── FUNC_DEF (pop)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── IDENT (T)
+│   │   │   ├── PARAM_LIST
+│   │   │   ├── BODY
+│   │   │   │   ├── RETURN
+│   │   │   │   │   ├── IDENT (data)

@@ -1,8 +1,0 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── SWITCH
-│   │   │   ├── IDENT (x)
-│   │   │   ├── CASE (3.14)
-│   │   │   │   ├── BODY

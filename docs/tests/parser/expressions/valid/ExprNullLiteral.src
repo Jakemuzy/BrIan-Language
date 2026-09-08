@@ -1,4 +1,0 @@
-fn void test() {
-    let int* p = NULL;
-    let MyStruct* s = NULL;
-}

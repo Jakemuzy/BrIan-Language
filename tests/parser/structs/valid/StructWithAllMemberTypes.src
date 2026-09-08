@@ -1,0 +1,11 @@
+struct Full {
+    let int a;
+    let float b;
+    enum Kind { Alpha, Beta };
+    type MyFloat = float;
+    struct Sub {
+        let int x;
+    }
+    fn void method() {
+    };
+}

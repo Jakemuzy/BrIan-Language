@@ -1,8 +1,0 @@
-PROG
-├── FUNC_DEF (staticFunc)
-│   ├── QUALIFIER_LIST
-│   │   ├── TYPE_QUALIFIER (static)
-│   ├── TYPE (int)
-│   ├── BODY
-│   │   ├── RETURN
-│   │   │   ├── LITERAL (0)

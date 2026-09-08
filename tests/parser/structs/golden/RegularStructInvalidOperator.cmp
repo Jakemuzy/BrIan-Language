@@ -1,0 +1,32 @@
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '=' on line 2, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '+=' on line 3, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '-=' on line 4, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '*=' on line 5, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '/=' on line 6, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '%=' on line 7, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '<<=' on line 8, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '>>=' on line 9, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '&=' on line 10, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '^=' on line 11, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '|=' on line 12, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '~=' on line 13, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '&&=' on line 14, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '||=' on line 15, col 14
+
+SYNTAX ERROR: Invalid operator for overloading. Instead encountered '<-' on line 16, col 14
+
+SYNTAX ERROR: Failed to parse file.

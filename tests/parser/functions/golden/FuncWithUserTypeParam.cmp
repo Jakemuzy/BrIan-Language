@@ -1,0 +1,10 @@
+PROG
+├── FUNC_DEF (process)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (s)
+│   │   │   ├── IDENT (MyStruct)
+│   │   ├── PARAM (t)
+│   │   │   ├── IDENT (OtherType)
+│   ├── BODY

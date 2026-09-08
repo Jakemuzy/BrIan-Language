@@ -1,0 +1,5 @@
+PROG
+├── FUNC_DECL (foo)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST

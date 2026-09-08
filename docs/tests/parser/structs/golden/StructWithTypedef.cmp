@@ -1,9 +1,0 @@
-PROG
-├── STRUCT_DECL (Wrapper)
-│   ├── STRUCT_BODY
-│   │   ├── TYPEDEF_DECL (MyInt)
-│   │   │   ├── TYPE (int)
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (MyInt)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (value)

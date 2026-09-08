@@ -1,6 +1,0 @@
-PROG
-├── FUNC_DEF (foo)
-│   ├── TYPE (int)
-│   ├── BODY
-│   │   ├── RETURN
-│   │   │   ├── LITERAL (42)

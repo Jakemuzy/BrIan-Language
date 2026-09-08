@@ -1,0 +1,17 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (mutex)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (m)
+│   │   ├── LOCK
+│   │   │   ├── IDENT (m)
+│   │   │   ├── BODY
+│   │   │   │   ├── CRITICAL
+│   │   │   │   │   ├── BODY
+│   │   │   │   │   │   ├── POSTFIX (++)
+│   │   │   │   │   │   │   ├── IDENT (sharedCounter)

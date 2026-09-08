@@ -1,0 +1,30 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (result)
+│   │   │   │   │   ├── CALL (reduce)
+│   │   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   │   ├── IDENT (list)
+│   │   │   │   │   │   │   ├── LAMBDA
+│   │   │   │   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   │   │   │   ├── PARAM_LIST
+│   │   │   │   │   │   │   │   │   ├── PARAM (acc)
+│   │   │   │   │   │   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   │   │   │   │   ├── PARAM (x)
+│   │   │   │   │   │   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   │   │   │   ├── CAPTURES
+│   │   │   │   │   │   │   │   │   ├── IDENT (base)
+│   │   │   │   │   │   │   │   ├── BODY
+│   │   │   │   │   │   │   │   │   ├── RETURN
+│   │   │   │   │   │   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   │   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   │   │   │   │   │   │   ├── IDENT (acc)
+│   │   │   │   │   │   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   │   │   │   │   │   ├── IDENT (base)
+│   │   │   │   │   │   │   ├── LITERAL (0)

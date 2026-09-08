@@ -1,0 +1,20 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── CALL (foo)
+│   │   ├── CALL (bar)
+│   │   │   ├── ARG_LIST
+│   │   │   │   ├── LITERAL (1)
+│   │   │   │   ├── LITERAL (2)
+│   │   │   │   ├── LITERAL (3)
+│   │   ├── CALL (baz)
+│   │   │   ├── ARG_LIST
+│   │   │   │   ├── BINARY (+)
+│   │   │   │   │   ├── IDENT (a)
+│   │   │   │   │   ├── IDENT (b)
+│   │   │   │   ├── BINARY (*)
+│   │   │   │   │   ├── IDENT (c)
+│   │   │   │   │   ├── IDENT (d)

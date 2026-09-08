@@ -1,6 +1,0 @@
-struct Stack<T> {
-    let T data;
-    fn T pop() {
-        return data;
-    }
-}

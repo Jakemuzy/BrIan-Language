@@ -1,9 +1,0 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── CALL
-│   │   │   ├── ARG_LIST
-│   │   │   │   ├── LITERAL (1)
-│   │   │   │   ├── LITERAL (2)
-│   │   │   ├── IDENT (foo)

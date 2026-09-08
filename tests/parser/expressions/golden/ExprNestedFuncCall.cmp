@@ -1,0 +1,32 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (x)
+│   │   │   │   │   ├── CALL (foo)
+│   │   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   │   ├── CALL (bar)
+│   │   │   │   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   │   │   │   ├── LITERAL (1)
+│   │   │   │   │   │   │   ├── CALL (baz)
+│   │   │   │   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   │   │   │   ├── LITERAL (2)
+│   │   │   │   │   │   │   │   │   ├── LITERAL (3)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (y)
+│   │   │   │   │   ├── CALL (a)
+│   │   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   │   ├── CALL (b)
+│   │   │   │   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   │   │   │   ├── CALL (c)
+│   │   │   │   │   │   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   │   │   │   │   │   ├── CALL (d)
+│   │   │   │   │   │   │   │   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   │   │   │   │   │   │   │   ├── LITERAL (1)

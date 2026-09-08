@@ -1,3 +1,0 @@
-fn void test() {
-    let mat<9,9> m;
-}

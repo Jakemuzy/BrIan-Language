@@ -1,9 +1,0 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── TYPE (void)
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── FUNC_POINTER (fp)
-│   │   │   │   ├── TYPE (void)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (action)

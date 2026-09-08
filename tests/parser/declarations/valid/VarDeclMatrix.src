@@ -1,0 +1,5 @@
+fn void test() {
+    let mat<int, 3,3> identity;
+    let mat<u8, 4,4> transform;
+    let mat<float, 1,9> row;
+}

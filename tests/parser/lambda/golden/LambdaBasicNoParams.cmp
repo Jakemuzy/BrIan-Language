@@ -1,0 +1,17 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── CLOSURE (closure)
+│   │   │   │   ├── TYPE (void)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (action)
+│   │   │   │   │   ├── LAMBDA
+│   │   │   │   │   │   ├── TYPE (void)
+│   │   │   │   │   │   ├── PARAM_LIST
+│   │   │   │   │   │   ├── CAPTURES
+│   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   ├── BODY

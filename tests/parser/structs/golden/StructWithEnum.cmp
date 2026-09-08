@@ -1,0 +1,12 @@
+PROG
+├── STRUCT_DECL (Flags)
+│   ├── STRUCT_BODY
+│   │   ├── ENUM_DECL (Mode)
+│   │   │   ├── ENUM_BODY
+│   │   │   │   ├── IDENT (Read)
+│   │   │   │   ├── IDENT (Write)
+│   │   │   │   ├── IDENT (Exec)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (value)

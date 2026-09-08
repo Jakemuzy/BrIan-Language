@@ -1,0 +1,7 @@
+/home/jmuzy/Programming/c/BrIan-Language/CMakeFiles/blibs.dir
+/home/jmuzy/Programming/c/BrIan-Language/CMakeFiles/compiler.dir
+/home/jmuzy/Programming/c/BrIan-Language/CMakeFiles/edit_cache.dir
+/home/jmuzy/Programming/c/BrIan-Language/CMakeFiles/rebuild_cache.dir
+/home/jmuzy/Programming/c/BrIan-Language/tests/CMakeFiles/tester.dir
+/home/jmuzy/Programming/c/BrIan-Language/tests/CMakeFiles/edit_cache.dir
+/home/jmuzy/Programming/c/BrIan-Language/tests/CMakeFiles/rebuild_cache.dir

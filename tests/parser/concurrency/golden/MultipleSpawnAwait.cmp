@@ -1,0 +1,30 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (task)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (t1)
+│   │   │   │   │   ├── PREFIX (spawn)
+│   │   │   │   │   │   ├── CALL (worker1)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (task)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (t2)
+│   │   │   │   │   ├── PREFIX (spawn)
+│   │   │   │   │   │   ├── CALL (worker2)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (r1)
+│   │   │   │   │   ├── PREFIX (await)
+│   │   │   │   │   │   ├── IDENT (t1)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (r2)
+│   │   │   │   │   ├── PREFIX (await)
+│   │   │   │   │   │   ├── IDENT (t2)

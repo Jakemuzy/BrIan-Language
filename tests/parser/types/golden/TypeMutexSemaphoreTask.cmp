@@ -1,0 +1,18 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (mutex)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (m)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (semaphore)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (s)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (task)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (t)

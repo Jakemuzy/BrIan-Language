@@ -1,0 +1,14 @@
+PROG
+├── STRUCT_DECL (Dog)
+│   ├── IMPLEMENTS
+│   │   ├── IDENT (IAnimal)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (string)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (name)
+│   │   ├── FUNC_DEF (speak)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── TYPE (void)
+│   │   │   ├── PARAM_LIST
+│   │   │   ├── BODY

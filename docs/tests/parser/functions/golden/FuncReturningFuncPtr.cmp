@@ -1,8 +1,0 @@
-PROG
-├── FUNC_DEF (getAdder)
-│   ├── FUNC_POINTER (fp)
-│   │   ├── TYPE (int)
-│   │   ├── TYPE (int)
-│   ├── BODY
-│   │   ├── RETURN
-│   │   │   ├── IDENT (NULL)

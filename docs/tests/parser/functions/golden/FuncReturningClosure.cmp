@@ -1,8 +1,0 @@
-PROG
-├── FUNC_DEF (getAction)
-│   ├── CLOSURE (closure)
-│   │   ├── TYPE (void)
-│   │   ├── TYPE (int)
-│   ├── BODY
-│   │   ├── RETURN
-│   │   │   ├── IDENT (NULL)

@@ -1,0 +1,21 @@
+
+NAME RESOLUTION ERROR: Variable 'i' doesn't exist within current scope on line 9, col 9.
+	 START
+FuncDef
+ReturnType
+Type
+ParamList
+Body
+DoWhileStmt
+Literal
+Body
+VarDecl
+Type
+Var
+Literal
+DoWhileStmt
+Literal
+Body
+Asgn
+Ident
+Literal

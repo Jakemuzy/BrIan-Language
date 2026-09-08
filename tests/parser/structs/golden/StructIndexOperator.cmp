@@ -1,0 +1,11 @@
+PROG
+├── STRUCT_DECL (Array)
+│   ├── STRUCT_BODY
+│   │   ├── OPERATOR_OVERLOAD ([)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Array)
+│   │   │   ├── PARAM (idx)
+│   │   │   │   ├── TYPE (int)
+│   │   │   ├── BODY
+│   │   │   │   ├── RETURN
+│   │   │   │   │   ├── IDENT (a)

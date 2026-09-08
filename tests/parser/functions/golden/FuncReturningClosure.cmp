@@ -1,0 +1,10 @@
+PROG
+├── FUNC_DEF (getAction)
+│   ├── RETURN_TYPE
+│   │   ├── CLOSURE (closure)
+│   │   │   ├── TYPE (void)
+│   │   │   ├── TYPE (int)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── RETURN
+│   │   │   ├── IDENT (NULL)

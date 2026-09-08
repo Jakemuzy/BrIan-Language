@@ -1,0 +1,34 @@
+name: Run Golden Tests
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code Repository
+      uses: actions/checkout@v4
+
+    - name: Set up CMake and GCC
+      uses: lukka/get-cmake@latest
+
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build Project Binary Artifacts
+      run: cmake --build build --config Release
+
+    - name: Tokenizer Tests
+      run: |
+        ./bin/tester --file ./tests/tokenizer -tok
+
+    - name: Parser Tests
+      run: |
+        ./bin/tester --file ./tests/parser -parse
+
+

@@ -1,0 +1,23 @@
+	 START
+FuncDef
+ReturnType
+Type
+ParamList
+Body
+VarDecl
+Type
+Var
+Literal
+ForStmt
+VarDecl
+Type
+Var
+Literal
+Binary
+Ident
+Literal
+Postfix
+Ident
+Postfix
+Ident
+Body

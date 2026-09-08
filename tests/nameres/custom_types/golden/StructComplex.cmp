@@ -1,0 +1,6 @@
+
+SYNTAX ERROR: Expected ';' after function declaration in generic struct body. Instead encountered 'operator' on line 20, col 5
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 22, col 5
+
+SYNTAX ERROR: Failed to parse file.

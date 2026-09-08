@@ -1,0 +1,17 @@
+PROG
+├── FUNC_DEF (test)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── LOCK
+│   │   │   ├── IDENT (mutexA)
+│   │   │   ├── BODY
+│   │   │   │   ├── LOCK
+│   │   │   │   │   ├── IDENT (mutexB)
+│   │   │   │   │   ├── BODY
+│   │   │   │   │   │   ├── ASGN (=)
+│   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   │   │   ├── LITERAL (1)

@@ -1,0 +1,9 @@
+PROG
+├── GEN_STRUCT_DECL (Box)
+│   ├── GENERIC_LIST
+│   │   ├── IDENT (T)
+│   ├── GEN_STRUCT_BODY
+│   │   ├── GEN_DECL
+│   │   │   ├── IDENT (T)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (value)
