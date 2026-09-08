@@ -3,5 +3,5 @@ struct Map<K, V> {
     let V value;
     fn V get(K k) {
         return value;
-    }
+    };
 }

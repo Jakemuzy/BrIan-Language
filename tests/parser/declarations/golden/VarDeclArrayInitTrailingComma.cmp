@@ -1,16 +1,8 @@
-PROG
-├── FUNC_DEF (test)
-│   ├── RETURN_TYPE
-│   │   ├── TYPE (void)
-│   ├── PARAM_LIST
-│   ├── BODY
-│   │   ├── VAR_DECL
-│   │   │   ├── TYPE (int)
-│   │   │   ├── VAR_LIST
-│   │   │   │   ├── VAR (a)
-│   │   │   │   │   ├── ARR_DECL
-│   │   │   │   │   │   ├── LITERAL (3)
-│   │   │   │   │   ├── ARR_INIT_LIST
-│   │   │   │   │   │   ├── LITERAL (1)
-│   │   │   │   │   │   ├── LITERAL (2)
-│   │   │   │   │   │   ├── LITERAL (3)
+
+SYNTAX ERROR: Expected array initalization. Instead encountered '}' on line 2, col 29
+
+SYNTAX ERROR: Expected semicolon ';' after variable declaration. Instead encountered '}' on line 2, col 29
+
+SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered ';' on line 2, col 30
+
+SYNTAX ERROR: Failed to parse file.

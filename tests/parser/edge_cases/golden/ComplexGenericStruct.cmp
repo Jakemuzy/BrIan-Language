@@ -1,6 +1,23 @@
-
-SYNTAX ERROR: Expected ';' after function declaration in generic struct body. Instead encountered '}' on line 7, col 1
-
-SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 7, col 1
-
-SYNTAX ERROR: Failed to parse file.
+PROG
+├── GEN_STRUCT_DECL (Map)
+│   ├── GENERIC_LIST
+│   │   ├── IDENT (K)
+│   │   ├── IDENT (V)
+│   ├── GEN_STRUCT_BODY
+│   │   ├── GEN_DECL
+│   │   │   ├── IDENT (K)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (key)
+│   │   ├── GEN_DECL
+│   │   │   ├── IDENT (V)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (value)
+│   │   ├── FUNC_DEF (get)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── IDENT (V)
+│   │   │   ├── PARAM_LIST
+│   │   │   │   ├── PARAM (k)
+│   │   │   │   │   ├── IDENT (K)
+│   │   │   ├── BODY
+│   │   │   │   ├── RETURN
+│   │   │   │   │   ├── IDENT (value)

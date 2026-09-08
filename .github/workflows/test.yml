@@ -23,8 +23,12 @@ jobs:
     - name: Build Project Binary Artifacts
       run: cmake --build build --config Release
 
-    - name: Run Integration Tests via Golden Tester
+    - name: Tokenizer Tests
       run: |
-        ./bin/tester --file ./tests
+        ./bin/tester --file ./tests/tokenizer -tok
+
+    - name: Parser Tests
+      run: |
+        ./bin/tester --file ./tests/parser -parse
 
 

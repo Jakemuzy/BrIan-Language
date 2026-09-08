@@ -1,6 +1,24 @@
-
-SYNTAX ERROR: Expected ';' after function declaration in generic struct body. Instead encountered 'fn' on line 6, col 5
-
-SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 8, col 5
-
-SYNTAX ERROR: Failed to parse file.
+PROG
+├── STRUCT_DECL (Foo)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (value)
+│   │   ├── FUNC_DEF (getValue)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── TYPE (int)
+│   │   │   ├── PARAM_LIST
+│   │   │   ├── BODY
+│   │   │   │   ├── RETURN
+│   │   │   │   │   ├── IDENT (value)
+│   │   ├── FUNC_DEF (setValue)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── TYPE (void)
+│   │   │   ├── PARAM_LIST
+│   │   │   │   ├── PARAM (v)
+│   │   │   │   │   ├── TYPE (int)
+│   │   │   ├── BODY
+│   │   │   │   ├── ASGN (=)
+│   │   │   │   │   ├── IDENT (value)
+│   │   │   │   │   ├── IDENT (v)
