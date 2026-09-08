@@ -1,2 +1,4 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+SYNTAX ERROR: Expected identifier name for variable declaration. Instead encountered '=' on line 6, col 7
+
+SYNTAX ERROR: Failed to parse file.

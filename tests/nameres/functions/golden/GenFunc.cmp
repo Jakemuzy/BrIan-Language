@@ -1,2 +1,9 @@
-
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+	 START
+GenFuncDef
+GenericList
+Generic
+Generic
+ReturnType
+GenericRef
+ParamList
+Body

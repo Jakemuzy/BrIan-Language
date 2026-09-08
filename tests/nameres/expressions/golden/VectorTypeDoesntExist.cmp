@@ -1,2 +1,9 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+NAME RESOLUTION ERROR: User defined type 'foo' doesn't exist within current scope on line 3, col 9.
+	 START
+VarDecl
+Type
+Vector
+Type
+Literal
+Var

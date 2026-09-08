@@ -78,7 +78,6 @@ char* CaptureOutput(TestRun* run, char* sysCommand, int* outExitCode)
 
     int status = pclose(pipe);
     if (WIFSIGNALED(status)) {
-        // FIXED: Log fullCommand BEFORE freeing it
         printf("\tCRASHED %s: signal %d\n", fullCommand, WTERMSIG(status));
         free(fullCommand);
         run->failCount++;
@@ -87,11 +86,20 @@ char* CaptureOutput(TestRun* run, char* sysCommand, int* outExitCode)
         return commandOutput;
     }
     
-    free(fullCommand);
-
     if (WIFEXITED(status)) {
-        *outExitCode = WEXITSTATUS(status);
+        int code = WEXITSTATUS(status);
+        if (code >= 128) {
+            printf("\tCRASHED %s: exited %d (signal %d via shell)\n", fullCommand, code, code - 128);
+            free(fullCommand);
+            run->failCount++;
+            *outExitCode = -1;
+            commandOutput[0] = '\0';
+            return commandOutput;
+        }
+        free(fullCommand);
+        *outExitCode = code;
     } else {
+        free(fullCommand);
         *outExitCode = status;
     }
 
@@ -157,6 +165,10 @@ TestRun* ParseFlags(int argc, char* argv[])
             run->regenerate = true;
         }
         else {
+            if (argv[i][0] != '-') {
+                printf("ERROR: unexpected argument '%s' (expected a compiler flag starting with '-')\n", argv[i]);
+                exit(1);
+            }
             run->compilerFlag = argv[i];
         }
     }
@@ -239,9 +251,18 @@ void CompareFile(TestRun* run, char* directoryPath, char* fileName)
     
     char mkdirCmd[1200];
     snprintf(mkdirCmd, sizeof(mkdirCmd), "mkdir -p %s", targetGoldenDir);
-    int status = system(mkdirCmd); (void)status;
+    int status = system(mkdirCmd); 
+
+    if (status != 0) {
+        printf("\tERROR %s: could not create golden directory '%s'\n", fileName, targetGoldenDir);
+        free(goldenFileName);
+        free(parentDirPath);
+        return;
+    }
   
     if (run->regenerate) {
+        int exitCode = 0;
+
         char goldenDirCommand[1200];
         snprintf(goldenDirCommand, sizeof(goldenDirCommand), "%s > %s/%s 2>&1", sysCommand, targetGoldenDir, goldenFileName);
 

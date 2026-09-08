@@ -10,7 +10,7 @@ interface IProcessor {
 
 struct Processor : IProcessor {
     fn void process() {
-    }
+    };
 }
 
 fn void run() {

@@ -1657,10 +1657,6 @@ ASTNode* ArrInitList(ParserContext* ctx)
 	Advance(ctx);
 	ASTNode* arrInitList = InitalizeASTNode(ctx->arena, ARR_INIT_LIST_NODE, DUMMY_TOKEN);
 
-  // LBRACE -> EXPR or LBRACE or RBRACE 
-  // EXPR -> COMMA or RBRACE
-  // COMMA -> EXPR or LBRACE
-
   if (Match(ctx, RBRACE))
     return arrInitList;
 

@@ -1,2 +1,14 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+NAME RESOLUTION ERROR: User defined type 'ID' doesn't exist within current scope on line 4, col 10.
+	 START
+VarDecl
+Type
+Var
+Literal
+VarDecl
+Type
+Channel
+Type
+Var
+Prefix
+Ident

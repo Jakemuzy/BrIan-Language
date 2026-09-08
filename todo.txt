@@ -1,1 +1,0 @@
-	COMPARED VarDeclVector.src:	FAIL (Output mismatch) (Wrong exit code: expected 0, got 1)

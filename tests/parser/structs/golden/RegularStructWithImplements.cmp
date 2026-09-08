@@ -1,6 +1,14 @@
-
-SYNTAX ERROR: Expected ';' after function declaration in generic struct body. Instead encountered '}' on line 5, col 1
-
-SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 5, col 1
-
-SYNTAX ERROR: Failed to parse file.
+PROG
+├── STRUCT_DECL (Dog)
+│   ├── IMPLEMENTS
+│   │   ├── IDENT (IAnimal)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (string)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (name)
+│   │   ├── FUNC_DEF (speak)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── TYPE (void)
+│   │   │   ├── PARAM_LIST
+│   │   │   ├── BODY

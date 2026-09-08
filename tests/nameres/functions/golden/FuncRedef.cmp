@@ -1,2 +1,13 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+NAME RESOLUTION ERROR: Symbol 'a' on line 4, col 13, is already defined. First defined on line 3, col 18.
+	 START
+FuncDef
+ReturnType
+Type
+ParamList
+Type
+Body
+VarDecl
+Type
+Var
+Literal

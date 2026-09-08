@@ -1,2 +1,11 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+NAME RESOLUTION ERROR: No struct 'struct1' exists within current scope on line 4, col 5.
+	 START
+FuncDef
+ReturnType
+Type
+ParamList
+Body
+Asgn
+Member
+Literal

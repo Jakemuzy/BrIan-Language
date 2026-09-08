@@ -1,2 +1,12 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+NAME RESOLUTION ERROR: Variable 'undefined' doesn't exist within current scope on line 3, col 44.
+	 START
+VarDecl
+Type
+Var
+ArrDecl
+ArrDecl
+ArrInit
+ArrInit
+ArrInit
+Ident

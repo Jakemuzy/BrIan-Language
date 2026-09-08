@@ -1,2 +1,5 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+NAME RESOLUTION ERROR: Invalid statement 'two' within generic struct scope on line 4, col 12.
+	 START
+Struct
+StructBody

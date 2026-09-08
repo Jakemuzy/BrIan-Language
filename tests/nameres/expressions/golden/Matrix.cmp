@@ -1,2 +1,20 @@
-
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+	 START
+VarDecl
+Type
+Matrix
+Type
+Literal
+Literal
+Var
+ArrInit
+ArrInit
+VarDecl
+Type
+Matrix
+Type
+Literal
+Literal
+Var
+ArrInit
+ArrInit
+ArrInit

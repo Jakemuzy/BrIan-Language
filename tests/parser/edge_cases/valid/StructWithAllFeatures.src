@@ -7,7 +7,7 @@ struct Circle : IShape {
     type FloatPtr = float*;
     fn float area() {
         return radius * radius;
-    }
+    };
     operator ==(Circle a, Circle b) {
         return a.radius == b.radius;
     }

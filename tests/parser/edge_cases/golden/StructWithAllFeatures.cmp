@@ -1,6 +1,44 @@
-
-SYNTAX ERROR: Expected ';' after function declaration in generic struct body. Instead encountered 'operator' on line 11, col 5
-
-SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 13, col 5
-
-SYNTAX ERROR: Failed to parse file.
+PROG
+├── INTERFACE_DECL (IShape)
+│   ├── INTERFACE_BODY
+│   │   ├── FUNC_DECL (area)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── TYPE (float)
+│   │   │   ├── PARAM_LIST
+├── STRUCT_DECL (Circle)
+│   ├── IMPLEMENTS
+│   │   ├── IDENT (IShape)
+│   ├── STRUCT_BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (float)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (radius)
+│   │   ├── ENUM_DECL (Type)
+│   │   │   ├── ENUM_BODY
+│   │   │   │   ├── IDENT (Small)
+│   │   │   │   ├── IDENT (Medium)
+│   │   │   │   ├── IDENT (Large)
+│   │   ├── TYPEDEF_DECL (FloatPtr)
+│   │   │   ├── TYPE (float)
+│   │   │   │   ├── DECL_PREFIX (*)
+│   │   ├── FUNC_DEF (area)
+│   │   │   ├── RETURN_TYPE
+│   │   │   │   ├── TYPE (float)
+│   │   │   ├── PARAM_LIST
+│   │   │   ├── BODY
+│   │   │   │   ├── RETURN
+│   │   │   │   │   ├── BINARY (*)
+│   │   │   │   │   │   ├── IDENT (radius)
+│   │   │   │   │   │   ├── IDENT (radius)
+│   │   ├── OPERATOR_OVERLOAD (==)
+│   │   │   ├── PARAM (a)
+│   │   │   │   ├── IDENT (Circle)
+│   │   │   ├── PARAM (b)
+│   │   │   │   ├── IDENT (Circle)
+│   │   │   ├── BODY
+│   │   │   │   ├── RETURN
+│   │   │   │   │   ├── BINARY (==)
+│   │   │   │   │   │   ├── MEMBER (a)
+│   │   │   │   │   │   │   ├── IDENT (radius)
+│   │   │   │   │   │   ├── MEMBER (b)
+│   │   │   │   │   │   │   ├── IDENT (radius)

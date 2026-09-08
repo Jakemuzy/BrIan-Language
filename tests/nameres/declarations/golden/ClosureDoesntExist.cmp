@@ -1,2 +1,42 @@
 
-COMPILER ERROR: BrIan compiler flag './tests/parser/expressions/invalid/ExprAssignToLiteral.src' does not start with '-' 
+NAME RESOLUTION ERROR: User defined function 'subber' doesn't exist within current scope on line 11, col 5.
+
+NAME RESOLUTION ERROR: Variable 'one' doesn't exist within current scope on line 12, col 11.
+
+NAME RESOLUTION ERROR: Variable 'two' doesn't exist within current scope on line 12, col 16.
+	 START
+VarDecl
+Type
+Var
+Literal
+VarDecl
+Type
+Closure
+Type
+Type
+Type
+Var
+Lambda
+Type
+ParamList
+Type
+Type
+Captures
+Body
+ReturnStmt
+Binary
+Binary
+Ident
+Ident
+Ident
+FuncDef
+ReturnType
+Type
+ParamList
+Body
+Arglist
+Literal
+Literal
+Arglist
+Ident
+Ident
