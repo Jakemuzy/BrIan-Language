@@ -1,9 +1,11 @@
 
-NAME RESOLUTION ERROR: User defined function 'subber' doesn't exist within current scope on line 11, col 5.
+NAME RESOLUTION ERROR: User defined function 'subber' doesn't exist within current scope on line 10, col 5.
 
-NAME RESOLUTION ERROR: Variable 'one' doesn't exist within current scope on line 12, col 11.
+NAME RESOLUTION ERROR: Variable 'one' doesn't exist within current scope on line 11, col 11.
 
-NAME RESOLUTION ERROR: Variable 'two' doesn't exist within current scope on line 12, col 16.
+NAME RESOLUTION ERROR: Variable 'two' doesn't exist within current scope on line 11, col 16.
+
+SYNTAX ERROR: Failed to name resolve.
 	 START
 VarDecl
 Type

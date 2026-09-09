@@ -1,6 +1,8 @@
 #ifndef _BRIAN_SYMBOL_TABLE_H_
 #define _BRIAN_SYMBOL_TABLE_H_
 
+#include <stdbool.h>
+
 #include "ErrorHandler.h"
 #include "ArenaAllocator.h"
 #include "AST.h"
@@ -67,7 +69,7 @@ typedef struct Environment {
 Environment* InitalizeEnvironment(Arena* arena, NamespaceKind nskind);
 Symbol* LookupEnvironment(Environment* env, char* key);
 Symbol* LookupEnvironmentCurrentScope(Environment* env, char* key) ;
-Symbol* PushEnvironment(Arena* arena, Environment* env, ASTNode* key, SymbolType stype);
+Symbol* PushEnvironment(Arena* arena, Environment* env, ASTNode* key, SymbolType stype, bool* failure);
 void DestroyEnvironment(Environment* env);
 
 void ResizeEnvironment(Environment* env, unsigned int newSize);

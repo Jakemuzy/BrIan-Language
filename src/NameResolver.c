@@ -17,16 +17,16 @@ static inline void Debug(char* msg) {
     if (DEBUG_MODE) printf("%s\n", msg);
 }
 
-/* 
-TODO: 
-static inline void NameresERROR(char* format, ASTNode* current) {
-    int buf[1028];
-    snprintf(buf, sizeof(buf), "%s, on line %d, col %d.", format);
-    ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, buf);
+static inline void NameresERROR(NameResolverContext* ctx, const char* format, ...) {
+    char buf[512];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buf, sizeof(buf), format, args);
+    va_end(args);
 
+    ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, "%s", buf);
     ctx->failure = true;
 }
-*/
 
 /* ----- Context ----- */
 
@@ -101,7 +101,7 @@ void ResolveFuncDecl(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("FuncDecl");
     Environment* env = GetNamespace(ctx->nss, N_VAR);
-    PushEnvironment(ctx->arena, env, current, S_FUNC);
+    PushEnvironment(ctx->arena, env, current, S_FUNC, &ctx->failure);
 
     ResolveReturnType(ctx, current->children[0]);
 
@@ -114,7 +114,7 @@ void ResolveFuncDef(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("FuncDef");
     Environment* env = GetNamespace(ctx->nss, N_VAR);
-    PushEnvironment(ctx->arena, env, current, S_FUNC);
+    PushEnvironment(ctx->arena, env, current, S_FUNC, &ctx->failure);
 
     ResolveReturnType(ctx, current->children[0]);
 
@@ -128,7 +128,7 @@ void ResolveGenFuncDecl(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("GenFuncDecl");
     Environment* env = GetNamespace(ctx->nss, N_VAR);
-    PushEnvironment(ctx->arena, env, current, S_FUNC);
+    PushEnvironment(ctx->arena, env, current, S_FUNC, &ctx->failure);
 
     // Enter scope earlier, since should resolve from gen param list
     EnterScope(ctx->arena, ctx->nss);
@@ -147,7 +147,7 @@ void ResolveGenFuncDef(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("GenFuncDef");
     Environment* env = GetNamespace(ctx->nss, N_VAR);
-    PushEnvironment(ctx->arena, env, current, S_FUNC);
+    PushEnvironment(ctx->arena, env, current, S_FUNC, &ctx->failure);
 
     // Enter scope earlier, since should resolve from gen param list
     EnterScope(ctx->arena, ctx->nss);
@@ -247,7 +247,7 @@ void ResolveBody(NameResolverContext* ctx, ASTNode* current)
             case CONTINUE_NODE: 
                 break;
             default: 
-                ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                NameresERROR(ctx, 
                     "Invalid statement type within body '%s' on line %d, col %d.\n", 
                     stmt->token.lexeme, current->token.row, current->token.col
                 );            
@@ -266,7 +266,7 @@ void ResolveStructBody(NameResolverContext* ctx, ASTNode* current)
         else if (bodyElement->ntype == TYPEDEF_DECL_NODE) ResolveTypedefDecl(ctx, bodyElement);
         else if (bodyElement->ntype == OPERATOR_OVERLOAD_NODE) ResolveOperatorOverload(ctx, bodyElement);
         else 
-            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            NameresERROR(ctx,
                 "Invalid statement '%s' within generic struct scope on line %d, col %d.\n",
                 bodyElement->token.lexeme, bodyElement->token.row, bodyElement->token.col
             );
@@ -283,7 +283,7 @@ void ResolveGenStructBody(NameResolverContext* ctx, ASTNode* current)
         else if (bodyElement->ntype == ENUM_DECL_NODE) ResolveEnumDecl(ctx, bodyElement);
         else if (bodyElement->ntype == TYPEDEF_DECL_NODE) ResolveTypedefDecl(ctx, bodyElement);
         else 
-            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            NameresERROR(ctx, 
                 "Invalid statement '%s' within struct scope on line %d, col %d.\n",
                 bodyElement->token.lexeme, bodyElement->token.row, bodyElement->token.col
             );
@@ -409,13 +409,13 @@ void ResolveEnumDecl(NameResolverContext* ctx, ASTNode* current)
     Debug("Enum");
     char* typeName = current->token.lexeme;
     Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
-    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF);
+    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF, &ctx->failure);
 
     // Treated as an identifier in the scope where the enum was defined
     ASTNode* enumBody = current->children[0];
     Environment* symEnv = GetNamespace(ctx->nss, N_VAR);
     for (size_t i = 0; i < enumBody->childCount; i++) 
-        PushEnvironment(ctx->arena, symEnv, enumBody->children[i], S_VAR) ;
+        PushEnvironment(ctx->arena, symEnv, enumBody->children[i], S_VAR, &ctx->failure) ;
 }
 
 void ResolveTypedefDecl(NameResolverContext* ctx, ASTNode* current)
@@ -423,7 +423,7 @@ void ResolveTypedefDecl(NameResolverContext* ctx, ASTNode* current)
     Debug("Typedef");
     char* typeName = current->token.lexeme;
     Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
-    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF);
+    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF, &ctx->failure);
 }
 
 void ResolveStructDecl(NameResolverContext* ctx, ASTNode* current)
@@ -432,7 +432,7 @@ void ResolveStructDecl(NameResolverContext* ctx, ASTNode* current)
 
     char* typeName = current->token.lexeme;
     Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
-    PushEnvironment(ctx->arena, typeEnv, current, S_STRUCT);
+    PushEnvironment(ctx->arena, typeEnv, current, S_STRUCT, &ctx->failure);
 
     // Interface implementation
     int i = 0;
@@ -471,7 +471,7 @@ void ResolveImplements(NameResolverContext* ctx, ASTNode* current)
         Symbol* sym = LookupEnvironment(intEnv, intName); 
 
         if (sym == SYM_DOESNT_EXIST) 
-            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            NameresERROR(ctx, 
                 "Interface '%s' doesn't exist within current scope on line %d, col %d.\n",
                 intName, interfaceNode->token.row, interfaceNode->token.col
             );
@@ -482,7 +482,7 @@ void ResolveInterfaceDecl(NameResolverContext* ctx, ASTNode* current)
 {
     char* intName = current->token.lexeme;
     Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
-    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF);
+    PushEnvironment(ctx->arena, typeEnv, current, S_TYPEDEF, &ctx->failure);
 
     EnterScope(ctx->arena, ctx->nss);
 
@@ -523,7 +523,7 @@ void ResolveExpr(NameResolverContext* ctx, ASTNode* current)
             Symbol* sym = LookupEnvironment(env, identName);
 
             if (sym == SYM_DOESNT_EXIST) 
-                ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+                NameresERROR(ctx, 
                     "Variable '%s' doesn't exist within current scope on line %d, col %d.\n",
                     identName, current->token.row, current->token.col
                 );
@@ -616,7 +616,7 @@ void ResolveIndex(NameResolverContext* ctx, ASTNode* current)
         Symbol* arrSym = LookupEnvironment(env, arrName);
 
         if (arrSym == SYM_DOESNT_EXIST) 
-            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            NameresERROR(ctx, 
                 "Cannot index array. Array '%s' doesn't exist within current scope on line %d, col %d.\n",
                 arrName, current->token.row, current->token.col
             );
@@ -630,7 +630,7 @@ void ResolveFuncCall(NameResolverContext* ctx, ASTNode* current)
     Symbol* funcSym = LookupEnvironment(env, funcName);
 
     if (funcSym == SYM_DOESNT_EXIST) 
-        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+        NameresERROR(ctx, 
             "User defined function '%s' doesn't exist within current scope on line %d, col %d.\n",
             funcName, current->token.row, current->token.col
         );
@@ -646,7 +646,7 @@ void ResolveMember(NameResolverContext* ctx, ASTNode* current)
     Symbol* sym = LookupEnvironment(env, memName);
 
     if (sym == SYM_DOESNT_EXIST) 
-        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+        NameresERROR(ctx, 
             "No struct '%s' exists within current scope on line %d, col %d.\n",
             memName, current->token.row, current->token.col
         );
@@ -660,7 +660,7 @@ void ResolveReference(NameResolverContext* ctx, ASTNode* current)
     Symbol* sym = LookupEnvironment(env, refName);
 
     if (sym == SYM_DOESNT_EXIST) 
-        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+        NameresERROR(ctx, 
             "No struct '%s' exists within current scope on line %d, col %d.\n",
             refName, current->token.row, current->token.col
         );
@@ -677,9 +677,9 @@ void ResolveSizeof(NameResolverContext* ctx, ASTNode* current)
     Symbol* typeSym = LookupEnvironment(typeEnv, typeName);
 
     if (typeSym == SYM_DOESNT_EXIST) {
-        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+        NameresERROR(ctx, 
             "Attempting to get the size of an undefined type '%s' within current scope on line %d, col %d.\n",
-            typeName, current->token.row, current->token.col
+            typeName, typeNode->token.row, typeNode->token.col
         );
     }
 }
@@ -690,7 +690,7 @@ void ResolveVar(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("Var");
     Environment* env = GetNamespace(ctx->nss, N_VAR);
-    PushEnvironment(ctx->arena, env, current, S_VAR);
+    PushEnvironment(ctx->arena, env, current, S_VAR, &ctx->failure);
 
     // Declaration not definition
     if (current->childCount == 0) return;
@@ -751,7 +751,7 @@ void ResolveCaptures(NameResolverContext* ctx, ASTNode* current)
         Symbol* captureSym = LookupEnvironment(env->prev, captureName);
 
         if (captureSym == SYM_DOESNT_EXIST) {
-            ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+            NameresERROR(ctx, 
                 "Captured variable '%s' doesn't exist within current scope on line %d, col %d.\n",
                 captureName, current->token.row, current->token.col
             );
@@ -760,7 +760,7 @@ void ResolveCaptures(NameResolverContext* ctx, ASTNode* current)
         }
             
         // Push them to current
-        PushEnvironment(ctx->arena, env, captureSym->node, S_VAR);
+        PushEnvironment(ctx->arena, env, captureSym->node, S_VAR, &ctx->failure);
     }
 }
 
@@ -773,7 +773,7 @@ void ResolveOperatorOverload(NameResolverContext* ctx, ASTNode* current)
     // Operator
     char* operatorNode = current->token.lexeme;
     Environment* opEnv = GetNamespace(ctx->nss, N_OPERATOR);
-    PushEnvironment(ctx->arena, opEnv, current, S_OPERATOR);
+    PushEnvironment(ctx->arena, opEnv, current, S_OPERATOR, &ctx->failure);
 
     EnterScope(ctx->arena, ctx->nss);
 
@@ -787,7 +787,7 @@ void ResolveOperatorOverload(NameResolverContext* ctx, ASTNode* current)
             ASTNode* param = paramOrBodyNode;
 
             ResolveType(ctx, param->children[0]);
-            PushEnvironment(ctx->arena, env, param, S_FIELD);
+            PushEnvironment(ctx->arena, env, param, S_FIELD, &ctx->failure);
         } else if (paramOrBodyNode->ntype == BODY_NODE) 
             ResolveBody(ctx, paramOrBodyNode);
     } 
@@ -815,7 +815,7 @@ void ResolveParamList(NameResolverContext* ctx, ASTNode* current)
             }
             ResolveType(ctx, param->children[i]);
         }
-        PushEnvironment(ctx->arena, env, param, S_FIELD);
+        PushEnvironment(ctx->arena, env, param, S_FIELD, &ctx->failure);
     }
 }
 
@@ -840,7 +840,7 @@ void ResolveGeneric(NameResolverContext* ctx, ASTNode* current)
     Debug("Generic");
     char* typeName = current->token.lexeme;
     Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
-    PushEnvironment(ctx->arena, typeEnv, current, S_GEN);
+    PushEnvironment(ctx->arena, typeEnv, current, S_GEN, &ctx->failure);
 }
 
 void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current)
@@ -852,7 +852,7 @@ void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current)
     
     Symbol* found = LookupEnvironment(typeEnv, typeName);
     if (found == SYM_DOESNT_EXIST || found->stype != S_GEN) {
-        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+        NameresERROR(ctx, 
             "Undefined generic parameter '%s' on line %d, col %d.\n", 
             typeName, current->token.row, current->token.col
         );
@@ -879,7 +879,7 @@ void ResolveType(NameResolverContext* ctx, ASTNode* current)
     Symbol* typeSym = LookupEnvironment(typeEnv, typeName);
 
     if (typeSym == SYM_DOESNT_EXIST) 
-        ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR, 
+        NameresERROR(ctx, 
             "User defined type '%s' doesn't exist within current scope on line %d, col %d.\n",
             typeName, current->token.row, current->token.col
         );

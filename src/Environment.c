@@ -49,7 +49,7 @@ Symbol* LookupEnvironmentCurrentScope(Environment* env, char* key)
     return NULL;
 }
 
-Symbol* PushEnvironment(Arena* arena, Environment* env, ASTNode* key, SymbolType stype)
+Symbol* PushEnvironment(Arena* arena, Environment* env, ASTNode* key, SymbolType stype, bool* failure)
 {
     // Half since probing 
     if (env->currSize + 1 > env->maxSize / 2) 
@@ -67,6 +67,7 @@ Symbol* PushEnvironment(Arena* arena, Environment* env, ASTNode* key, SymbolType
             ERROR(ERR_FLAG_CONTINUE, NAME_RESOLVER_ERR,
                 "Symbol '%s' on line %d, col %d, is already defined. First defined on line %d, col %d.\n",
                 name, secondRow, secondCol, firstRow, firstCol);
+            *failure = true;
             return SYM_ALREADY_EXISTS;
         }
         bucket = (bucket + 1) % env->maxSize;
