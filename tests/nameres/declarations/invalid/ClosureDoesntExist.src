@@ -1,6 +1,5 @@
 // Invalid 
 
-
 let u32 secretThree = 1; 
 let closure void(int, int) adder = 
     lambda int (int one, int two) captures secretThree {

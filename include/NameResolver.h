@@ -2,6 +2,7 @@
 #define _BRIAN_NAME_RESOLVER_H_
 
 #include <stdbool.h>
+#include <stdarg.h>
 
 #include "ArenaAllocator.h"
 #include "Environment.h"
