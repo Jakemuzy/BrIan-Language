@@ -1,5 +1,7 @@
 
 NAME RESOLUTION ERROR: No struct 'struct1' exists within current scope on line 4, col 5.
+
+SYNTAX ERROR: Failed to name resolve.
 	 START
 FuncDef
 ReturnType

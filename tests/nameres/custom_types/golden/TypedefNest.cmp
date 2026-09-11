@@ -1,4 +1,7 @@
-
-SYNTAX ERROR: Expected identifier name for variable declaration. Instead encountered '=' on line 6, col 7
-
-SYNTAX ERROR: Failed to parse file.
+	 START
+Typedef
+Typedef
+VarDecl
+Type
+Var
+Literal

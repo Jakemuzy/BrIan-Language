@@ -1,0 +1,10 @@
+
+fn void swap<T, U>(T x, U y) {
+    return;
+}
+
+fn void main() {
+    let int j = 0;
+    let float k = 2.3;
+    swap<int, float>(j, k);
+}

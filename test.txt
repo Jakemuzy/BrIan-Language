@@ -1,0 +1,104 @@
+PROG
+├── GEN_FUNC_DEF (add)
+│   ├── RETURN_TYPE
+│   │   ├── GENERIC (X)
+│   ├── GENERIC_LIST
+│   │   ├── IDENT (T)
+│   │   ├── IDENT (U)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (x)
+│   │   │   ├── IDENT (T)
+│   │   ├── PARAM (y)
+│   │   │   ├── IDENT (U)
+│   ├── BODY
+│   │   ├── IF STATEMENT
+│   │   │   ├── IF
+│   │   │   │   ├── BINARY (>)
+│   │   │   │   │   ├── SIZEOF
+│   │   │   │   │   │   ├── IDENT (T)
+│   │   │   │   │   ├── SIZEOF
+│   │   │   │   │   │   ├── IDENT (U)
+│   │   │   │   ├── BODY
+│   │   │   │   │   ├── RETURN
+│   │   │   │   │   │   ├── CAST (X)
+│   │   │   │   │   │   │   ├── IDENT (X)
+│   │   │   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   │   │   ├── CAST (T)
+│   │   │   │   │   │   │   │   │   ├── IDENT (T)
+│   │   │   │   │   │   │   │   │   ├── IDENT (y)
+│   │   │   ├── ELSE
+│   │   │   │   ├── BODY
+│   │   │   │   │   ├── RETURN
+│   │   │   │   │   │   ├── CAST (X)
+│   │   │   │   │   │   │   ├── IDENT (X)
+│   │   │   │   │   │   │   ├── BINARY (+)
+│   │   │   │   │   │   │   │   ├── CAST (U)
+│   │   │   │   │   │   │   │   │   ├── IDENT (U)
+│   │   │   │   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   │   │   │   ├── IDENT (y)
+├── FUNC_DEF (main)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (j)
+│   │   │   │   │   ├── LITERAL (0)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (float)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (k)
+│   │   │   │   │   ├── LITERAL (12.74)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (u8)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (b)
+│   │   │   │   │   ├── LITERAL (2)
+│   │   ├── GEN_CALL (add)
+│   │   │   ├── TYPE_LIST
+│   │   │   │   ├── TYPE (int)
+│   │   │   │   ├── TYPE (float)
+│   │   │   │   ├── TYPE (u8)
+│   │   │   ├── ARG_LIST
+│   │   │   │   ├── IDENT (j)
+│   │   │   │   ├── IDENT (k)
+│   │   │   │   ├── IDENT (b)
+│   │   │   ├── GEN_CALL (add)
+│   │   │   │   ├── TYPE_LIST
+│   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   ├── TYPE (float)
+│   │   │   │   │   ├── TYPE (u8)
+│   │   │   │   ├── ARG_LIST
+│   │   │   │   │   ├── IDENT (j)
+│   │   │   │   │   ├── IDENT (k)
+│   │   │   │   │   ├── IDENT (b)
+│   │   │   │   ├── GEN_CALL (add)
+│   │   │   │   │   ├── TYPE_LIST
+│   │   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   │   ├── TYPE (float)
+│   │   │   │   │   │   ├── TYPE (u8)
+│   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   ├── IDENT (j)
+│   │   │   │   │   │   ├── IDENT (k)
+│   │   │   │   │   │   ├── IDENT (b)
+│   │   │   │   │   ├── GEN_CALL (add)
+│   │   │   │   │   │   ├── TYPE_LIST
+│   │   │   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   │   │   ├── TYPE (float)
+│   │   │   │   │   │   │   ├── TYPE (u8)
+│   │   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   │   ├── IDENT (j)
+│   │   │   │   │   │   │   ├── IDENT (k)
+│   │   │   │   │   │   │   ├── IDENT (b)
+│   │   │   │   │   │   ├── GEN_CALL (add)
+│   │   │   │   │   │   │   ├── TYPE_LIST
+│   │   │   │   │   │   │   │   ├── TYPE (int)
+│   │   │   │   │   │   │   │   ├── TYPE (float)
+│   │   │   │   │   │   │   │   ├── TYPE (u8)
+│   │   │   │   │   │   │   ├── ARG_LIST
+│   │   │   │   │   │   │   │   ├── IDENT (j)
+│   │   │   │   │   │   │   │   ├── IDENT (k)
+│   │   │   │   │   │   │   │   ├── I

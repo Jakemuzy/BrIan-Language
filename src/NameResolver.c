@@ -126,6 +126,11 @@ void ResolveFuncDef(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveGenFuncDecl(NameResolverContext* ctx, ASTNode* current)
 {
+    // TODO: Again a generic return type currently requires an explicit paramater to be defined prior 
+    // this should allow just the return if the user desires. In this case it should implicitly define
+    // the paramaterlist and have the return type as a member. This is syntactic sugar
+ 
+    // 3 cases 
     Debug("GenFuncDecl");
     Environment* env = GetNamespace(ctx->nss, N_VAR);
     PushEnvironment(ctx->arena, env, current, S_FUNC, &ctx->failure);
@@ -262,7 +267,7 @@ void ResolveStructBody(NameResolverContext* ctx, ASTNode* current)
         ASTNode* bodyElement = current->children[i];
         if (bodyElement->ntype == VAR_DECL_NODE) ResolveVarDecl(ctx, bodyElement);
         else if (bodyElement->ntype == ENUM_DECL_NODE) ResolveEnumDecl(ctx, bodyElement);
-        else if (bodyElement->ntype == FUNC_DECL) ResolveFuncDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == FUNC_DEF) ResolveFuncDecl(ctx, bodyElement);
         else if (bodyElement->ntype == TYPEDEF_DECL_NODE) ResolveTypedefDecl(ctx, bodyElement);
         else if (bodyElement->ntype == OPERATOR_OVERLOAD_NODE) ResolveOperatorOverload(ctx, bodyElement);
         else 
@@ -279,7 +284,7 @@ void ResolveGenStructBody(NameResolverContext* ctx, ASTNode* current)
     for (size_t i = 0; i < current->childCount; i++) {
         ASTNode* bodyElement = current->children[i];
         if (bodyElement->ntype == GEN_DECL_NODE) ResolveVarDecl(ctx, bodyElement);
-        else if (bodyElement->ntype == FUNC_DECL) ResolveFuncDecl(ctx, bodyElement);
+        else if (bodyElement->ntype == FUNC_DEF) ResolveFuncDecl(ctx, bodyElement);
         else if (bodyElement->ntype == ENUM_DECL_NODE) ResolveEnumDecl(ctx, bodyElement);
         else if (bodyElement->ntype == TYPEDEF_DECL_NODE) ResolveTypedefDecl(ctx, bodyElement);
         else 
@@ -641,28 +646,28 @@ void ResolveMember(NameResolverContext* ctx, ASTNode* current)
 {
     // Struct member technically a part of the type. Type Checkers responsibility
     Debug("Member");
-    char* memName = current->token.lexeme;
+    char* baseName = current->token.lexeme;
     Environment* env = GetNamespace(ctx->nss, N_VAR);
-    Symbol* sym = LookupEnvironment(env, memName);
+    Symbol* sym = LookupEnvironment(env, baseName);
 
     if (sym == SYM_DOESNT_EXIST) 
         NameresERROR(ctx, 
-            "No struct '%s' exists within current scope on line %d, col %d.\n",
-            memName, current->token.row, current->token.col
+            "No struct variable '%s' exists within current scope on line %d, col %d.\n",
+            baseName, current->token.row, current->token.col
         );
 }
 
 void ResolveReference(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("Reference");
-    char* refName = current->token.lexeme;
+    char* baseName = current->token.lexeme;
     Environment* env = GetNamespace(ctx->nss, N_VAR);
-    Symbol* sym = LookupEnvironment(env, refName);
+    Symbol* sym = LookupEnvironment(env, baseName);
 
     if (sym == SYM_DOESNT_EXIST) 
         NameresERROR(ctx, 
-            "No struct '%s' exists within current scope on line %d, col %d.\n",
-            refName, current->token.row, current->token.col
+            "No struct variable '%s' exists within current scope on line %d, col %d.\n",
+            baseName, current->token.row, current->token.col
         );
 }
 

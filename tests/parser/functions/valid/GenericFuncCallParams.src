@@ -1,0 +1,16 @@
+
+fn <X> add<T, U>(T x, U y) {
+    if (sizeof(T) > sizeof(U)) {
+      return (x + y as T) as X;
+    } else {
+      return (x as U + y) as X;
+    }
+
+}
+
+fn void main() {
+    let int j = 0;
+    let float k = 12.74;
+    let u8 b = 2;
+    add as<int, float, u8>(j, k, b);
+}

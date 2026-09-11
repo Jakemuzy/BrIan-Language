@@ -18,6 +18,7 @@
 ### Matricies and vectors first paramater is their underlying type. Only numerical types are allowed (verified in type checker). Additionally only FIXED size is allowed
 ### Register '%' prefix forbids addressing of, but can be applied to any integral type
 ### Strings are NOT represented as pointers in my language, but rahter a fat pointer type datastructure. Data + length is stored since they are immutable
+### Generic function calls require a new token. '<>' are insufficient as they already are quite overloaded and would lead to more ambiguity if used directly after the function . For this reason, I have decided to take use the 'as' keyword to denote what types are being used. This gets rid of the ambiguity and allows us to list '<>' again
 
 ```
 	Program ::=  { Import | Directive } { Function | DeclStmt }
@@ -114,6 +115,7 @@
         Cast ::= "as" ( Type | IDENT )
         Index ::= '[' Expr' ']'
         CallFunc ::= '(' [ ArgList ] ')'    
+        GenCallFunc ::= 'as' '<' Type { ',' Type } '>' CallFunc
         Member ::= '.' IDENT
         Ref ::= '->' IDENT
         SafeMem ::= '.?' IDENT

@@ -3,4 +3,4 @@
 type T = int;
 type F = T;
 
-let F = 12;
+let F joe = 12;

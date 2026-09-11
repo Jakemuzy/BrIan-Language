@@ -10,5 +10,5 @@ struct GenGroup2 <T, B> {
     fn void ADD(T one, B two) 
     {
 
-    }
+    };
 }

@@ -1,5 +1,7 @@
 
 NAME RESOLUTION ERROR: Attempting to get the size of an undefined type 'WHAT' within current scope on line 3, col 23.
+
+SYNTAX ERROR: Failed to name resolve.
 	 START
 VarDecl
 Type

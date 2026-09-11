@@ -1,6 +1,31 @@
-
-SYNTAX ERROR: Expected ';' after function declaration in generic struct body. Instead encountered 'operator' on line 20, col 5
-
-SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 22, col 5
-
-SYNTAX ERROR: Failed to parse file.
+	 START
+Enum
+FuncDecl
+ReturnType
+Type
+ParamList
+Type
+VarDecl
+Type
+Var
+Literal
+Struct
+Implements
+StructBody
+VarDecl
+Type
+Var
+Var
+Var
+Ident
+FuncDecl
+ReturnType
+Type
+ParamList
+Type
+Operator
+Type
+Type
+Body
+ReturnStmt
+Ident

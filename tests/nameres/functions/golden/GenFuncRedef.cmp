@@ -1,5 +1,7 @@
 
-NAME RESOLUTION ERROR: Symbol 'a' on line 3, col 37, is already defined. First defined on line 3, col 21.
+NAME RESOLUTION ERROR: Symbol 'a' on line 5, col 11, is already defined. First defined on line 3, col 21.
+
+SYNTAX ERROR: Failed to name resolve.
 	 START
 GenFuncDef
 GenericList
