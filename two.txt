@@ -1,5 +1,0 @@
-	COMPARED BasicGenericFuncCall.src:	FAIL (Missing or unreadable golden file)
-	COMPARED GenFuncNoGenParams.src:	FAIL (Output mismatch)
-	COMPARED GenFuncGenType.src:	FAIL (Wrong exit code: expected 0, got 1)
-	COMPARED GenericFuncCallNormalParams.src:	FAIL (Missing or unreadable golden file)
-	COMPARED GenericFuncCallNormalReturn.src:	FAIL (Missing or unreadable golden file)

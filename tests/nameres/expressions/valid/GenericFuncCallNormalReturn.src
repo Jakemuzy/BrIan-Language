@@ -1,8 +1,8 @@
 
 fn void Add<X, Y>(X one, Y two) {
-    return (one + (two as X)) as Z;
+    return one + (two as X);
 }
 
 fn void main() {
-    Add as<float, int, int>(10, 20);
+    Add as<int, float>(10, 20);
 }
