@@ -1,0 +1,25 @@
+PROG
+├── GEN_FUNC_DEF (identity)
+│   ├── RETURN_TYPE
+│   │   ├── GENERIC (T)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (x)
+│   │   │   ├── IDENT (T)
+│   ├── BODY
+│   │   ├── RETURN
+│   │   │   ├── IDENT (x)
+├── FUNC_DEF (main)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (j)
+│   │   │   │   │   ├── LITERAL (0)
+│   │   ├── GEN_CALL (identity)
+│   │   │   ├── TYPE_LIST
+│   │   │   │   ├── TYPE (int)
+│   │   │   ├── ARG_LIST
+│   │   │   │   ├── IDENT (j)

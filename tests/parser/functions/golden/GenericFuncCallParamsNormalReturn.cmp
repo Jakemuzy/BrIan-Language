@@ -1,0 +1,36 @@
+PROG
+├── GEN_FUNC_DEF (swap)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── GENERIC_LIST
+│   │   ├── IDENT (T)
+│   │   ├── IDENT (U)
+│   ├── PARAM_LIST
+│   │   ├── PARAM (x)
+│   │   │   ├── IDENT (T)
+│   │   ├── PARAM (y)
+│   │   │   ├── IDENT (U)
+│   ├── BODY
+│   │   ├── RETURN
+├── FUNC_DEF (main)
+│   ├── RETURN_TYPE
+│   │   ├── TYPE (void)
+│   ├── PARAM_LIST
+│   ├── BODY
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (int)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (j)
+│   │   │   │   │   ├── LITERAL (0)
+│   │   ├── VAR_DECL
+│   │   │   ├── TYPE (float)
+│   │   │   ├── VAR_LIST
+│   │   │   │   ├── VAR (k)
+│   │   │   │   │   ├── LITERAL (2.3)
+│   │   ├── GEN_CALL (swap)
+│   │   │   ├── TYPE_LIST
+│   │   │   │   ├── TYPE (int)
+│   │   │   │   ├── TYPE (float)
+│   │   │   ├── ARG_LIST
+│   │   │   │   ├── IDENT (j)
+│   │   │   │   ├── IDENT (k)

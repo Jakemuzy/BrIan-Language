@@ -66,39 +66,3 @@ PROG
 │   │   │   │   ├── IDENT (j)
 │   │   │   │   ├── IDENT (k)
 │   │   │   │   ├── IDENT (b)
-│   │   │   ├── GEN_CALL (add)
-│   │   │   │   ├── TYPE_LIST
-│   │   │   │   │   ├── TYPE (int)
-│   │   │   │   │   ├── TYPE (float)
-│   │   │   │   │   ├── TYPE (u8)
-│   │   │   │   ├── ARG_LIST
-│   │   │   │   │   ├── IDENT (j)
-│   │   │   │   │   ├── IDENT (k)
-│   │   │   │   │   ├── IDENT (b)
-│   │   │   │   ├── GEN_CALL (add)
-│   │   │   │   │   ├── TYPE_LIST
-│   │   │   │   │   │   ├── TYPE (int)
-│   │   │   │   │   │   ├── TYPE (float)
-│   │   │   │   │   │   ├── TYPE (u8)
-│   │   │   │   │   ├── ARG_LIST
-│   │   │   │   │   │   ├── IDENT (j)
-│   │   │   │   │   │   ├── IDENT (k)
-│   │   │   │   │   │   ├── IDENT (b)
-│   │   │   │   │   ├── GEN_CALL (add)
-│   │   │   │   │   │   ├── TYPE_LIST
-│   │   │   │   │   │   │   ├── TYPE (int)
-│   │   │   │   │   │   │   ├── TYPE (float)
-│   │   │   │   │   │   │   ├── TYPE (u8)
-│   │   │   │   │   │   ├── ARG_LIST
-│   │   │   │   │   │   │   ├── IDENT (j)
-│   │   │   │   │   │   │   ├── IDENT (k)
-│   │   │   │   │   │   │   ├── IDENT (b)
-│   │   │   │   │   │   ├── GEN_CALL (add)
-│   │   │   │   │   │   │   ├── TYPE_LIST
-│   │   │   │   │   │   │   │   ├── TYPE (int)
-│   │   │   │   │   │   │   │   ├── TYPE (float)
-│   │   │   │   │   │   │   │   ├── TYPE (u8)
-│   │   │   │   │   │   │   ├── ARG_LIST
-│   │   │   │   │   │   │   │   ├── IDENT (j)
-│   │   │   │   │   │   │   │   ├── IDENT (k)
-│   │   │   │   │   │   │   │   ├── I

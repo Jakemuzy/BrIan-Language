@@ -1225,8 +1225,10 @@ ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
       // Look ahead to determine if a cast or generic typelist
 	    Advance(ctx);
 
-      if (ctx->current.type == LESS) 
+      if (ctx->current.type == LESS) {
           binaryNode = GenCallFunc(ctx, left); 
+          if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+      }
       else  {
           binaryNode = Cast(ctx);
           if (ctx->panicMode) SyncRecovery(ctx, SEMI);

@@ -1,0 +1,8 @@
+
+fn <Z> Add(int one, int two) {
+    return (one + two) as Z;
+}
+
+fn void main() {
+    Add as<float>(10, 20);
+}

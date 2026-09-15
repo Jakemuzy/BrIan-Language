@@ -126,10 +126,6 @@ void ResolveFuncDef(NameResolverContext* ctx, ASTNode* current)
 
 void ResolveGenFuncDecl(NameResolverContext* ctx, ASTNode* current)
 {
-    // TODO: Again a generic return type currently requires an explicit paramater to be defined prior 
-    // this should allow just the return if the user desires. In this case it should implicitly define
-    // the paramaterlist and have the return type as a member. This is syntactic sugar
- 
     // 3 cases 
     Debug("GenFuncDecl");
     Environment* env = GetNamespace(ctx->nss, N_VAR);
@@ -138,12 +134,20 @@ void ResolveGenFuncDecl(NameResolverContext* ctx, ASTNode* current)
     // Enter scope earlier, since should resolve from gen param list
     EnterScope(ctx->arena, ctx->nss);
 
-    size_t i = 1;
+    // Prepends any generic return type to the generic list
+    ASTNode* returnTypeWrapper = current->children[0];
+    ASTNode* returnTypeNode = returnTypeWrapper->children[0];
+
+    if (returnTypeNode->ntype == GENERIC_NODE) 
+        ResolveGeneric(ctx, returnTypeNode);
+
     // Optional generic list 
+    size_t i = 1;
     if (current->children[i]->ntype == GENERIC_LIST_NODE) 
         ResolveGenericList(ctx, current->children[i++]);
 
-    ResolveReturnType(ctx, current->children[0]);
+
+    ResolveReturnType(ctx, returnTypeWrapper);
     ResolveParamList(ctx, current->children[i++]);
     ExitScope(ctx->nss);
 }
@@ -157,8 +161,15 @@ void ResolveGenFuncDef(NameResolverContext* ctx, ASTNode* current)
     // Enter scope earlier, since should resolve from gen param list
     EnterScope(ctx->arena, ctx->nss);
 
-    size_t i = 1;
+    // Prepends any generic return type to the generic list
+    ASTNode* returnTypeWrapper = current->children[0];
+    ASTNode* returnTypeNode = returnTypeWrapper->children[0];
+
+    if (returnTypeNode->ntype == GENERIC_NODE) 
+        ResolveGeneric(ctx, returnTypeNode);
+
     // Optional generic list 
+    size_t i = 1;
     if (current->children[i]->ntype == GENERIC_LIST_NODE) 
         ResolveGenericList(ctx, current->children[i++]);
 
@@ -172,8 +183,7 @@ void ResolveReturnType(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("ReturnType");
     ASTNode* returnTypeNode = current->children[0];
-    if (returnTypeNode->ntype == GENERIC_NODE)   ResolveGenericRef(ctx, returnTypeNode);
-    else if (returnTypeNode->ntype == TYPE_NODE) ResolveType(ctx, returnTypeNode);
+    if (returnTypeNode->ntype == TYPE_NODE) ResolveType(ctx, returnTypeNode);
 }
 
 void ResolveBody(NameResolverContext* ctx, ASTNode* current)
@@ -239,6 +249,9 @@ void ResolveBody(NameResolverContext* ctx, ASTNode* current)
                 break;
             case CALL_FUNC_NODE:
                 ResolveFuncCall(ctx, stmt);
+                break;
+            case GENERIC_CALL_FUNC_NODE:
+                ResolveGenericFuncCall(ctx, stmt);
                 break;
             case MEMBER_NODE:   // Fallthrough, since same format
             case SMEMBER_NODE:  
@@ -642,32 +655,76 @@ void ResolveFuncCall(NameResolverContext* ctx, ASTNode* current)
     ResolveArgList(ctx, current->children[0]);
 }
 
+void ResolveGenericFuncCall(NameResolverContext* ctx, ASTNode* current)
+{
+    // TODO: Could lowk combine with the original ResolveFuncCall
+    char* funcName = current->token.lexeme;
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    Symbol* funcSym = LookupEnvironment(env, funcName);
+
+    if (funcSym == SYM_DOESNT_EXIST)
+        NameresERROR(ctx, 
+            "User defined generic function %s doesn't exist within current scope on line %d, col %d.\n",
+            funcName, current->token.row, current->token.col
+        );
+    ResolveTypelist(ctx, current->children[0]);
+    ResolveArgList(ctx, current->children[1]);
+}
+
 void ResolveMember(NameResolverContext* ctx, ASTNode* current)
 {
     // Struct member technically a part of the type. Type Checkers responsibility
     Debug("Member");
-    char* baseName = current->token.lexeme;
-    Environment* env = GetNamespace(ctx->nss, N_VAR);
-    Symbol* sym = LookupEnvironment(env, baseName);
+  
+    // Kind of a weird format where the more nested tree node is higher in the tree
+    // because of this we have to check whether base is actually a MEMBER, SMEM, SREF, or REF
+    // before we check whether or not it exists in the scope.
+    ASTNode* base = current->children[0];
+    switch (base->ntype) {
+        case MEMBER_NODE:   
+        case SMEMBER_NODE:  
+            ResolveMember(ctx, base);
+            return;
+        case REF_NODE:      
+        case SREF_NODE:
+            ResolveReference(ctx, base);
+            return;
+        default: break;
+    }
 
+    Environment* env = GetNamespace(ctx->nss, N_VAR);
+    Symbol* sym = LookupEnvironment(env, base->token.lexeme);
     if (sym == SYM_DOESNT_EXIST) 
         NameresERROR(ctx, 
-            "No struct variable '%s' exists within current scope on line %d, col %d.\n",
-            baseName, current->token.row, current->token.col
+            "No struct '%s' exists within current scope on line %d, col %d.\n",
+            base->token.lexeme, base->token.row, base->token.col
         );
 }
 
 void ResolveReference(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("Reference");
-    char* baseName = current->token.lexeme;
+
+    ASTNode* base = current->children[0];
+    switch (base->ntype) {
+        case MEMBER_NODE:   
+        case SMEMBER_NODE:  
+            ResolveMember(ctx, base);
+            return;
+        case REF_NODE:      
+        case SREF_NODE:
+            ResolveReference(ctx, base);
+            return;
+        default: break;
+    }
+
     Environment* env = GetNamespace(ctx->nss, N_VAR);
-    Symbol* sym = LookupEnvironment(env, baseName);
+    Symbol* sym = LookupEnvironment(env, base->token.lexeme);
 
     if (sym == SYM_DOESNT_EXIST) 
         NameresERROR(ctx, 
-            "No struct variable '%s' exists within current scope on line %d, col %d.\n",
-            baseName, current->token.row, current->token.col
+            "No struct '%s' exists within current scope on line %d, col %d.\n",
+            base->token.lexeme, base->token.row, base->token.col
         );
 }
 
@@ -831,6 +888,13 @@ void ResolveArgList(NameResolverContext* ctx, ASTNode* current)
         ResolveExpr(ctx, current->children[i]);
 }
 
+void ResolveTypelist(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("TypeList");
+    for (size_t i = 0; i < current->childCount; i++) 
+        ResolveType(ctx, current->children[i]);
+}
+
 /* Types */
 
 void ResolveGenericList(NameResolverContext* ctx, ASTNode* current)
@@ -846,22 +910,6 @@ void ResolveGeneric(NameResolverContext* ctx, ASTNode* current)
     char* typeName = current->token.lexeme;
     Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
     PushEnvironment(ctx->arena, typeEnv, current, S_GEN, &ctx->failure);
-}
-
-void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current)
-{
-    Debug("GenericRef");
-    // For generic returns, need to lookup if defined already
-    char* typeName = current->token.lexeme;
-    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
-    
-    Symbol* found = LookupEnvironment(typeEnv, typeName);
-    if (found == SYM_DOESNT_EXIST || found->stype != S_GEN) {
-        NameresERROR(ctx, 
-            "Undefined generic parameter '%s' on line %d, col %d.\n", 
-            typeName, current->token.row, current->token.col
-        );
-    }
 }
 
 void ResolveType(NameResolverContext* ctx, ASTNode* current)

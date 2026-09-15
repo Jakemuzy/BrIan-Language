@@ -2,15 +2,6 @@
 	COMPARED GenFuncNoGenParams.src:	FAIL (Output mismatch) (Wrong exit code: expected 0, got 1)
 	COMPARED GenFuncNormalParams.src:	FAIL (Output mismatch) (Wrong exit code: expected 0, got 1)
 	COMPARED GenFuncUndefinedReturn.src:	FAIL (Output mismatch) (Wrong exit code: expected 0, got 1)
-	COMPARED MemberNested.src:	FAIL (Output mismatch) (Wrong exit code: expected 0, got 1)
-	COMPARED Member.src:	FAIL (Output mismatch) (Wrong exit code: expected 0, got 1)
-	COMPARED ReferenceSafe.src:	FAIL (Output mismatch) (Wrong exit code: expected 0, got 1)
-	COMPARED MemberSafe.src:	FAIL (Output mismatch) (Wrong exit code: expected 0, got 1)
-	COMPARED Reference.src:	FAIL (Output mismatch) (Wrong exit code: expected 0, got 1)
-	COMPARED MemberDoesntExist.src:	FAIL (Output mismatch)
-	COMPARED MemberSafeDoesntExist.src:	FAIL (Output mismatch)
-	COMPARED ReferenceSafeDoesntExist.src:	FAIL (Output mismatch)
-	COMPARED ReferenceDoesntExist.src:	FAIL (Output mismatch)
 
 
 

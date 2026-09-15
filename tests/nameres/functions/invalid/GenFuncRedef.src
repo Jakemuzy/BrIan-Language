@@ -2,5 +2,5 @@
 
 fn <T> f10 <T, C>(T a, T b) 
 { 
-    let T a = 3; 
+    let T c = 3; 
 }
