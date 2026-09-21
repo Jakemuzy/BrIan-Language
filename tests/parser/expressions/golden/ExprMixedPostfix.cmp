@@ -8,24 +8,24 @@ PROG
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (x)
-│   │   │   │   │   ├── SMEMBER
-│   │   │   │   │   │   ├── LITERAL (0)
-│   │   │   │   │   │   ├── IDENT (arr)
-│   │   │   │   │   │   ├── IDENT (field)
-│   │   │   │   │   │   ├── IDENT (ptr)
-│   │   │   │   │   │   ├── IDENT (safe)
-│   │   │   │   │   │   ├── IDENT (member)
+│   │   │   │   │   ├── SMEMBER (member)
+│   │   │   │   │   │   ├── SREF (safe)
+│   │   │   │   │   │   │   ├── REF (ptr)
+│   │   │   │   │   │   │   │   ├── MEMBER (field)
+│   │   │   │   │   │   │   │   │   ├── INDEX
+│   │   │   │   │   │   │   │   │   │   ├── LITERAL (0)
+│   │   │   │   │   │   │   │   │   │   ├── IDENT (arr)
 │   │   ├── VAR_DECL
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (y)
 │   │   │   │   │   ├── INDEX
 │   │   │   │   │   │   ├── IDENT (index)
-│   │   │   │   │   │   ├── CALL (obj)
-│   │   │   │   │   │   │   ├── IDENT (method)
+│   │   │   │   │   │   ├── CALL (method)
+│   │   │   │   │   │   │   ├── IDENT (obj)
 │   │   ├── VAR_DECL
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (z)
-│   │   │   │   │   ├── REF (getPtr)
-│   │   │   │   │   │   ├── IDENT (value)
+│   │   │   │   │   ├── REF (value)
+│   │   │   │   │   │   ├── CALL (getPtr)

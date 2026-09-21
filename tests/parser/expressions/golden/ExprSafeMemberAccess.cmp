@@ -8,12 +8,12 @@ PROG
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (x)
-│   │   │   │   │   ├── SMEMBER (p)
-│   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   ├── SMEMBER (x)
+│   │   │   │   │   │   ├── IDENT (p)
 │   │   ├── VAR_DECL
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (y)
-│   │   │   │   │   ├── SMEMBER (p)
-│   │   │   │   │   │   ├── IDENT (nested)
-│   │   │   │   │   │   ├── IDENT (value)
+│   │   │   │   │   ├── SMEMBER (value)
+│   │   │   │   │   │   ├── SMEMBER (nested)
+│   │   │   │   │   │   │   ├── IDENT (p)

@@ -1218,7 +1218,6 @@ ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 
       ASTNode* accessNode = InitalizeASTNode(ctx->arena, nt, ctx->current);
       AddChildASTNode(ctx->arena, accessNode, left);   // children[0] = base expression (may itself be nested)
-      AddChildASTNode(ctx->arena, accessNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));  
       Advance(ctx);
       return accessNode;
 		case AS:
