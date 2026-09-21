@@ -912,6 +912,22 @@ void ResolveGeneric(NameResolverContext* ctx, ASTNode* current)
     PushEnvironment(ctx->arena, typeEnv, current, S_GEN, &ctx->failure);
 }
 
+void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current)
+{
+    Debug("GenericRef");
+    // For generic returns, need to lookup if defined already
+    char* typeName = current->token.lexeme;
+    Environment* typeEnv = GetNamespace(ctx->nss, N_TYPE);
+    
+    Symbol* found = LookupEnvironment(typeEnv, typeName);
+    if (found == SYM_DOESNT_EXIST || found->stype != S_GEN) {
+        NameresERROR(ctx, 
+            "Undefined generic parameter '%s' on line %d, col %d.\n", 
+            typeName, current->token.row, current->token.col
+        );
+    }
+}
+
 void ResolveType(NameResolverContext* ctx, ASTNode* current)
 {
     Debug("Type");
