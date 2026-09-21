@@ -1,5 +1,7 @@
 
 NAME RESOLUTION ERROR: User defined type 'ID' doesn't exist within current scope on line 4, col 10.
+
+SYNTAX ERROR: Failed to name resolve.
 	 START
 VarDecl
 Type

@@ -38,7 +38,7 @@ PROG
 │   │   │   ├── BODY
 │   │   │   │   ├── RETURN
 │   │   │   │   │   ├── BINARY (==)
-│   │   │   │   │   │   ├── MEMBER (a)
-│   │   │   │   │   │   │   ├── IDENT (radius)
-│   │   │   │   │   │   ├── MEMBER (b)
-│   │   │   │   │   │   │   ├── IDENT (radius)
+│   │   │   │   │   │   ├── MEMBER (radius)
+│   │   │   │   │   │   │   ├── IDENT (a)
+│   │   │   │   │   │   ├── MEMBER (radius)
+│   │   │   │   │   │   │   ├── IDENT (b)

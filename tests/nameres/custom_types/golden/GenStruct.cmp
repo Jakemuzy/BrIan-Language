@@ -1,6 +1,24 @@
-
-SYNTAX ERROR: Struct methods must be declarations, not definitions. Instead encountered ';' on line 7, col 30
-
-SYNTAX ERROR: Unexpected token occured in global scope. Instead encountered '}' on line 8, col 1
-
-SYNTAX ERROR: Failed to parse file.
+	 START
+GenStruct
+GenericList
+Generic
+Generic
+GenStructBody
+VarDecl
+Type
+Var
+VarDecl
+Type
+Var
+FuncDecl
+ReturnType
+Type
+ParamList
+Type
+Type
+FuncDecl
+ReturnType
+Type
+ParamList
+Type
+Type

@@ -1,5 +1,9 @@
 // Invalid
 
+struct mystruct {
+  let int j = 1;
+}
+
 fn void main() {
     struct1->?i = 0;
 }

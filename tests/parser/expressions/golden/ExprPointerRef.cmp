@@ -8,12 +8,12 @@ PROG
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (x)
-│   │   │   │   │   ├── REF (p)
-│   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   ├── REF (x)
+│   │   │   │   │   │   ├── IDENT (p)
 │   │   ├── VAR_DECL
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (y)
-│   │   │   │   │   ├── REF (p)
-│   │   │   │   │   │   ├── IDENT (next)
-│   │   │   │   │   │   ├── IDENT (value)
+│   │   │   │   │   ├── REF (value)
+│   │   │   │   │   │   ├── REF (next)
+│   │   │   │   │   │   │   ├── IDENT (p)

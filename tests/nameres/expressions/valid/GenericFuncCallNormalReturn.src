@@ -1,0 +1,8 @@
+
+fn void Add<X, Y>(X one, Y two) {
+    return one + (two as X);
+}
+
+fn void main() {
+    Add as<int, float>(10, 20);
+}

@@ -8,18 +8,18 @@ PROG
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (x)
-│   │   │   │   │   ├── MEMBER (p)
-│   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   ├── MEMBER (x)
+│   │   │   │   │   │   ├── IDENT (p)
 │   │   ├── VAR_DECL
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (y)
-│   │   │   │   │   ├── MEMBER (p)
-│   │   │   │   │   │   ├── IDENT (y)
+│   │   │   │   │   ├── MEMBER (y)
+│   │   │   │   │   │   ├── IDENT (p)
 │   │   ├── VAR_DECL
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (z)
-│   │   │   │   │   ├── MEMBER (p)
-│   │   │   │   │   │   ├── IDENT (nested)
-│   │   │   │   │   │   ├── IDENT (value)
+│   │   │   │   │   ├── MEMBER (value)
+│   │   │   │   │   │   ├── MEMBER (nested)
+│   │   │   │   │   │   │   ├── IDENT (p)

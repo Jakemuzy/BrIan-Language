@@ -105,6 +105,7 @@ ASTNode* Sizeof(ParserContext* ctx);
 ASTNode* Cast(ParserContext* ctx);
 ASTNode* Index(ParserContext* ctx);
 ASTNode* CallFunc(ParserContext* ctx, ASTNode* left);
+ASTNode* GenCallFunc(ParserContext* ctx, ASTNode* left);
 
 ASTNode* ArgList(ParserContext* ctx);
 

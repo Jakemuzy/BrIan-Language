@@ -5,10 +5,10 @@ PROG
 │   ├── PARAM_LIST
 │   ├── BODY
 │   │   ├── LOCK
-│   │   │   ├── MEMBER (obj)
-│   │   │   │   ├── IDENT (mtx)
+│   │   │   ├── MEMBER (mtx)
+│   │   │   │   ├── IDENT (obj)
 │   │   │   ├── BODY
 │   │   │   │   ├── ASGN (=)
-│   │   │   │   │   ├── MEMBER (obj)
-│   │   │   │   │   │   ├── IDENT (value)
+│   │   │   │   │   ├── MEMBER (value)
+│   │   │   │   │   │   ├── IDENT (obj)
 │   │   │   │   │   ├── LITERAL (42)

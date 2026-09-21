@@ -1205,41 +1205,35 @@ ASTNode* PostfixExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left) {
 
 ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 {
-	/* Could refactor member and references to their own separate functions, but relatively simple, no need */
 	ASTNode* binaryNode = NULL;
 	switch (ctx->current.type) {
-		case MEM:
-			Advance(ctx);
-			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid struct member access.");
-			binaryNode = left; binaryNode->ntype = MEMBER_NODE;
-			AddChildASTNode(ctx->arena, binaryNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
-			Advance(ctx);  
-			return binaryNode;  
-		case SMEM:
-			Advance(ctx);
-			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid safe struct member access.");
-			binaryNode = left; binaryNode->ntype = SMEMBER_NODE;
-			AddChildASTNode(ctx->arena, binaryNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
-			Advance(ctx);  
-			return binaryNode;  
-		case REF:
-			Advance(ctx);
-			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid struct member pointer access.");
-			binaryNode = left; binaryNode->ntype = REF_NODE;
-			AddChildASTNode(ctx->arena, binaryNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
-			Advance(ctx);  
-			return binaryNode;  
-		case SREF:
-			Advance(ctx);
-			if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid safe struct member pointer access.");
-			binaryNode = left; binaryNode->ntype = SREF_NODE;
-			AddChildASTNode(ctx->arena, binaryNode, InitalizeASTNode(ctx->arena, IDENT_NODE, ctx->current));
-			Advance(ctx);  
-			return binaryNode;  
+    case MEM: case SMEM: case REF: case SREF: 
+      // Builds a separate parent node for nesting cases
+      NodeType nt = (ctx->current.type == MEM)  ? MEMBER_NODE
+                  : (ctx->current.type == SMEM) ? SMEMBER_NODE
+                  : (ctx->current.type == REF)  ? REF_NODE
+                  : SREF_NODE;
+      Advance(ctx);
+      if (ctx->current.type != IDENT) return ParseERROR(ctx, "Invalid struct member/reference access.");
+
+      ASTNode* accessNode = InitalizeASTNode(ctx->arena, nt, ctx->current);
+      AddChildASTNode(ctx->arena, accessNode, left);   // children[0] = base expression (may itself be nested)
+      Advance(ctx);
+      return accessNode;
 		case AS:
-			binaryNode = Cast(ctx);
-			if (ctx->panicMode) SyncRecovery(ctx, SEMI);
-			else AddChildASTNode(ctx->arena, binaryNode, left);
+      // Look ahead to determine if a cast or generic typelist
+	    Advance(ctx);
+
+      if (ctx->current.type == LESS) {
+          binaryNode = GenCallFunc(ctx, left); 
+          if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+      }
+      else  {
+          binaryNode = Cast(ctx);
+          if (ctx->panicMode) SyncRecovery(ctx, SEMI);
+          else AddChildASTNode(ctx->arena, binaryNode, left);
+      }
+
 			return binaryNode;  
 		case LBRACK: 
 			binaryNode = Index(ctx);
@@ -1253,11 +1247,11 @@ ASTNode* BinaryExpr(ParserContext* ctx, PRECEDENCE prec, ASTNode* left)
 		default: binaryNode = InitalizeASTNode(ctx->arena, BINARY_EXPR_NODE, ctx->current);
 
 	}
-	Advance(ctx);	
+	Advance(ctx);
 
 	AddChildASTNode(ctx->arena, binaryNode, left);
 	ASTNode* right = Expr(ctx, prec);
-	if (ctx->panicMode) return NULL;	// Main expr handles errors
+	if (ctx->panicMode) return NULL; // Main expr handles errors
 	else AddChildASTNode(ctx->arena, binaryNode, right);
 
 	return binaryNode;
@@ -1543,6 +1537,46 @@ ASTNode* CallFunc(ParserContext* ctx, ASTNode* left)
 	return callFuncNode;
 }
 
+ASTNode* GenCallFunc(ParserContext* ctx, ASTNode* left)
+{
+  Advance(ctx);
+
+  left->ntype = GENERIC_CALL_FUNC_NODE;
+  ASTNode* genCallFuncNode = left;
+  ASTNode* typeListNode = InitalizeASTNode(ctx->arena, TYPE_LIST_NODE, DUMMY_TOKEN);
+
+  while (true) {
+    switch (ctx->current.type) {
+      TYPE_CASES
+        ASTNode* typeNode = Type(ctx);
+        if (ctx->panicMode) SyncRecovery(ctx, GREAT);
+        else AddChildASTNode(ctx->arena, typeListNode, typeNode);
+        break;
+      default: return ParseERROR(ctx, "Generic function call's type list expected a type.");
+    }
+
+    if (Match(ctx, COMMA)) continue;
+    else break;
+  }
+
+  if (!Match(ctx, GREAT)) return ParseERROR(ctx, "Generic Function call expected type list to end with '>'.");
+  AddChildASTNode(ctx->arena, genCallFuncNode, typeListNode);
+
+  if (!Match(ctx, LPAREN)) return ParseERROR(ctx, "Generic Function call expected '(' and argument list after type list.");
+	switch (ctx->current.type) {
+		EXPR_START_CASES
+			ASTNode* exprNode = ArgList(ctx);
+			if (ctx->panicMode) SyncRecovery(ctx, RPAREN);
+			else AddChildASTNode(ctx->arena, genCallFuncNode, exprNode);
+			break;
+		case RPAREN: break;
+		default: return ParseERROR(ctx, "Function calling only allows expression arguments.");
+	}
+
+  if (!Match(ctx, RPAREN)) return ParseERROR(ctx, "Generic function call expected ')' after argument list.");
+  return genCallFuncNode;
+}
+
 ASTNode* Index(ParserContext* ctx)
 {
 	Advance(ctx);
@@ -1562,7 +1596,6 @@ ASTNode* Index(ParserContext* ctx)
 
 ASTNode* Cast(ParserContext* ctx)
 {
-	Advance(ctx);
 	ASTNode* castNode = InitalizeASTNode(ctx->arena, CAST_NODE, ctx->current);
 
 	switch (ctx->current.type) {

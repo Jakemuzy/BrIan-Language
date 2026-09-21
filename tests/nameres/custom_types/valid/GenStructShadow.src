@@ -9,7 +9,10 @@ enum COLOR {
 
 struct str {
     let int a = 2;
-    fn void print(int a);
+    fn void print(int a)
+    {
+
+    };
     type FOO = bool;
     enum COLOR {
         BLUE

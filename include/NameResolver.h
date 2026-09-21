@@ -75,6 +75,7 @@ void ResolveTernaryExpr(NameResolverContext* ctx, ASTNode* current);
 void ResolveCast(NameResolverContext* ctx, ASTNode* current);
 void ResolveIndex(NameResolverContext* ctx, ASTNode* current);
 void ResolveFuncCall(NameResolverContext* ctx, ASTNode* current);
+void ResolveGenericFuncCall(NameResolverContext* ctx, ASTNode* current);
 void ResolveMember(NameResolverContext* ctx, ASTNode* current);
 void ResolveReference(NameResolverContext* ctx, ASTNode* current); // Bad name, refers to ->
 void ResolveSizeof(NameResolverContext* ctx, ASTNode* current);
@@ -89,11 +90,11 @@ void ResolveOperatorOverload(NameResolverContext* ctx, ASTNode* current);
 /* Lists */
 void ResolveParamList(NameResolverContext* ctx, ASTNode* current);
 void ResolveArgList(NameResolverContext* ctx, ASTNode* current);
+void ResolveTypelist(NameResolverContext* ctx, ASTNode* current);
 
 /* Types */
 void ResolveGenericList(NameResolverContext* ctx, ASTNode* current);
 void ResolveGeneric(NameResolverContext* ctx, ASTNode* current);
-void ResolveGenericRef(NameResolverContext* ctx, ASTNode* current);
 void ResolveType(NameResolverContext* ctx, ASTNode* current);
 void ResolveMatrix(NameResolverContext* ctx, ASTNode* current);
 void ResolveVector(NameResolverContext* ctx, ASTNode* current);

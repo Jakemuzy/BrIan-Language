@@ -1,5 +1,5 @@
 // Valid
 
-fn <X> f6 <X>(X a, X b) {
+fn <X> f6 <Y>(X a, Y b) {
 
 }

@@ -4,15 +4,15 @@ PROG
 │   │   ├── TYPE (void)
 │   ├── PARAM_LIST
 │   ├── BODY
-│   │   ├── CALL (a)
-│   │   │   ├── IDENT (foo)
-│   │   │   ├── IDENT (bar)
-│   │   │   ├── IDENT (baz)
+│   │   ├── CALL (baz)
+│   │   │   ├── CALL (bar)
+│   │   │   │   ├── CALL (foo)
+│   │   │   │   │   ├── IDENT (a)
 │   │   ├── VAR_DECL
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (x)
-│   │   │   │   │   ├── CALL (obj)
-│   │   │   │   │   │   ├── IDENT (method1)
-│   │   │   │   │   │   ├── IDENT (method2)
-│   │   │   │   │   │   ├── IDENT (getValue)
+│   │   │   │   │   ├── CALL (getValue)
+│   │   │   │   │   │   ├── CALL (method2)
+│   │   │   │   │   │   │   ├── CALL (method1)
+│   │   │   │   │   │   │   │   ├── IDENT (obj)

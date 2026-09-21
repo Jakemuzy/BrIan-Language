@@ -1,0 +1,9 @@
+
+fn <T> identity(T x) {
+    return x;
+}
+
+fn void main() {
+    let int j = 0;
+    identity as<>(j);
+}

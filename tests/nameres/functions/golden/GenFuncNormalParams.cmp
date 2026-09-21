@@ -1,9 +1,7 @@
-
-NAME RESOLUTION ERROR: Undefined generic parameter 'X' on line 4, col 5.
 	 START
 GenFuncDecl
+Generic
 ReturnType
-GenericRef
 ParamList
 Type
 Type

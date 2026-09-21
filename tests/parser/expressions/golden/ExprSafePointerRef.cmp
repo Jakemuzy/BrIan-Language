@@ -8,12 +8,12 @@ PROG
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (x)
-│   │   │   │   │   ├── SREF (p)
-│   │   │   │   │   │   ├── IDENT (x)
+│   │   │   │   │   ├── SREF (x)
+│   │   │   │   │   │   ├── IDENT (p)
 │   │   ├── VAR_DECL
 │   │   │   ├── TYPE (int)
 │   │   │   ├── VAR_LIST
 │   │   │   │   ├── VAR (y)
-│   │   │   │   │   ├── SREF (p)
-│   │   │   │   │   │   ├── IDENT (next)
-│   │   │   │   │   │   ├── IDENT (value)
+│   │   │   │   │   ├── SREF (value)
+│   │   │   │   │   │   ├── SREF (next)
+│   │   │   │   │   │   │   ├── IDENT (p)

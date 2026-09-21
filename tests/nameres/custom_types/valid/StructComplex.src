@@ -15,7 +15,7 @@ struct Group : Printable {
     fn void print(string msg) {
         // ...
         three = two;
-    }
+    };
 
     operator +(Group a, Group b) {
         return b;
